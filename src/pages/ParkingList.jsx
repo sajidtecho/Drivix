@@ -5,6 +5,7 @@ import {
   Shield, Zap, Clock, Navigation
 } from 'lucide-react';
 import { collection, onSnapshot, query, doc, setDoc, writeBatch } from 'firebase/firestore';
+import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../firebase';
 
 const SEED_LOCATION = {
@@ -75,8 +76,8 @@ const ParkingList = () => {
   };
 
   const filtered = locations.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.address.toLowerCase().includes(search.toLowerCase())
+    (p.name?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (p.address?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   const availabilityColor = (avail, total) => {
