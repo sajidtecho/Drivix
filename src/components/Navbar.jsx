@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserCircle, Sun, Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../hooks/useUser';
 
 // Nav links for each context
@@ -21,6 +22,20 @@ const Navbar = () => {
   const navigate = useNavigate();
   const isLanding = location.pathname === '/';
   const [hasScrolled, setHasScrolled] = useState(false);
+  
+  const updates = [
+    "Now live in Sector 18 & Knowledge Park",
+    "42+ Smart Facilities active in Noida",
+    "FASTag Entry enabled for Sharda University"
+  ];
+  const [updateIndex, setUpdateIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setUpdateIndex((prev) => (prev + 1) % updates.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -75,15 +90,35 @@ const Navbar = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '0.75rem',
-        fontWeight: 900,
-        textTransform: 'uppercase',
-        letterSpacing: '0.15em',
+        fontSize: '0.7rem',
+        fontWeight: 800,
         zIndex: 1001,
-        transition: 'all 0.4s ease'
+        transition: 'all 0.4s ease',
+        overflow: 'hidden'
       }}>
-        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--announcement-text)', marginRight: '10px', boxShadow: '0 0 10px currentColor' }} />
-        NOIDA, INDIA — LIVE SHARDA UNIVERSITY
+        <div style={{ position: 'relative', width: '8px', height: '8px', marginRight: '12px' }}>
+          <div style={{ position: 'absolute', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--announcement-text)' }} />
+          <motion.div 
+            animate={{ scale: [1, 1.8, 1], opacity: [1, 0, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            style={{ position: 'absolute', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--announcement-text)' }} 
+          />
+        </div>
+        
+        <div style={{ height: '20px', display: 'flex', alignItems: 'center', position: 'relative' }}>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={updateIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              style={{ display: 'inline-block', letterSpacing: '0.05em', fontWeight: 900, textTransform: 'uppercase' }}
+            >
+              {updates[updateIndex]}
+            </motion.span>
+          </AnimatePresence>
+        </div>
       </div>
 
       <nav
