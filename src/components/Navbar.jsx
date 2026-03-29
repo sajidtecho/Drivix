@@ -12,7 +12,6 @@ const LANDING_LINKS = [
 ];
 
 const APP_LINKS = [
-  { label: 'Book Slot', path: '/slot-layout' },
   { label: 'Services', path: '/services' },
 ];
 
