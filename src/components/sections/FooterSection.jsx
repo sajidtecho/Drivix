@@ -18,17 +18,19 @@ const FooterSection = () => {
       {/* Massive Typographic Background */}
       <div style={{
         position: 'absolute',
-        bottom: '-40px',
+        top: '40px',
         left: '50%',
         transform: 'translateX(-50%)',
-        fontSize: 'clamp(10rem, 25vw, 30rem)',
+        fontSize: 'clamp(6rem, 18vw, 15rem)',
         fontWeight: 900,
         fontFamily: 'var(--font-display)',
-        color: 'rgba(255, 255, 255, 0.02)',
+        color: 'var(--text-primary)',
+        opacity: 0.03,
         whiteSpace: 'nowrap',
         pointerEvents: 'none',
         letterSpacing: '-0.05em',
-        lineHeight: 1
+        lineHeight: 1,
+        zIndex: 0
       }}>
         PARK SMARTER.
       </div>
