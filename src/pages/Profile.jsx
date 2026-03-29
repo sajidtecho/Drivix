@@ -138,11 +138,40 @@ const Profile = () => {
 
   return (
     <div style={{ minHeight: '100vh', paddingTop: '100px', paddingBottom: '60px', background: 'var(--bg-primary)' }}>
-      <div className="container" style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+      <div className="container profile-container-responsive" style={{ display: 'flex', gap: '32px', alignItems: 'flex-start', flexDirection: 'column' }}>
+        <style>{`
+          @media (min-width: 1025px) {
+            .profile-container-responsive {
+              flex-direction: row !important;
+            }
+            .profile-sidebar {
+              width: 280px !important;
+              position: sticky !important;
+              top: 100px;
+            }
+          }
+          @media (max-width: 1024px) {
+            .profile-sidebar {
+              width: 100% !important;
+              margin-bottom: 24px;
+            }
+            .profile-nav {
+              flex-direction: row !important;
+              overflow-x: auto;
+              padding-bottom: 8px;
+            }
+            .profile-nav button {
+              min-width: 160px;
+            }
+            .profile-content {
+               padding: 24px !important;
+            }
+          }
+        `}</style>
         
-        {/* Sidebar */}
-        <div className="glass-panel" style={{ width: '280px', padding: '24px', position: 'sticky', top: '100px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '40px', paddingBottom: '20px', borderBottom: '1px solid var(--glass-border)' }}>
+        {/* Sidebar / Top Nav */}
+        <div className="glass-panel profile-sidebar" style={{ padding: '24px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px', paddingBottom: '20px', borderBottom: '1px solid var(--glass-border)' }} className="desktop-only">
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 800, fontSize: '1.4rem' }}>
               {user.name?.charAt(0) || 'U'}
             </div>
@@ -152,7 +181,7 @@ const Profile = () => {
             </div>
           </div>
 
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }} className="profile-nav hide-scrollbar">
             {menuItems.map((item) => (
               <button
                 key={item.id}
@@ -166,22 +195,24 @@ const Profile = () => {
               >
                 <item.icon size={20} />
                 <span style={{ flex: 1 }}>{item.label}</span>
-                <ChevronRight size={16} />
+                <ChevronRight size={16} className="desktop-only" />
               </button>
             ))}
             
             <button 
               onClick={logout}
-              style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: '12px', border: 'none', background: 'transparent', color: '#ff4b4b', fontWeight: 600, cursor: 'pointer', marginTop: '24px' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: '12px', border: 'none', background: 'transparent', color: '#ff4b4b', fontWeight: 600, cursor: 'pointer' }}
+              className="desktop-only"
+            >
               <Trash2 size={20} /> Logout
             </button>
           </nav>
         </div>
 
         {/* Content Area */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
           
-          <div className="glass-panel" style={{ padding: '40px' }}>
+          <div className="glass-panel profile-content" style={{ padding: '40px' }}>
             
             {activeTab === 'bookings' && (
               <section>

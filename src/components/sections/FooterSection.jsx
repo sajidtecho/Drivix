@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import FadeIn from '../common/FadeIn';
 
 const stats = [
-  { value: '2.5M+',  label: 'Downloads' },
-  { value: '500K+',  label: 'FASTag Recharges' },
-  { value: '120K+',  label: 'Challans Resolved' },
+  { value: '0', label: 'Downloads' },
+  { value: '0', label: 'FASTag Recharges' },
+  { value: '0', label: 'Challans Resolved' },
 ];
 
 const footerLinks = ['Terms & Conditions', 'Privacy Policy', 'Site Map'];

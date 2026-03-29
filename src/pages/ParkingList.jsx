@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   MapPin, Car, Users, Star, ChevronRight, Search,
@@ -146,9 +145,9 @@ const ParkingList = () => {
           {[{ label: 'Locations', value: locations.length, icon: MapPin },
             { label: 'Total Slots', value: locations.reduce((a, p) => a + (p.totalSlots || 0), 0), icon: Car },
             { label: 'Available', value: locations.reduce((a, p) => a + (p.availableSlots || 0), 0), icon: Zap }
-          ].map(({ label, value, icon: Icon }) => (
+          ].map(({ label, value, icon: IconComponent }) => (
             <div key={label} className="glass-panel" style={{ flex: '1 1 120px', padding: '16px 20px', borderRadius: '14px', textAlign: 'center' }}>
-              <Icon size={18} color="var(--accent-primary)" style={{ marginBottom: '6px' }} />
+              <IconComponent size={18} color="var(--accent-primary)" style={{ marginBottom: '6px' }} />
               <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{value}</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{label}</div>
             </div>
@@ -191,25 +190,48 @@ const ParkingList = () => {
                   {loc.badge}
                 </div>
 
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }} className="parking-card-inner">
+                  <style>{`
+                    @media (max-width: 640px) {
+                      .parking-card-inner {
+                        flex-direction: column !important;
+                      }
+                      .parking-card-icon {
+                        width: 48px !important;
+                        height: 48px !important;
+                      }
+                      .parking-card-title {
+                        padding-right: 0 !important;
+                        font-size: 1.15rem !important;
+                      }
+                      .parking-card-bottom {
+                        flex-direction: column !important;
+                        align-items: flex-start !important;
+                      }
+                      .parking-card-actions {
+                         width: 100% !important;
+                         justify-content: space-between !important;
+                      }
+                    }
+                  `}</style>
                   {/* Icon */}
                   <div style={{
                     width: '60px', height: '60px', borderRadius: '18px', flexShrink: 0,
                     background: `${loc.color}18`, display: 'flex', alignItems: 'center',
                     justifyContent: 'center', border: `1.5px solid ${loc.color}33`,
-                  }}>
+                  }} className="parking-card-icon">
                     <Car size={28} color={loc.color} />
                   </div>
 
                   {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '4px', paddingRight: '80px' }}>
+                  <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '4px', paddingRight: '80px' }} className="parking-card-title">
                       {loc.name}
                     </h2>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '16px', flexWrap: 'wrap' }}>
                       <MapPin size={14} />
                       <span>{loc.address}</span>
-                      <span style={{ marginLeft: '8px', padding: '2px 8px', borderRadius: '6px', background: 'var(--bg-secondary)', fontSize: '0.78rem', fontWeight: 600 }}>
+                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: 'var(--bg-secondary)', fontSize: '0.78rem', fontWeight: 600 }}>
                         {loc.distance}
                       </span>
                     </div>
@@ -233,30 +255,32 @@ const ParkingList = () => {
                     </div>
 
                     {/* Bottom row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }} className="parking-card-bottom">
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         {loc.features.map((f) => (
                           <span key={f} style={{
-                            fontSize: '0.75rem', fontWeight: 600, padding: '4px 10px',
+                            fontSize: '0.7rem', fontWeight: 600, padding: '4px 10px',
                             borderRadius: '8px', background: 'var(--bg-secondary)',
                             color: 'var(--text-secondary)', border: '1px solid var(--glass-border)',
                           }}>{f}</span>
                         ))}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Star size={14} color="#FFCE00" fill="#FFCE00" />
-                          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{loc.rating}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '100%', justifyContent: 'space-between' }} className="parking-card-actions">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Star size={14} color="#FFCE00" fill="#FFCE00" />
+                            <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{loc.rating}</span>
+                          </div>
+                          <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>
+                            ₹{loc.pricePerHr}<span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>/hr</span>
+                          </span>
                         </div>
-                        <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--accent-primary)' }}>
-                          ₹{loc.pricePerHr}<span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>/hr</span>
-                        </span>
                         <div style={{
                           display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px',
                           borderRadius: '10px', background: `${loc.color}15`, border: `1px solid ${loc.color}30`,
                           color: loc.color, fontWeight: 700, fontSize: '0.88rem',
                         }}>
-                          View Slots <ChevronRight size={14} />
+                          Slots <ChevronRight size={14} />
                         </div>
                       </div>
                     </div>
