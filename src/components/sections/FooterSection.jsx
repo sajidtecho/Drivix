@@ -6,9 +6,9 @@ import FadeIn from '../common/FadeIn';
 
 const FooterSection = () => {
   return (
-    <footer style={{ 
-      background: 'var(--bg-primary)', 
-      color: 'var(--text-primary)', 
+    <footer style={{
+      background: 'var(--bg-primary)',
+      color: 'var(--text-primary)',
       paddingTop: '160px',
       paddingBottom: '60px',
       position: 'relative',
@@ -48,11 +48,11 @@ const FooterSection = () => {
         </div>
 
         {/* Dense row of links */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          paddingTop: '60px', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingTop: '60px',
           borderTop: '1px solid var(--glass-border)',
           flexWrap: 'wrap',
           gap: '32px'
@@ -71,7 +71,7 @@ const FooterSection = () => {
           </div>
 
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-             Built with care in Greater Noida • © 2026
+            Built with care and love By sajid Ahmad• © 2026
           </div>
         </div>
       </div>
