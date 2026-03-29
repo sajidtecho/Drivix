@@ -79,9 +79,27 @@ const ProblemSection = () => {
 
         {/* Real Testimonial */}
         <FadeIn delay={0.4}>
-          <div className="glass-panel" style={{ padding: '60px', display: 'flex', flexWrap: 'wrap', gap: '48px', alignItems: 'center', background: 'var(--bg-tertiary)', borderLeft: '4px solid var(--accent-primary)' }}>
-             <div style={{ flex: 1, minWidth: '300px' }}>
-                <div style={{ fontSize: '2rem', fontWeight: 600, fontStyle: 'italic', lineHeight: 1.4, marginBottom: '32px', color: 'var(--text-primary)' }}>
+          <div className="glass-panel" style={{ 
+            padding: 'clamp(28px, 6vw, 60px)', 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: 'clamp(24px, 4vw, 48px)', 
+            alignItems: 'center', 
+            background: 'var(--bg-tertiary)', 
+            borderLeft: '4px solid var(--accent-primary)',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}>
+             <div style={{ flex: 1, minWidth: 'unset', width: '100%' }}>
+                <div style={{ 
+                  fontSize: 'clamp(1.15rem, 4.5vw, 1.85rem)', 
+                  fontWeight: 600, 
+                  fontStyle: 'italic', 
+                  lineHeight: 1.4, 
+                  marginBottom: '28px', 
+                  color: 'var(--text-primary)',
+                  letterSpacing: '-0.01em'
+                }}>
                    "I used to leave my house at 8:10 AM just to ensure I could find a spot in Sector 18 before my 9:00 AM standup. With Drivix, I leave at 8:40 AM. That's 30 minutes of my life back, every single day."
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
