@@ -56,14 +56,14 @@ const FeaturesSection = () => {
               }
             }
             .bento-card {
-               transition: all 0.4s var(--ease-entrance);
+               transition: all var(--transition-normal);
                cursor: pointer;
             }
             .bento-card:hover {
                transform: translateY(-8px);
                border-color: var(--accent-primary);
                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-               transition: all 0.3s var(--ease-hover);
+               transition: all var(--transition-fast);
             }
           `}</style>
           

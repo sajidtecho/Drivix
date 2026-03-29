@@ -62,7 +62,7 @@ const ProblemSection = () => {
             <FadeIn key={i} delay={i * 0.1}>
               <div
                 className="glass-panel"
-                style={{ padding: '48px', border: '1px solid var(--glass-border)', transition: 'all 0.4s var(--transition-normal)' }}
+                style={{ padding: '48px', border: '1px solid var(--glass-border)', transition: 'all var(--transition-normal)' }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-warm)'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
               >

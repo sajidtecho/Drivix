@@ -28,9 +28,9 @@
   --ease-exit: cubic-bezier(0.7, 0, 1, 1);
   --ease-hover: ease-out;
 
-  --transition-fast: 0.2s var(--ease-hover);
-  --transition-normal: 0.4s var(--ease-entrance);
-  --transition-slow: 0.65s var(--ease-entrance);
+  --transition-fast: 0.15s var(--ease-hover);
+  --transition-normal: 0.25s var(--ease-entrance);
+  --transition-slow: 0.4s var(--ease-entrance);
 
   --font-display: 'Syne', sans-serif;
   --font-body: 'Instrument Sans', sans-serif;
@@ -143,7 +143,7 @@ h3 {
   font-size: 1rem;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.3s var(--ease-hover);
+  transition: all var(--transition-fast);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -222,7 +222,7 @@ h3 {
   background: var(--glass-bg-hover);
   border-color: var(--glass-border-light);
   transform: translateY(-2px);
-  transition: all 0.2s var(--ease-hover);
+  transition: all var(--transition-fast);
 }
 
 .container {
@@ -354,7 +354,7 @@ h3 {
   font-weight: 800;
   /* Bold */
   padding: 8px 12px;
-  transition: all 0.3s var(--ease-entrance);
+  transition: all var(--transition-fast);
   position: relative;
   font-family: inherit;
 }
@@ -368,7 +368,7 @@ h3 {
   left: 50%;
   transform: translateX(-50%);
   background-color: var(--accent-primary);
-  transition: width 0.3s var(--ease-hover);
+  transition: width var(--transition-fast);
   border-radius: 4px;
 }
 
