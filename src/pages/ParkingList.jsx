@@ -5,6 +5,7 @@ import {
   Shield, Zap, Clock, Navigation
 } from 'lucide-react';
 import { collection, onSnapshot, query, doc, setDoc, writeBatch } from 'firebase/firestore';
+import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../firebase';
 
 const SEED_LOCATION = {
