@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserCircle, Sun, Moon } from 'lucide-react';
 import { useUser } from '../hooks/useUser';

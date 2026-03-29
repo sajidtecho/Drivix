@@ -293,10 +293,11 @@ const Safety = () => {
                 Find Secure Parking <ArrowRight size={20} />
               </button>
               <button 
+                onClick={() => navigate('/')}
                 className="btn" 
                 style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff', padding: '20px 40px', fontSize: '1.1rem' }}
               >
-                Learn More
+                Go to Home
               </button>
             </div>
           </motion.div>
