@@ -1,0 +1,297 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import {
+  MapPin, Car, Users, Star, ChevronRight, Search,
+  Shield, Zap, Clock, Navigation
+} from 'lucide-react';
+import { collection, onSnapshot, query, doc, setDoc, writeBatch } from 'firebase/firestore';
+import { db } from '../firebase';
+
+const SEED_LOCATION = {
+  id: 'sharda-university-mlp',
+  name: 'Sharda University MLP',
+  address: 'Knowledge Park III, Greater Noida',
+  distance: '0.2 km',
+  totalSlots: 60,
+  availableSlots: 42,
+  pricePerHr: 20,
+  rating: 4.9,
+  floors: ['L1', 'L2', 'L3'],
+  features: ['Student Discount', 'CCTV Security', 'EV Stations'],
+  color: '#FFCE00',
+  badge: 'Campus Choice',
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.12 } },
+};
+const itemVariants = {
+  hidden: { y: 30, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 90 } },
+};
+
+const ParkingList = () => {
+  const navigate = useNavigate();
+  const [locations, setLocations] = useState([]);
+  const [search, setSearch] = useState('');
+  const [hoveredId, setHoveredId] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const q = query(collection(db, 'parking_facilities'));
+    const unsub = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setLocations(data);
+      setLoading(false);
+    });
+    return unsub;
+  }, []);
+
+  const seedRealData = async () => {
+    try {
+      const facilityRef = doc(db, 'parking_facilities', SEED_LOCATION.id);
+      await setDoc(facilityRef, SEED_LOCATION);
+      const batch = writeBatch(db);
+      const floors = [
+        { name: 'L1', rows: ['A', 'B'], cols: 10 },
+        { name: 'L2', rows: ['C', 'D'], cols: 10 },
+        { name: 'L3', rows: ['E', 'F'], cols: 10 },
+      ];
+      for (const floor of floors) {
+        for (const row of floor.rows) {
+          for (let i = 1; i <= floor.cols; i++) {
+            const slotId = `${row}${i}`;
+            const slotRef = doc(collection(facilityRef, 'slots'), slotId);
+            batch.set(slotRef, { id: slotId, floor: floor.name, row, number: i, status: Math.random() > 0.8 ? 'booked' : 'available' });
+          }
+        }
+      }
+      await batch.commit();
+      alert('Sharda University MLP Initialized Successfully!');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const filtered = locations.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    p.address.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const availabilityColor = (avail, total) => {
+    const pct = avail / total;
+    if (pct > 0.4) return '#00cc6a';
+    if (pct > 0.15) return '#FFAD00';
+    return '#ff4b4b';
+  };
+
+  return (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      style={{ paddingTop: '100px', minHeight: '100vh', background: 'var(--bg-primary)', padding: '110px 5% 80px' }}
+    >
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+
+        {/* Header */}
+        <motion.div variants={itemVariants} style={{ marginBottom: '40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Car color="#000" size={22} />
+            </div>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-secondary)', letterSpacing: '2px', textTransform: 'uppercase' }}>
+              Smart Parking
+            </span>
+          </div>
+          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 900, lineHeight: 1.1, marginBottom: '12px' }}>
+            Select <span className="text-gradient">Parking</span>
+            <br />Location
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem' }}>
+            Choose a parking building to see real-time slot availability.
+          </p>
+        </motion.div>
+
+        {/* Search */}
+        <motion.div variants={itemVariants} style={{ marginBottom: '32px' }}>
+          <div className="glass-panel" style={{
+            display: 'flex', alignItems: 'center', gap: '14px',
+            padding: '14px 20px', borderRadius: '16px',
+            background: 'var(--glass-bg)',
+          }}>
+            <Search size={20} color="var(--text-secondary)" />
+            <input
+              type="text"
+              placeholder="Search parking locations..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                flex: 1, background: 'transparent', border: 'none',
+                outline: 'none', fontSize: '1rem', fontFamily: 'inherit',
+                color: 'var(--text-primary)',
+              }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '10px', background: 'rgba(255,206,0,0.12)', border: '1px solid rgba(255,206,0,0.25)' }}>
+              <Navigation size={14} color="var(--accent-primary)" />
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-secondary)' }}>Near Me</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Stats row */}
+        <motion.div variants={itemVariants} style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
+          {[{ label: 'Locations', value: locations.length, icon: MapPin },
+            { label: 'Total Slots', value: locations.reduce((a, p) => a + (p.totalSlots || 0), 0), icon: Car },
+            { label: 'Available', value: locations.reduce((a, p) => a + (p.availableSlots || 0), 0), icon: Zap }
+          ].map(({ label, value, icon: Icon }) => (
+            <div key={label} className="glass-panel" style={{ flex: '1 1 120px', padding: '16px 20px', borderRadius: '14px', textAlign: 'center' }}>
+              <Icon size={18} color="var(--accent-primary)" style={{ marginBottom: '6px' }} />
+              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{value}</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{label}</div>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Location Cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {filtered.map((loc) => {
+            const avColor = availabilityColor(loc.availableSlots, loc.totalSlots);
+            const pct = Math.round((loc.availableSlots / loc.totalSlots) * 100);
+            return (
+              <motion.div
+                key={loc.id}
+                variants={itemVariants}
+                whileHover={{ y: -4, scale: 1.005 }}
+                onHoverStart={() => setHoveredId(loc.id)}
+                onHoverEnd={() => setHoveredId(null)}
+                onClick={() => navigate('/slot-layout', { state: { location: loc } })}
+                className="glass-panel"
+                style={{
+                  padding: '28px', cursor: 'pointer', overflow: 'hidden', position: 'relative',
+                  border: hoveredId === loc.id ? `1.5px solid ${loc.color}55` : '1px solid var(--glass-border)',
+                  transition: 'all 0.25s ease',
+                }}
+              >
+                {/* Color accent */}
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
+                  background: `linear-gradient(90deg, ${loc.color}, transparent)`,
+                }} />
+
+                {/* Badge */}
+                <div style={{
+                  position: 'absolute', top: '20px', right: '20px',
+                  padding: '4px 12px', borderRadius: '20px', fontSize: '0.72rem',
+                  fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase',
+                  background: `${loc.color}22`, color: loc.color, border: `1px solid ${loc.color}44`,
+                }}>
+                  {loc.badge}
+                </div>
+
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                  {/* Icon */}
+                  <div style={{
+                    width: '60px', height: '60px', borderRadius: '18px', flexShrink: 0,
+                    background: `${loc.color}18`, display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', border: `1.5px solid ${loc.color}33`,
+                  }}>
+                    <Car size={28} color={loc.color} />
+                  </div>
+
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '4px', paddingRight: '80px' }}>
+                      {loc.name}
+                    </h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '16px' }}>
+                      <MapPin size={14} />
+                      <span>{loc.address}</span>
+                      <span style={{ marginLeft: '8px', padding: '2px 8px', borderRadius: '6px', background: 'var(--bg-secondary)', fontSize: '0.78rem', fontWeight: 600 }}>
+                        {loc.distance}
+                      </span>
+                    </div>
+
+                    {/* Availability bar */}
+                    <div style={{ marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Availability</span>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: avColor }}>
+                          {loc.availableSlots}/{loc.totalSlots} slots
+                        </span>
+                      </div>
+                      <div style={{ height: '6px', borderRadius: '3px', background: 'var(--bg-secondary)', overflow: 'hidden' }}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ delay: 0.3, duration: 0.6, ease: 'easeOut' }}
+                          style={{ height: '100%', borderRadius: '3px', background: avColor }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bottom row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        {loc.features.map((f) => (
+                          <span key={f} style={{
+                            fontSize: '0.75rem', fontWeight: 600, padding: '4px 10px',
+                            borderRadius: '8px', background: 'var(--bg-secondary)',
+                            color: 'var(--text-secondary)', border: '1px solid var(--glass-border)',
+                          }}>{f}</span>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Star size={14} color="#FFCE00" fill="#FFCE00" />
+                          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{loc.rating}</span>
+                        </div>
+                        <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--accent-primary)' }}>
+                          ₹{loc.pricePerHr}<span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>/hr</span>
+                        </span>
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px',
+                          borderRadius: '10px', background: `${loc.color}15`, border: `1px solid ${loc.color}30`,
+                          color: loc.color, fontWeight: 700, fontSize: '0.88rem',
+                        }}>
+                          View Slots <ChevronRight size={14} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {filtered.length === 0 && !loading && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-tertiary)', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+            <MapPin size={48} color="var(--accent-primary)" style={{ margin: '0 auto 16px', opacity: 0.5 }} />
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>No Facilities Found</h3>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto 24px' }}>
+              We couldn't find any parking facilities in your system. Initialize the default configuration to begin.
+            </p>
+            <button
+               onClick={seedRealData}
+               className="btn btn-primary"
+               style={{ padding: '14px 30px', fontWeight: 800 }}
+            >
+              Initialize Sharda University MLP
+            </button>
+          </motion.div>
+        )}
+
+        {loading && (
+           <div style={{ textAlign: 'center', padding: '40px' }}>
+             <p style={{ color: 'var(--text-secondary)' }}>Connecting to Firestore...</p>
+           </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+export default ParkingList;
