@@ -99,7 +99,7 @@ const HeroSection = () => {
           </FadeIn>
 
           <FadeIn delay={0.2} className="desktop-only">
-            <div style={{ position: 'relative', width: '100%' }}>
+            <div style={{ position: 'relative', width: '100%', marginTop: '-60px' }}>
                <div style={{ position: 'absolute', inset: '-20%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.05, filter: 'blur(100px)' }} />
                <AnimatedParkingHero />
             </div>
