@@ -227,7 +227,7 @@ const Ticket = () => {
               <Share2 size={18} /> Share Ticket
             </button>
             <button
-              onClick={() => navigate('/parking')}
+              onClick={() => navigate('/')}
               className="btn btn-secondary"
               style={{ flex: 1, padding: '14px' }}
             >
