@@ -9,7 +9,7 @@ const SLOT_STATUS = {
   available: { label: 'Available', color: '#00cc6a', bg: 'rgba(0,204,106,0.12)', border: 'rgba(0,204,106,0.35)' },
   booked:    { label: 'Booked',    color: '#ff4b4b', bg: 'rgba(255,75,75,0.12)',  border: 'rgba(255,75,75,0.35)' },
   reserved:  { label: 'Reserved',  color: '#FFAD00', bg: 'rgba(255,173,0,0.12)', border: 'rgba(255,173,0,0.35)' },
-  selected:  { label: 'Selected',  color: '#3b82f6', bg: 'rgba(59,130,246,0.18)', border: 'rgba(59,130,246,0.7)' },
+  selected:  { label: 'Selected',  color: 'var(--accent-primary)', bg: 'rgba(255,206,0,0.15)', border: 'var(--accent-primary)' },
 };
 
 const SlotLayout = () => {
@@ -222,8 +222,8 @@ const SlotLayout = () => {
                     SELECTED SLOT
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '2rem', fontWeight: 900, color: '#3b82f6' }}>{selectedSlot}</span>
-                    <span style={{ padding: '4px 12px', borderRadius: 'var(--radius-pill)', background: 'rgba(59,130,246,0.15)', fontSize: '0.8rem', fontWeight: 700, color: '#3b82f6' }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>{selectedSlot}</span>
+                    <span style={{ padding: '4px 12px', borderRadius: 'var(--radius-pill)', background: 'var(--accent-glow)', fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-primary)' }}>
                       {selectedFloor}
                     </span>
                   </div>

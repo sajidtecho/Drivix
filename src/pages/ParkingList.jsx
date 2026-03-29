@@ -124,7 +124,7 @@ const ParkingList = () => {
             <Search size={20} color="var(--text-secondary)" />
             <input
               type="text"
-              placeholder="Search parking locations..."
+              placeholder="Search parking facilities (e.g. Sharda Univ)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{
@@ -133,9 +133,19 @@ const ParkingList = () => {
                 color: 'var(--text-primary)',
               }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: 'var(--radius-input)', background: 'rgba(255,206,0,0.12)', border: '1px solid rgba(255,206,0,0.25)' }}>
+            <div 
+              onClick={() => window.open(`https://www.google.com/maps/search/parking+near+${search || 'me'}`, '_blank')}
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', 
+                borderRadius: 'var(--radius-input)', background: 'rgba(250, 255, 0, 0.1)', 
+                border: '1px solid rgba(250, 255, 0, 0.25)', cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(250, 255, 0, 0.2)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(250, 255, 0, 0.1)'}
+            >
               <Navigation size={14} color="var(--accent-primary)" />
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-secondary)' }}>Near Me</span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--accent-primary)' }}>Maps Search</span>
             </div>
           </div>
         </motion.div>

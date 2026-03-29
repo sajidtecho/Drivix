@@ -7,6 +7,7 @@ import { useUser } from './hooks/useUser';
 import Auth from './pages/Auth';
 import Profile from './pages/Profile';
 import SlotLayout from './pages/SlotLayout';
+import ParkingList from './pages/ParkingList';
 import SlotBookingForm from './pages/SlotBookingForm';
 import Ticket from './pages/Ticket';
 import './index.css';
@@ -49,12 +50,12 @@ function App() {
             <Route path="/login"       element={<Auth />} />
             <Route path="/profile"     element={<Profile />} />
             
-            {/* Redirects for clean navigation */}
-            <Route path="/find"        element={<Navigate to="/slot-layout" replace />} />
-            <Route path="/parking"     element={<Navigate to="/slot-layout" replace />} />
-            <Route path="/booking"     element={<Navigate to="/slot-layout" replace />} />
+            {/* Main finding flow */}
+            <Route path="/find"        element={<ParkingList />} />
+            <Route path="/parking"     element={<ParkingList />} />
+            <Route path="/booking"     element={<Navigate to="/find" replace />} />
             
-            {/* Direct parking flow */}
+            {/* Facility-specific pages */}
             <Route path="/slot-layout" element={<SlotLayout />} />
             <Route path="/slot-booking" element={<SlotBookingForm />} />
             <Route path="/ticket"      element={<Ticket />} />

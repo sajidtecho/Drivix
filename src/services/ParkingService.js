@@ -1,5 +1,5 @@
-import { db } from './firebase';
-import { collection, doc, query, onSnapshot, where, getDocs, updateDoc, increment } from 'firebase/firestore';
+import { db } from '../firebase';
+import { collection, doc, query, onSnapshot, where, updateDoc, increment } from 'firebase/firestore';
 
 export const subscribeToParkingFacilities = (callback) => {
   const q = query(collection(db, 'parking_facilities'));
