@@ -21,7 +21,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const isLanding = location.pathname === '/';
   const [hasScrolled, setHasScrolled] = useState(false);
-  
+
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : document.documentElement.getAttribute('data-theme') === 'dark';
@@ -61,7 +61,7 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Handcrafted Announcement Bar */}
+      { }
       <div style={{
         position: 'fixed',
         top: 0,
@@ -81,7 +81,7 @@ const Navbar = () => {
         transition: 'all 0.4s ease'
       }}>
         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--announcement-text)', marginRight: '10px', boxShadow: '0 0 10px currentColor' }} />
-        NOIDA, INDIA — LIVE ALPHA
+        NOIDA, INDIA — LIVE SHARDA UNIVERSITY
       </div>
 
       <nav
@@ -103,12 +103,12 @@ const Navbar = () => {
         }}
       >
         {/* Logo */}
-        <Link 
-          to="/" 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '12px', 
+        <Link
+          to="/"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
             textDecoration: 'none',
             color: 'var(--text-primary)',
             marginRight: 'auto'
@@ -141,7 +141,7 @@ const Navbar = () => {
           left: '50%',
           transform: 'translateX(-50%)',
         }} className="desktop-only">
-          {isLanding ? 
+          {isLanding ?
             LANDING_LINKS.map((link) => (
               <button
                 key={link.scrollId}
@@ -158,7 +158,7 @@ const Navbar = () => {
               >
                 {link.label}
               </button>
-            )) : 
+            )) :
             APP_LINKS.map((link) => (
               <Link
                 key={link.path}
@@ -177,7 +177,7 @@ const Navbar = () => {
 
         {/* Right Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          
+
           <div className="desktop-only" style={{ display: 'flex', gap: '12px' }}>
             {isLanding && (
               <button
