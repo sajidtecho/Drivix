@@ -73,7 +73,7 @@ const FooterSection = () => {
           </div>
 
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-            Built with care and love By sajid Ahmad• © 2026
+            Built with ❤️ By Sajid Ahmad• © 2026
           </div>
         </div>
       </div>
