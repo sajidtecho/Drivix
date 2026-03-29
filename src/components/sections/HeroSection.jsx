@@ -42,16 +42,15 @@ const HeroSection = () => {
             </div>
 
             <h1 style={{
-              fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
+              fontSize: 'clamp(2.5rem, 8vw, 4.8rem)',
               fontWeight: 800,
-              lineHeight: 1.0,
+              lineHeight: 1.1,
               marginBottom: '32px',
               fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.04em'
+              letterSpacing: '-0.04em',
+              maxWidth: '800px'
             }}>
-              Find a spot <br />
-              before you <br />
-              <span style={{ color: 'var(--accent-warm)' }}>even leave.</span>
+              Find a <span style={{ color: 'var(--accent-primary)' }}>spot</span> before you even leave.
             </h1>
 
             <p style={{
