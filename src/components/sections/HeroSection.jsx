@@ -9,79 +9,99 @@ const HeroSection = () => {
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      paddingTop: '100px',
-      paddingBottom: '40px',
+      paddingTop: '132px',
+      paddingBottom: '80px',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      background: 'radial-gradient(circle at 15% 50%, rgba(250, 255, 0, 0.03) 0%, transparent 50%)'
     }}>
       <div className="container">
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: '1fr',
-          gap: '40px', 
+          gap: '60px', 
           alignItems: 'center',
-          maxWidth: '1200px',
+          maxWidth: '1300px',
           margin: '0 auto'
-        }} className="hero-grid-responsive">
+        }} className="hero-grid-updated">
           <style>{`
             @media (min-width: 1025px) {
-              .hero-grid-responsive {
-                grid-template-columns: 1fr 1fr !important;
-                gap: 80px !important;
-              }
-            }
-            @media (max-width: 768px) {
-              .hero-content {
-                text-align: center;
-              }
-              .hero-buttons {
-                justify-content: center;
-                flex-direction: column;
+              .hero-grid-updated {
+                grid-template-columns: 1.25fr 1fr !important;
+                gap: 40px !important;
               }
             }
           `}</style>
 
           <FadeIn className="hero-content">
-            <div style={{ display: 'inline-block', padding: '8px 16px', borderRadius: '100px', background: 'var(--glass-bg)', border: '1px solid var(--accent-primary)', marginBottom: '24px', color: 'var(--accent-primary)', fontWeight: 600, fontSize: '0.8rem' }}>
-              The Future of Urban Mobility
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-primary)', boxShadow: '0 0 10px var(--accent-primary)' }} />
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--accent-primary)' }}>
+                Noida, India — Live Alpha
+              </span>
             </div>
 
-            <h1 style={{ fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', fontWeight: 800, lineHeight: 1.1, marginBottom: '24px' }}>
-              Smart Parking, <br />
-              Zero <span className="text-gradient">Headache.</span>
+            <h1 style={{ 
+              fontSize: 'clamp(3rem, 10vw, 6.5rem)', 
+              fontWeight: 800, 
+              lineHeight: 0.85, 
+              marginBottom: '32px',
+              fontFamily: 'var(--font-display)',
+              letterSpacing: '-0.04em'
+            }}>
+              Find a spot <br />
+              before you <br />
+              <span style={{ color: 'var(--accent-warm)' }}>even leave.</span>
             </h1>
 
-            <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '40px', maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }} className="hero-desc">
-              Drivix is an AI-powered smart parking platform. Book slots in advance and let our ANPR cameras handle your secure entry.
+            <p style={{ 
+              fontSize: '1.25rem', 
+              color: 'var(--text-secondary)', 
+              lineHeight: 1.5, 
+              marginBottom: '48px', 
+              maxWidth: '520px',
+              fontWeight: 500
+            }}>
+              Stop circling for 20 minutes. Drivix uses real-time computer vision to lock your parking spot in Sector 18 and knowledge parks before you hit the road.
             </p>
-            <style>{`
-              @media (min-width: 1025px) {
-                .hero-desc { margin-left: 0 !important; margin-right: 0 !important; }
-              }
-            `}</style>
 
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '40px' }} className="hero-buttons">
+            <div style={{ display: 'flex', gap: '24px', marginBottom: '60px', flexWrap: 'wrap' }} className="hero-buttons">
               <button
                  onClick={() => window.location.href = '/slot-layout'}
                  className="btn btn-primary"
-                 style={{ width: '100%', maxWidth: '240px' }}
+                 style={{ padding: '20px 40px', fontSize: '1.1rem', background: 'var(--accent-primary)' }}
               >
-                Book Now <ArrowRight size={20} />
+                Secure Your Slot
               </button>
               <button
                 onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
-                className="btn btn-secondary"
-                style={{ width: '100%', maxWidth: '240px' }}
+                style={{ 
+                   background: 'none', border: 'none', color: 'var(--text-primary)', 
+                   fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
+                   fontSize: '1rem', borderBottom: '2px solid var(--accent-primary)', paddingBottom: '4px'
+                }}
               >
-                See Features
+                See how it works →
               </button>
+            </div>
+
+            {/* Credibility Stat */}
+            <div style={{ display: 'flex', gap: '40px', borderTop: '1px solid var(--glass-border)', paddingTop: '32px' }}>
+               <div>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>3.2m</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Minutes Saved</div>
+               </div>
+               <div>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>42+</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>MLP Facilities</div>
+               </div>
             </div>
           </FadeIn>
 
-          <FadeIn delay={0.2}>
-            <div style={{ position: 'relative', width: '100%', maxWidth: '600px', margin: '0 auto' }}>
-              <AnimatedParkingHero />
+          <FadeIn delay={0.2} className="desktop-only">
+            <div style={{ position: 'relative', width: '100%' }}>
+               <div style={{ position: 'absolute', inset: '-20%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.05, filter: 'blur(100px)' }} />
+               <AnimatedParkingHero />
             </div>
           </FadeIn>
         </div>

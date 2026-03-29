@@ -61,11 +61,32 @@ const Navbar = () => {
 
   return (
     <>
+      {/* Handcrafted Announcement Bar */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '32px',
+        background: 'var(--accent-primary)',
+        color: '#000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '0.75rem',
+        fontWeight: 800,
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em',
+        zIndex: 1001,
+      }}>
+        Now live in Greater Noida & Sharda University →
+      </div>
+
       <nav
         className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}
         style={{
           position: 'fixed',
-          top: 0,
+          top: '32px',
           left: 0,
           right: 0,
           height: '80px',
@@ -73,10 +94,10 @@ const Navbar = () => {
           alignItems: 'center',
           padding: '0 5%',
           zIndex: 1000,
-          background: scrolled || isMenuOpen ? 'rgba(10, 10, 10, 0.95)' : 'transparent',
-          backdropFilter: scrolled || isMenuOpen ? 'blur(15px)' : 'none',
-          borderBottom: (scrolled || isMenuOpen) ? '1px solid var(--glass-border)' : 'none',
-          transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+          background: scrolled || isMenuOpen ? 'var(--bg-primary)' : 'transparent',
+          backdropFilter: scrolled || isMenuOpen ? 'blur(20px)' : 'none',
+          borderBottom: scrolled ? '1px solid var(--glass-border)' : 'none',
+          transition: 'all 0.5s var(--transition-normal)',
         }}
       >
         {/* Logo */}
