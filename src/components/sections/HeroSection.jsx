@@ -9,8 +9,8 @@ const HeroSection = () => {
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
-      paddingTop: '132px',
-      paddingBottom: '80px',
+      paddingTop: '112px',
+      paddingBottom: '40px',
       position: 'relative',
       overflow: 'hidden',
       background: 'radial-gradient(circle at 15% 50%, rgba(250, 255, 0, 0.03) 0%, transparent 50%)'
@@ -34,7 +34,7 @@ const HeroSection = () => {
           `}</style>
 
           <FadeIn className="hero-content">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-primary)', boxShadow: '0 0 10px var(--accent-primary)' }} />
               <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--accent-primary)' }}>
                 India, Noida— Sharda University
@@ -45,7 +45,7 @@ const HeroSection = () => {
               fontSize: 'clamp(2.5rem, 8vw, 4.8rem)',
               fontWeight: 800,
               lineHeight: 1.1,
-              marginBottom: '32px',
+              marginBottom: '20px',
               fontFamily: 'var(--font-display)',
               letterSpacing: '-0.04em',
               maxWidth: '800px'
@@ -57,14 +57,14 @@ const HeroSection = () => {
               fontSize: '1.25rem',
               color: 'var(--text-secondary)',
               lineHeight: 1.5,
-              marginBottom: '48px',
+              marginBottom: '32px',
               maxWidth: '520px',
               fontWeight: 500
             }}>
-              Stop circling for 20 minutes. Drivix uses real-time computer vision to lock your parking spot in Sector 18 and knowledge parks before you hit the road.
+              Stop circling. Secure your spot in Sector 18 and Knowledge Parks with real-time AI before you even hit the road.
             </p>
 
-            <div style={{ display: 'flex', gap: '24px', marginBottom: '60px', flexWrap: 'wrap' }} className="hero-buttons">
+            <div style={{ display: 'flex', gap: '24px', marginBottom: '40px', flexWrap: 'wrap' }} className="hero-buttons">
               <button
                 onClick={() => window.location.href = '/slot-layout'}
                 className="btn btn-primary"
@@ -98,7 +98,7 @@ const HeroSection = () => {
           </FadeIn>
 
           <FadeIn delay={0.2} className="desktop-only">
-            <div style={{ position: 'relative', width: '100%', marginTop: '-60px' }}>
+            <div style={{ position: 'relative', width: '100%', marginTop: '-140px' }}>
               <div style={{ position: 'absolute', inset: '-20%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.05, filter: 'blur(100px)' }} />
               <AnimatedParkingHero />
             </div>
