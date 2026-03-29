@@ -68,18 +68,20 @@ const Navbar = () => {
         left: 0,
         right: 0,
         height: '32px',
-        background: 'var(--accent-primary)',
-        color: '#000',
+        background: isDark ? 'var(--accent-primary)' : '#000',
+        color: isDark ? '#000' : 'var(--accent-primary)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: '0.75rem',
-        fontWeight: 800,
+        fontWeight: 900,
         textTransform: 'uppercase',
-        letterSpacing: '0.1em',
+        letterSpacing: '0.15em',
         zIndex: 1001,
+        transition: 'all 0.4s ease'
       }}>
-        Now live in Greater Noida & Sharda University →
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isDark ? '#000' : 'var(--accent-primary)', marginRight: '10px', boxShadow: '0 0 10px currentColor' }} />
+        NOIDA, INDIA — LIVE ALPHA
       </div>
 
       <nav
