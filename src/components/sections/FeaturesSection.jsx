@@ -6,13 +6,20 @@ import FadeIn from '../common/FadeIn';
 
 const FeaturesSection = () => {
   return (
-    <section id="features" style={{ padding: '160px 0', background: 'var(--bg-primary)' }}>
+    <section id="features" style={{ padding: '100px 0', background: 'var(--bg-primary)' }}>
       <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 5%' }}>
-        <div style={{ marginBottom: '64px', maxWidth: '600px' }}>
-          <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 1, letterSpacing: '-0.04em', marginBottom: '24px' }}>
-            Built for <span style={{ color: 'var(--accent-primary)' }}>human drivers</span>, not just sensors.
+        <div style={{ marginBottom: '48px', maxWidth: '640px' }}>
+          <h2 style={{ 
+            fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', 
+            fontWeight: 800, 
+            fontFamily: 'var(--font-display)', 
+            lineHeight: 1, 
+            letterSpacing: '-0.04em', 
+            marginBottom: '16px' 
+          }}>
+            Built for <span style={{ color: 'var(--accent-primary)' }}>human drivers</span>,<br />not just sensors.
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: 1.5 }}>
             A parking ecosystem that removes the friction from every touchpoint, from the mall entrance to your office elevator.
           </p>
         </div>
