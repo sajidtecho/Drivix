@@ -295,7 +295,14 @@ const Safety = () => {
               <button 
                 onClick={() => navigate('/')}
                 className="btn" 
-                style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff', padding: '20px 40px', fontSize: '1.1rem' }}
+                style={{ 
+                  background: '#ff4b4b', 
+                  color: '#fff', 
+                  padding: '20px 40px', 
+                  fontSize: '1.1rem',
+                  boxShadow: '0 10px 20px rgba(255, 75, 75, 0.2)',
+                  border: 'none'
+                }}
               >
                 Go to Home
               </button>
