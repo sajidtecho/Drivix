@@ -11,7 +11,7 @@ const AnimatedParkingHero = () => {
       overflow: 'hidden',
       background: 'var(--bg-secondary)',
       border: '1px solid var(--glass-border)',
-      borderRadius: '30px'
+      borderRadius: '16px'
     }}>
       {/* Road Base */}
       <div style={{
@@ -27,8 +27,8 @@ const AnimatedParkingHero = () => {
         {[0, 1, 2].map(i => (
           <div key={`left-${i}`} style={{ height: '75px', width: '100%', border: '2px solid rgba(255, 0, 0, 0.3)', borderRadius: '10px', position: 'relative' }}>
             <div style={{ position: 'absolute', top: '50%', right: '-25px', transform: 'translateY(-50%)', color: 'rgba(255, 0, 0, 0.5)', fontSize: '0.7rem', fontWeight: 600 }}>P-{i + 1}</div>
-            {i === 0 && <div style={{ position: 'absolute', inset: '8px', background: '#e60000', borderRadius: '6px', opacity: 0.5, boxShadow: '0 0 15px #ff0000' }} />}
-            {i === 2 && <div style={{ position: 'absolute', inset: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '6px', opacity: 0.5 }} />}
+            {i === 0 && <div style={{ position: 'absolute', inset: '8px', background: '#e60000', borderRadius: '10px', opacity: 0.5, boxShadow: '0 0 15px #ff0000' }} />}
+            {i === 2 && <div style={{ position: 'absolute', inset: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '10px', opacity: 0.5 }} />}
           </div>
         ))}
       </div>
@@ -38,7 +38,7 @@ const AnimatedParkingHero = () => {
         {[3, 4, 5].map(i => (
           <div key={`right-${i}`} style={{ height: '75px', width: '100%', border: '2px solid rgba(255, 0, 0, 0.3)', borderRadius: '10px', position: 'relative' }}>
             <div style={{ position: 'absolute', top: '50%', left: '-25px', transform: 'translateY(-50%)', color: 'rgba(255, 0, 0, 0.5)', fontSize: '0.7rem', fontWeight: 600 }}>P-{i + 1}</div>
-            {i === 3 && <div style={{ position: 'absolute', inset: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '6px', opacity: 0.5 }} />}
+            {i === 3 && <div style={{ position: 'absolute', inset: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '10px', opacity: 0.5 }} />}
           </div>
         ))}
       </div>
@@ -50,7 +50,7 @@ const AnimatedParkingHero = () => {
         style={{
           position: 'absolute', top: 0, left: 'calc(50% + 12px)', width: '30px', height: '60px',
           background: 'linear-gradient(180deg, #ff4b4b, #990000)',
-          borderRadius: '6px', boxShadow: '0 0 15px #ff0000', zIndex: 10
+          borderRadius: '10px', boxShadow: '0 0 15px #ff0000', zIndex: 10
         }}
       />
 
@@ -61,7 +61,7 @@ const AnimatedParkingHero = () => {
         style={{
           position: 'absolute', top: 0, left: 'calc(50% - 42px)', width: '30px', height: '60px',
           background: '#cc0000',
-          borderRadius: '6px', boxShadow: '0 0 15px #cc0000', zIndex: 10, opacity: 0.8
+          borderRadius: '10px', boxShadow: '0 0 15px #cc0000', zIndex: 10, opacity: 0.8
         }}
       />
 

@@ -187,7 +187,7 @@ const Profile = () => {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: '12px', border: 'none',
+                  display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: '10px', border: 'none',
                   background: activeTab === item.id ? 'var(--accent-primary)' : 'transparent',
                   color: activeTab === item.id ? '#000' : 'var(--text-primary)',
                   fontWeight: 600, cursor: 'pointer', textAlign: 'left', transition: 'all 0.3s'
@@ -292,7 +292,7 @@ const Profile = () => {
                   <div className="info-group">
                     <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Full Name</label>
                     {isEditing ? (
-                      <input type="text" value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+                      <input type="text" value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
                     ) : (
                       <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>{user.name}</p>
                     )}
@@ -311,7 +311,7 @@ const Profile = () => {
                   <div className="info-group">
                     <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>City / Location</label>
                     {isEditing ? (
-                      <input type="text" value={editData.city || ''} onChange={(e) => setEditData({...editData, city: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+                      <input type="text" value={editData.city || ''} onChange={(e) => setEditData({...editData, city: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
                     ) : (
                       <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>{user.city}</p>
                     )}
@@ -338,15 +338,15 @@ const Profile = () => {
                     <form onSubmit={handleAddVehicle} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>License Plate</label>
-                        <input type="text" placeholder="MH 01 AB 1234" value={newVehicle.plate} onChange={(e) => setNewVehicle({...newVehicle, plate: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
+                        <input type="text" placeholder="MH 01 AB 1234" value={newVehicle.plate} onChange={(e) => setNewVehicle({...newVehicle, plate: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
                       </div>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Model</label>
-                        <input type="text" placeholder="Tesla Model 3" value={newVehicle.model} onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
+                        <input type="text" placeholder="Tesla Model 3" value={newVehicle.model} onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
                       </div>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Fuel Type</label>
-                        <select value={newVehicle.type} onChange={(e) => setNewVehicle({...newVehicle, type: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+                        <select value={newVehicle.type} onChange={(e) => setNewVehicle({...newVehicle, type: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
                           <option>Petrol</option>
                           <option>Diesel</option>
                           <option>Electric</option>
@@ -533,7 +533,7 @@ const Profile = () => {
                                 onClick={() => updateUser({ preferences: { ...user.preferences, parkingType: type } })}
                                 className="glass-panel" 
                                 style={{ 
-                                  flex: 1, padding: '14px', borderRadius: '12px',
+                                  flex: 1, padding: '14px', borderRadius: '10px',
                                   border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', 
                                   background: isActive ? 'rgba(255,206,0,0.06)' : 'rgba(255,255,255,0.02)', 
                                   cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
@@ -562,7 +562,7 @@ const Profile = () => {
                                 onClick={() => updateUser({ preferences: { ...user.preferences, evCharging: opt.value } })}
                                 className="glass-panel" 
                                 style={{ 
-                                  flex: 1, padding: '14px', borderRadius: '12px',
+                                  flex: 1, padding: '14px', borderRadius: '10px',
                                   border: isActive ? '1px solid #00cc6a' : '1px solid var(--glass-border)', 
                                   background: isActive ? 'rgba(0, 204, 106, 0.05)' : 'rgba(255,255,255,0.02)', 
                                   cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
@@ -598,7 +598,7 @@ const Profile = () => {
                                 style={{ 
                                   width: '44px', height: '24px', 
                                   background: isEnabled ? 'var(--accent-primary)' : 'var(--glass-border-light)', 
-                                  borderRadius: '20px', position: 'relative', cursor: 'pointer', transition: 'background 0.3s' 
+                                  borderRadius: '100px', position: 'relative', cursor: 'pointer', transition: 'background 0.3s' 
                                 }}
                               >
                                  <motion.div 

@@ -202,7 +202,7 @@ const Navbar = () => {
                   alignItems: 'center',
                   gap: '8px',
                   padding: '6px 14px',
-                  borderRadius: '50px',
+                  borderRadius: '100px',
                   background: 'var(--glass-bg)',
                   border: '1px solid var(--glass-border)',
                   textDecoration: 'none',

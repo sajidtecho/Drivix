@@ -66,11 +66,11 @@ const Auth = () => {
       <div className="glass-panel" style={{ width: '100%', maxWidth: '450px', padding: '40px', position: 'relative', overflow: 'hidden' }}>
 
         {/* Toggle tabs */}
-        <div style={{ display: 'flex', marginBottom: '32px', background: 'var(--glass-border)', padding: '4px', borderRadius: '12px' }}>
+        <div style={{ display: 'flex', marginBottom: '32px', background: 'var(--glass-border)', padding: '4px', borderRadius: '10px' }}>
           <button
             onClick={() => setIsLogin(true)}
             style={{
-              flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
+              flex: 1, padding: '10px', borderRadius: '10px', border: 'none',
               background: isLogin ? 'var(--accent-primary)' : 'transparent',
               color: isLogin ? '#000' : 'var(--text-secondary)',
               fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s'
@@ -81,7 +81,7 @@ const Auth = () => {
           <button
             onClick={() => setIsLogin(false)}
             style={{
-              flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
+              flex: 1, padding: '10px', borderRadius: '10px', border: 'none',
               background: !isLogin ? 'var(--accent-primary)' : 'transparent',
               color: !isLogin ? '#000' : 'var(--text-secondary)',
               fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s'
@@ -99,7 +99,7 @@ const Auth = () => {
         </p>
 
         {error && (
-          <div style={{ padding: '12px', background: 'rgba(255, 75, 75, 0.1)', border: '1px solid rgba(255, 75, 75, 0.3)', borderRadius: '8px', color: '#ff4b4b', fontSize: '0.9rem', marginBottom: '20px' }}>
+          <div style={{ padding: '12px', background: 'rgba(255, 75, 75, 0.1)', border: '1px solid rgba(255, 75, 75, 0.3)', borderRadius: '10px', color: '#ff4b4b', fontSize: '0.9rem', marginBottom: '20px' }}>
             {error}
           </div>
         )}
@@ -114,7 +114,7 @@ const Auth = () => {
                 <input
                   type="text" name="name" placeholder="Full Name" required
                   value={formData.name} onChange={handleChange}
-                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                 />
               </div>
             </div>
@@ -140,7 +140,7 @@ const Auth = () => {
                 <input
                   type="tel" name="mobile" placeholder="+91 9876543210" required
                   value={formData.mobile} onChange={handleChange}
-                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                 />
               </div>
             </div>
@@ -166,7 +166,7 @@ const Auth = () => {
                 <input
                   type="text" name="city" placeholder="City/Location" required
                   value={formData.city} onChange={handleChange}
-                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                 />
               </div>
             </div>

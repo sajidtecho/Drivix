@@ -86,12 +86,12 @@ const SlotLayout = () => {
         <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
           {Object.entries(SLOT_STATUS).filter(([k]) => k !== 'selected').map(([key, val]) => (
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: val.bg, border: `2px solid ${val.border}` }} />
+              <div style={{ width: '20px', height: '20px', borderRadius: '10px', background: val.bg, border: `2px solid ${val.border}` }} />
               <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{val.label}</span>
             </div>
           ))}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
-            <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: SLOT_STATUS.selected.bg, border: `2px solid ${SLOT_STATUS.selected.border}` }} />
+            <div style={{ width: '20px', height: '20px', borderRadius: '10px', background: SLOT_STATUS.selected.bg, border: `2px solid ${SLOT_STATUS.selected.border}` }} />
             <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Selection</span>
           </div>
         </div>
@@ -106,7 +106,7 @@ const SlotLayout = () => {
                 whileTap={{ scale: 0.96 }}
                 onClick={() => { setSelectedFloor(floor); setSelectedSlot(null); }}
                 style={{
-                  padding: '12px 20px', borderRadius: '14px', cursor: 'pointer',
+                  padding: '12px 20px', borderRadius: '10px', cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 700, fontSize: '0.88rem',
                   display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0,
                   background: isActive ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' : 'var(--glass-bg)',
@@ -132,7 +132,7 @@ const SlotLayout = () => {
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.22 }}
           >
-            <div className="glass-panel" style={{ padding: '28px', borderRadius: '20px', marginBottom: '24px', minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
+            <div className="glass-panel" style={{ padding: '28px', borderRadius: '16px', marginBottom: '24px', minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
               {loading ? (
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                    <Loader2 className="animate-spin" size={32} color="var(--accent-primary)" />
@@ -153,7 +153,7 @@ const SlotLayout = () => {
                     {Object.entries(slotRows).map(([rowLabel, rowSlots]) => (
                       <div key={rowLabel} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                          <div style={{
-                          width: '28px', height: '28px', borderRadius: '8px',
+                          width: '28px', height: '28px', borderRadius: '10px',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           background: 'var(--bg-secondary)', fontSize: '0.8rem',
                           fontWeight: 800, color: 'var(--text-secondary)', flexShrink: 0,
@@ -175,7 +175,7 @@ const SlotLayout = () => {
                                  style={{
                                    width: 'clamp(32px, 10vw, 52px)',
                                    height: 'clamp(32px, 8vw, 44px)',
-                                   borderRadius: '8px',
+                                   borderRadius: '10px',
                                    background: st.bg,
                                    border: `2px solid ${st.border}`,
                                    cursor: isClickable ? 'pointer' : 'not-allowed',
@@ -209,7 +209,7 @@ const SlotLayout = () => {
               exit={{ opacity: 0, y: 20 }}
               className="glass-panel"
               style={{
-                padding: '24px 28px', borderRadius: '18px', marginBottom: '24px',
+                padding: '24px 28px', borderRadius: '16px', marginBottom: '24px',
                 border: '1.5px solid rgba(59,130,246,0.4)',
                 background: 'rgba(59,130,246,0.05)',
               }}
@@ -221,7 +221,7 @@ const SlotLayout = () => {
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '2rem', fontWeight: 900, color: '#3b82f6' }}>{selectedSlot}</span>
-                    <span style={{ padding: '4px 12px', borderRadius: '8px', background: 'rgba(59,130,246,0.15)', fontSize: '0.8rem', fontWeight: 700, color: '#3b82f6' }}>
+                    <span style={{ padding: '4px 12px', borderRadius: '100px', background: 'rgba(59,130,246,0.15)', fontSize: '0.8rem', fontWeight: 700, color: '#3b82f6' }}>
                       {selectedFloor}
                     </span>
                   </div>
