@@ -35,7 +35,7 @@ const ProblemSection = () => {
         pointerEvents: 'none',
       }}>
         <div className="marquee-content" style={{ display: 'inline-block', fontSize: '5rem', fontWeight: 900, fontFamily: 'var(--font-display)', animation: 'marquee 40s linear infinite' }}>
-          1,204 SPOTS BOOKED TODAY • SECTOR 18 • 94% SATISFACTION • AVG 3 MIN ENTRY • 1,204 SPOTS BOOKED TODAY • SECTOR 18 • 94% SATISFACTION • AVG 3 MIN ENTRY • 
+          1,204 SPOTS BOOKED TODAY • SECTOR 18 • 94% SATISFACTION • AVG 3 MIN ENTRY • 1,204 SPOTS BOOKED TODAY • SECTOR 18 • 94% SATISFACTION • AVG 3 MIN ENTRY •
         </div>
         <style>{`
           @keyframes marquee {
@@ -48,89 +48,89 @@ const ProblemSection = () => {
       <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 5%', position: 'relative', zIndex: 2 }}>
         <div style={{ textAlign: 'left', marginBottom: '80px', maxWidth: '800px' }}>
           <h2 style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 0.95, letterSpacing: '-0.04em', marginBottom: '32px' }}>
-             The <span style={{ whiteSpace: 'nowrap' }}>20-minute</span> <span style={{ color: 'var(--accent-warm)' }}>parking tax</span>.
+            The <span style={{ whiteSpace: 'nowrap' }}>20-minute</span> <span style={{ color: 'var(--accent-warm)' }}>parking tax</span>.
           </h2>
           <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-             Every morning in Noida, thousands of drivers lose 20 minutes just circling. It's not just a delay; it's a productivity tax we've all been forced to pay. Until now.
+            Every morning in Noida, thousands of drivers lose 20 minutes just circling. It's not just a delay; it's a productivity tax we've all been forced to pay. Until now.
           </p>
         </div>
 
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', 
-          gap: '20px', 
-          marginBottom: '80px' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+          gap: '20px',
+          marginBottom: '80px'
         }}>
           {problems.map((problem, i) => {
             const Icon = problem.icon;
             return (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div
-                className="glass-panel"
-                style={{ 
-                  padding: 'clamp(24px, 5vw, 48px)', 
-                  border: '1px solid var(--glass-border)', 
-                  transition: 'all var(--transition-normal)',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-warm)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
-              >
-                <div style={{ 
-                  width: '48px', 
-                  height: '48px', 
-                  borderRadius: 'var(--radius-input)', 
-                  background: 'rgba(255, 107, 0, 0.1)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  marginBottom: '28px' 
-                }}>
-                   <Icon color="var(--accent-warm)" size={24} />
+              <FadeIn key={i} delay={i * 0.1}>
+                <div
+                  className="glass-panel"
+                  style={{
+                    padding: 'clamp(24px, 5vw, 48px)',
+                    border: '1px solid var(--glass-border)',
+                    transition: 'all var(--transition-normal)',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-warm)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
+                >
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: 'var(--radius-input)',
+                    background: 'rgba(255, 107, 0, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '28px'
+                  }}>
+                    <Icon color="var(--accent-warm)" size={24} />
+                  </div>
+                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px', fontFamily: 'var(--font-display)' }}>{problem.title}</h3>
+                  <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '1rem' }}>{problem.desc}</p>
                 </div>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px', fontFamily: 'var(--font-display)' }}>{problem.title}</h3>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '1rem' }}>{problem.desc}</p>
-              </div>
-            </FadeIn>
+              </FadeIn>
             );
           })}
         </div>
 
         {/* Real Testimonial */}
         <FadeIn delay={0.4}>
-          <div className="glass-panel" style={{ 
-            padding: 'clamp(28px, 6vw, 60px)', 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: 'clamp(24px, 4vw, 48px)', 
-            alignItems: 'center', 
-            background: 'var(--bg-tertiary)', 
+          <div className="glass-panel" style={{
+            padding: 'clamp(28px, 6vw, 60px)',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 'clamp(20px, 4vw, 40px)',
+            alignItems: 'center',
+            background: 'var(--bg-tertiary)',
             borderLeft: '4px solid var(--accent-primary)',
             width: '100%',
             boxSizing: 'border-box'
           }}>
-             <div style={{ flex: 1, minWidth: 'unset', width: '100%' }}>
-                <div style={{ 
-                  fontSize: 'clamp(1.15rem, 4.5vw, 1.85rem)', 
-                  fontWeight: 600, 
-                  fontStyle: 'italic', 
-                  lineHeight: 1.4, 
-                  marginBottom: '28px', 
-                  color: 'var(--text-primary)',
-                  letterSpacing: '-0.01em'
-                }}>
-                   "I used to leave my house at 8:10 AM just to ensure I could find a spot in Sector 18 before my 9:00 AM standup. With Drivix, I leave at 8:40 AM. That's 30 minutes of my life back, every single day."
+            <div style={{ flex: 1, minWidth: 'unset', width: '100%' }}>
+              <div style={{
+                fontSize: 'clamp(1.15rem, 4.5vw, 1.85rem)',
+                fontWeight: 350,
+                fontStyle: 'italic',
+                lineHeight: 1.4,
+                marginBottom: '20px',
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.01em'
+              }}>
+                "I used to leave my house at 8:10 AM just to ensure I could find a spot in Sector 18 before my 9:00 AM standup. With Drivix, I leave at 8:40 AM. That's 30 minutes of my life back, every single day."
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-primary)' }} />
+                <div>
+                  <div style={{ fontWeight: 500 }}>Sajid Ahmad</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Daily Commuter to Sector 18</div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                   <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                   <div>
-                      <div style={{ fontWeight: 800 }}>Sajid Ahmad</div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Daily Commuter to Sector 18</div>
-                   </div>
-                </div>
-             </div>
+              </div>
+            </div>
           </div>
         </FadeIn>
       </div>

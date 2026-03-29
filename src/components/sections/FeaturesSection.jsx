@@ -68,13 +68,13 @@ const FeaturesSection = () => {
           `}</style>
           
           {/* Main Large Card */}
-          <div className="glass-panel bento-card" style={{ gridArea: 'network', padding: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, var(--bg-secondary), #1a1a24)' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'network', padding: 'clamp(28px, 5vw, 48px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, var(--bg-secondary), #1a1a24)' }}>
             <div>
-              <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>Network Growth</div>
-              <h3 style={{ fontSize: '3.5rem', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 0.9, marginBottom: '24px' }}>
-                42<span style={{ fontSize: '2rem' }}> sites</span> <br />and counting.
+              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>Network Growth</div>
+              <h3 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 0.9, marginBottom: '24px' }}>
+                42<span style={{ fontSize: '1.5rem' }}> sites</span> <br />and counting.
               </h3>
-              <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: '280px' }}>
+              <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', maxWidth: '280px' }}>
                 From Sector 18 to Knowledge Park II. If it's a major hub in Noida, we're already there.
               </p>
             </div>
@@ -84,9 +84,9 @@ const FeaturesSection = () => {
           </div>
 
           {/* Wide Card */}
-          <div className="glass-panel bento-card" style={{ gridArea: 'payment', padding: '32px', display: 'flex', alignItems: 'center', gap: '32px' }}>
-             <div style={{ padding: '24px', borderRadius: 'var(--radius-card)', background: 'rgba(250, 255, 0, 0.1)', color: 'var(--accent-primary)' }}>
-                <Wallet size={48} />
+          <div className="glass-panel bento-card" style={{ gridArea: 'payment', padding: 'clamp(24px, 4vw, 32px)', display: 'flex', alignItems: 'center', gap: 'clamp(16px, 3vw, 32px)', flexWrap: 'wrap' }}>
+             <div style={{ padding: '20px', borderRadius: 'var(--radius-card)', background: 'rgba(250, 255, 0, 0.1)', color: 'var(--accent-primary)' }}>
+                <Wallet size={36} />
              </div>
              <div>
                 <h4 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '4px' }}>Zero-Friction Payments</h4>
@@ -94,7 +94,7 @@ const FeaturesSection = () => {
              </div>
           </div>
 
-          <div className="glass-panel bento-card" style={{ gridArea: 'secure', padding: '32px' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'secure', padding: 'clamp(24px, 4vw, 32px)' }}>
              <ShieldCheck size={32} color="var(--accent-primary)" style={{ marginBottom: '20px' }} />
              <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>ANPR Secure</h4>
              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>High-speed camera entry. No more reaching for QR codes.</p>
