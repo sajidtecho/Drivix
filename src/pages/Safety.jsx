@@ -13,21 +13,21 @@ const SafetyFeatureCard = ({ icon: Icon, title, description, color = '#0052cc' }
     whileHover={{ y: -10, boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}
     className="glass-panel"
     style={{
-      padding: '32px',
+      padding: '24px',
       borderRadius: 'var(--radius-card)',
       background: 'var(--bg-tertiary)',
       border: '1px solid var(--glass-border)',
       display: 'flex',
       flexDirection: 'column',
-      gap: '20px',
+      gap: '16px',
       transition: 'all 0.3s ease',
       height: '100%'
     }}
   >
     <div style={{
-      width: '56px',
-      height: '56px',
-      borderRadius: '16px',
+      width: '48px',
+      height: '48px',
+      borderRadius: '12px',
       background: `${color}15`,
       color: color,
       display: 'flex',
@@ -35,11 +35,11 @@ const SafetyFeatureCard = ({ icon: Icon, title, description, color = '#0052cc' }
       justifyContent: 'center',
       boxShadow: `0 8px 16px ${color}10`
     }}>
-      <Icon size={28} />
+      <Icon size={24} />
     </div>
     <div>
-      <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '12px', color: 'var(--text-primary)' }}>{title}</h3>
-      <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{description}</p>
+      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-primary)' }}>{title}</h3>
+      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{description}</p>
     </div>
   </motion.div>
 );
@@ -112,8 +112,8 @@ const Safety = () => {
         
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-          gap: '24px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+          gap: '20px',
           paddingBottom: '60px'
         }}>
           <SafetyFeatureCard 
