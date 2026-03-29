@@ -43,9 +43,9 @@
 
 [data-theme="dark"] {
   /* Dark Mode */
-  --bg-primary: #0a0a0c;
-  --bg-secondary: #131316;
-  --bg-tertiary: #1a1a20;
+  --bg-primary: #0d0d0b;
+  --bg-secondary: #141410;
+  --bg-tertiary: #1a1a15;
 
   --accent-primary: #faff00;
   --accent-secondary: #00ffa3;
