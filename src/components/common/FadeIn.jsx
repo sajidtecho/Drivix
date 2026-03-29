@@ -6,7 +6,7 @@ const FadeIn = ({ children, delay = 0, y = 20 }) => (
     initial={{ opacity: 0, y }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: '-50px' }}
-    transition={{ duration: 0.6, delay, type: 'spring', stiffness: 100 }}
+    transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
   >
     {children}
   </motion.div>

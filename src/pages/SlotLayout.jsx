@@ -130,7 +130,7 @@ const SlotLayout = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.22 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="glass-panel" style={{ padding: '28px', borderRadius: '16px', marginBottom: '24px', minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
               {loading ? (
@@ -206,7 +206,8 @@ const SlotLayout = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+              exit={{ opacity: 0, y: 20, transition: { ease: [0.7, 0, 1, 1], duration: 0.3 } }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="glass-panel"
               style={{
                 padding: '24px 28px', borderRadius: '16px', marginBottom: '24px',
