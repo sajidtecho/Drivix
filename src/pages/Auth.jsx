@@ -92,10 +92,10 @@ const Auth = () => {
         </div>
 
         <h2 style={{ fontSize: '2rem', marginBottom: '8px', fontWeight: 700 }}>
-          {isLogin ? 'Welcome Back' : 'Join Drivix'}
+          {isLogin ? 'Your spot is waiting.' : 'Reserve yours.'}
         </h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
-          {isLogin ? 'Enter your details to access your account' : 'Start your journey with premium smart parking'}
+          {isLogin ? 'Log in to manage your bookings and wallet.' : 'Create an account to secure premium parking across the city.'}
         </p>
 
         {error && (

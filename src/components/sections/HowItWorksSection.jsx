@@ -79,17 +79,21 @@ const HowItWorksSection = () => {
             <Car size={32} />
           </motion.div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+            gap: '24px'
+          }}>
             {steps.map((s, idx) => {
               const Icon = s.icon;
               return (
               <FadeIn key={idx} delay={idx * 0.1}>
-                <div className="glass-panel" style={{ padding: '40px 30px', textAlign: 'center', height: '100%', position: 'relative' }}>
-                  <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(250, 255, 0, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                    <Icon size={32} color="var(--accent-secondary)" />
+                <div className="glass-panel" style={{ padding: '30px 20px', textAlign: 'center', height: '100%', position: 'relative' }}>
+                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(250, 255, 0, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                    <Icon size={24} color="var(--accent-secondary)" />
                   </div>
-                  <h3 style={{ fontSize: '1.4rem', marginBottom: '16px', fontWeight: 800 }}>{s.title}</h3>
-                  <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '1rem' }}>{s.desc}</p>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', fontWeight: 800 }}>{s.title}</h3>
+                  <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '0.92rem' }}>{s.desc}</p>
                 </div>
               </FadeIn>
               );
