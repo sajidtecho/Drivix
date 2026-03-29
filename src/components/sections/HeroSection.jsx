@@ -42,9 +42,9 @@ const HeroSection = () => {
             </div>
 
             <h1 style={{ 
-              fontSize: 'clamp(3rem, 10vw, 6.5rem)', 
+              fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', 
               fontWeight: 800, 
-              lineHeight: 0.85, 
+              lineHeight: 1.0, 
               marginBottom: '32px',
               fontFamily: 'var(--font-display)',
               letterSpacing: '-0.04em'
