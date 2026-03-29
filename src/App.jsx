@@ -10,6 +10,7 @@ import SlotLayout from './pages/SlotLayout';
 import ParkingList from './pages/ParkingList';
 import SlotBookingForm from './pages/SlotBookingForm';
 import Ticket from './pages/Ticket';
+import Safety from './pages/Safety';
 import './index.css';
 import { Loader2 } from 'lucide-react';
 
@@ -59,6 +60,7 @@ function App() {
             <Route path="/slot-layout" element={<SlotLayout />} />
             <Route path="/slot-booking" element={<SlotBookingForm />} />
             <Route path="/ticket"      element={<Ticket />} />
+            <Route path="/safety"      element={<Safety />} />
           </Routes>
         </main>
       </div>

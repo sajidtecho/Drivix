@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import FadeIn from '../common/FadeIn';
+import { useNavigate } from 'react-router-dom';
 
 // Unused variables removed
 
 const FooterSection = () => {
+  const navigate = useNavigate();
   return (
     <footer style={{
       background: 'var(--bg-primary)',
@@ -66,7 +68,13 @@ const FooterSection = () => {
 
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
             {['Safety', 'Privacy', 'Network', 'Support', 'Careers'].map(link => (
-              <span key={link} style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color = 'var(--text-primary)'} onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}>
+              <span 
+                key={link} 
+                onClick={() => link === 'Safety' && navigate('/safety')}
+                style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', cursor: 'pointer', transition: 'color 0.2s' }} 
+                onMouseEnter={e => e.target.style.color = 'var(--text-primary)'} 
+                onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
+              >
                 {link}
               </span>
             ))}
