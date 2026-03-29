@@ -17,8 +17,20 @@ function App() {
 
   if (loading) {
     return (
-      <div style={{ height: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
-        <Loader2 className="animate-spin" size={40} color="var(--accent-primary)" />
+      <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', gap: '24px' }}>
+        <div style={{
+          width: '64px', height: '64px', borderRadius: '16px', background: 'var(--accent-primary)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 8px 24px rgba(250, 255, 0, 0.2)', marginBottom: '16px'
+        }}>
+          <span style={{ fontSize: '2rem', fontWeight: 900, color: '#000' }}>D</span>
+        </div>
+        <div style={{ position: 'relative' }}>
+          <Loader2 className="animate-spin" size={48} color="var(--accent-primary)" />
+        </div>
+        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+          Navigating...
+        </div>
       </div>
     );
   }
