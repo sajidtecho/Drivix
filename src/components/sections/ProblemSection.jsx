@@ -55,22 +55,43 @@ const ProblemSection = () => {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '100px' }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', 
+          gap: '20px', 
+          marginBottom: '80px' 
+        }}>
           {problems.map((problem, i) => {
             const Icon = problem.icon;
             return (
             <FadeIn key={i} delay={i * 0.1}>
               <div
                 className="glass-panel"
-                style={{ padding: '48px', border: '1px solid var(--glass-border)', transition: 'all var(--transition-normal)' }}
+                style={{ 
+                  padding: 'clamp(24px, 5vw, 48px)', 
+                  border: '1px solid var(--glass-border)', 
+                  transition: 'all var(--transition-normal)',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-warm)'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
               >
-                <div style={{ width: '56px', height: '56px', borderRadius: 'var(--radius-input)', background: 'rgba(255, 107, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px' }}>
-                   <Icon color="var(--accent-warm)" size={28} />
+                <div style={{ 
+                  width: '48px', 
+                  height: '48px', 
+                  borderRadius: 'var(--radius-input)', 
+                  background: 'rgba(255, 107, 0, 0.1)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  marginBottom: '28px' 
+                }}>
+                   <Icon color="var(--accent-warm)" size={24} />
                 </div>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '16px', fontFamily: 'var(--font-display)' }}>{problem.title}</h3>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>{problem.desc}</p>
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px', fontFamily: 'var(--font-display)' }}>{problem.title}</h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '1rem' }}>{problem.desc}</p>
               </div>
             </FadeIn>
             );
