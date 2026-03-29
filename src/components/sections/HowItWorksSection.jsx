@@ -45,7 +45,7 @@ const HowItWorksSection = () => {
         </div>
 
         <FadeIn>
-          <div style={{ marginBottom: '80px', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+          <div style={{ marginBottom: '80px', borderRadius: 'var(--radius-card)', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
             <GateAnimation />
           </div>
         </FadeIn>

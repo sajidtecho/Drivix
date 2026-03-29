@@ -60,7 +60,7 @@ const FooterSection = () => {
           gap: '32px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#000' }}>D</div>
+            <div style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-button)', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#000' }}>D</div>
             <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.03em' }}>Drivix.</span>
           </div>
 

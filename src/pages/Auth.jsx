@@ -66,7 +66,7 @@ const Auth = () => {
       <div className="glass-panel" style={{ width: '100%', maxWidth: '450px', padding: '40px', position: 'relative', overflow: 'hidden' }}>
 
         {/* Toggle tabs */}
-        <div style={{ display: 'flex', marginBottom: '32px', background: 'var(--glass-border)', padding: '4px', borderRadius: '10px' }}>
+        <div style={{ display: 'flex', marginBottom: '32px', background: 'var(--glass-border)', padding: '4px', borderRadius: 'var(--radius-input)' }}>
           <button
             onClick={() => setIsLogin(true)}
             style={{
@@ -114,7 +114,7 @@ const Auth = () => {
                 <input
                   type="text" name="name" placeholder="Full Name" required
                   value={formData.name} onChange={handleChange}
-                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                 />
               </div>
             </div>
@@ -127,7 +127,7 @@ const Auth = () => {
               <input
                 type="email" name="email" placeholder="Email Address" required
                 value={formData.email} onChange={handleChange}
-                style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
               />
             </div>
           </div>
@@ -140,7 +140,7 @@ const Auth = () => {
                 <input
                   type="tel" name="mobile" placeholder="+91 9876543210" required
                   value={formData.mobile} onChange={handleChange}
-                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                 />
               </div>
             </div>
@@ -153,7 +153,7 @@ const Auth = () => {
               <input
                 type="password" name="password" placeholder="Password" required
                 value={formData.password} onChange={handleChange}
-                style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
               />
             </div>
           </div>
@@ -166,7 +166,7 @@ const Auth = () => {
                 <input
                   type="text" name="city" placeholder="City/Location" required
                   value={formData.city} onChange={handleChange}
-                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                 />
               </div>
             </div>

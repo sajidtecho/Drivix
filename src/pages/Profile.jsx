@@ -187,7 +187,7 @@ const Profile = () => {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: '10px', border: 'none',
+                  display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: 'var(--radius-button)', border: 'none',
                   background: activeTab === item.id ? 'var(--accent-primary)' : 'transparent',
                   color: activeTab === item.id ? '#000' : 'var(--text-primary)',
                   fontWeight: 600, cursor: 'pointer', textAlign: 'left', transition: 'all 0.3s'
@@ -201,7 +201,7 @@ const Profile = () => {
             
             <button 
               onClick={logout}
-              style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: '12px', border: 'none', background: 'transparent', color: '#ff4b4b', fontWeight: 600, cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: 'var(--radius-button)', border: 'none', background: 'transparent', color: '#ff4b4b', fontWeight: 600, cursor: 'pointer' }}
               className="desktop-only"
             >
               <Trash2 size={20} /> Logout
@@ -231,7 +231,7 @@ const Profile = () => {
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-secondary)' }}>#{booking.bookingId}</span>
-                               <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '50px', background: 'rgba(0, 204, 106, 0.1)', color: '#00cc6a', border: '1px solid rgba(0, 204, 106, 0.2)', fontWeight: 700 }}>SUCCESS</span>
+                               <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)', background: 'rgba(0, 204, 106, 0.1)', color: '#00cc6a', border: '1px solid rgba(0, 204, 106, 0.2)', fontWeight: 700 }}>SUCCESS</span>
                             </div>
                             <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 12px 0' }}>Slot {booking.slotId} • {booking.floor}</h3>
                             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
@@ -260,7 +260,7 @@ const Profile = () => {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ textAlign: 'center', padding: '80px 20px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: '24px', border: '1px dashed var(--glass-border)' }}>
+                  <div style={{ textAlign: 'center', padding: '80px 20px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: 'var(--radius-card)', border: '1px dashed var(--glass-border)' }}>
                      <Calendar size={48} color="var(--text-secondary)" style={{ opacity: 0.3, marginBottom: '20px' }} />
                      <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>No Bookings Yet</h3>
                      <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Once you book a parking slot, it will appear here.</p>
@@ -305,7 +305,7 @@ const Profile = () => {
                     <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Mobile Number</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>{user.mobile}</p>
-                      <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '100px', background: 'rgba(0, 255, 136, 0.1)', color: '#00cc6a', border: '1px solid rgba(0, 255, 136, 0.2)' }}>Verified</span>
+                      <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)', background: 'rgba(0, 255, 136, 0.1)', color: '#00cc6a', border: '1px solid rgba(0, 255, 136, 0.2)' }}>Verified</span>
                     </div>
                   </div>
                   <div className="info-group">
@@ -369,7 +369,7 @@ const Profile = () => {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
                           <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>{vehicle.plate}</h4>
-                          {idx === 0 && <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '100px', background: 'var(--accent-primary)', color: '#000', fontWeight: 600 }}>PRIMARY</span>}
+                          {idx === 0 && <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)', background: 'var(--accent-primary)', color: '#000', fontWeight: 600 }}>PRIMARY</span>}
                         </div>
                         <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{vehicle.model} • {vehicle.type}</p>
                       </div>
@@ -500,7 +500,7 @@ const Profile = () => {
                       </div>
                       <h4 style={{ margin: '0 0 8px 0', fontWeight: 700 }}>{doc.title}</h4>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '100px', background: `${doc.color || '#00cc6a'}15`, color: doc.color || '#00cc6a', border: `1px solid ${doc.color || '#00cc6a'}25` }}>{doc.status}</span>
+                        <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)', background: `${doc.color || '#00cc6a'}15`, color: doc.color || '#00cc6a', border: `1px solid ${doc.color || '#00cc6a'}25` }}>{doc.status}</span>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Exp: {doc.expiry}</span>
                       </div>
                     </div>
@@ -598,7 +598,7 @@ const Profile = () => {
                                 style={{ 
                                   width: '44px', height: '24px', 
                                   background: isEnabled ? 'var(--accent-primary)' : 'var(--glass-border-light)', 
-                                  borderRadius: '100px', position: 'relative', cursor: 'pointer', transition: 'background 0.3s' 
+                                  borderRadius: 'var(--radius-pill)', position: 'relative', cursor: 'pointer', transition: 'background 0.3s' 
                                 }}
                               >
                                  <motion.div 

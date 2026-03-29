@@ -85,7 +85,7 @@ const FeaturesSection = () => {
 
           {/* Wide Card */}
           <div className="glass-panel bento-card" style={{ gridArea: 'payment', padding: '32px', display: 'flex', alignItems: 'center', gap: '32px' }}>
-             <div style={{ padding: '24px', borderRadius: '16px', background: 'rgba(250, 255, 0, 0.1)', color: 'var(--accent-primary)' }}>
+             <div style={{ padding: '24px', borderRadius: 'var(--radius-card)', background: 'rgba(250, 255, 0, 0.1)', color: 'var(--accent-primary)' }}>
                 <Wallet size={48} />
              </div>
              <div>

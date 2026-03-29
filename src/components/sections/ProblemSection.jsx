@@ -66,7 +66,7 @@ const ProblemSection = () => {
                 onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-warm)'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
               >
-                <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'rgba(255, 107, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: 'var(--radius-input)', background: 'rgba(255, 107, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px' }}>
                    <Icon color="var(--accent-warm)" size={28} />
                 </div>
                 <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '16px', fontFamily: 'var(--font-display)' }}>{problem.title}</h3>

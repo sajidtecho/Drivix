@@ -35,7 +35,7 @@ const Navbar = () => {
       setUpdateIndex((prev) => (prev + 1) % updates.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [updates.length]);
 
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -155,7 +155,7 @@ const Navbar = () => {
           <div style={{
             width: '40px',
             height: '40px',
-            borderRadius: '10px',
+            borderRadius: 'var(--radius-button)',
             background: 'var(--accent-primary)',
             display: 'flex',
             alignItems: 'center',
@@ -237,7 +237,7 @@ const Navbar = () => {
                   alignItems: 'center',
                   gap: '8px',
                   padding: '6px 14px',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--radius-pill)',
                   background: 'var(--glass-bg)',
                   border: '1px solid var(--glass-border)',
                   textDecoration: 'none',
@@ -281,7 +281,7 @@ const Navbar = () => {
                 border: 'none',
                 width: '38px',
                 height: '38px',
-                borderRadius: '10px',
+                borderRadius: 'var(--radius-button)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -325,7 +325,7 @@ const Navbar = () => {
                 background: 'var(--glass-bg)',
                 border: '1px solid var(--glass-border)',
                 padding: '20px',
-                borderRadius: '16px',
+                borderRadius: 'var(--radius-card)',
                 color: 'var(--text-primary)',
                 fontSize: '1.2rem',
                 fontWeight: 700,

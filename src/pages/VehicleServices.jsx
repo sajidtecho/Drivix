@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText, CreditCard, RefreshCw, FileCheck, ShieldAlert, CarFront } from 'lucide-react';
-import { db } from "../firebase";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -53,7 +52,7 @@ const VehicleServices = () => {
             >
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', background: service.color, width: '100px', height: '100px', borderRadius: '50%', filter: 'blur(50px)', opacity: 0.15 }}></div>
 
-              <div style={{ marginBottom: '24px', background: 'var(--bg-tertiary)', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)' }}>
+              <div style={{ marginBottom: '24px', background: 'var(--bg-tertiary)', width: '64px', height: '64px', borderRadius: 'var(--radius-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)' }}>
                 <service.icon color={service.color} size={32} />
               </div>
               <h3 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '12px' }}>{service.title}</h3>

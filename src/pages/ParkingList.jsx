@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   MapPin, Car, Users, Star, ChevronRight, Search,
@@ -98,7 +98,7 @@ const ParkingList = () => {
         {/* Header */}
         <motion.div variants={itemVariants} style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-            <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-input)', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Car color="#000" size={22} />
             </div>
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-secondary)', letterSpacing: '2px', textTransform: 'uppercase' }}>
@@ -118,7 +118,7 @@ const ParkingList = () => {
         <motion.div variants={itemVariants} style={{ marginBottom: '32px' }}>
           <div className="glass-panel" style={{
             display: 'flex', alignItems: 'center', gap: '14px',
-            padding: '14px 20px', borderRadius: '16px',
+            padding: '14px 20px', borderRadius: 'var(--radius-card)',
             background: 'var(--glass-bg)',
           }}>
             <Search size={20} color="var(--text-secondary)" />
@@ -145,9 +145,9 @@ const ParkingList = () => {
           {[{ label: 'Locations', value: locations.length, icon: MapPin },
             { label: 'Total Slots', value: locations.reduce((a, p) => a + (p.totalSlots || 0), 0), icon: Car },
             { label: 'Available', value: locations.reduce((a, p) => a + (p.availableSlots || 0), 0), icon: Zap }
-          ].map(({ label, value, icon: IconComponent }) => (
-            <div key={label} className="glass-panel" style={{ flex: '1 1 120px', padding: '16px 20px', borderRadius: '14px', textAlign: 'center' }}>
-              <IconComponent size={18} color="var(--accent-primary)" style={{ marginBottom: '6px' }} />
+          ].map(({ label, value, icon: StatIcon }) => (
+            <div key={label} className="glass-panel" style={{ flex: '1 1 120px', padding: '16px 20px', borderRadius: 'var(--radius-input)', textAlign: 'center' }}>
+              <StatIcon size={18} color="var(--accent-primary)" style={{ marginBottom: '6px' }} />
               <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{value}</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{label}</div>
             </div>
@@ -183,7 +183,7 @@ const ParkingList = () => {
                 {/* Badge */}
                 <div style={{
                   position: 'absolute', top: '20px', right: '20px',
-                  padding: '4px 12px', borderRadius: '20px', fontSize: '0.72rem',
+                  padding: '4px 12px', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem',
                   fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase',
                   background: `${loc.color}22`, color: loc.color, border: `1px solid ${loc.color}44`,
                 }}>
@@ -216,7 +216,7 @@ const ParkingList = () => {
                   `}</style>
                   {/* Icon */}
                   <div style={{
-                    width: '60px', height: '60px', borderRadius: '18px', flexShrink: 0,
+                    width: '60px', height: '60px', borderRadius: 'var(--radius-card)', flexShrink: 0,
                     background: `${loc.color}18`, display: 'flex', alignItems: 'center',
                     justifyContent: 'center', border: `1.5px solid ${loc.color}33`,
                   }} className="parking-card-icon">
@@ -292,7 +292,7 @@ const ParkingList = () => {
         </div>
 
         {filtered.length === 0 && !loading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-tertiary)', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-card)', border: '1px solid var(--glass-border)' }}>
             <MapPin size={48} color="var(--accent-primary)" style={{ margin: '0 auto 16px', opacity: 0.5 }} />
             <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>No Facilities Found</h3>
             <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto 24px' }}>
