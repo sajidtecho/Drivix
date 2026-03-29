@@ -1,5 +1,6 @@
 import React from 'react';
-import { Smartphone, ScanFace, Clock, Zap } from 'lucide-react';
+import { Smartphone, ScanFace, Clock, Zap, Car } from 'lucide-react';
+import { motion } from 'framer-motion';
 import FadeIn from '../common/FadeIn';
 import GateAnimation from '../animations/GateAnimation';
 
@@ -49,22 +50,51 @@ const HowItWorksSection = () => {
           </div>
         </FadeIn>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-          {steps.map((s, idx) => {
-            const Icon = s.icon;
-            return (
-            <FadeIn key={idx} delay={idx * 0.1}>
-              <div className="glass-panel" style={{ padding: '30px 16px', textAlign: 'center', height: '100%', position: 'relative', marginTop: '20px' }}>
-                <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', width: '50px', height: '50px', background: 'var(--bg-tertiary)', border: '2px solid var(--accent-primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)', boxShadow: '0 10px 20px rgba(255, 206, 0, 0.2)' }}>
-                  {s.step}
+        <div style={{ position: 'relative' }}>
+          {/* Sequential Car Animation */}
+          <motion.div
+            animate={{ 
+              x: ['0%', '33%', '66%', '100%'],
+              opacity: [0, 1, 1, 0]
+            }}
+            transition={{ 
+              duration: 10, 
+              repeat: Infinity, 
+              ease: "linear",
+              times: [0, 0.2, 0.8, 1]
+            }}
+            style={{ 
+              position: 'absolute', 
+              top: '-45px', 
+              left: '0%', 
+              width: '100%',
+              zIndex: 10,
+              color: 'var(--accent-primary)',
+              filter: 'drop-shadow(0 0 10px var(--accent-primary))',
+              display: 'flex',
+              paddingLeft: '50px'
+            }}
+            className="desktop-only"
+          >
+            <Car size={32} />
+          </motion.div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px' }}>
+            {steps.map((s, idx) => {
+              const Icon = s.icon;
+              return (
+              <FadeIn key={idx} delay={idx * 0.1}>
+                <div className="glass-panel" style={{ padding: '40px 30px', textAlign: 'center', height: '100%', position: 'relative' }}>
+                  <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(250, 255, 0, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                    <Icon size={32} color="var(--accent-secondary)" />
+                  </div>
+                  <h3 style={{ fontSize: '1.4rem', marginBottom: '16px', fontWeight: 800 }}>{s.title}</h3>
+                  <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '1rem' }}>{s.desc}</p>
                 </div>
-                <Icon size={40} color="var(--accent-secondary)" style={{ margin: '16px auto', opacity: 0.8 }} />
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '12px' }}>{s.title}</h3>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '0.95rem' }}>{s.desc}</p>
-              </div>
-            </FadeIn>
-            );
-          })}
+              </FadeIn>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
