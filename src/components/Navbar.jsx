@@ -126,7 +126,7 @@ const Navbar = () => {
             <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#000' }}>D</span>
           </div>
           <span style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.05em', color: 'var(--text-primary)' }}>
-            Driv<span style={{ color: 'var(--accent-primary)' }}>ix</span>
+            Drivix
           </span>
         </Link>
 
