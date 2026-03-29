@@ -15,9 +15,11 @@
   --text-secondary: rgba(10, 10, 12, 0.6);
   --text-muted: rgba(10, 10, 12, 0.4);
   
-  --glass-bg: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(0, 0, 0, 0.08);
   --glass-border-light: rgba(0, 0, 0, 0.04);
+  
+  --announcement-bg: #000000;
+  --announcement-text: var(--accent-primary);
   
   --transition-fast: 0.2s cubic-bezier(0.23, 1, 0.32, 1);
   --transition-normal: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
@@ -44,6 +46,9 @@
   --glass-bg: rgba(20, 20, 25, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-border-light: rgba(255, 255, 255, 0.05);
+
+  --announcement-bg: var(--accent-primary);
+  --announcement-text: #000000;
 }
 
 * {
