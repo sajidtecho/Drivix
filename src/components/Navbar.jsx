@@ -117,15 +117,16 @@ const Navbar = () => {
             width: '40px',
             height: '40px',
             borderRadius: '10px',
-            background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+            background: 'var(--accent-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            boxShadow: '0 4px 15px rgba(250, 255, 0, 0.3)'
           }}>
             <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#000' }}>D</span>
           </div>
-          <span style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.5px' }}>
-            Drivix
+          <span style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.05em', color: 'var(--text-primary)' }}>
+            Driv<span style={{ color: 'var(--accent-primary)' }}>ix</span>
           </span>
         </Link>
 
