@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import {
@@ -80,7 +80,7 @@ const Ticket = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           style={{
-            borderRadius: '24px', overflow: 'hidden',
+            borderRadius: 'var(--radius-card)', overflow: 'hidden',
             boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
             background: 'var(--bg-tertiary)',
             border: '1px solid var(--glass-border)',
@@ -110,7 +110,7 @@ const Ticket = () => {
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.88rem' }}>{booking.floor} · {booking.locationName}</p>
               </div>
               <div style={{
-                padding: '6px 14px', borderRadius: '20px',
+                padding: '6px 14px', borderRadius: 'var(--radius-pill)',
                 background: 'rgba(0,204,106,0.2)', border: '1px solid rgba(0,204,106,0.4)',
                 fontSize: '0.75rem', fontWeight: 800, color: '#00cc6a', letterSpacing: '1px',
               }}>
@@ -163,7 +163,7 @@ const Ticket = () => {
                 { icon: Clock, label: 'Entry', value: booking.entryTime, sub: `${booking.duration}h duration` },
               ].map(({ label, value, sub }) => (
                 <div key={label} style={{
-                  padding: '14px 16px', borderRadius: '12px',
+                  padding: '14px 16px', borderRadius: 'var(--radius-input)',
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--glass-border)',
                 }}>
@@ -181,7 +181,7 @@ const Ticket = () => {
 
             {/* Total */}
             <div style={{
-              marginTop: '20px', padding: '16px 20px', borderRadius: '14px',
+              marginTop: '20px', padding: '16px 20px', borderRadius: 'var(--radius-card)',
               background: 'linear-gradient(135deg, rgba(255,206,0,0.12), rgba(255,173,0,0.08))',
               border: '1px solid rgba(255,206,0,0.25)',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',

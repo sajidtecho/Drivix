@@ -6,7 +6,6 @@ const AnimatedParkingHero = () => {
     <div className="glass-panel" style={{
       width: '400px',
       height: '450px',
-      margin: '0 auto',
       position: 'relative',
       overflow: 'hidden',
       background: 'var(--bg-secondary)',

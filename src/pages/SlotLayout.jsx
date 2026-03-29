@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Car, Layers, Loader2 } from 'lucide-react';
@@ -57,18 +57,20 @@ const SlotLayout = () => {
     return unsub;
   }, [loc, selectedFloor]);
 
-  const floors = loc?.floors || ['L1'];
+  const floors = useMemo(() => loc?.floors || ['L1'], [loc]);
 
-  const slotRows = slots.reduce((acc, slot) => {
-    if (!acc[slot.row]) acc[slot.row] = [];
-    acc[slot.row].push(slot);
-    return acc;
-  }, {});
+  const slotRows = useMemo(() => {
+    return slots.reduce((acc, slot) => {
+      if (!acc[slot.row]) acc[slot.row] = [];
+      acc[slot.row].push(slot);
+      return acc;
+    }, {});
+  }, [slots]);
 
-  const handleSlotClick = (slotId, status) => {
+  const handleSlotClick = useCallback((slotId, status) => {
     if (status === 'booked' || status === 'reserved') return;
-    setSelectedSlot(slotId === selectedSlot ? null : slotId);
-  };
+    setSelectedSlot(prev => prev === slotId ? null : slotId);
+  }, []);
 
   return (
     <div style={{ paddingTop: '90px', minHeight: '100vh', background: 'var(--bg-primary)' }}>

@@ -30,7 +30,7 @@ const GateAnimation = () => {
       <motion.div
         animate={{ opacity: [0, 0, 1, 0, 0], y: [10, 0, 0, -10, 0] }}
         transition={{ duration: 6, repeat: Infinity, times: [0, 0.4, 0.45, 0.6, 1] }}
-        style={{ position: 'absolute', bottom: '150px', left: '35%', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', color: '#000', padding: '8px 20px', borderRadius: '12px', fontWeight: 'bold', fontSize: '1.1rem', zIndex: 20, boxShadow: '0 4px 20px rgba(0,255,136,0.6)' }}
+        style={{ position: 'absolute', bottom: '150px', left: '35%', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', color: '#000', padding: '8px 20px', borderRadius: 'var(--radius-button)', fontWeight: 'bold', fontSize: '1.1rem', zIndex: 20, boxShadow: '0 4px 20px rgba(0,255,136,0.6)' }}
       >
         DL-14-55 Verified ✓
       </motion.div>

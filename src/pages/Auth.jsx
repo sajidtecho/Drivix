@@ -70,7 +70,7 @@ const Auth = () => {
           <button
             onClick={() => setIsLogin(true)}
             style={{
-              flex: 1, padding: '10px', borderRadius: '10px', border: 'none',
+              flex: 1, padding: '10px', borderRadius: 'var(--radius-button)', border: 'none',
               background: isLogin ? 'var(--accent-primary)' : 'transparent',
               color: isLogin ? '#000' : 'var(--text-secondary)',
               fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s'
@@ -81,7 +81,7 @@ const Auth = () => {
           <button
             onClick={() => setIsLogin(false)}
             style={{
-              flex: 1, padding: '10px', borderRadius: '10px', border: 'none',
+              flex: 1, padding: '10px', borderRadius: 'var(--radius-button)', border: 'none',
               background: !isLogin ? 'var(--accent-primary)' : 'transparent',
               color: !isLogin ? '#000' : 'var(--text-secondary)',
               fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s'
@@ -99,7 +99,7 @@ const Auth = () => {
         </p>
 
         {error && (
-          <div style={{ padding: '12px', background: 'rgba(255, 75, 75, 0.1)', border: '1px solid rgba(255, 75, 75, 0.3)', borderRadius: '10px', color: '#ff4b4b', fontSize: '0.9rem', marginBottom: '20px' }}>
+          <div style={{ padding: '12px', background: 'rgba(255, 75, 75, 0.1)', border: '1px solid rgba(255, 75, 75, 0.3)', borderRadius: 'var(--radius-input)', color: '#ff4b4b', fontSize: '0.9rem', marginBottom: '20px' }}>
             {error}
           </div>
         )}

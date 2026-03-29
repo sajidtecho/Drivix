@@ -47,7 +47,7 @@ const Home = () => {
         
         <motion.div variants={itemVariants} style={{ display: 'flex', gap: '16px' }}>
           <div className="glass-panel" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ background: 'rgba(0, 255, 136, 0.1)', padding: '12px', borderRadius: '12px' }}>
+            <div style={{ background: 'rgba(0, 255, 136, 0.1)', padding: '12px', borderRadius: 'var(--radius-input)' }}>
               <Zap color="var(--accent-primary)" size={24} />
             </div>
             <div>
@@ -86,7 +86,7 @@ const Home = () => {
           style={{ position: 'absolute', width: '200px', height: '200px', borderRadius: '50%', border: '2px solid var(--accent-secondary)' }}
         />
         
-        <div style={{ zIndex: 10, textAlign: 'center', background: 'rgba(10,10,10,0.8)', padding: '24px 32px', borderRadius: '20px', border: '1px solid var(--glass-border-light)', backdropFilter: 'blur(10px)' }}>
+        <div style={{ zIndex: 10, textAlign: 'center', background: 'rgba(10,10,10,0.8)', padding: '24px 32px', borderRadius: 'var(--radius-card)', border: '1px solid var(--glass-border-light)', backdropFilter: 'blur(10px)' }}>
           <Navigation color="var(--accent-primary)" size={40} style={{ margin: '0 auto 16px' }} />
           <h4 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '8px' }}>Scanning Nearby Facilities</h4>
           <p style={{ color: 'var(--text-secondary)' }}>Connaught Place, New Delhi</p>
@@ -116,10 +116,10 @@ const Home = () => {
               />
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', position: 'relative', zIndex: 3 }}>
-              <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '12px', color: facility.color }}>
+              <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-input)', color: facility.color }}>
                 <facility.icon size={24} />
               </div>
-              <span style={{ background: 'var(--glass-bg)', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500', border: '1px solid var(--glass-border)' }}>
+              <span style={{ background: 'var(--glass-bg)', padding: '6px 14px', borderRadius: 'var(--radius-pill)', fontSize: '0.85rem', fontWeight: '500', border: '1px solid var(--glass-border)' }}>
                 {facility.distance}
               </span>
             </div>

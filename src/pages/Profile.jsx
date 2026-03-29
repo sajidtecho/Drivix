@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useUser } from '../hooks/useUser';
 import { 
   User, Car, CreditCard, FileText, Settings, Shield, 
@@ -292,7 +292,7 @@ const Profile = () => {
                   <div className="info-group">
                     <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Full Name</label>
                     {isEditing ? (
-                      <input type="text" value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+                      <input type="text" value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
                     ) : (
                       <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>{user.name}</p>
                     )}
@@ -311,7 +311,7 @@ const Profile = () => {
                   <div className="info-group">
                     <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>City / Location</label>
                     {isEditing ? (
-                      <input type="text" value={editData.city || ''} onChange={(e) => setEditData({...editData, city: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+                      <input type="text" value={editData.city || ''} onChange={(e) => setEditData({...editData, city: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
                     ) : (
                       <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>{user.city}</p>
                     )}
@@ -330,7 +330,7 @@ const Profile = () => {
                 </div>
 
                 {showAddVehicle && (
-                  <div style={{ marginBottom: '32px', padding: '24px', borderRadius: '16px', background: 'var(--bg-secondary)', border: '1px solid var(--accent-primary)' }}>
+                  <div style={{ marginBottom: '32px', padding: '24px', borderRadius: 'var(--radius-card)', background: 'var(--bg-secondary)', border: '1px solid var(--accent-primary)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                       <h4 style={{ margin: 0 }}>Register New Vehicle</h4>
                       <X size={20} cursor="pointer" onClick={() => setShowAddVehicle(false)} />
@@ -338,15 +338,15 @@ const Profile = () => {
                     <form onSubmit={handleAddVehicle} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>License Plate</label>
-                        <input type="text" placeholder="MH 01 AB 1234" value={newVehicle.plate} onChange={(e) => setNewVehicle({...newVehicle, plate: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
+                        <input type="text" placeholder="MH 01 AB 1234" value={newVehicle.plate} onChange={(e) => setNewVehicle({...newVehicle, plate: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
                       </div>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Model</label>
-                        <input type="text" placeholder="Tesla Model 3" value={newVehicle.model} onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
+                        <input type="text" placeholder="Tesla Model 3" value={newVehicle.model} onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
                       </div>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Fuel Type</label>
-                        <select value={newVehicle.type} onChange={(e) => setNewVehicle({...newVehicle, type: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+                        <select value={newVehicle.type} onChange={(e) => setNewVehicle({...newVehicle, type: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
                           <option>Petrol</option>
                           <option>Diesel</option>
                           <option>Electric</option>
@@ -363,7 +363,7 @@ const Profile = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {user.vehicles?.length > 0 ? user.vehicles.map((vehicle, idx) => (
                     <div key={vehicle.id || idx} className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '24px', border: idx === 0 ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', background: idx === 0 ? 'rgba(255, 206, 0, 0.05)' : 'rgba(255,255,255,0.02)' }}>
-                      <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-card)', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Car size={32} color={idx === 0 ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
                       </div>
                       <div style={{ flex: 1 }}>
@@ -389,7 +389,7 @@ const Profile = () => {
                   )}
                 </div>
 
-                <div style={{ marginTop: '32px', padding: '24px', borderRadius: '16px', background: 'rgba(255, 206, 0, 0.03)', border: '1px dashed var(--accent-primary)' }}>
+                <div style={{ marginTop: '32px', padding: '24px', borderRadius: 'var(--radius-card)', background: 'rgba(255, 206, 0, 0.03)', border: '1px dashed var(--accent-primary)' }}>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
                     <Shield size={24} color="var(--accent-primary)" />
                     <div>
@@ -474,7 +474,7 @@ const Profile = () => {
 
                 <h4 style={{ margin: '0 0 16px 0', fontWeight: 700 }}>Recent Activity</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                   <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.01)', borderRadius: '12px', border: '1px dashed var(--glass-border)' }}>
+                   <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.01)', borderRadius: 'var(--radius-card)', border: '1px dashed var(--glass-border)' }}>
                      <p style={{ color: 'var(--text-secondary)' }}>No recent transactions found.</p>
                    </div>
                 </div>
@@ -493,7 +493,7 @@ const Profile = () => {
                   {user.documents?.length > 0 ? user.documents.map((doc, idx) => (
                     <div key={idx} className="glass-panel" style={{ padding: '24px', transition: 'transform 0.3s' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                        <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-input)', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <FileText size={20} color="var(--text-secondary)" />
                         </div>
                         <ExternalLink size={16} color="var(--text-secondary)" />
@@ -533,7 +533,7 @@ const Profile = () => {
                                 onClick={() => updateUser({ preferences: { ...user.preferences, parkingType: type } })}
                                 className="glass-panel" 
                                 style={{ 
-                                  flex: 1, padding: '14px', borderRadius: '10px',
+                                  flex: 1, padding: '14px', borderRadius: 'var(--radius-button)',
                                   border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', 
                                   background: isActive ? 'rgba(255,206,0,0.06)' : 'rgba(255,255,255,0.02)', 
                                   cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
@@ -562,7 +562,7 @@ const Profile = () => {
                                 onClick={() => updateUser({ preferences: { ...user.preferences, evCharging: opt.value } })}
                                 className="glass-panel" 
                                 style={{ 
-                                  flex: 1, padding: '14px', borderRadius: '10px',
+                                  flex: 1, padding: '14px', borderRadius: 'var(--radius-button)',
                                   border: isActive ? '1px solid #00cc6a' : '1px solid var(--glass-border)', 
                                   background: isActive ? 'rgba(0, 204, 106, 0.05)' : 'rgba(255,255,255,0.02)', 
                                   cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',

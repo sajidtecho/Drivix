@@ -19,7 +19,7 @@ function App() {
     return (
       <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', gap: '24px' }}>
         <div style={{
-          width: '64px', height: '64px', borderRadius: '16px', background: 'var(--accent-primary)',
+          width: '64px', height: '64px', borderRadius: 'var(--radius-card)', background: 'var(--accent-primary)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 8px 24px rgba(250, 255, 0, 0.2)', marginBottom: '16px'
         }}>

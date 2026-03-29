@@ -133,7 +133,7 @@ const ParkingList = () => {
                 color: 'var(--text-primary)',
               }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '10px', background: 'rgba(255,206,0,0.12)', border: '1px solid rgba(255,206,0,0.25)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: 'var(--radius-input)', background: 'rgba(255,206,0,0.12)', border: '1px solid rgba(255,206,0,0.25)' }}>
               <Navigation size={14} color="var(--accent-primary)" />
               <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-secondary)' }}>Near Me</span>
             </div>
@@ -142,14 +142,14 @@ const ParkingList = () => {
 
         {/* Stats row */}
         <motion.div variants={itemVariants} style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
-          {[{ label: 'Locations', value: locations.length, icon: MapPin },
-            { label: 'Total Slots', value: locations.reduce((a, p) => a + (p.totalSlots || 0), 0), icon: Car },
-            { label: 'Available', value: locations.reduce((a, p) => a + (p.availableSlots || 0), 0), icon: Zap }
-          ].map(({ label, value, icon: StatIcon }) => (
-            <div key={label} className="glass-panel" style={{ flex: '1 1 120px', padding: '16px 20px', borderRadius: 'var(--radius-input)', textAlign: 'center' }}>
-              <StatIcon size={18} color="var(--accent-primary)" style={{ marginBottom: '6px' }} />
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{value}</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{label}</div>
+          {[{ label: 'Locations', value: locations.length, Icon: MapPin },
+            { label: 'Total Slots', value: locations.reduce((a, p) => a + (p.totalSlots || 0), 0), Icon: Car },
+            { label: 'Available', value: locations.reduce((a, p) => a + (p.availableSlots || 0), 0), Icon: Zap }
+          ].map((stat) => (
+            <div key={stat.label} className="glass-panel" style={{ flex: '1 1 120px', padding: '16px 20px', borderRadius: 'var(--radius-input)', textAlign: 'center' }}>
+              <stat.Icon size={18} color="var(--accent-primary)" style={{ marginBottom: '6px' }} />
+              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{stat.value}</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{stat.label}</div>
             </div>
           ))}
         </motion.div>
@@ -231,7 +231,7 @@ const ParkingList = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '16px', flexWrap: 'wrap' }}>
                       <MapPin size={14} />
                       <span>{loc.address}</span>
-                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: 'var(--bg-secondary)', fontSize: '0.78rem', fontWeight: 600 }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 'var(--radius-input)', background: 'var(--bg-secondary)', fontSize: '0.78rem', fontWeight: 600 }}>
                         {loc.distance}
                       </span>
                     </div>
@@ -260,7 +260,7 @@ const ParkingList = () => {
                         {loc.features.map((f) => (
                           <span key={f} style={{
                             fontSize: '0.7rem', fontWeight: 600, padding: '4px 10px',
-                            borderRadius: '8px', background: 'var(--bg-secondary)',
+                            borderRadius: 'var(--radius-input)', background: 'var(--bg-secondary)',
                             color: 'var(--text-secondary)', border: '1px solid var(--glass-border)',
                           }}>{f}</span>
                         ))}
@@ -277,7 +277,7 @@ const ParkingList = () => {
                         </div>
                         <div style={{
                           display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px',
-                          borderRadius: '10px', background: `${loc.color}15`, border: `1px solid ${loc.color}30`,
+                          borderRadius: 'var(--radius-button)', background: `${loc.color}15`, border: `1px solid ${loc.color}30`,
                           color: loc.color, fontWeight: 700, fontSize: '0.88rem',
                         }}>
                           Slots <ChevronRight size={14} />

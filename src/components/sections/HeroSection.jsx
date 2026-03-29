@@ -21,14 +21,15 @@ const HeroSection = () => {
           gridTemplateColumns: '1fr',
           gap: '60px',
           alignItems: 'center',
-          maxWidth: '1300px',
-          margin: '0 auto'
+          maxWidth: '1400px',
+          margin: '0 auto',
+          textAlign: 'left'
         }} className="hero-grid-updated">
           <style>{`
             @media (min-width: 1025px) {
               .hero-grid-updated {
-                grid-template-columns: 1.25fr 1fr !important;
-                gap: 40px !important;
+                grid-template-columns: 1.4fr 1fr !important;
+                gap: 80px !important;
               }
             }
           `}</style>
@@ -48,7 +49,7 @@ const HeroSection = () => {
               marginBottom: '20px',
               fontFamily: 'var(--font-display)',
               letterSpacing: '-0.04em',
-              maxWidth: '800px'
+              maxWidth: '900px'
             }}>
               Find a <span style={{ color: 'var(--accent-primary)' }}>spot</span> before you even leave.
             </h1>
@@ -97,9 +98,9 @@ const HeroSection = () => {
             </div>
           </FadeIn>
 
-          <FadeIn delay={0.2} className="desktop-only">
-            <div style={{ position: 'relative', width: '100%', marginTop: '-140px' }}>
-              <div style={{ position: 'absolute', inset: '-20%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.05, filter: 'blur(100px)' }} />
+          <FadeIn delay={0.2} className="desktop-only" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ position: 'relative', width: '100%', marginTop: '-140px', display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ position: 'absolute', right: '-10%', top: '0', width: '120%', height: '120%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.05, filter: 'blur(100px)' }} />
               <AnimatedParkingHero />
             </div>
           </FadeIn>

@@ -11,7 +11,7 @@ import { collection, addDoc, serverTimestamp, updateDoc, doc, increment } from '
 const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8];
 
 /* ─── Styled Input ───────────────────────────────── */
-const FormField = ({ label, icon: Icon, iconColor = 'var(--accent-primary)', error, children }) => (
+const FormField = ({ label, icon: FieldIcon, iconColor = 'var(--accent-primary)', error, children }) => (
   <div style={{ marginBottom: '20px' }}>
     <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
       {label}
@@ -20,13 +20,13 @@ const FormField = ({ label, icon: Icon, iconColor = 'var(--accent-primary)', err
       className="glass-panel"
       style={{
         display: 'flex', alignItems: 'center', gap: '12px',
-        padding: '14px 16px', borderRadius: '14px',
+        padding: '14px 16px', borderRadius: 'var(--radius-input)',
         background: 'var(--bg-tertiary)',
         border: error ? '1.5px solid #ff4b4b' : '1px solid var(--glass-border)',
         transition: 'all 0.2s',
       }}
     >
-      <Icon size={18} color={error ? '#ff4b4b' : iconColor} style={{ flexShrink: 0 }} />
+      <FieldIcon size={18} color={error ? '#ff4b4b' : iconColor} style={{ flexShrink: 0 }} />
       {children}
     </div>
     {error && <p style={{ marginTop: '5px', fontSize: '0.78rem', color: '#ff4b4b', fontWeight: 600 }}>{error}</p>}
@@ -97,7 +97,7 @@ const OTPVerification = ({ mobile, onVerified, onBack }) => {
         animate={{ scale: [1, 1.05, 1] }}
         transition={{ repeat: Infinity, duration: 2.5 }}
         style={{
-          width: '80px', height: '80px', borderRadius: '24px',
+          width: '80px', height: '80px', borderRadius: 'var(--radius-card)',
           background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 24px', boxShadow: '0 0 30px var(--accent-glow)',
@@ -117,7 +117,7 @@ const OTPVerification = ({ mobile, onVerified, onBack }) => {
       </p>
 
       {/* Demo hint */}
-      <div style={{ marginBottom: '24px', padding: '10px 16px', borderRadius: '10px', background: 'rgba(255,206,0,0.1)', border: '1px solid rgba(255,206,0,0.25)', fontSize: '0.82rem', color: 'var(--accent-secondary)', fontWeight: 600 }}>
+      <div style={{ marginBottom: '24px', padding: '10px 16px', borderRadius: 'var(--radius-input)', background: 'rgba(255,206,0,0.1)', border: '1px solid rgba(255,206,0,0.25)', fontSize: '0.82rem', color: 'var(--accent-secondary)', fontWeight: 600 }}>
         🔐 Demo Mode — Use OTP: <strong>123456</strong>
       </div>
 
@@ -136,7 +136,7 @@ const OTPVerification = ({ mobile, onVerified, onBack }) => {
             style={{
               width: 'clamp(40px, 12vw, 56px)',
               height: 'clamp(48px, 13vw, 64px)',
-              borderRadius: '14px', textAlign: 'center',
+              borderRadius: 'var(--radius-input)', textAlign: 'center',
               fontSize: '1.6rem', fontWeight: 900,
               fontFamily: 'inherit',
               background: digit ? 'rgba(255,206,0,0.1)' : 'var(--bg-tertiary)',
@@ -311,7 +311,7 @@ const SlotBookingForm = () => {
               </p>
 
               {/* Summary card */}
-              <div className="glass-panel" style={{ padding: '18px 22px', marginBottom: '28px', borderRadius: '16px', background: 'var(--bg-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div className="glass-panel" style={{ padding: '18px 22px', marginBottom: '28px', borderRadius: 'var(--radius-card)', background: 'var(--bg-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '3px' }}>{location.name}</p>
                   <p style={{ fontWeight: 800, fontSize: '1.1rem' }}>Slot {slot} · {floor}</p>
@@ -378,7 +378,7 @@ const SlotBookingForm = () => {
                       key={h}
                       onClick={() => setDuration(h)}
                       style={{
-                        padding: '10px 18px', borderRadius: '12px', fontFamily: 'inherit',
+                        padding: '10px 18px', borderRadius: 'var(--radius-button)', fontFamily: 'inherit',
                         fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
                         background: duration === h ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' : 'var(--glass-bg)',
                         color: duration === h ? '#000' : 'var(--text-primary)',
@@ -394,7 +394,7 @@ const SlotBookingForm = () => {
               </div>
 
               {/* Cost preview */}
-              <div className="glass-panel" style={{ padding: '18px 22px', borderRadius: '14px', marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-tertiary)' }}>
+              <div className="glass-panel" style={{ padding: '18px 22px', borderRadius: 'var(--radius-card)', marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-tertiary)' }}>
                 <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
                   {duration}h × ₹{location.pricePerHr}/hr
                 </span>

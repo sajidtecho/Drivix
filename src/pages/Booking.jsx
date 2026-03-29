@@ -201,7 +201,7 @@ const Booking = () => {
                       key={v.id}
                       onClick={() => setSelectedVehicle(v)}
                       style={{
-                        padding: '12px 20px', borderRadius: '14px', border: selectedVehicle?.id === v.id ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)',
+                        padding: '12px 20px', borderRadius: 'var(--radius-input)', border: selectedVehicle?.id === v.id ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)',
                         background: selectedVehicle?.id === v.id ? 'rgba(255, 206, 0, 0.05)' : 'var(--bg-tertiary)',
                         color: selectedVehicle?.id === v.id ? 'var(--text-primary)' : 'var(--text-secondary)',
                         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s', flexShrink: 0
@@ -214,7 +214,7 @@ const Booking = () => {
                       </div>
                     </button>
                   ))}
-                  <button onClick={() => navigate('/profile')} style={{ padding: '12px 20px', borderRadius: '14px', border: '1px dashed var(--glass-border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                  <button onClick={() => navigate('/profile')} style={{ padding: '12px 20px', borderRadius: 'var(--radius-input)', border: '1px dashed var(--glass-border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                     <Plus size={18} />
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>New Vehicle</span>
                   </button>
@@ -225,7 +225,7 @@ const Booking = () => {
                 {/* Date */}
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)' }}>DATE</label>
-                  <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', borderRadius: '14px', background: 'var(--bg-tertiary)', gap: '10px' }}>
+                  <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', borderRadius: 'var(--radius-input)', background: 'var(--bg-tertiary)', gap: '10px' }}>
                     <Calendar size={18} color="var(--accent-primary)" />
                     <input
                       type="date"
@@ -240,7 +240,7 @@ const Booking = () => {
                 {/* Arrival Time */}
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)' }}>ARRIVAL TIME</label>
-                  <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', borderRadius: '14px', background: 'var(--bg-tertiary)', gap: '10px' }}>
+                  <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', borderRadius: 'var(--radius-input)', background: 'var(--bg-tertiary)', gap: '10px' }}>
                     <Clock size={18} color="var(--accent-secondary)" />
                     <input
                       type="time"
@@ -261,7 +261,7 @@ const Booking = () => {
                       key={hrs}
                       onClick={() => setDuration(hrs)}
                       style={{
-                        padding: '10px 20px', borderRadius: '12px', fontFamily: 'inherit',
+                        padding: '10px 20px', borderRadius: 'var(--radius-button)', fontFamily: 'inherit',
                         fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
                         background: duration === hrs ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' : 'var(--glass-bg)',
                         color: duration === hrs ? '#000' : 'var(--text-primary)',
@@ -277,7 +277,7 @@ const Booking = () => {
               </div>
 
               {/* Cost preview */}
-              <div style={{ padding: '16px 20px', borderRadius: '14px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '16px 20px', borderRadius: 'var(--radius-card)', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Estimated cost ({duration}h @ ₹{spot.pricePerHr}/hr)</span>
                 <span style={{ fontWeight: 800, fontSize: '1.2rem' }}>₹{(spot.pricePerHr * duration).toFixed(0)}</span>
               </div>
@@ -317,12 +317,12 @@ const Booking = () => {
                   padding: '24px', marginBottom: '20px', cursor: 'pointer',
                   border: evCharging ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)',
                   background: evCharging ? 'rgba(255,206,0,0.04)' : 'var(--bg-tertiary)',
-                  borderRadius: '18px', transition: 'all 0.25s',
+                  borderRadius: 'var(--radius-card)', transition: 'all 0.25s',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ width: '52px', height: '52px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: evCharging ? 'rgba(255,206,0,0.15)' : 'var(--bg-secondary)', transition: 'all 0.25s' }}>
+                    <div style={{ width: '52px', height: '52px', borderRadius: 'var(--radius-input)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: evCharging ? 'rgba(255,206,0,0.15)' : 'var(--bg-secondary)', transition: 'all 0.25s' }}>
                       <BatteryCharging size={26} color={evCharging ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
                     </div>
                     <div>
@@ -332,7 +332,7 @@ const Booking = () => {
                     </div>
                   </div>
                   {/* Toggle pill */}
-                  <div style={{ width: '48px', height: '26px', borderRadius: '13px', background: evCharging ? 'var(--accent-primary)' : 'var(--glass-border-light)', position: 'relative', transition: 'background 0.25s', flexShrink: 0 }}>
+                  <div style={{ width: '48px', height: '26px', borderRadius: 'var(--radius-pill)', background: evCharging ? 'var(--accent-primary)' : 'var(--glass-border-light)', position: 'relative', transition: 'background 0.25s', flexShrink: 0 }}>
                     <motion.div
                       animate={{ left: evCharging ? '24px' : '2px' }}
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
@@ -345,7 +345,7 @@ const Booking = () => {
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--glass-border)' }}>
                     <div style={{ display: 'flex', gap: '12px' }}>
                       {['Fast Charging (22kW)', 'Slow Charging (7.4kW)'].map((opt, i) => (
-                        <div key={opt} style={{ flex: 1, padding: '12px', borderRadius: '12px', textAlign: 'center', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', background: i === 0 ? 'rgba(255,206,0,0.1)' : 'var(--bg-secondary)', border: i === 0 ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', color: i === 0 ? 'var(--accent-secondary)' : 'var(--text-secondary)' }}>
+                        <div key={opt} style={{ flex: 1, padding: '12px', borderRadius: 'var(--radius-button)', textAlign: 'center', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', background: i === 0 ? 'rgba(255,206,0,0.1)' : 'var(--bg-secondary)', border: i === 0 ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', color: i === 0 ? 'var(--accent-secondary)' : 'var(--text-secondary)' }}>
                           {opt}
                         </div>
                       ))}
@@ -355,7 +355,7 @@ const Booking = () => {
               </div>
 
               {/* Cost breakdown */}
-              <div className="glass-panel" style={{ padding: '20px 24px', borderRadius: '16px', marginBottom: '28px', background: 'var(--bg-tertiary)' }}>
+              <div className="glass-panel" style={{ padding: '20px 24px', borderRadius: 'var(--radius-card)', marginBottom: '28px', background: 'var(--bg-tertiary)' }}>
                 <h4 style={{ fontWeight: 700, marginBottom: '14px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>COST BREAKDOWN</h4>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Parking ({duration}h × ₹{spot.pricePerHr})</span>
@@ -386,7 +386,7 @@ const Booking = () => {
               <p style={{ color: 'var(--text-secondary)', marginBottom: '28px' }}>Review your booking and choose a payment method.</p>
 
               {/* Summary */}
-              <div className="glass-panel" style={{ padding: '22px 24px', marginBottom: '24px', background: 'var(--bg-tertiary)', borderRadius: '18px' }}>
+              <div className="glass-panel" style={{ padding: '22px 24px', marginBottom: '24px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-card)' }}>
                 <h4 style={{ fontWeight: 700, marginBottom: '14px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>BOOKING SUMMARY</h4>
                 {[
                   ['Parking Spot', spot.title],
@@ -420,7 +420,7 @@ const Booking = () => {
                     key={pm.id}
                     onClick={() => setPayMethod(pm.id)}
                     style={{
-                      padding: '16px', borderRadius: '14px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+                      padding: '16px', borderRadius: 'var(--radius-card)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
                       border: payMethod === pm.id ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)',
                       background: payMethod === pm.id ? 'rgba(255,206,0,0.06)' : 'var(--bg-tertiary)',
                       transition: 'all 0.2s',
@@ -474,14 +474,14 @@ const Booking = () => {
                   <motion.div
                     animate={{ scale: [1, 1.015, 1] }}
                     transition={{ repeat: Infinity, duration: 1.8 }}
-                    style={{ display: 'inline-block', padding: '14px 36px', borderRadius: '20px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', marginBottom: '36px' }}
+                    style={{ display: 'inline-block', padding: '14px 36px', borderRadius: 'var(--radius-pill)', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', marginBottom: '36px' }}
                   >
                     <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#333', marginBottom: '2px' }}>RUNNING FARE</p>
                     <p style={{ fontSize: '2.2rem', fontWeight: 900, color: '#000', lineHeight: 1 }}>₹ {liveFare}</p>
                   </motion.div>
 
                   {/* Session info */}
-                  <div className="glass-panel" style={{ padding: '20px 24px', borderRadius: '18px', marginBottom: '32px', background: 'var(--bg-tertiary)', textAlign: 'left' }}>
+                  <div className="glass-panel" style={{ padding: '20px 24px', borderRadius: 'var(--radius-card)', marginBottom: '32px', background: 'var(--bg-tertiary)', textAlign: 'left' }}>
                     {[
                       ['Spot',        spot.title],
                       ['Vehicle',     selectedVehicle?.plate || '—'],
@@ -520,7 +520,7 @@ const Booking = () => {
                   <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '8px' }}>Session Ended!</h2>
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Thanks for parking with Drivix. Here's your final bill.</p>
 
-                  <div className="glass-panel" style={{ padding: '24px', borderRadius: '18px', marginBottom: '28px', background: 'var(--bg-tertiary)', textAlign: 'left' }}>
+                  <div className="glass-panel" style={{ padding: '24px', borderRadius: 'var(--radius-card)', marginBottom: '28px', background: 'var(--bg-tertiary)', textAlign: 'left' }}>
                     <h4 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '16px' }}>FINAL BILL</h4>
                     {[
                       ['Duration',     fmtTime(finalElapsed)],
