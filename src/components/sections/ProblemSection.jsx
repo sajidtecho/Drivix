@@ -35,7 +35,7 @@ const ProblemSection = () => {
         pointerEvents: 'none',
       }}>
         <div className="marquee-content" style={{ display: 'inline-block', fontSize: '5rem', fontWeight: 900, fontFamily: 'var(--font-display)', animation: 'marquee 40s linear infinite' }}>
-          NOIDA SECTOR 18 • CP • GOLF COURSE • SHARDA UNIVERSITY • PARI CHOWK • SECTOR 62 • CYBER CITY • 
+          1,204 SPOTS BOOKED TODAY • SECTOR 18 • 94% SATISFACTION • AVG 3 MIN ENTRY • 1,204 SPOTS BOOKED TODAY • SECTOR 18 • 94% SATISFACTION • AVG 3 MIN ENTRY • 
         </div>
         <style>{`
           @keyframes marquee {
