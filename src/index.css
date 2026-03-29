@@ -1,22 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Syne:wght@400..800&display=swap');
 
 :root {
-  --bg-primary: #0a0a0c;
-  --bg-secondary: #131316;
-  --bg-tertiary: #1a1a20;
+  /* Light Mode (Default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f6f9;
+  --bg-tertiary: #f0f0f5;
   
   --accent-primary: #faff00; /* Electric Yellow */
   --accent-secondary: #00ffa3; /* Matrix Green */
   --accent-warm: #ff6b00; /* Burnt Orange */
-  --accent-glow: rgba(250, 255, 0, 0.3);
+  --accent-glow: rgba(0, 0, 0, 0.05);
   
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.6);
-  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-primary: #0a0a0c;
+  --text-secondary: rgba(10, 10, 12, 0.6);
+  --text-muted: rgba(10, 10, 12, 0.4);
   
-  --glass-bg: rgba(20, 20, 25, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-light: rgba(255, 255, 255, 0.04);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-light: rgba(0, 0, 0, 0.04);
   
   --transition-fast: 0.2s cubic-bezier(0.23, 1, 0.32, 1);
   --transition-normal: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
@@ -27,18 +28,22 @@
 }
 
 [data-theme="dark"] {
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #111118;
-  --bg-tertiary: #1a1a24;
-  --accent-primary: #FFCE00;
-  --accent-secondary: #FFAD00;
-  --accent-glow: rgba(255, 206, 0, 0.3);
-  --text-primary: #f0f0f5;
-  --text-secondary: #8a8fa8;
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-bg-hover: rgba(255, 255, 255, 0.09);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-light: rgba(255, 255, 255, 0.14);
+  /* Dark Mode */
+  --bg-primary: #0a0a0c;
+  --bg-secondary: #131316;
+  --bg-tertiary: #1a1a20;
+  
+  --accent-primary: #faff00;
+  --accent-secondary: #00ffa3;
+  --accent-glow: rgba(250, 255, 0, 0.2);
+  
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  
+  --glass-bg: rgba(20, 20, 25, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-light: rgba(255, 255, 255, 0.05);
 }
 
 * {
