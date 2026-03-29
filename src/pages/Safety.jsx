@@ -285,6 +285,18 @@ const Safety = () => {
               Join thousands of drivers who trust Drivix for secure, effortless parking every day.
             </p>
             <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <style>{`
+                #home-btn-red {
+                  background: #ff4b4b !important;
+                  color: #ffffff !important;
+                  border: none !important;
+                  box-shadow: 0 10px 20px rgba(255, 75, 75, 0.4) !important;
+                }
+                #home-btn-red:hover {
+                  transform: translateY(-4px);
+                  box-shadow: 0 15px 30px rgba(255, 75, 75, 0.6) !important;
+                }
+              `}</style>
               <button 
                 onClick={() => navigate('/find')}
                 className="btn btn-primary" 
@@ -293,15 +305,13 @@ const Safety = () => {
                 Find Secure Parking <ArrowRight size={20} />
               </button>
               <button 
+                id="home-btn-red"
                 onClick={() => navigate('/')}
                 className="btn" 
                 style={{ 
-                  background: '#ff4b4b', 
-                  color: '#fff', 
                   padding: '20px 40px', 
                   fontSize: '1.1rem',
-                  boxShadow: '0 10px 20px rgba(255, 75, 75, 0.2)',
-                  border: 'none'
+                  zIndex: 10
                 }}
               >
                 Go to Home
