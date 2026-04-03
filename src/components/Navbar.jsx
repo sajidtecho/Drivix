@@ -22,9 +22,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const isLanding = location.pathname === '/';
   const [hasScrolled, setHasScrolled] = useState(false);
-  
+
   const updates = [
-    "Now live in Sector 18 & Knowledge Park",
+    "Now live in Sharda University & Knowledge Park-III",
     "42+ Smart Facilities active in Noida",
     "FASTag Entry enabled for Sharda University"
   ];
@@ -98,13 +98,13 @@ const Navbar = () => {
       }}>
         <div style={{ position: 'relative', width: '8px', height: '8px', marginRight: '12px' }}>
           <div style={{ position: 'absolute', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--announcement-text)' }} />
-          <motion.div 
+          <motion.div
             animate={{ scale: [1, 1.8, 1], opacity: [1, 0, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
-            style={{ position: 'absolute', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--announcement-text)' }} 
+            style={{ position: 'absolute', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--announcement-text)' }}
           />
         </div>
-        
+
         <div style={{ height: '20px', display: 'flex', alignItems: 'center', position: 'relative' }}>
           <AnimatePresence mode="wait">
             <motion.span
@@ -212,6 +212,7 @@ const Navbar = () => {
             ))}
         </div>
 
+
         {/* Right Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 
@@ -225,6 +226,7 @@ const Navbar = () => {
                 Start Booking
               </button>
             )}
+            <button className="btn btn-primary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>Get the App</button>
           </div>
 
           {/* Profile & Theme */}
@@ -270,13 +272,13 @@ const Navbar = () => {
               }}
             >
               {isDark ? (
-                <video 
-                  src={sunVideo} 
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline 
-                  style={{ width: '28px', height: '28px', objectFit: 'contain' }} 
+                <video
+                  src={sunVideo}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  style={{ width: '28px', height: '28px', objectFit: 'contain' }}
                 />
               ) : <Moon size={18} />}
             </button>
