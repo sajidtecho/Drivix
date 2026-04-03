@@ -12,26 +12,23 @@ import SlotBookingForm from './pages/SlotBookingForm';
 import Ticket from './pages/Ticket';
 import Safety from './pages/Safety';
 import './index.css';
-import { Loader2 } from 'lucide-react';
+import { DotLottiePlayer } from '@dotlottie/react-player';
 
 function App() {
   const { loading } = useUser();
 
   if (loading) {
     return (
-      <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', gap: '24px' }}>
-        <div style={{
-          width: '64px', height: '64px', borderRadius: 'var(--radius-card)', background: 'var(--accent-primary)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 8px 24px rgba(250, 255, 0, 0.2)', marginBottom: '16px'
-        }}>
-          <span style={{ fontSize: '2rem', fontWeight: 900, color: '#000' }}>D</span>
+      <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', gap: '0' }}>
+        <div style={{ width: '300px', height: '300px' }}>
+          <DotLottiePlayer
+            src="https://lottie.host/880a42df-e932-4740-96f8-45e0fb5c88da/8M88rG9c6J.json"
+            autoplay
+            loop
+          />
         </div>
-        <div style={{ position: 'relative' }}>
-          <Loader2 className="animate-spin" size={48} color="var(--accent-primary)" />
-        </div>
-        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-          Driving...
+        <div style={{ marginTop: '-40px', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+          Driving to your spot...
         </div>
       </div>
     );

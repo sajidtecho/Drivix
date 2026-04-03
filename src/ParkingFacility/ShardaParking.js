@@ -1,9 +1,9 @@
-import { db } from './src/firebase';
+import { db } from '../firebase';
 import { collection, doc, setDoc, writeBatch } from 'firebase/firestore';
 
 const seedParkingData = async () => {
   const facilityId = 'sharda-university-mlp';
-  
+
   // 1. Create the facility
   const facilityRef = doc(db, 'parking_facilities', facilityId);
   await setDoc(facilityRef, {
@@ -34,7 +34,7 @@ const seedParkingData = async () => {
       for (let i = 1; i <= floor.cols; i++) {
         const slotId = `${row}${i}`;
         const slotRef = doc(collection(facilityRef, 'slots'), slotId);
-        
+
         // Randomly assign some as booked/reserved for "reality"
         const rand = Math.random();
         let status = 'available';
