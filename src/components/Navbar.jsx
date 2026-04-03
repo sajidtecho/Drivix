@@ -217,7 +217,7 @@ const Navbar = () => {
           <div className="desktop-only" style={{ display: 'flex', gap: '12px' }}>
             {isLanding && (
               <button
-                onClick={() => navigate('/find')}
+                onClick={() => isAuthenticated ? navigate('/find') : navigate('/login')}
                 className="btn btn-primary"
                 style={{ padding: '8px 16px', fontSize: '0.85rem' }}
               >
@@ -338,7 +338,8 @@ const Navbar = () => {
           {isLanding && (
             <button
               onClick={() => {
-                navigate('/find');
+                if (isAuthenticated) navigate('/find');
+                else navigate('/login');
                 setIsMenuOpen(false);
               }}
               className="btn btn-primary"

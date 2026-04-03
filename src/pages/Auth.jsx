@@ -51,7 +51,7 @@ const Auth = () => {
           createdAt: new Date().toISOString()
         });
 
-        navigate('/profile');
+        navigate('/find');
       }
     } catch (err) {
       console.error(err);

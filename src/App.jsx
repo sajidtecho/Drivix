@@ -31,7 +31,7 @@ function App() {
           <Loader2 className="animate-spin" size={48} color="var(--accent-primary)" />
         </div>
         <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-          Navigating...
+          Driving...
         </div>
       </div>
     );
@@ -46,21 +46,21 @@ function App() {
         <Navbar />
         <main style={{ flex: 1, width: '100%' }}>
           <Routes>
-            <Route path="/"            element={<LandingPage />} />
-            <Route path="/services"    element={<VehicleServices />} />
-            <Route path="/login"       element={<Auth />} />
-            <Route path="/profile"     element={<Profile />} />
-            
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/services" element={<VehicleServices />} />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/profile" element={<Profile />} />
+
             {/* Main finding flow */}
-            <Route path="/find"        element={<ParkingList />} />
-            <Route path="/parking"     element={<ParkingList />} />
-            <Route path="/booking"     element={<Navigate to="/find" replace />} />
-            
+            <Route path="/find" element={<ParkingList />} />
+            <Route path="/parking" element={<ParkingList />} />
+            <Route path="/booking" element={<Navigate to="/find" replace />} />
+
             {/* Facility-specific pages */}
             <Route path="/slot-layout" element={<SlotLayout />} />
             <Route path="/slot-booking" element={<SlotBookingForm />} />
-            <Route path="/ticket"      element={<Ticket />} />
-            <Route path="/safety"      element={<Safety />} />
+            <Route path="/ticket" element={<Ticket />} />
+            <Route path="/safety" element={<Safety />} />
           </Routes>
         </main>
       </div>

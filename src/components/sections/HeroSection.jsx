@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Map, ArrowRight, Search } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
 import AnimatedParkingHero from '../animations/AnimatedParkingHero';
+import { useUser } from '../../hooks/useUser';
 
 const HeroSection = () => {
+  const { isAuthenticated } = useUser();
   const navigate = useNavigate();
   return (
     <section id="hero" style={{
@@ -74,7 +76,7 @@ const HeroSection = () => {
 
             <div style={{ display: 'flex', gap: '24px', marginBottom: '40px', flexWrap: 'wrap' }} className="hero-buttons">
               <button
-                onClick={() => navigate('/find')}
+                onClick={() => isAuthenticated ? navigate('/find') : navigate('/login')}
                 className="btn btn-primary"
                 style={{ padding: '20px 40px', fontSize: '1.1rem', background: 'var(--accent-primary)' }}
               >
@@ -105,8 +107,9 @@ const HeroSection = () => {
             </div>
           </FadeIn>
 
+          {/*Animated Parking Hero */}
           <FadeIn delay={0.2} className="desktop-only" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <div style={{ position: 'relative', width: '100%', marginTop: '40px', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ position: 'relative', width: '100%', marginTop: '40px', display: 'flex', justifyContent: 'flex-end', paddingRight: '40px' }}>
               <div style={{ position: 'absolute', right: '-10%', top: '0', width: '120%', height: '120%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.05, filter: 'blur(100px)' }} />
               <AnimatedParkingHero />
             </div>
