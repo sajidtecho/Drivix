@@ -125,7 +125,7 @@ const HeroSection = () => {
               }
             }
           `}</style>
-          78        </div>
+        </div>
       </div>
     </section>
   );
