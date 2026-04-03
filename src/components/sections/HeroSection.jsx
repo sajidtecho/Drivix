@@ -53,7 +53,7 @@ const HeroSection = () => {
 
             <h1 style={{
               fontSize: 'clamp(2.5rem, 8vw, 4.8rem)',
-              fontWeight: 800,
+              fontWeight: 750,
               lineHeight: 1.1,
               marginBottom: '20px',
               fontFamily: 'var(--font-display)',
@@ -68,10 +68,10 @@ const HeroSection = () => {
               color: 'var(--text-secondary)',
               lineHeight: 1.5,
               marginBottom: '32px',
-              maxWidth: '520px',
-              fontWeight: 500
+              maxWidth: '500px',
+              fontWeight: 490
             }}>
-              Stop circling. Secure your spot in Sector 18 and Knowledge Parks with real-time AI before you even hit the road.
+              Stop circling, Secure your spot across India with real-time AI.
             </p>
 
             <div style={{ display: 'flex', gap: '24px', marginBottom: '40px', flexWrap: 'wrap' }} className="hero-buttons">
@@ -86,7 +86,7 @@ const HeroSection = () => {
                 onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
                 style={{
                   background: 'none', border: 'none', color: 'var(--text-primary)',
-                  fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
+                  fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
                   fontSize: '1rem', borderBottom: '2px solid var(--accent-primary)', paddingBottom: '4px'
                 }}
               >
