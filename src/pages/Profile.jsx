@@ -380,64 +380,110 @@ const Profile = () => {
                     <p style={{ color: 'var(--text-secondary)', marginTop: '12px' }}>Fetching your tickets...</p>
                   </div>
                 ) : bookings.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {bookings.map((booking) => (
-                      <BookingCard 
-                        key={booking.id} 
-                        booking={booking} 
-                        onVacate={async (b) => {
-                          if (!window.confirm('Are you vacating the slot? This will release the slot for other users.')) return;
-                          
-                          /* ─── Hardware Integration Hook ──────────────────────────────────
-                             This is where you would connect to the gate hardware system.
-                             When the user scans their ticket at the exit gate, 
-                             the system should trigger this updateDoc logic.
-                          ───────────────────────────────────────────────────────────────── */
-                          
-                          try {
-                            setIsSaving(true);
-                            // 1. Update booking status
-                            await updateDoc(doc(db, 'bookings', b.id), { status: 'completed' });
-                            
-                            // 2. Mark slot as available in the facility record
-                            const slotRef = doc(db, 'parking_facilities', b.locationId, 'slots', b.slotId);
-                            await updateDoc(slotRef, { status: 'available', updatedAt: serverTimestamp() });
-                            
-                            // 3. Increment available slots count
-                            const facilityRef = doc(db, 'parking_facilities', b.locationId);
-                            await updateDoc(facilityRef, { availableSlots: increment(1) });
-                            
-                            alert('Thank you for using Drivix! Slot released successfully.');
-                          } catch (err) {
-                            console.error(err);
-                          } finally {
-                            setIsSaving(false);
-                          }
-                        }}
-                        onExtend={async (b) => {
-                          const hrs = window.prompt('Extend by how many hours? (Current price applies)', '1');
-                          if (!hrs || isNaN(hrs)) return;
-                          
-                          const additionalHrs = parseInt(hrs);
-                          const additionalCost = additionalHrs * 60; // Assuming 60/hr, could fetch from loc
-                          
-                          if (!window.confirm(`Extend booking by ${additionalHrs}h for ₹${additionalCost}?`)) return;
-                          
-                          try {
-                            setIsSaving(true);
-                            await updateDoc(doc(db, 'bookings', b.id), {
-                              duration: increment(additionalHrs),
-                              totalCost: increment(additionalCost)
-                            });
-                            alert(`Booking extended successfully by ${additionalHrs} hour(s).`);
-                          } catch (err) {
-                            console.error(err);
-                          } finally {
-                            setIsSaving(false);
-                          }
-                        }}
-                      />
-                    ))}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {/* History vs Active Toggle */}
+                    <div className="glass-panel" style={{ 
+                      display: 'flex', gap: '8px', padding: '6px', borderRadius: 'var(--radius-button)', 
+                      background: 'rgba(255,255,255,0.02)', width: 'fit-content' 
+                    }}>
+                       <button 
+                         onClick={() => setBookingSubTab('active')}
+                         style={{ 
+                           padding: '10px 24px', borderRadius: 'var(--radius-button)', fontSize: '0.85rem', fontWeight: 800,
+                           background: bookingSubTab === 'active' ? 'var(--accent-primary)' : 'transparent',
+                           color: bookingSubTab === 'active' ? '#000' : 'var(--text-secondary)',
+                           border: 'none', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                         }}
+                       >
+                         Active ({activeBookings.length})
+                       </button>
+                       <button 
+                         onClick={() => setBookingSubTab('history')}
+                         style={{ 
+                           padding: '10px 24px', borderRadius: 'var(--radius-button)', fontSize: '0.85rem', fontWeight: 800,
+                           background: bookingSubTab === 'history' ? 'var(--accent-primary)' : 'transparent',
+                           color: bookingSubTab === 'history' ? '#000' : 'var(--text-secondary)',
+                           border: 'none', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                         }}
+                       >
+                         History ({historyBookings.length})
+                       </button>
+                    </div>
+
+                    {displayedBookings.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {displayedBookings.map((booking) => (
+                          <BookingCard 
+                            key={booking.id} 
+                            booking={booking} 
+                            onVacate={async (b) => {
+                              if (!window.confirm('Are you vacating the slot? This will release the slot for other users.')) return;
+                              
+                              try {
+                                setIsSaving(true);
+                                // 1. Update booking status to completed (preserved for security history)
+                                await updateDoc(doc(db, 'bookings', b.id), { 
+                                  status: 'completed',
+                                  vacatedAt: serverTimestamp() 
+                                });
+                                
+                                // 2. Mark slot as available in the facility record
+                                const slotRef = doc(db, 'parking_facilities', b.locationId, 'slots', b.slotId);
+                                await updateDoc(slotRef, { status: 'available', updatedAt: serverTimestamp() });
+                                
+                                // 3. Increment available slots count
+                                const facilityRef = doc(db, 'parking_facilities', b.locationId);
+                                await updateDoc(facilityRef, { availableSlots: increment(1) });
+                                
+                                alert('Thank you for using Drivix! Slot released successfully.');
+                                setBookingSubTab('history'); // Auto-switch to history to see the completed record
+                              } catch (err) {
+                                console.error(err);
+                              } finally {
+                                setIsSaving(false);
+                              }
+                            }}
+                            onExtend={async (b) => {
+                              const hrs = window.prompt('Extend by how many hours? (Current price applies)', '1');
+                              if (!hrs || isNaN(hrs)) return;
+                              
+                              const additionalHrs = parseInt(hrs);
+                              const additionalCost = additionalHrs * 60; // Assuming 60/hr
+                              
+                              if (!window.confirm(`Extend booking by ${additionalHrs}h for ₹${additionalCost}?`)) return;
+                              
+                              try {
+                                setIsSaving(true);
+                                await updateDoc(doc(db, 'bookings', b.id), {
+                                  duration: increment(additionalHrs),
+                                  totalCost: increment(additionalCost)
+                                });
+                                alert(`Booking extended successfully by ${additionalHrs} hour(s).`);
+                              } catch (err) {
+                                console.error(err);
+                              } finally {
+                                setIsSaving(false);
+                              }
+                            }}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '80px 20px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: 'var(--radius-card)', border: '1px dashed var(--glass-border)' }}>
+                         <Calendar size={48} color="var(--text-secondary)" style={{ opacity: 0.3, marginBottom: '20px' }} />
+                         <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>
+                           No {bookingSubTab} bookings
+                         </h3>
+                         <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
+                           {bookingSubTab === 'active' 
+                             ? 'You don\'t have any active parkings right now.' 
+                             : 'Your past booking history will securely appear here.'}
+                         </p>
+                         {bookingSubTab === 'active' && (
+                           <button onClick={() => navigate('/parking')} className="btn btn-primary" style={{ padding: '12px 28px' }}>Book a Slot Now</button>
+                         )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '80px 20px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: 'var(--radius-card)', border: '1px dashed var(--glass-border)' }}>
