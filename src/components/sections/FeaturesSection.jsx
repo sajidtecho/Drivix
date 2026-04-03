@@ -1,4 +1,4 @@
-import React from 'react';
+import { motion } from 'framer-motion';
 import { Key, Tag, Search, Gavel, Car, ShieldCheck, Banknote, Wallet } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
 
@@ -121,11 +121,38 @@ const FeaturesSection = () => {
              <button className="btn btn-secondary" style={{ padding: '10px 20px', fontSize: '0.85rem' }}>Explore</button>
           </div>
 
-          <div className="glass-panel bento-card" style={{ gridArea: 'avail', padding: '20px', border: '1px solid var(--accent-primary)' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'avail', padding: '20px', border: '1px solid var(--glass-border)' }}>
              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '10px' }}>Available 24/7</h4>
              <div style={{ display: 'flex', gap: '8px' }}>
                 {[1,2,3,4,5,6].map(i => (
-                   <div key={i} style={{ flex: 1, height: '40px', background: i < 5 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)', borderRadius: '4px' }} />
+                   <div key={i} style={{ 
+                      flex: 1, height: '40px', 
+                      background: 'rgba(255,255,255,0.05)', 
+                      borderRadius: '4px', 
+                      position: 'relative', 
+                      overflow: 'hidden' 
+                   }}>
+                      {i < 5 && (
+                         <motion.div
+                            initial={{ width: '0%' }}
+                            whileInView={{ width: '100%' }}
+                            transition={{ 
+                               delay: i * 0.15, 
+                               duration: 0.6, 
+                               ease: [0.22, 1, 0.36, 1] 
+                            }}
+                            viewport={{ once: false }}
+                            style={{ 
+                               position: 'absolute', 
+                               top: 0, 
+                               left: 0, 
+                               height: '100%', 
+                               background: 'var(--accent-primary)',
+                               boxShadow: '0 0 15px var(--accent-glow)'
+                            }}
+                         />
+                      )}
+                   </div>
                 ))}
              </div>
              <p style={{ marginTop: '12px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>Real-time availability monitoring across all zones.</p>
