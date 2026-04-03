@@ -12,7 +12,7 @@ import SlotBookingForm from './pages/SlotBookingForm';
 import Ticket from './pages/Ticket';
 import Safety from './pages/Safety';
 import './index.css';
-import { DotLottiePlayer } from '@dotlottie/react-player';
+import loadingVideo from './assets/Loading_car.webm';
 
 function App() {
   const { loading } = useUser();
@@ -20,15 +20,18 @@ function App() {
   if (loading) {
     return (
       <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', gap: '0' }}>
-        <div style={{ width: '300px', height: '300px' }}>
-          <DotLottiePlayer
-            src="https://lottie.host/880a42df-e932-4740-96f8-45e0fb5c88da/8M88rG9c6J.json"
-            autoplay
+        <div style={{ width: '400px', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <video
+            src={loadingVideo}
+            autoPlay
             loop
+            muted
+            playsInline
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         </div>
         <div style={{ marginTop: '-40px', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-          Driving to your spot...
+          <h2> Driving to your spot...</h2>
         </div>
       </div>
     );

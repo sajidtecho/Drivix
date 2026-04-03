@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { UserCircle, Sun, Moon } from 'lucide-react';
+import { UserCircle, Moon } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
+import sunVideo from '../assets/sun.webm';
 
 // Nav links for each context
 const LANDING_LINKS = [
@@ -268,7 +269,16 @@ const Navbar = () => {
                 color: 'var(--text-primary)',
               }}
             >
-              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+              {isDark ? (
+                <video 
+                  src={sunVideo} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  style={{ width: '28px', height: '28px', objectFit: 'contain' }} 
+                />
+              ) : <Moon size={18} />}
             </button>
 
             {/* Mobile Menu Toggle */}
