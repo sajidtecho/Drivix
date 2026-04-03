@@ -53,7 +53,7 @@ const HeroSection = () => {
 
             <h1 style={{
               fontSize: 'clamp(2.5rem, 8vw, 4.8rem)',
-              fontWeight: 700,
+              fontWeight: 680,
               lineHeight: 1.1,
               marginBottom: '20px',
               fontFamily: 'var(--font-display)',
@@ -108,13 +108,24 @@ const HeroSection = () => {
           </FadeIn>
 
           {/*Animated Parking Hero */}
-          <FadeIn delay={0.2} className="desktop-only" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <div style={{ position: 'relative', width: '100%', marginTop: '40px', display: 'flex', justifyContent: 'flex-end', paddingRight: '40px' }}>
+          <FadeIn delay={0.2} style={{ display: 'flex', justifyContent: 'center' }} className="hero-animation-container">
+            <div style={{ position: 'relative', width: '100%', maxWidth: '340px', marginTop: '40px', display: 'flex', justifyContent: 'center' }}>
               <div style={{ position: 'absolute', right: '-10%', top: '0', width: '120%', height: '120%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.05, filter: 'blur(100px)' }} />
               <AnimatedParkingHero />
             </div>
           </FadeIn>
-        </div>
+          <style>{`
+            @media (min-width: 769px) {
+              .hero-animation-container {
+                justify-content: flex-end !important;
+                padding-right: 40px !important;
+              }
+              .hero-animation-container > div {
+                justify-content: flex-end !important;
+              }
+            }
+          `}</style>
+          78        </div>
       </div>
     </section>
   );
