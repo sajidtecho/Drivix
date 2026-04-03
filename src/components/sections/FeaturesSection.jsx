@@ -7,7 +7,7 @@ import FadeIn from '../common/FadeIn';
 const FeaturesSection = () => {
   return (
     <section id="features" style={{ padding: '100px 0', background: 'var(--bg-primary)' }}>
-      <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 5%' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 5%' }}>
         <div style={{ marginBottom: '48px', maxWidth: '640px' }}>
           <h2 style={{ 
             fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', 
@@ -32,8 +32,8 @@ const FeaturesSection = () => {
             "network network payment payment"
             "help help avail avail"
           `,
-          gridAutoRows: 'minmax(200px, auto)',
-          gap: '24px',
+          gridAutoRows: 'minmax(180px, auto)',
+          gap: '20px',
         }} className="bento-grid">
           <style>{`
             @media (max-width: 1024px) {
@@ -75,11 +75,11 @@ const FeaturesSection = () => {
           `}</style>
           
           {/* Main Large Card */}
-          <div className="glass-panel bento-card" style={{ gridArea: 'network', padding: 'clamp(28px, 5vw, 48px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, var(--bg-secondary), #1a1a24)' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'network', padding: 'clamp(24px, 4vw, 36px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, var(--bg-secondary), #1a1a24)' }}>
             <div>
               <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>Network Growth</div>
-              <h3 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 0.9, marginBottom: '24px' }}>
-                42<span style={{ fontSize: '1.5rem' }}> sites</span> <br />and counting.
+              <h3 style={{ fontSize: 'clamp(1.8rem, 4.5vw, 3rem)', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 0.9, marginBottom: '20px' }}>
+                42<span style={{ fontSize: '1.2rem' }}> sites</span> <br />and counting.
               </h3>
               <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', maxWidth: '280px' }}>
                 From Sector 18 to Knowledge Park II. If it's a major hub in Noida, we're already there.
@@ -101,19 +101,19 @@ const FeaturesSection = () => {
              </div>
           </div>
 
-          <div className="glass-panel bento-card" style={{ gridArea: 'secure', padding: 'clamp(24px, 4vw, 32px)' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'secure', padding: '24px' }}>
              <ShieldCheck size={32} color="var(--accent-primary)" style={{ marginBottom: '20px' }} />
              <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>ANPR Secure</h4>
              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>High-speed camera entry. No more reaching for QR codes.</p>
           </div>
 
-          <div className="glass-panel bento-card" style={{ gridArea: 'time', padding: '32px', background: 'var(--bg-tertiary)' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'time', padding: '24px', background: 'var(--bg-tertiary)' }}>
              <div style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--accent-warm)', marginBottom: '12px' }}>3 min</div>
              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>Average time saved per session vs. traditional parking.</p>
           </div>
 
           {/* Bottom Card Wide */}
-          <div className="glass-panel bento-card" style={{ gridArea: 'help', padding: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'help', padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
              <div>
                 <h4 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Need help with insurance?</h4>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>We've partnered with top carriers for direct-quote quotes.</p>
@@ -121,7 +121,7 @@ const FeaturesSection = () => {
              <button className="btn btn-secondary" style={{ padding: '12px 24px' }}>Explore</button>
           </div>
 
-          <div className="glass-panel bento-card" style={{ gridArea: 'avail', padding: '32px', border: '1px solid var(--accent-primary)' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'avail', padding: '24px', border: '1px solid var(--accent-primary)' }}>
              <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '12px' }}>Available 24/7</h4>
              <div style={{ display: 'flex', gap: '8px' }}>
                 {[1,2,3,4,5,6].map(i => (
