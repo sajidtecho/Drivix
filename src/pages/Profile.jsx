@@ -152,6 +152,7 @@ const Profile = () => {
   const { user, isAuthenticated, loading, updateUser, logout } = useUser();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('bookings'); // Default to bookings to see recent activity
+  const [bookingSubTab, setBookingSubTab] = useState('active'); // 'active' or 'history'
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [showAddVehicle, setShowAddVehicle] = useState(false);
@@ -194,6 +195,10 @@ const Profile = () => {
       return unsub;
     }
   }, [isAuthenticated, user, navigate, loading]);
+
+  const activeBookings = bookings.filter(b => b.status === 'booked');
+  const historyBookings = bookings.filter(b => b.status === 'completed');
+  const displayedBookings = bookingSubTab === 'active' ? activeBookings : historyBookings;
 
   if (loading) {
     return (
