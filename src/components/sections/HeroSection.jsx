@@ -78,7 +78,7 @@ const HeroSection = () => {
               <button
                 onClick={() => isAuthenticated ? navigate('/find') : navigate('/login')}
                 className="btn btn-primary"
-                style={{ padding: '20px 40px', fontSize: '1.1rem', background: 'var(--accent-primary)' }}
+                style={{ padding: '15px 30px', fontSize: '1rem', background: 'var(--accent-primary)' }}
               >
                 Secure Your Slot
               </button>
@@ -86,7 +86,7 @@ const HeroSection = () => {
                 onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
                 style={{
                   background: 'none', border: 'none', color: 'var(--text-primary)',
-                  fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
+                  fontWeight: 650, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
                   fontSize: '1rem', borderBottom: '2px solid var(--accent-primary)', paddingBottom: '4px'
                 }}
               >
