@@ -53,7 +53,7 @@ const HeroSection = () => {
 
             <h1 style={{
               fontSize: 'clamp(2.5rem, 8vw, 4.8rem)',
-              fontWeight: 750,
+              fontWeight: 700,
               lineHeight: 1.1,
               marginBottom: '20px',
               fontFamily: 'var(--font-display)',

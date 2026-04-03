@@ -15,7 +15,7 @@ const AnimatedParkingHero = () => {
     }}>
       {/* Road Base */}
       <div style={{
-        position: 'absolute', top: '0', bottom: '0', left: '50%', width: '90px',
+        position: 'absolute', top: '0', bottom: '0', left: '50%', width: '80px',
         background: '#050508', transform: 'translateX(-50%)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
       }}>
