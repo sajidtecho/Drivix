@@ -19,7 +19,7 @@ const AnimatedParkingHero = () => {
         background: '#050508', transform: 'translateX(-50%)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
       }}>
-        <div style={{ height: '100%', width: '3px', backgroundImage: 'linear-gradient(to bottom, transparent 50%, rgba(255,206,0,0.1) 50%)', backgroundSize: '100% 30px' }} />
+        <div style={{ height: '100%', width: '2.7px', backgroundImage: 'linear-gradient(to bottom, transparent 50%, rgba(255,206,0,0.1) 50%)', backgroundSize: '100% 30px' }} />
       </div>
 
       {/* Left Parking Spots */}
