@@ -149,7 +149,7 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
 };
 
 const Profile = () => {
-  const { user, isAuthenticated, updateUser, logout } = useUser();
+  const { user, isAuthenticated, loading, updateUser, logout } = useUser();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('bookings'); // Default to bookings to see recent activity
   const [isEditing, setIsEditing] = useState(false);
@@ -160,23 +160,30 @@ const Profile = () => {
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
 
-  // Protect route
+  // Protect route and handle data fetch
   useEffect(() => {
+    if (loading) return; // Wait for auth state to resolve
+
     if (!isAuthenticated) {
       navigate('/login');
     } else if (user) {
       setEditData({ ...user });
       
-      // Fetch bookings
+      // Fetch bookings - Removed server-side orderBy to avoid missing index errors
       const q = query(
         collection(db, 'bookings'),
-        where('userId', '==', user.uid),
-        orderBy('createdAt', 'desc')
+        where('userId', '==', user.uid)
       );
       
       setLoadingBookings(true);
       const unsub = onSnapshot(q, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Sort client-side to ensure stable order without requiring composite index
+        data.sort((a, b) => {
+          const timeA = a.createdAt?.toMillis?.() || a.createdAt || 0;
+          const timeB = b.createdAt?.toMillis?.() || b.createdAt || 0;
+          return timeB - timeA;
+        });
         setBookings(data);
         setLoadingBookings(false);
       }, (err) => {
@@ -186,7 +193,15 @@ const Profile = () => {
 
       return unsub;
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, loading]);
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
+        <Loader2 className="animate-spin" size={48} color="var(--accent-primary)" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user) {
     return null;
