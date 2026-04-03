@@ -6,8 +6,8 @@ import FadeIn from '../common/FadeIn';
 
 const FeaturesSection = () => {
   return (
-    <section id="features" style={{ padding: '100px 0', background: 'var(--bg-primary)' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 5%' }}>
+    <section id="features" style={{ padding: '80px 0', background: 'var(--bg-primary)' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 5%' }}>
         <div style={{ marginBottom: '48px', maxWidth: '640px' }}>
           <h2 style={{ 
             fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', 
@@ -26,14 +26,14 @@ const FeaturesSection = () => {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: '0.8fr 0.8fr 1.2fr 1.2fr',
           gridTemplateAreas: `
             "network network secure time"
             "network network payment payment"
             "help help avail avail"
           `,
-          gridAutoRows: 'minmax(180px, auto)',
-          gap: '20px',
+          gridAutoRows: 'minmax(130px, auto)',
+          gap: '12px',
         }} className="bento-grid">
           <style>{`
             @media (max-width: 1024px) {
@@ -75,54 +75,54 @@ const FeaturesSection = () => {
           `}</style>
           
           {/* Main Large Card */}
-          <div className="glass-panel bento-card" style={{ gridArea: 'network', padding: 'clamp(24px, 4vw, 36px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, var(--bg-secondary), #1a1a24)' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'network', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, var(--bg-secondary), #1a1a24)' }}>
             <div>
               <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>Network Growth</div>
-              <h3 style={{ fontSize: 'clamp(1.8rem, 4.5vw, 3rem)', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 0.9, marginBottom: '20px' }}>
-                42<span style={{ fontSize: '1.2rem' }}> sites</span> <br />and counting.
+              <h3 style={{ fontSize: 'clamp(1.3rem, 3.5vw, 2.2rem)', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 0.9, marginBottom: '14px' }}>
+                42<span style={{ fontSize: '0.9rem' }}> sites</span> <br />and counting.
               </h3>
-              <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', maxWidth: '280px' }}>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', maxWidth: '200px', lineHeight: 1.3 }}>
                 From Sector 18 to Knowledge Park II. If it's a major hub in Noida, we're already there.
               </p>
             </div>
-            <div style={{ marginTop: '40px' }}>
+            <div style={{ marginTop: '16px' }}>
                <button className="btn" style={{ padding: '0', background: 'none', color: 'var(--accent-primary)', fontWeight: 800, borderBottom: '2px solid' }}>See Network →</button>
             </div>
           </div>
 
           {/* Wide Card */}
-          <div className="glass-panel bento-card" style={{ gridArea: 'payment', padding: 'clamp(24px, 4vw, 32px)', display: 'flex', alignItems: 'center', gap: 'clamp(16px, 3vw, 32px)', flexWrap: 'wrap' }}>
-             <div style={{ padding: '20px', borderRadius: 'var(--radius-card)', background: 'rgba(250, 255, 0, 0.1)', color: 'var(--accent-primary)' }}>
-                <Wallet size={36} />
+          <div className="glass-panel bento-card" style={{ gridArea: 'payment', padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+             <div style={{ padding: '16px', borderRadius: 'var(--radius-card)', background: 'rgba(250, 255, 0, 0.1)', color: 'var(--accent-primary)' }}>
+                <Wallet size={32} />
              </div>
              <div>
-                <h4 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '4px' }}>Zero-Friction Payments</h4>
-                <p style={{ color: 'var(--text-secondary)' }}>Forget standard gateways. One-tap FASTag integration means no stopping at the gate.</p>
+                <h4 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '4px' }}>Zero-Friction Payments</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Forget standard gateways. One-tap FASTag integration means no stopping at the gate.</p>
              </div>
           </div>
 
-          <div className="glass-panel bento-card" style={{ gridArea: 'secure', padding: '24px' }}>
-             <ShieldCheck size={32} color="var(--accent-primary)" style={{ marginBottom: '20px' }} />
-             <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>ANPR Secure</h4>
-             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>High-speed camera entry. No more reaching for QR codes.</p>
+          <div className="glass-panel bento-card" style={{ gridArea: 'secure', padding: '20px' }}>
+             <ShieldCheck size={28} color="var(--accent-primary)" style={{ marginBottom: '16px' }} />
+             <h4 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '6px' }}>ANPR Secure</h4>
+             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>High-speed camera entry. No more reaching for QR codes.</p>
           </div>
 
-          <div className="glass-panel bento-card" style={{ gridArea: 'time', padding: '24px', background: 'var(--bg-tertiary)' }}>
-             <div style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--accent-warm)', marginBottom: '12px' }}>3 min</div>
-             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>Average time saved per session vs. traditional parking.</p>
+          <div className="glass-panel bento-card" style={{ gridArea: 'time', padding: '20px', background: 'var(--bg-tertiary)' }}>
+             <div style={{ fontSize: '2.2rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--accent-warm)', marginBottom: '8px' }}>3 min</div>
+             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600 }}>Average time saved per session vs. traditional parking.</p>
           </div>
 
           {/* Bottom Card Wide */}
-          <div className="glass-panel bento-card" style={{ gridArea: 'help', padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="glass-panel bento-card" style={{ gridArea: 'help', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
              <div>
-                <h4 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Need help with insurance?</h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>We've partnered with top carriers for direct-quote quotes.</p>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Need insurance help?</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>We've partnered with top carriers for direct quotes.</p>
              </div>
-             <button className="btn btn-secondary" style={{ padding: '12px 24px' }}>Explore</button>
+             <button className="btn btn-secondary" style={{ padding: '10px 20px', fontSize: '0.85rem' }}>Explore</button>
           </div>
 
-          <div className="glass-panel bento-card" style={{ gridArea: 'avail', padding: '24px', border: '1px solid var(--accent-primary)' }}>
-             <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '12px' }}>Available 24/7</h4>
+          <div className="glass-panel bento-card" style={{ gridArea: 'avail', padding: '20px', border: '1px solid var(--accent-primary)' }}>
+             <h4 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '10px' }}>Available 24/7</h4>
              <div style={{ display: 'flex', gap: '8px' }}>
                 {[1,2,3,4,5,6].map(i => (
                    <div key={i} style={{ flex: 1, height: '40px', background: i < 5 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)', borderRadius: '4px' }} />
