@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 const AnimatedParkingHero = () => {
   return (
     <div className="glass-panel" style={{
-      width: '450px',
+      width: '400px',
       height: '450px',
       position: 'relative',
       overflow: 'hidden',
