@@ -9,7 +9,144 @@ import {
   Calendar, MapPin, Navigation, Clock
 } from 'lucide-react';
 import { db } from '../firebase';
-import { doc, updateDoc, arrayUnion, arrayRemove, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { 
+  doc, updateDoc, arrayUnion, arrayRemove, collection, 
+  query, where, onSnapshot, orderBy, increment, serverTimestamp 
+} from 'firebase/firestore';
+
+/* ─── Active Booking Card Component ────────────────── */
+const BookingCard = ({ booking, onVacate, onExtend }) => {
+  const [timeLeft, setTimeLeft] = useState('');
+  const [isOverdue, setIsOverdue] = useState(false);
+  const [fineAmount, setFineAmount] = useState(0);
+
+  useEffect(() => {
+    const calculateTime = () => {
+      if (booking.status === 'completed') return;
+      
+      const [year, month, day] = booking.entryDate.split('-').map(Number);
+      const [hour, minute] = booking.entryTime.split(':').map(Number);
+      
+      const startTime = new Date(year, month - 1, day, hour, minute);
+      const endTime = new Date(startTime.getTime() + (booking.duration * 60 * 60 * 1000));
+      const now = new Date();
+      
+      const diff = endTime - now;
+      
+      if (diff <= 0) {
+        setIsOverdue(true);
+        const overdueHours = Math.ceil(Math.abs(diff) / (1000 * 60 * 60));
+        setFineAmount(overdueHours * 50); // ₹50/hr fine
+        setTimeLeft('EXPIRED');
+      } else {
+        const h = Math.floor(diff / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        setTimeLeft(`${h}h ${m}m ${s}s`);
+        setIsOverdue(false);
+      }
+    };
+
+    calculateTime();
+    const interval = setInterval(calculateTime, 1000);
+    return () => clearInterval(interval);
+  }, [booking]);
+
+  const isActive = booking.status === 'booked';
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-panel" 
+      style={{ padding: '24px', position: 'relative', overflow: 'hidden', border: isOverdue && isActive ? '1.5px solid #ff4b4b' : '1px solid var(--glass-border)' }}
+    >
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: isOverdue && isActive ? '#ff4b4b' : 'var(--accent-primary)' }} />
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-secondary)' }}>#{booking.bookingId}</span>
+             <span style={{ 
+               fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)', 
+               background: booking.status === 'completed' ? 'rgba(255,255,255,0.05)' : (isOverdue ? 'rgba(255, 75, 75, 0.1)' : 'rgba(0, 204, 106, 0.1)'), 
+               color: booking.status === 'completed' ? 'var(--text-muted)' : (isOverdue ? '#ff4b4b' : '#00cc6a'), 
+               border: '1px solid rgba(255,255,255,0.1)', fontWeight: 700 
+             }}>
+               {booking.status === 'completed' ? 'COMPLETED' : (isOverdue ? 'OVERDUE / FINE' : 'ACTIVE')}
+             </span>
+          </div>
+
+          <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 12px 0' }}>
+            Slot {booking.slotId} • {booking.floor}
+          </h3>
+
+          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '16px' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                <MapPin size={14} color="var(--accent-primary)" />
+                {booking.locationName}
+             </div>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                <Clock size={14} color="var(--accent-primary)" />
+                {booking.entryTime} ({booking.duration}h)
+             </div>
+          </div>
+
+          {isActive && (
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div style={{ padding: '8px 16px', borderRadius: 'var(--radius-button)', background: isOverdue ? 'rgba(255, 75, 75, 0.1)' : 'rgba(250, 255, 0, 0.05)', border: `1px solid ${isOverdue ? '#ff4b4b33' : 'var(--accent-primary)33'}` }}>
+                <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>Time Remaining</p>
+                <div style={{ fontSize: '1.1rem', fontWeight: 900, color: isOverdue ? '#ff4b4b' : 'var(--accent-primary)', fontFamily: 'monospace' }}>
+                   {timeLeft}
+                </div>
+              </div>
+              
+              {isOverdue && (
+                <motion.div 
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  style={{ padding: '8px 16px', borderRadius: 'var(--radius-button)', background: 'rgba(255, 75, 75, 0.1)', border: '1px solid #ff4b4b33' }}
+                >
+                  <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>Penalty</p>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#ff4b4b' }}>
+                     + ₹{fineAmount}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end', minWidth: '140px' }}>
+           <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)' }}>₹{booking.totalCost}</div>
+           
+           {isActive ? (
+             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'flex-end' }}>
+               <button 
+                 onClick={() => onExtend(booking)}
+                 className="btn btn-secondary" 
+                 style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid var(--accent-primary)' }}
+               >
+                  <Plus size={14} /> Extend
+               </button>
+               <button 
+                 onClick={() => onVacate(booking)}
+                 className="btn btn-primary" 
+                 style={{ padding: '8px 24px', fontSize: '0.85rem', fontWeight: 800, background: '#ff4b4b', color: '#fff', border: 'none' }}
+               >
+                  Out
+               </button>
+             </div>
+           ) : (
+             <button disabled className="btn" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', cursor: 'default', fontSize: '0.85rem' }}>
+                Slot Freed
+             </button>
+           )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const Profile = () => {
   const { user, isAuthenticated, updateUser, logout } = useUser();
@@ -225,38 +362,61 @@ const Profile = () => {
                 ) : bookings.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {bookings.map((booking) => (
-                      <div key={booking.id} className="glass-panel" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'var(--accent-primary)' }} />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                               <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-secondary)' }}>#{booking.bookingId}</span>
-                               <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)', background: 'rgba(0, 204, 106, 0.1)', color: '#00cc6a', border: '1px solid rgba(0, 204, 106, 0.2)', fontWeight: 700 }}>SUCCESS</span>
-                            </div>
-                            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 12px 0' }}>Slot {booking.slotId} • {booking.floor}</h3>
-                            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                                  <MapPin size={14} color="var(--accent-primary)" />
-                                  {booking.locationName}
-                               </div>
-                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                                  <Calendar size={14} color="var(--accent-primary)" />
-                                  {booking.entryDate} at {booking.entryTime}
-                               </div>
-                            </div>
-                          </div>
-                          <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                             <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text-primary)' }}>₹{booking.totalCost}</div>
-                             <button 
-                               onClick={() => navigate('/ticket', { state: { booking } })}
-                               className="btn btn-secondary" 
-                               style={{ padding: '10px 18px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
-                             >
-                                <QrCode size={16} /> View Ticket
-                             </button>
-                          </div>
-                        </div>
-                      </div>
+                      <BookingCard 
+                        key={booking.id} 
+                        booking={booking} 
+                        onVacate={async (b) => {
+                          if (!window.confirm('Are you vacating the slot? This will release the slot for other users.')) return;
+                          
+                          /* ─── Hardware Integration Hook ──────────────────────────────────
+                             This is where you would connect to the gate hardware system.
+                             When the user scans their ticket at the exit gate, 
+                             the system should trigger this updateDoc logic.
+                          ───────────────────────────────────────────────────────────────── */
+                          
+                          try {
+                            setIsSaving(true);
+                            // 1. Update booking status
+                            await updateDoc(doc(db, 'bookings', b.id), { status: 'completed' });
+                            
+                            // 2. Mark slot as available in the facility record
+                            const slotRef = doc(db, 'parking_facilities', b.locationId, 'slots', b.slotId);
+                            await updateDoc(slotRef, { status: 'available', updatedAt: serverTimestamp() });
+                            
+                            // 3. Increment available slots count
+                            const facilityRef = doc(db, 'parking_facilities', b.locationId);
+                            await updateDoc(facilityRef, { availableSlots: increment(1) });
+                            
+                            alert('Thank you for using Drivix! Slot released successfully.');
+                          } catch (err) {
+                            console.error(err);
+                          } finally {
+                            setIsSaving(false);
+                          }
+                        }}
+                        onExtend={async (b) => {
+                          const hrs = window.prompt('Extend by how many hours? (Current price applies)', '1');
+                          if (!hrs || isNaN(hrs)) return;
+                          
+                          const additionalHrs = parseInt(hrs);
+                          const additionalCost = additionalHrs * 60; // Assuming 60/hr, could fetch from loc
+                          
+                          if (!window.confirm(`Extend booking by ${additionalHrs}h for ₹${additionalCost}?`)) return;
+                          
+                          try {
+                            setIsSaving(true);
+                            await updateDoc(doc(db, 'bookings', b.id), {
+                              duration: increment(additionalHrs),
+                              totalCost: increment(additionalCost)
+                            });
+                            alert(`Booking extended successfully by ${additionalHrs} hour(s).`);
+                          } catch (err) {
+                            console.error(err);
+                          } finally {
+                            setIsSaving(false);
+                          }
+                        }}
+                      />
                     ))}
                   </div>
                 ) : (
