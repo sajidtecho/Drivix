@@ -4,24 +4,12 @@ import {
   MapPin, Car, Users, Star, ChevronRight, Search,
   Shield, Zap, Clock, Navigation
 } from 'lucide-react';
-import { collection, onSnapshot, query, doc, setDoc, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, query } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../firebase';
+import seedParkingData from '../ParkingFacility/ShardaParking';
 
-const SEED_LOCATION = {
-  id: 'sharda-university-mlp',
-  name: 'Sharda University MLP',
-  address: 'Knowledge Park III, Greater Noida',
-  distance: '0.2 km',
-  totalSlots: 60,
-  availableSlots: 42,
-  pricePerHr: 20,
-  rating: 4.9,
-  floors: ['L1', 'L2', 'L3'],
-  features: ['Student Discount', 'CCTV Security', 'EV Stations'],
-  color: '#FFCE00',
-  badge: 'Campus Choice',
-};
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -51,27 +39,11 @@ const ParkingList = () => {
 
   const seedRealData = async () => {
     try {
-      const facilityRef = doc(db, 'parking_facilities', SEED_LOCATION.id);
-      await setDoc(facilityRef, SEED_LOCATION);
-      const batch = writeBatch(db);
-      const floors = [
-        { name: 'L1', rows: ['A', 'B'], cols: 10 },
-        { name: 'L2', rows: ['C', 'D'], cols: 10 },
-        { name: 'L3', rows: ['E', 'F'], cols: 10 },
-      ];
-      for (const floor of floors) {
-        for (const row of floor.rows) {
-          for (let i = 1; i <= floor.cols; i++) {
-            const slotId = `${row}${i}`;
-            const slotRef = doc(collection(facilityRef, 'slots'), slotId);
-            batch.set(slotRef, { id: slotId, floor: floor.name, row, number: i, status: Math.random() > 0.8 ? 'booked' : 'available' });
-          }
-        }
-      }
-      await batch.commit();
+      await seedParkingData();
       alert('Sharda University MLP Initialized Successfully!');
     } catch (err) {
       console.error(err);
+      alert('Initialization Failed: ' + err.message);
     }
   };
 
