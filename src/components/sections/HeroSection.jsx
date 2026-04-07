@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Map, ArrowRight, Search } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
 import AnimatedParkingHero from '../animations/AnimatedParkingHero';
+import heroVideo from '../../assets/Parking-Hero section.mp4';
 import { useUser } from '../../hooks/useUser';
+
 
 const HeroSection = () => {
   const { isAuthenticated } = useUser();
@@ -107,13 +109,27 @@ const HeroSection = () => {
             </div>
           </FadeIn>
 
-          {/*Animated Parking Hero */}
+          {/* Hero Media: Video replaces Animated Parking Hero */}
           <FadeIn delay={0.2} style={{ display: 'flex', justifyContent: 'center' }} className="hero-animation-container">
-            <div style={{ position: 'relative', width: '100%', maxWidth: '340px', marginTop: '40px', display: 'flex', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', right: '-10%', top: '0', width: '120%', height: '120%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.05, filter: 'blur(100px)' }} />
-              <AnimatedParkingHero />
+            <div style={{ position: 'relative', width: '100%', maxWidth: '700px', marginTop: '30px', display: 'flex', justifyContent: 'center', borderRadius: 'var(--radius-card)', overflow: 'hidden', boxShadow: '0 25px 70px rgba(0,0,0,0.4)', border: '1px solid var(--glass-border)' }}>
+              <div style={{ position: 'absolute', right: '-10%', top: '0', width: '160%', height: '160%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.12, filter: 'blur(100px)', zIndex: 0 }} />
+
+
+              <video
+                src={heroVideo}
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative', zIndex: 1 }}
+              />
+
+              {/* Keep existing animation for easy fallback: 
+              <AnimatedParkingHero /> 
+              */}
             </div>
           </FadeIn>
+
           <style>{`
             @media (min-width: 769px) {
               .hero-animation-container {

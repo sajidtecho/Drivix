@@ -2,7 +2,8 @@ import React from 'react';
 import FadeIn from '../common/FadeIn';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
-import logoImg from '../../assets/Logo.jpeg';
+import logoImg from '../../assets/Logo.png';
+
 
 
 // Unused variables removed

@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserCircle, Moon } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import sunVideo from '../assets/sun.webm';
-import logoImg from '../assets/Logo.jpeg';
+import logoImg from '../assets/Logo.png';
 
 
 // Nav links for each context
