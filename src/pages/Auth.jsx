@@ -26,6 +26,10 @@ const Auth = () => {
   const [otp, setOtp] = useState('');
   const [confirmationResult, setConfirmationResult] = useState(null);
 
+  // Terms state
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
   // Load saved email on mount
   useEffect(() => {
     const savedEmail = localStorage.getItem('drivix_remembered_email');
@@ -141,6 +145,40 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  const TermsModal = () => (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+      background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 2000, padding: '20px'
+    }}>
+      <div className="glass-panel" style={{
+        maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto',
+        padding: '32px', position: 'relative', border: '1px solid var(--accent-primary)'
+      }}>
+        <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', color: 'var(--accent-primary)' }}>Terms & Conditions</h3>
+        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <p><strong>1. Nature of Service:</strong> Drivix provides a digital platform for booking parking spaces. By using this service, you enter into a "License to Occupy" agreement with the parking provider as per the Indian Easements Act, 1882. It is NOT a contract of bailment unless explicitly stated.</p>
+          
+          <p><strong>2. Insurance & Liability:</strong> In accordance with the Motor Vehicles Act, 1988, all vehicles must have valid Third Party Insurance. Drivix is not liable for theft, loss, or damage to the vehicle or its contents. Users are advised not to leave valuables inside the vehicle.</p>
+          
+          <p><strong>3. Indian Govt. Policies:</strong> Users must comply with local municipal corporation (e.g., MCD, NDMC, BBMP) bylaws regarding "No Parking" zones and private property usage. Any fines or towing charges incurred due to illegal parking shall be the sole responsibility of the vehicle owner.</p>
+          
+          <p><strong>4. User Warranty:</strong> You warrant that the vehicle is registered under Indian law, holds a valid PUC (Pollution Under Control) certificate, and you possess a valid Indian Driving License.</p>
+          
+          <p><strong>5. Safety & Indemnity:</strong> Users agree to indemnify Drivix against any legal claims arising from accidents or disputes within the parking premises.</p>
+        </div>
+        <button 
+          onClick={() => setShowTermsModal(false)}
+          className="btn btn-primary"
+          style={{ marginTop: '30px', width: '100%' }}
+        >
+          I Understand
+        </button>
+      </div>
+    </div>
+  );
 
   const handleForgotPassword = async () => {
     if (!formData.email) {
@@ -394,12 +432,40 @@ const Auth = () => {
             )}
           </div>
 
+          {/* Terms and Conditions Checkbox */}
+          {!isLogin && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginTop: '4px' }}>
+              <div 
+                onClick={() => setAcceptedTerms(!acceptedTerms)}
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  minWidth: '20px',
+                  borderRadius: '6px',
+                  border: `2px solid ${acceptedTerms ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
+                  background: acceptedTerms ? 'var(--accent-primary)' : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  marginTop: '2px'
+                }}
+              >
+                {acceptedTerms && <CheckCircle size={14} color="#000" />}
+              </div>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                I agree to the <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', padding: 0, cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>Terms & Conditions</button> which include Indian Govt. parking laws and insurance liability clauses.
+              </span>
+            </div>
+          )}
+
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || (!isLogin && !acceptedTerms)}
             className="btn btn-primary"
-            style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+            style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: (!isLogin && !acceptedTerms) ? 0.6 : 1 }}
           >
             {isLoading ? <Loader2 className="animate-spin" size={20} /> : (isLogin ? 'Log In' : 'Create Account')}
             {!isLoading && <ArrowRight size={18} />}
@@ -410,6 +476,8 @@ const Auth = () => {
           </p>
         </form>
         )}
+
+        {showTermsModal && <TermsModal />}
 
         <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
           <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }}></div>
