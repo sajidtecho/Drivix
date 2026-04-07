@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, ArrowRight, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
 const Auth = () => {
@@ -75,6 +75,24 @@ const Auth = () => {
 
         navigate('/find');
       }
+    } catch (err) {
+      console.error(err);
+      setError(err.message.replace('Firebase: ', ''));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setError('Please enter your email address first to reset your password.');
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      await sendPasswordResetEmail(auth, formData.email);
+      alert('Password reset link has been sent to your email.');
     } catch (err) {
       console.error(err);
       setError(err.message.replace('Firebase: ', ''));
@@ -225,7 +243,7 @@ const Auth = () => {
             </label>
             
             {isLogin && (
-              <button type="button" className="nav-link" style={{ fontSize: '0.85rem', padding: 0 }}>Forgot Password?</button>
+              <button type="button" onClick={handleForgotPassword} className="nav-link" style={{ fontSize: '0.85rem', padding: 0 }}>Forgot Password?</button>
             )}
           </div>
 
