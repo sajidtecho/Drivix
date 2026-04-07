@@ -46,14 +46,14 @@ const Auth = () => {
       if (isLogin) {
         // Real Login
         await signInWithEmailAndPassword(auth, formData.email, formData.password);
-        
+
         // Handle Remember Me
         if (rememberMe) {
           localStorage.setItem('drivix_remembered_email', formData.email);
         } else {
           localStorage.removeItem('drivix_remembered_email');
         }
-        
+
         navigate('/find');
       } else {
 
@@ -178,7 +178,7 @@ const Auth = () => {
               <div style={{ position: 'relative' }}>
                 <Phone size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
                 <input
-                  type="tel" name="mobile" placeholder="+91 9876543210" required
+                  type="tel" name="mobile" placeholder="+91........." required
                   value={formData.mobile} onChange={handleChange}
                   style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                 />
@@ -195,8 +195,8 @@ const Auth = () => {
                 value={formData.password} onChange={handleChange}
                 style={{ width: '100%', padding: '14px 44px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
@@ -222,7 +222,7 @@ const Auth = () => {
           {/* Remember Me Checkbox */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
-              <div 
+              <div
                 onClick={() => setRememberMe(!rememberMe)}
                 style={{
                   width: '20px',
@@ -241,7 +241,7 @@ const Auth = () => {
               </div>
               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: rememberMe ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Remember me</span>
             </label>
-            
+
             {isLogin && (
               <button type="button" onClick={handleForgotPassword} className="nav-link" style={{ fontSize: '0.85rem', padding: 0 }}>Forgot Password?</button>
             )}
