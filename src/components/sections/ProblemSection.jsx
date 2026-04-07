@@ -2,24 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Clock, ShieldAlert, TrendingUp } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
 
-const testimonials = [
-  {
-    text: `"I used to leave my house at 8:10 AM just to ensure I could find a spot in Sector 18 before my 9:00 AM standup. With Drivix, I leave at 8:40 AM. That's 30 minutes of my life back, every single day."`,
-    name: "Sajid Ahmad",
-    role: "Daily Commuter to Sector 18"
-  },
-  {
-    text: `"The stress of finding parking used to ruin my mornings. Now with Drivix, I know exactly where I'm parking before I even start my engine, saving me incredible amounts of time and fuel."`,
-    name: "Irfan khan",
-    role: "Regular User"
-  },
-  {
-    text: `"I can pre-book my parking space and just drive straight in. No more circling the block or dealing with aggressive parking attendants. Drivix is a lifesaver."`,
-    name: "Md. Bilal",
-    role: "Daily Commuter"
-  }
-];
-
 const problems = [
   {
     icon: Clock,
@@ -142,7 +124,7 @@ const ProblemSection = () => {
           }}>
             <div style={{ flex: 1, minWidth: 'unset', width: '100%', position: 'relative', minHeight: '180px' }}>
               {testimonials.map((test, index) => (
-                <div 
+                <div
                   key={index}
                   style={{
                     position: index === currentSlide ? 'relative' : 'absolute',
@@ -176,11 +158,11 @@ const ProblemSection = () => {
                 </div>
               ))}
             </div>
-            
+
             {/* Dots */}
             <div style={{ display: 'flex', gap: '8px', position: 'absolute', bottom: 'clamp(15px, 4vw, 30px)', right: 'clamp(15px, 4vw, 40px)' }}>
               {testimonials.map((_, idx) => (
-                <div 
+                <div
                   key={idx}
                   onClick={() => setCurrentSlide(idx)}
                   style={{
