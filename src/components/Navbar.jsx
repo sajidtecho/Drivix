@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserCircle, Moon } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import sunVideo from '../assets/sun.webm';
+import logoImg from '../assets/Logo.jpeg';
+
 
 // Nav links for each context
 const LANDING_LINKS = [
@@ -156,14 +158,15 @@ const Navbar = () => {
             width: '40px',
             height: '40px',
             borderRadius: 'var(--radius-button)',
-            background: 'var(--accent-primary)',
+            overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 15px rgba(250, 255, 0, 0.3)'
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
           }}>
-            <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#000' }}>D</span>
+            <img src={logoImg} alt="Drivix Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
+
           <span style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.05em', color: 'var(--text-primary)' }}>
             Drivix
           </span>

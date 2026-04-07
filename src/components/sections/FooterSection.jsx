@@ -2,6 +2,8 @@ import React from 'react';
 import FadeIn from '../common/FadeIn';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
+import logoImg from '../../assets/Logo.jpeg';
+
 
 // Unused variables removed
 
@@ -69,9 +71,21 @@ const FooterSection = () => {
           gap: '32px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-button)', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#000' }}>D</div>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-button)',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+            }}>
+              <img src={logoImg} alt="Drivix Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
             <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.03em' }}>Drivix.</span>
           </div>
+
 
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
             {['Safety', 'Privacy', 'Network', 'Support', 'Careers'].map(link => (
