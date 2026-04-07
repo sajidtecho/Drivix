@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, ArrowRight, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
 const Auth = () => {
@@ -20,6 +20,12 @@ const Auth = () => {
   });
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Phone Auth State
+  const [isPhoneLogin, setIsPhoneLogin] = useState(false);
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState(null);
+
   // Load saved email on mount
   useEffect(() => {
     const savedEmail = localStorage.getItem('drivix_remembered_email');
@@ -35,6 +41,59 @@ const Auth = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
+  };
+
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {
+          // reCAPTCHA solved
+        }
+      });
+    }
+  };
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    if (!formData.mobile) {
+      setError('Please enter your mobile number with country code (e.g. +91...)');
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      setupRecaptcha();
+      const appVerifier = window.recaptchaVerifier;
+      const result = await signInWithPhoneNumber(auth, formData.mobile, appVerifier);
+      setConfirmationResult(result);
+      setShowOtpInput(true);
+      alert('OTP sent to your mobile number!');
+    } catch (err) {
+      console.error(err);
+      setError(err.message.replace('Firebase: ', ''));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otp) {
+      setError('Please enter the OTP');
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      await confirmationResult.confirm(otp);
+      navigate('/find');
+    } catch (err) {
+      console.error(err);
+      setError('Invalid OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -144,7 +203,62 @@ const Auth = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {isLogin && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              {isPhoneLogin ? "Prefer Email?" : "Prefer Mobile?"}
+              <button 
+                type="button" 
+                onClick={() => { setIsPhoneLogin(!isPhoneLogin); setShowOtpInput(false); setError(''); }}
+                style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontWeight: 600, marginLeft: '6px', cursor: 'pointer', padding: 0 }}
+              >
+                {isPhoneLogin ? "Login with Email" : "Login with OTP"}
+              </button>
+            </span>
+          </div>
+        )}
+
+        <div id="recaptcha-container"></div>
+
+        {isPhoneLogin && isLogin ? (
+          <form onSubmit={showOtpInput ? handleVerifyOtp : handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {!showOtpInput ? (
+              <div className="input-group">
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Mobile Number</label>
+                <div style={{ position: 'relative' }}>
+                  <Phone size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
+                  <input
+                    type="tel" name="mobile" placeholder="+91........." required
+                    value={formData.mobile} onChange={handleChange}
+                    style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="input-group">
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Enter OTP</label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
+                  <input
+                    type="text" placeholder="123456" required
+                    value={otp} onChange={(e) => setOtp(e.target.value)}
+                    style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none', letterSpacing: '2px' }}
+                  />
+                </div>
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="btn btn-primary"
+              style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+            >
+              {isLoading ? <Loader2 className="animate-spin" size={20} /> : (showOtpInput ? 'Verify OTP' : 'Send OTP')}
+              {!isLoading && <ArrowRight size={18} />}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {!isLogin && (
             <div className="input-group">
@@ -262,6 +376,7 @@ const Auth = () => {
             By continuing, you agree to our Terms and Privacy Policy.
           </p>
         </form>
+        )}
       </div>
     </div>
   );
