@@ -1,6 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, ShieldAlert, TrendingUp } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
+
+const testimonials = [
+  {
+    text: `"I used to leave my house at 8:10 AM just to ensure I could find a spot in Sector 18 before my 9:00 AM standup. With Drivix, I leave at 8:40 AM. That's 30 minutes of my life back, every single day."`,
+    name: "Sajid Ahmad",
+    role: "Daily Commuter to Sector 18"
+  },
+  {
+    text: `"The stress of finding parking used to ruin my mornings. Now with Drivix, I know exactly where I'm parking before I even start my engine, saving me incredible amounts of time and fuel."`,
+    name: "Irfan khan",
+    role: "Regular User"
+  },
+  {
+    text: `"I can pre-book my parking space and just drive straight in. No more circling the block or dealing with aggressive parking attendants. Drivix is a lifesaver."`,
+    name: "Md. Bilal",
+    role: "Daily Commuter"
+  }
+];
 
 const problems = [
   {
@@ -21,6 +39,15 @@ const problems = [
 ];
 
 const ProblemSection = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % testimonials.length);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section id="problem" style={{ padding: '160px 0', background: 'var(--bg-secondary)', position: 'relative', overflow: 'hidden' }}>
       {/* City Marquee */}
@@ -109,27 +136,60 @@ const ProblemSection = () => {
             background: 'var(--bg-tertiary)',
             borderLeft: '4px solid var(--accent-primary)',
             width: '100%',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            <div style={{ flex: 1, minWidth: 'unset', width: '100%' }}>
-              <div style={{
-                fontSize: 'clamp(1.15rem, 4.5vw, 1.85rem)',
-                fontWeight: 350,
-                fontStyle: 'italic',
-                lineHeight: 1.4,
-                marginBottom: '20px',
-                color: 'var(--text-primary)',
-                letterSpacing: '-0.01em'
-              }}>
-                "I used to leave my house at 8:10 AM just to ensure I could find a spot in Sector 18 before my 9:00 AM standup. With Drivix, I leave at 8:40 AM. That's 30 minutes of my life back, every single day."
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                <div>
-                  <div style={{ fontWeight: 500 }}>Sajid Ahmad</div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Daily Commuter to Sector 18</div>
+            <div style={{ flex: 1, minWidth: 'unset', width: '100%', position: 'relative', minHeight: '180px' }}>
+              {testimonials.map((test, index) => (
+                <div 
+                  key={index}
+                  style={{
+                    position: index === currentSlide ? 'relative' : 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    opacity: index === currentSlide ? 1 : 0,
+                    transform: `translateX(${index === currentSlide ? 0 : (index < currentSlide ? '-20px' : '20px')})`,
+                    transition: 'all 0.5s ease-in-out',
+                    pointerEvents: index === currentSlide ? 'auto' : 'none'
+                  }}
+                >
+                  <div style={{
+                    fontSize: 'clamp(1.15rem, 4.5vw, 1.85rem)',
+                    fontWeight: 350,
+                    fontStyle: 'italic',
+                    lineHeight: 1.4,
+                    marginBottom: '20px',
+                    color: 'var(--text-primary)',
+                    letterSpacing: '-0.01em'
+                  }}>
+                    {test.text}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-primary)' }} />
+                    <div>
+                      <div style={{ fontWeight: 500 }}>{test.name}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{test.role}</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
+            </div>
+            
+            {/* Dots */}
+            <div style={{ display: 'flex', gap: '8px', position: 'absolute', bottom: 'clamp(15px, 4vw, 30px)', right: 'clamp(15px, 4vw, 40px)' }}>
+              {testimonials.map((_, idx) => (
+                <div 
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  style={{
+                    width: '10px', height: '10px', borderRadius: '50%', cursor: 'pointer',
+                    background: currentSlide === idx ? 'var(--accent-primary)' : 'var(--glass-border)',
+                    transition: 'all 0.3s'
+                  }}
+                />
+              ))}
             </div>
           </div>
         </FadeIn>
