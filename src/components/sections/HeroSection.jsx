@@ -4,7 +4,9 @@ import { Map, ArrowRight, Search } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
 import AnimatedParkingHero from '../animations/AnimatedParkingHero';
 import heroVideo from '../../assets/Parking-Hero section.mp4';
+import heroImage from '../../assets/HeroSection-Parking-image.png';
 import { useUser } from '../../hooks/useUser';
+
 
 
 const HeroSection = () => {
@@ -110,25 +112,31 @@ const HeroSection = () => {
           </FadeIn>
 
           {/* Hero Media: Video replaces Animated Parking Hero */}
+          {/* Hero Media: Image replaces Video */}
           <FadeIn delay={0.2} style={{ display: 'flex', justifyContent: 'center' }} className="hero-animation-container">
-            <div style={{ position: 'relative', width: '100%', maxWidth: '700px', marginTop: '30px', display: 'flex', justifyContent: 'center', borderRadius: 'var(--radius-card)', overflow: 'hidden', boxShadow: '0 25px 70px rgba(0,0,0,0.4)', border: '1px solid var(--glass-border)' }}>
-              <div style={{ position: 'absolute', right: '-10%', top: '0', width: '160%', height: '160%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.12, filter: 'blur(100px)', zIndex: 0 }} />
-
-
-              <video
-                src={heroVideo}
-                autoPlay
-                loop
-                muted
-                playsInline
+            <div style={{ position: 'relative', width: '100%', maxWidth: '800px', marginTop: '30px', display: 'flex', justifyContent: 'center', borderRadius: 'var(--radius-card)', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.5)', border: '1px solid var(--glass-border)', aspectRatio: '16 / 10' }}>
+              <div style={{ position: 'absolute', right: '-10%', top: '0', width: '160%', height: '160%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.15, filter: 'blur(120px)', zIndex: 0 }} />
+              
+              <img 
+                src={heroImage} 
+                alt="Smart Parking Facility" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative', zIndex: 1 }}
               />
 
-              {/* Keep existing animation for easy fallback: 
+              {/* Keep existing media for easy fallback: 
+              <video 
+                src={heroVideo} 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative', zIndex: 1 }}
+              />
               <AnimatedParkingHero /> 
               */}
             </div>
           </FadeIn>
+
 
           <style>{`
             @media (min-width: 769px) {
