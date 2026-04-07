@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, ArrowRight, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { auth, db } from "../firebase";
@@ -17,6 +18,17 @@ const Auth = () => {
     password: '',
     city: ''
   });
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Load saved email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('drivix_remembered_email');
+    if (savedEmail) {
+      setFormData(prev => ({ ...prev, email: savedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
+
 
   const navigate = useNavigate();
 
@@ -34,8 +46,17 @@ const Auth = () => {
       if (isLogin) {
         // Real Login
         await signInWithEmailAndPassword(auth, formData.email, formData.password);
+        
+        // Handle Remember Me
+        if (rememberMe) {
+          localStorage.setItem('drivix_remembered_email', formData.email);
+        } else {
+          localStorage.removeItem('drivix_remembered_email');
+        }
+        
         navigate('/find');
       } else {
+
         // Real Signup
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
         const user = userCredential.user;
@@ -179,6 +200,35 @@ const Auth = () => {
               </div>
             </div>
           )}
+
+          {/* Remember Me Checkbox */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
+              <div 
+                onClick={() => setRememberMe(!rememberMe)}
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '6px',
+                  border: `2px solid ${rememberMe ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
+                  background: rememberMe ? 'var(--accent-primary)' : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  padding: '2px'
+                }}
+              >
+                {rememberMe && <CheckCircle size={14} color="#000" />}
+              </div>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: rememberMe ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Remember me</span>
+            </label>
+            
+            {isLogin && (
+              <button type="button" className="nav-link" style={{ fontSize: '0.85rem', padding: 0 }}>Forgot Password?</button>
+            )}
+          </div>
+
 
           <button
             type="submit"

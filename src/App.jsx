@@ -30,7 +30,7 @@ function App() {
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         </div>
-        <div style={{ marginTop: '-40px', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+        <div style={{ marginTop: '-40px', fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 650, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
           <h2> Driving to your spot...</h2>
         </div>
       </div>
