@@ -114,7 +114,8 @@ const HeroSection = () => {
           {/* Hero Media: Video replaces Animated Parking Hero */}
           {/* Hero Media: Image replaces Video */}
           <FadeIn delay={0.2} style={{ display: 'flex', justifyContent: 'center' }} className="hero-animation-container">
-            <div style={{ position: 'relative', width: '100%', maxWidth: '800px', marginTop: '30px', display: 'flex', justifyContent: 'center', borderRadius: 'var(--radius-card)', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.5)', border: '1px solid var(--glass-border)', aspectRatio: '16 / 10' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '800px', marginTop: '-40px', display: 'flex', justifyContent: 'center', borderRadius: 'var(--radius-card)', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.5)', border: '1px solid var(--glass-border)', aspectRatio: '16 / 10' }}>
+
               <div style={{ position: 'absolute', right: '-10%', top: '0', width: '160%', height: '160%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.15, filter: 'blur(120px)', zIndex: 0 }} />
               
               <img 
