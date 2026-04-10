@@ -188,18 +188,55 @@ const Auth = () => {
       setError('Please enter your email address first to reset your password.');
       return;
     }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
+    
     try {
+      console.log('Attempting password reset for:', formData.email);
       await sendPasswordResetEmail(auth, formData.email);
-      alert('Password reset link has been sent to your email.');
+      alert(`Success! A password reset link has been sent to ${formData.email}. Please check your inbox and spam folder.`);
+      setError(''); // Clear any previous errors
     } catch (err) {
-      console.error(err);
-      setError(err.message.replace('Firebase: ', ''));
+      console.error('Password Reset Error:', err);
+      
+      const errorCode = err.code;
+      let userFriendlyMessage = '';
+
+      switch (errorCode) {
+        case 'auth/operation-not-allowed':
+          userFriendlyMessage = 'Email/Password login is not enabled in the Firebase Console. Please enable it in the Auth tab.';
+          break;
+        case 'auth/user-not-found':
+          userFriendlyMessage = 'No account found with this email address. Please sign up first.';
+          break;
+        case 'auth/invalid-email':
+          userFriendlyMessage = 'The email address is invalid.';
+          break;
+        case 'auth/too-many-requests':
+          userFriendlyMessage = 'Too many attempts. Please try again later.';
+          break;
+        default:
+          userFriendlyMessage = err.message.replace('Firebase: ', '');
+          // Check for internal 400 error symptoms
+          if (err.message.includes('400')) {
+             userFriendlyMessage += ' (This may be a Firebase configuration or API Key restriction issue).';
+          }
+      }
+      
+      setError(userFriendlyMessage);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
