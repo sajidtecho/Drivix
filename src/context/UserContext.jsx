@@ -38,7 +38,15 @@ export const UserProvider = ({ children }) => {
       }
     });
 
-    return () => unsubscribeAuth();
+    // Safety fallback: if auth takes too long, stop loading
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
+    return () => {
+      unsubscribeAuth();
+      clearTimeout(safetyTimeout);
+    };
   }, []);
 
   const login = async () => {
