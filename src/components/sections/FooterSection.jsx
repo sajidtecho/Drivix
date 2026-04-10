@@ -10,17 +10,17 @@ import logoImg from '../../assets/Logo.png';
 
 const testimonials = [
   {
-    name: "Sandeep Kumar",
+    name: "Sajid Ahmad",
     role: "Daily Commuter",
     text: "Drivix saved me 40 minutes of circling every morning. I book my spot while having coffee, and it's there when I arrive."
   },
   {
-    name: "Ananya Sharma",
+    name: "Irfan Khan",
     role: "Business Owner",
     text: "Finally, a parking solution that actually works in Noida. The pre-booking feature is a game-changer for my team."
   },
   {
-    name: "Vikram Singh",
+    name: "Md.Bilal",
     role: "App User",
     text: "The security features and real-time updates give me peace of mind when leaving my car in crowded areas."
   }
