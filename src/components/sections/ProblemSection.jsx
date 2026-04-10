@@ -21,14 +21,8 @@ const problems = [
 ];
 
 const ProblemSection = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  // Testimonial logic moved to FooterSection
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % testimonials.length);
-    }, 2000);
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <section id="problem" style={{ padding: '160px 0', background: 'var(--bg-secondary)', position: 'relative', overflow: 'hidden' }}>
@@ -107,74 +101,8 @@ const ProblemSection = () => {
           })}
         </div>
 
-        {/* Real Testimonial */}
-        <FadeIn delay={0.4}>
-          <div className="glass-panel" style={{
-            padding: 'clamp(28px, 6vw, 60px)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 'clamp(20px, 4vw, 40px)',
-            alignItems: 'center',
-            background: 'var(--bg-tertiary)',
-            borderLeft: '4px solid var(--accent-primary)',
-            width: '100%',
-            boxSizing: 'border-box',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{ flex: 1, minWidth: 'unset', width: '100%', position: 'relative', minHeight: '180px' }}>
-              {testimonials.map((test, index) => (
-                <div
-                  key={index}
-                  style={{
-                    position: index === currentSlide ? 'relative' : 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    opacity: index === currentSlide ? 1 : 0,
-                    transform: `translateX(${index === currentSlide ? 0 : (index < currentSlide ? '-20px' : '20px')})`,
-                    transition: 'all 0.5s ease-in-out',
-                    pointerEvents: index === currentSlide ? 'auto' : 'none'
-                  }}
-                >
-                  <div style={{
-                    fontSize: 'clamp(1.15rem, 4.5vw, 1.85rem)',
-                    fontWeight: 350,
-                    fontStyle: 'italic',
-                    lineHeight: 1.4,
-                    marginBottom: '20px',
-                    color: 'var(--text-primary)',
-                    letterSpacing: '-0.01em'
-                  }}>
-                    {test.text}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                    <div>
-                      <div style={{ fontWeight: 500 }}>{test.name}</div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{test.role}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Testimonials moved to FooterSection */}
 
-            {/* Dots */}
-            <div style={{ display: 'flex', gap: '8px', position: 'absolute', bottom: 'clamp(15px, 4vw, 30px)', right: 'clamp(15px, 4vw, 40px)' }}>
-              {testimonials.map((_, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setCurrentSlide(idx)}
-                  style={{
-                    width: '10px', height: '10px', borderRadius: '50%', cursor: 'pointer',
-                    background: currentSlide === idx ? 'var(--accent-primary)' : 'var(--glass-border)',
-                    transition: 'all 0.3s'
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </FadeIn>
       </div>
     </section>
   );

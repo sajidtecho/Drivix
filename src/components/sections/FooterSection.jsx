@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
 import FadeIn from '../common/FadeIn';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
@@ -6,9 +7,35 @@ import logoImg from '../../assets/Logo.png';
 
 
 
-// Unused variables removed
+
+const testimonials = [
+  {
+    name: "Sandeep Kumar",
+    role: "Daily Commuter",
+    text: "Drivix saved me 40 minutes of circling every morning. I book my spot while having coffee, and it's there when I arrive."
+  },
+  {
+    name: "Ananya Sharma",
+    role: "Business Owner",
+    text: "Finally, a parking solution that actually works in Noida. The pre-booking feature is a game-changer for my team."
+  },
+  {
+    name: "Vikram Singh",
+    role: "App User",
+    text: "The security features and real-time updates give me peace of mind when leaving my car in crowded areas."
+  }
+];
 
 const FooterSection = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
   const navigate = useNavigate();
   const { isAuthenticated } = useUser();
   return (
@@ -60,6 +87,77 @@ const FooterSection = () => {
             </button>
           </div>
         </div>
+
+        {/* Testimonial Carousel */}
+        <FadeIn delay={0.4}>
+          <div className="glass-panel" style={{
+            padding: 'clamp(28px, 6vw, 60px)',
+            marginBottom: '80px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 'clamp(20px, 4vw, 40px)',
+            alignItems: 'center',
+            background: 'var(--bg-tertiary)',
+            borderLeft: '4px solid var(--accent-primary)',
+            width: '100%',
+            boxSizing: 'border-box',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{ flex: 1, minWidth: 'unset', width: '100%', position: 'relative', minHeight: '180px' }}>
+              {testimonials.map((test, index) => (
+                <div
+                  key={index}
+                  style={{
+                    position: index === currentSlide ? 'relative' : 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    opacity: index === currentSlide ? 1 : 0,
+                    transform: `translateY(${index === currentSlide ? 0 : (index < currentSlide ? '-20px' : '20px')})`,
+                    transition: 'all 0.5s ease-in-out',
+                    pointerEvents: index === currentSlide ? 'auto' : 'none'
+                  }}
+                >
+                  <div style={{
+                    fontSize: 'clamp(1.15rem, 4.5vw, 1.85rem)',
+                    fontWeight: 300,
+                    fontStyle: 'italic',
+                    lineHeight: 1.4,
+                    marginBottom: '20px',
+                    color: 'var(--text-primary)',
+                    letterSpacing: '-0.01em'
+                  }}>
+                    "{test.text}"
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(45deg, var(--accent-primary), var(--accent-warm))' }} />
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontWeight: 600 }}>{test.name}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{test.role}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Dots */}
+            <div style={{ display: 'flex', gap: '8px', position: 'absolute', bottom: 'clamp(15px, 4vw, 30px)', right: 'clamp(15px, 4vw, 40px)' }}>
+              {testimonials.map((_, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  style={{
+                    width: '8px', height: '8px', borderRadius: '50%', cursor: 'pointer',
+                    background: currentSlide === idx ? 'var(--accent-primary)' : 'var(--glass-border)',
+                    transition: 'all 0.3s'
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </FadeIn>
+
 
         {/* Dense row of links */}
         <div style={{
