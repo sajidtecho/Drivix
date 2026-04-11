@@ -430,18 +430,20 @@ const Profile = () => {
                   <h2 style={{ fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>
                     {user?.role === 'admin' ? 'Master Records' : 'My Bookings'}
                   </h2>
-                  <button 
-                    onClick={downloadBookingsCSV}
-                    className="btn btn-secondary"
-                    style={{ 
-                      padding: '10px 18px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', 
-                      border: '1px solid var(--accent-primary)', 
-                      background: user?.role === 'admin' ? 'rgba(255, 206, 0, 0.15)' : 'rgba(250, 255, 0, 0.05)' 
-                    }}
-                  >
-                    <FileText size={16} color="var(--accent-primary)" /> 
-                    {user?.role === 'admin' ? 'Master Dataset Export (All Users)' : 'Export My Data (CSV)'}
-                  </button>
+                  {user?.role === 'admin' && (
+                    <button 
+                      onClick={downloadBookingsCSV}
+                      className="btn btn-secondary"
+                      style={{ 
+                        padding: '10px 18px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', 
+                        border: '1px solid var(--accent-primary)', 
+                        background: 'rgba(255, 206, 0, 0.15)'
+                      }}
+                    >
+                      <FileText size={16} color="var(--accent-primary)" /> 
+                      Master Dataset Export (All Users)
+                    </button>
+                  )}
                 </div>
                 {loadingBookings ? (
                   <div style={{ textAlign: 'center', padding: '40px' }}>

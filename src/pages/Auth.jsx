@@ -261,16 +261,20 @@ const Auth = () => {
         });
       }
 
+      toast.success("Welcome, " + (user.displayName || 'User'));
       navigate('/find');
     } catch (err) {
-      console.error('Google Login Error:', err);
-      let message = err.message.replace('Firebase: ', '');
-      if (err.code === 'auth/operation-not-allowed') {
-        message = 'Google Sign-in is not enabled in your Firebase Console. Please enable it in the Authentication > Sign-in method tab.';
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        message = 'Login popup was closed before finishing.';
+      console.error("Google Auth Error:", err);
+      
+      if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+        setError("Login popup was blocked or closed. Please try again.");
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError("Domain unauthorized. Please whitelist your Vercel URL in Firebase console.");
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError("Google Login is not enabled in your Firebase Console.");
+      } else {
+        setError("Authentication failed: " + err.message.replace('Firebase: ', ''));
       }
-      setError(message);
     } finally {
       setIsLoading(false);
     }
