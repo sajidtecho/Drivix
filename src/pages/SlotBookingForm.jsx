@@ -187,6 +187,29 @@ const SlotBookingForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingData, setBookingData] = useState(null);
 
+  // Autofill logic
+  const [showAutofillPrompt, setShowAutofillPrompt] = useState(false);
+  const [suggestedVehicle, setSuggestedVehicle] = useState(null);
+
+  React.useEffect(() => {
+    if (user && user.vehicles && user.vehicles.length > 0 && !vehicleNumber && !name && !mobile) {
+      // Find primary or first vehicle
+      const primary = user.vehicles.find(v => v.isPrimary) || user.vehicles[0];
+      setSuggestedVehicle(primary);
+      setShowAutofillPrompt(true);
+    }
+  }, [user]);
+
+  const handleAutofill = (confirmed) => {
+    if (confirmed && suggestedVehicle) {
+      setVehicleNumber(suggestedVehicle.plate || '');
+      setVehicleName(suggestedVehicle.model || '');
+      setName(user.name || '');
+      setMobile(user.mobile || '');
+    }
+    setShowAutofillPrompt(false);
+  };
+
   // Form state
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
@@ -321,6 +344,55 @@ const SlotBookingForm = () => {
                   <p style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>₹{location.pricePerHr}/hr</p>
                 </div>
               </div>
+
+              {/* Autofill Popup */}
+              <AnimatePresence>
+                {showAutofillPrompt && suggestedVehicle && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="glass-panel"
+                    style={{
+                      padding: '20px', marginBottom: '28px', borderRadius: 'var(--radius-card)',
+                      background: 'rgba(250, 255, 0, 0.05)', border: '1px solid var(--accent-primary)',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.2)', position: 'relative'
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                      <div style={{ 
+                        width: '44px', height: '44px', borderRadius: 'var(--radius-input)', 
+                        background: 'var(--accent-primary)', display: 'flex', 
+                        alignItems: 'center', justifyContent: 'center', flexShrink: 0 
+                      }}>
+                        <Car size={22} color="#000" />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1rem', fontWeight: 800 }}>Use Saved Details?</h4>
+                        <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                          We found your vehicle <strong style={{color: 'var(--text-primary)'}}>{suggestedVehicle.plate}</strong> ({suggestedVehicle.model}). Want to use these details for booking?
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <button 
+                            onClick={() => handleAutofill(true)}
+                            className="btn btn-primary"
+                            style={{ padding: '8px 24px', fontSize: '0.85rem', fontWeight: 800 }}
+                          >
+                            <CheckCircle2 size={16} /> Yes, Autofill
+                          </button>
+                          <button 
+                            onClick={() => handleAutofill(false)}
+                            className="btn btn-secondary"
+                            style={{ padding: '8px 20px', fontSize: '0.85rem' }}
+                          >
+                            No, Manual
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Personal Details */}
               <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '16px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>

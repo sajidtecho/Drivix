@@ -200,8 +200,8 @@ const FooterSection = () => {
             ))}
           </div>
 
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-            Built in India ❤️ By Sajid Ahmad• © 2026
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+            Built in India <img src={logoImg} alt="logo" style={{ width: '16px', height: '16px', borderRadius: '4px' }} /> By Sajid Ahmad • © 2026
           </div>
         </div>
       </div>
