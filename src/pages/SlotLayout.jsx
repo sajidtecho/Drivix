@@ -20,6 +20,7 @@ const SlotLayout = () => {
   const [selectedFloor, setSelectedFloor] = useState(loc?.floors?.[0] || 'L1');
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [slots, setSlots] = useState([]);
+  const [activeBookings, setActiveBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch location if not passed in state
@@ -56,6 +57,25 @@ const SlotLayout = () => {
 
     return unsub;
   }, [loc, selectedFloor]);
+
+  // Fetch active bookings for this location to verify current occupancy
+  useEffect(() => {
+    if (!loc) return;
+
+    const bookingsRef = collection(db, 'bookings');
+    const q = query(
+      bookingsRef, 
+      where('locationId', '==', loc.id), 
+      where('status', '==', 'booked')
+    );
+    
+    const unsub = onSnapshot(q, (snapshot) => {
+      const bks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setActiveBookings(bks);
+    });
+
+    return unsub;
+  }, [loc]);
 
   const floors = useMemo(() => loc?.floors || ['L1'], [loc]);
 
@@ -163,7 +183,17 @@ const SlotLayout = () => {
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flex: 1, flexWrap: 'wrap' }}>
                           {rowSlots.map((slot) => {
-                             const status = slot.id === selectedSlot ? 'selected' : slot.status;
+                             // Dynamic Real-time Availability Logic:
+                             // A slot is "booked" ONLY if there is an active booking record for it
+                             const hasActiveBooking = activeBookings.some(b => b.slotId === slot.id);
+                             
+                             let status = slot.id === selectedSlot ? 'selected' : (hasActiveBooking ? 'booked' : 'available');
+                             
+                             // Optional: If you want to keep 'reserved' support from the DB
+                             if (status === 'available' && slot.status === 'reserved') {
+                               status = 'reserved';
+                             }
+
                              const st = SLOT_STATUS[status];
                              const isClickable = status === 'available' || status === 'selected';
 
