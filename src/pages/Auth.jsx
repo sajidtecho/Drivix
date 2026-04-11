@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, ArrowRight, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth, db, googleProvider } from "../firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber, signInWithPopup } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const Auth = () => {
@@ -241,9 +241,8 @@ const Auth = () => {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     setError('');
-    const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
       const userDocRef = doc(db, "users", user.uid);
@@ -264,8 +263,14 @@ const Auth = () => {
 
       navigate('/find');
     } catch (err) {
-      console.error(err);
-      setError(err.message.replace('Firebase: ', ''));
+      console.error('Google Login Error:', err);
+      let message = err.message.replace('Firebase: ', '');
+      if (err.code === 'auth/operation-not-allowed') {
+        message = 'Google Sign-in is not enabled in your Firebase Console. Please enable it in the Authentication > Sign-in method tab.';
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        message = 'Login popup was closed before finishing.';
+      }
+      setError(message);
     } finally {
       setIsLoading(false);
     }
