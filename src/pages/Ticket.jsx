@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import * as htmlToImage from 'html-to-image';
 import {
   CheckCircle2, MapPin, Navigation, Car, Clock,
   Calendar, Download, Home, Share2, Shield
@@ -52,6 +53,45 @@ const Ticket = () => {
     const encodedText = encodeURIComponent(text);
     const whatsappUrl = `https://wa.me/${booking.mobile.startsWith('91') ? booking.mobile : '91' + booking.mobile}?text=${encodedText}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const handleShareAsImage = async () => {
+    if (ticketRef.current === null) return;
+    
+    try {
+      // 1. Capture the Ticket UI as a PNG
+      const dataUrl = await htmlToImage.toPng(ticketRef.current, { 
+        quality: 1.0,
+        pixelRatio: 2, // Retinal quality
+        backgroundColor: '#0a0a14',
+        cacheBust: true,
+      });
+
+      // 2. Conver the Data URL to a real File object for WhatsApp
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const filename = `Drivix-Ticket-${booking.bookingId}.png`;
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      // 3. Try Web Share API (Mobile WhatsApp/Social)
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Drivix Parking Ticket',
+          text: `Here is my parking ticket for Slot ${booking.slotId} at ${booking.locationName}.`
+        });
+      } else {
+        // Fallback: Just download the image if sharing isn't supported
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
+        alert('Ticket image downloaded! You can now share it manually on WhatsApp.');
+      }
+    } catch (err) {
+      console.error('Image capture failed', err);
+      alert('Could not generate ticket image. Please take a screenshot instead.');
+    }
   };
 
   return (
@@ -226,17 +266,30 @@ const Ticket = () => {
             <Navigation size={20} /> Navigate to Parking
           </button>
 
-          <button
-            onClick={handleWhatsAppShare}
-            className="btn btn-primary"
-            style={{ 
-              width: '100%', padding: '16px', fontSize: '1rem', fontWeight: 800,
-              background: '#25D366', color: '#fff', border: 'none',
-              boxShadow: '0 4px 20px rgba(37, 211, 102, 0.3)'
-            }}
-          >
-            <Share2 size={20} /> Share via WhatsApp
-          </button>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+             <button
+              onClick={handleShareAsImage}
+              className="btn btn-primary"
+              style={{ 
+                padding: '16px', fontSize: '0.9rem', fontWeight: 800,
+                background: '#FFCE00', color: '#000', border: 'none',
+                boxShadow: '0 4px 20px rgba(255, 206, 0, 0.2)'
+              }}
+            >
+              <Download size={18} /> Download Image
+            </button>
+            <button
+              onClick={handleWhatsAppShare}
+              className="btn btn-primary"
+              style={{ 
+                padding: '16px', fontSize: '0.9rem', fontWeight: 800,
+                background: '#25D366', color: '#fff', border: 'none',
+                boxShadow: '0 4px 20px rgba(37, 211, 102, 0.2)'
+              }}
+            >
+              <Share2 size={18} /> Share Info
+            </button>
+          </div>
 
           <div style={{ display: 'flex', gap: '12px' }}>
             <button
