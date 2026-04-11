@@ -23,6 +23,7 @@ const itemVariants = {
 const ParkingList = () => {
   const navigate = useNavigate();
   const [locations, setLocations] = useState([]);
+  const [activeBookingsCount, setActiveBookingsCount] = useState({});
   const [search, setSearch] = useState('');
   const [hoveredId, setHoveredId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +34,21 @@ const ParkingList = () => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setLocations(data);
       setLoading(false);
+    });
+    return unsub;
+  }, []);
+
+  // Sync active bookings counts for accurate availability counters
+  React.useEffect(() => {
+    const q = query(collection(db, 'bookings'), where('status', '==', 'booked'));
+    const unsub = onSnapshot(q, (snapshot) => {
+      const counts = {};
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        const facId = data.locationId;
+        if (facId) counts[facId] = (counts[facId] || 0) + 1;
+      });
+      setActiveBookingsCount(counts);
     });
     return unsub;
   }, []);
@@ -140,8 +156,12 @@ const ParkingList = () => {
         {/* Location Cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {filtered.map((loc) => {
-            const avColor = availabilityColor(loc.availableSlots, loc.totalSlots);
-            const pct = Math.round((loc.availableSlots / loc.totalSlots) * 100);
+            // Calculate REAL availability based on current active bookings
+            const currentOccupancy = activeBookingsCount[loc.id] || 0;
+            const dynamicAvailable = Math.max(0, loc.totalSlots - currentOccupancy);
+            
+            const avColor = availabilityColor(dynamicAvailable, loc.totalSlots);
+            const pct = Math.round((dynamicAvailable / loc.totalSlots) * 100);
             return (
               <motion.div
                 key={loc.id}
@@ -224,7 +244,7 @@ const ParkingList = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Availability</span>
                         <span style={{ fontSize: '0.88rem', fontWeight: 800, color: avColor }}>
-                          {loc.availableSlots}/{loc.totalSlots} slots
+                          {dynamicAvailable}/{loc.totalSlots} slots
                         </span>
                       </div>
                       <div style={{ height: '6px', borderRadius: '3px', background: 'var(--bg-secondary)', overflow: 'hidden' }}>
