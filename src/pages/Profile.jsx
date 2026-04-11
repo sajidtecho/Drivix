@@ -283,24 +283,40 @@ const Profile = () => {
     }
   };
 
-  const downloadBookingsCSV = () => {
-    if (bookings.length === 0) {
+  const downloadBookingsCSV = async () => {
+    const isAdmin = user?.role === 'admin';
+    let dataToExport = bookings;
+
+    // If admin, fetch ALL bookings from the entire system for the dataset
+    if (isAdmin) {
+      try {
+        const { getDocs, collection } = await import("firebase/firestore");
+        const allSnapshot = await getDocs(collection(db, 'bookings'));
+        dataToExport = allSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (err) {
+        console.error("Admin fetch failed:", err);
+        alert("Admin Export Failed: You might not have permission to read all bookings.");
+        return;
+      }
+    }
+
+    if (dataToExport.length === 0) {
       alert("No bookings found to export!");
       return;
     }
 
     try {
-      const headers = ["bookingId", "locationName", "slotId", "floor", "entryDate", "entryTime", "duration", "totalCost", "status", "vehicleNumber", "vehicleName", "createdAt"];
+      const headers = ["bookingId", "locationName", "slotId", "floor", "entryDate", "entryTime", "duration", "totalCost", "status", "vehicleNumber", "vehicleName", "userId", "createdAt"];
       
       const csvRows = [headers.join(",")];
       
-      bookings.forEach(b => {
+      dataToExport.forEach(b => {
         const row = headers.map(header => {
           let value = b[header] || "";
           if (value && typeof value === 'object' && value.toMillis) {
             value = new Date(value.toMillis()).toISOString();
           }
-          return `"${value}"`;
+          return `"${String(value).replace(/"/g, '""')}"`;
         });
         csvRows.push(row.join(","));
       });
@@ -309,14 +325,14 @@ const Profile = () => {
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       link.setAttribute("href", url);
-      link.setAttribute("download", `drivix_bookings_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute("download", isAdmin ? `DRIVIX_MASTER_DATASET_${new Date().toISOString().split('T')[0]}.csv` : `my_bookings.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (err) {
       console.error("Export failed:", err);
-      alert("Failed to export data. Check console for details.");
+      alert("Failed to export data.");
     }
   };
 
@@ -411,16 +427,21 @@ const Profile = () => {
             {activeTab === 'bookings' && (
               <section>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                  <h2 style={{ fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>My Bookings</h2>
-                  {bookings.length > 0 && (
-                    <button 
-                      onClick={downloadBookingsCSV}
-                      className="btn btn-secondary"
-                      style={{ padding: '10px 18px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--accent-primary)', background: 'rgba(250, 255, 0, 0.05)' }}
-                    >
-                      <FileText size={16} color="var(--accent-primary)" /> Export Dataset (CSV)
-                    </button>
-                  )}
+                  <h2 style={{ fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>
+                    {user?.role === 'admin' ? 'Master Records' : 'My Bookings'}
+                  </h2>
+                  <button 
+                    onClick={downloadBookingsCSV}
+                    className="btn btn-secondary"
+                    style={{ 
+                      padding: '10px 18px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', 
+                      border: '1px solid var(--accent-primary)', 
+                      background: user?.role === 'admin' ? 'rgba(255, 206, 0, 0.15)' : 'rgba(250, 255, 0, 0.05)' 
+                    }}
+                  >
+                    <FileText size={16} color="var(--accent-primary)" /> 
+                    {user?.role === 'admin' ? 'Master Dataset Export (All Users)' : 'Export My Data (CSV)'}
+                  </button>
                 </div>
                 {loadingBookings ? (
                   <div style={{ textAlign: 'center', padding: '40px' }}>
