@@ -143,7 +143,14 @@ const ParkingList = () => {
         <motion.div variants={itemVariants} style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
           {[{ label: 'Locations', value: locations.length, Icon: MapPin },
             { label: 'Total Slots', value: locations.reduce((a, p) => a + (p.totalSlots || 0), 0), Icon: Car },
-            { label: 'Available', value: locations.reduce((a, p) => a + (p.availableSlots || 0), 0), Icon: Zap }
+            { 
+              label: 'Available', 
+              value: locations.reduce((a, p) => {
+                const occupancy = activeBookingsCount[p.id] || 0;
+                return a + Math.max(0, (p.totalSlots || 0) - occupancy);
+              }, 0), 
+              Icon: Zap 
+            }
           ].map((stat) => (
             <div key={stat.label} className="glass-panel" style={{ flex: '1 1 120px', padding: '16px 20px', borderRadius: 'var(--radius-input)', textAlign: 'center' }}>
               <stat.Icon size={18} color="var(--accent-primary)" style={{ marginBottom: '6px' }} />
