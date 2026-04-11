@@ -4,7 +4,7 @@ import {
   MapPin, Car, Users, Star, ChevronRight, Search,
   Shield, Zap, Clock, Navigation
 } from 'lucide-react';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../firebase';
 import seedParkingData from '../ParkingFacility/ShardaParking';
