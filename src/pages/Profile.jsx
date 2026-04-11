@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useUser } from '../hooks/useUser';
-import { 
-  User, Car, CreditCard, FileText, Settings, Shield, 
-  ChevronRight, Edit2, Plus, Bell, Lock, 
+import {
+  User, Car, CreditCard, FileText, Settings, Shield,
+  ChevronRight, Edit2, Plus, Bell, Lock,
   Trash2, ExternalLink, QrCode, Wallet, Loader2, X,
   Calendar, MapPin, Navigation, Clock
 } from 'lucide-react';
 import { db } from '../firebase';
-import { 
-  doc, updateDoc, arrayUnion, arrayRemove, collection, 
-  query, where, onSnapshot, orderBy, increment, serverTimestamp 
+import {
+  doc, updateDoc, arrayUnion, arrayRemove, collection,
+  query, where, onSnapshot, orderBy, increment, serverTimestamp
 } from 'firebase/firestore';
 
 /* ─── Active Booking Card Component ────────────────── */
@@ -23,16 +23,16 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
   useEffect(() => {
     const calculateTime = () => {
       if (booking.status === 'completed') return;
-      
+
       const [year, month, day] = booking.entryDate.split('-').map(Number);
       const [hour, minute] = booking.entryTime.split(':').map(Number);
-      
+
       const startTime = new Date(year, month - 1, day, hour, minute);
       const endTime = new Date(startTime.getTime() + (booking.duration * 60 * 60 * 1000));
       const now = new Date();
-      
+
       const diff = endTime - now;
-      
+
       if (diff <= 0) {
         setIsOverdue(true);
         const overdueHours = Math.ceil(Math.abs(diff) / (1000 * 60 * 60));
@@ -55,26 +55,26 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
   const isActive = booking.status === 'booked';
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-panel" 
+      className="glass-panel"
       style={{ padding: '24px', position: 'relative', overflow: 'hidden', border: isOverdue && isActive ? '1.5px solid #ff4b4b' : '1px solid var(--glass-border)' }}
     >
       <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: isOverdue && isActive ? '#ff4b4b' : 'var(--accent-primary)' }} />
-      
+
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-secondary)' }}>#{booking.bookingId}</span>
-             <span style={{ 
-               fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)', 
-               background: booking.status === 'completed' ? 'rgba(255,255,255,0.05)' : (isOverdue ? 'rgba(255, 75, 75, 0.1)' : 'rgba(0, 204, 106, 0.1)'), 
-               color: booking.status === 'completed' ? 'var(--text-muted)' : (isOverdue ? '#ff4b4b' : '#00cc6a'), 
-               border: '1px solid rgba(255,255,255,0.1)', fontWeight: 700 
-             }}>
-               {booking.status === 'completed' ? 'COMPLETED' : (isOverdue ? 'OVERDUE / FINE' : 'ACTIVE')}
-             </span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-secondary)' }}>#{booking.bookingId}</span>
+            <span style={{
+              fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)',
+              background: booking.status === 'completed' ? 'rgba(255,255,255,0.05)' : (isOverdue ? 'rgba(255, 75, 75, 0.1)' : 'rgba(0, 204, 106, 0.1)'),
+              color: booking.status === 'completed' ? 'var(--text-muted)' : (isOverdue ? '#ff4b4b' : '#00cc6a'),
+              border: '1px solid rgba(255,255,255,0.1)', fontWeight: 700
+            }}>
+              {booking.status === 'completed' ? 'COMPLETED' : (isOverdue ? 'OVERDUE / FINE' : 'ACTIVE')}
+            </span>
           </div>
 
           <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 12px 0' }}>
@@ -82,14 +82,14 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
           </h3>
 
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '16px' }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                <MapPin size={14} color="var(--accent-primary)" />
-                {booking.locationName}
-             </div>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                <Clock size={14} color="var(--accent-primary)" />
-                {booking.entryTime} ({booking.duration}h)
-             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              <MapPin size={14} color="var(--accent-primary)" />
+              {booking.locationName}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              <Clock size={14} color="var(--accent-primary)" />
+              {booking.entryTime} ({booking.duration}h)
+            </div>
           </div>
 
           {isActive && (
@@ -97,19 +97,19 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
               <div style={{ padding: '8px 16px', borderRadius: 'var(--radius-button)', background: isOverdue ? 'rgba(255, 75, 75, 0.1)' : 'rgba(250, 255, 0, 0.05)', border: `1px solid ${isOverdue ? '#ff4b4b33' : 'var(--accent-primary)33'}` }}>
                 <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>Time Remaining</p>
                 <div style={{ fontSize: '1.1rem', fontWeight: 900, color: isOverdue ? '#ff4b4b' : 'var(--accent-primary)', fontFamily: 'monospace' }}>
-                   {timeLeft}
+                  {timeLeft}
                 </div>
               </div>
-              
+
               {isOverdue && (
-                <motion.div 
+                <motion.div
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ repeat: Infinity, duration: 1.5 }}
                   style={{ padding: '8px 16px', borderRadius: 'var(--radius-button)', background: 'rgba(255, 75, 75, 0.1)', border: '1px solid #ff4b4b33' }}
                 >
                   <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>Penalty</p>
                   <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#ff4b4b' }}>
-                     + ₹{fineAmount}
+                    + ₹{fineAmount}
                   </div>
                 </motion.div>
               )}
@@ -118,30 +118,30 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
         </div>
 
         <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end', minWidth: '140px' }}>
-           <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)' }}>₹{booking.totalCost}</div>
-           
-           {isActive ? (
-             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'flex-end' }}>
-               <button 
-                 onClick={() => onExtend(booking)}
-                 className="btn btn-secondary" 
-                 style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid var(--accent-primary)' }}
-               >
-                  <Plus size={14} /> Extend
-               </button>
-               <button 
-                 onClick={() => onVacate(booking)}
-                 className="btn btn-primary" 
-                 style={{ padding: '8px 24px', fontSize: '0.85rem', fontWeight: 800, background: '#ff4b4b', color: '#fff', border: 'none' }}
-               >
-                  Out
-               </button>
-             </div>
-           ) : (
-             <button disabled className="btn" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', cursor: 'default', fontSize: '0.85rem' }}>
-                Slot Freed
-             </button>
-           )}
+          <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)' }}>₹{booking.totalCost}</div>
+
+          {isActive ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => onExtend(booking)}
+                className="btn btn-secondary"
+                style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid var(--accent-primary)' }}
+              >
+                <Plus size={14} /> Extend
+              </button>
+              <button
+                onClick={() => onVacate(booking)}
+                className="btn btn-primary"
+                style={{ padding: '8px 24px', fontSize: '0.85rem', fontWeight: 800, background: '#ff4b4b', color: '#fff', border: 'none' }}
+              >
+                Out
+              </button>
+            </div>
+          ) : (
+            <button disabled className="btn" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', cursor: 'default', fontSize: '0.85rem' }}>
+              Slot Freed
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
@@ -169,13 +169,13 @@ const Profile = () => {
       navigate('/login');
     } else if (user) {
       setEditData({ ...user });
-      
+
       // Fetch bookings - Removed server-side orderBy to avoid missing index errors
       const q = query(
         collection(db, 'bookings'),
         where('userId', '==', user.uid)
       );
-      
+
       setLoadingBookings(true);
       const unsub = onSnapshot(q, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -325,7 +325,7 @@ const Profile = () => {
             }
           }
         `}</style>
-        
+
         {/* Sidebar / Top Nav */}
         <div className="glass-panel profile-sidebar" style={{ padding: '24px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px', paddingBottom: '20px', borderBottom: '1px solid var(--glass-border)' }} className="desktop-only">
@@ -334,7 +334,7 @@ const Profile = () => {
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{user.name || 'User'}</h3>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Premium Member</p>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{user.email}</p>
             </div>
           </div>
 
@@ -355,8 +355,8 @@ const Profile = () => {
                 <ChevronRight size={16} className="desktop-only" />
               </button>
             ))}
-            
-            <button 
+
+            <button
               onClick={logout}
               style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: 'var(--radius-button)', border: 'none', background: 'transparent', color: '#ff4b4b', fontWeight: 600, cursor: 'pointer' }}
               className="desktop-only"
@@ -368,9 +368,9 @@ const Profile = () => {
 
         {/* Content Area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-          
+
           <div className="glass-panel profile-content" style={{ padding: '40px' }}>
-            
+
             {activeTab === 'bookings' && (
               <section>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '32px' }}>My Bookings</h2>
@@ -382,59 +382,59 @@ const Profile = () => {
                 ) : bookings.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {/* History vs Active Toggle */}
-                    <div className="glass-panel" style={{ 
-                      display: 'flex', gap: '8px', padding: '6px', borderRadius: 'var(--radius-button)', 
-                      background: 'rgba(255,255,255,0.02)', width: 'fit-content' 
+                    <div className="glass-panel" style={{
+                      display: 'flex', gap: '8px', padding: '6px', borderRadius: 'var(--radius-button)',
+                      background: 'rgba(255,255,255,0.02)', width: 'fit-content'
                     }}>
-                       <button 
-                         onClick={() => setBookingSubTab('active')}
-                         style={{ 
-                           padding: '10px 24px', borderRadius: 'var(--radius-button)', fontSize: '0.85rem', fontWeight: 800,
-                           background: bookingSubTab === 'active' ? 'var(--accent-primary)' : 'transparent',
-                           color: bookingSubTab === 'active' ? '#000' : 'var(--text-secondary)',
-                           border: 'none', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
-                         }}
-                       >
-                         Active ({activeBookings.length})
-                       </button>
-                       <button 
-                         onClick={() => setBookingSubTab('history')}
-                         style={{ 
-                           padding: '10px 24px', borderRadius: 'var(--radius-button)', fontSize: '0.85rem', fontWeight: 800,
-                           background: bookingSubTab === 'history' ? 'var(--accent-primary)' : 'transparent',
-                           color: bookingSubTab === 'history' ? '#000' : 'var(--text-secondary)',
-                           border: 'none', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
-                         }}
-                       >
-                         History ({historyBookings.length})
-                       </button>
+                      <button
+                        onClick={() => setBookingSubTab('active')}
+                        style={{
+                          padding: '10px 24px', borderRadius: 'var(--radius-button)', fontSize: '0.85rem', fontWeight: 800,
+                          background: bookingSubTab === 'active' ? 'var(--accent-primary)' : 'transparent',
+                          color: bookingSubTab === 'active' ? '#000' : 'var(--text-secondary)',
+                          border: 'none', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                      >
+                        Active ({activeBookings.length})
+                      </button>
+                      <button
+                        onClick={() => setBookingSubTab('history')}
+                        style={{
+                          padding: '10px 24px', borderRadius: 'var(--radius-button)', fontSize: '0.85rem', fontWeight: 800,
+                          background: bookingSubTab === 'history' ? 'var(--accent-primary)' : 'transparent',
+                          color: bookingSubTab === 'history' ? '#000' : 'var(--text-secondary)',
+                          border: 'none', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                      >
+                        History ({historyBookings.length})
+                      </button>
                     </div>
 
                     {displayedBookings.length > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         {displayedBookings.map((booking) => (
-                          <BookingCard 
-                            key={booking.id} 
-                            booking={booking} 
+                          <BookingCard
+                            key={booking.id}
+                            booking={booking}
                             onVacate={async (b) => {
                               if (!window.confirm('Are you vacating the slot? This will release the slot for other users.')) return;
-                              
+
                               try {
                                 setIsSaving(true);
                                 // 1. Update booking status to completed (preserved for security history)
-                                await updateDoc(doc(db, 'bookings', b.id), { 
+                                await updateDoc(doc(db, 'bookings', b.id), {
                                   status: 'completed',
-                                  vacatedAt: serverTimestamp() 
+                                  vacatedAt: serverTimestamp()
                                 });
-                                
+
                                 // 2. Mark slot as available in the facility record
                                 const slotRef = doc(db, 'parking_facilities', b.locationId, 'slots', b.slotId);
                                 await updateDoc(slotRef, { status: 'available', updatedAt: serverTimestamp() });
-                                
+
                                 // 3. Increment available slots count
                                 const facilityRef = doc(db, 'parking_facilities', b.locationId);
                                 await updateDoc(facilityRef, { availableSlots: increment(1) });
-                                
+
                                 alert('Thank you for using Drivix! Slot released successfully.');
                                 setBookingSubTab('history'); // Auto-switch to history to see the completed record
                               } catch (err) {
@@ -446,12 +446,12 @@ const Profile = () => {
                             onExtend={async (b) => {
                               const hrs = window.prompt('Extend by how many hours? (Current price applies)', '1');
                               if (!hrs || isNaN(hrs)) return;
-                              
+
                               const additionalHrs = parseInt(hrs);
                               const additionalCost = additionalHrs * 60; // Assuming 60/hr
-                              
+
                               if (!window.confirm(`Extend booking by ${additionalHrs}h for ₹${additionalCost}?`)) return;
-                              
+
                               try {
                                 setIsSaving(true);
                                 await updateDoc(doc(db, 'bookings', b.id), {
@@ -470,27 +470,27 @@ const Profile = () => {
                       </div>
                     ) : (
                       <div style={{ textAlign: 'center', padding: '80px 20px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: 'var(--radius-card)', border: '1px dashed var(--glass-border)' }}>
-                         <Calendar size={48} color="var(--text-secondary)" style={{ opacity: 0.3, marginBottom: '20px' }} />
-                         <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>
-                           No {bookingSubTab} bookings
-                         </h3>
-                         <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
-                           {bookingSubTab === 'active' 
-                             ? 'You don\'t have any active parkings right now.' 
-                             : 'Your past booking history will securely appear here.'}
-                         </p>
-                         {bookingSubTab === 'active' && (
-                           <button onClick={() => navigate('/parking')} className="btn btn-primary" style={{ padding: '12px 28px' }}>Book a Slot Now</button>
-                         )}
+                        <Calendar size={48} color="var(--text-secondary)" style={{ opacity: 0.3, marginBottom: '20px' }} />
+                        <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>
+                          No {bookingSubTab} bookings
+                        </h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
+                          {bookingSubTab === 'active'
+                            ? 'You don\'t have any active parkings right now.'
+                            : 'Your past booking history will securely appear here.'}
+                        </p>
+                        {bookingSubTab === 'active' && (
+                          <button onClick={() => navigate('/parking')} className="btn btn-primary" style={{ padding: '12px 28px' }}>Book a Slot Now</button>
+                        )}
                       </div>
                     )}
                   </div>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '80px 20px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: 'var(--radius-card)', border: '1px dashed var(--glass-border)' }}>
-                     <Calendar size={48} color="var(--text-secondary)" style={{ opacity: 0.3, marginBottom: '20px' }} />
-                     <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>No Bookings Yet</h3>
-                     <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Once you book a parking slot, it will appear here.</p>
-                     <button onClick={() => navigate('/parking')} className="btn btn-primary" style={{ padding: '12px 28px' }}>Book a Slot Now</button>
+                    <Calendar size={48} color="var(--text-secondary)" style={{ opacity: 0.3, marginBottom: '20px' }} />
+                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>No Bookings Yet</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Once you book a parking slot, it will appear here.</p>
+                    <button onClick={() => navigate('/parking')} className="btn btn-primary" style={{ padding: '12px 28px' }}>Book a Slot Now</button>
                   </div>
                 )}
               </section>
@@ -518,7 +518,7 @@ const Profile = () => {
                   <div className="info-group">
                     <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Full Name</label>
                     {isEditing ? (
-                      <input type="text" value={editData.name || ''} onChange={(e) => setEditData({...editData, name: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+                      <input type="text" value={editData.name || ''} onChange={(e) => setEditData({ ...editData, name: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
                     ) : (
                       <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>{user.name}</p>
                     )}
@@ -537,7 +537,7 @@ const Profile = () => {
                   <div className="info-group">
                     <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>City / Location</label>
                     {isEditing ? (
-                      <input type="text" value={editData.city || ''} onChange={(e) => setEditData({...editData, city: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+                      <input type="text" value={editData.city || ''} onChange={(e) => setEditData({ ...editData, city: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
                     ) : (
                       <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>{user.city}</p>
                     )}
@@ -564,15 +564,15 @@ const Profile = () => {
                     <form onSubmit={handleAddVehicle} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>License Plate</label>
-                        <input type="text" placeholder="MH 01 AB 1234" value={newVehicle.plate} onChange={(e) => setNewVehicle({...newVehicle, plate: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
+                        <input type="text" placeholder="Car Number(e.g. MH 01 AB 1234)" value={newVehicle.plate} onChange={(e) => setNewVehicle({ ...newVehicle, plate: e.target.value.toUpperCase() })} required style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', textTransform: 'uppercase' }} />
                       </div>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Model</label>
-                        <input type="text" placeholder="Tesla Model 3" value={newVehicle.model} onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
+                        <input type="text" placeholder="(e.g. Baleno)" value={newVehicle.model} onChange={(e) => setNewVehicle({ ...newVehicle, model: e.target.value })} required style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
                       </div>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Fuel Type</label>
-                        <select value={newVehicle.type} onChange={(e) => setNewVehicle({...newVehicle, type: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+                        <select value={newVehicle.type} onChange={(e) => setNewVehicle({ ...newVehicle, type: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
                           <option>Petrol</option>
                           <option>Diesel</option>
                           <option>Electric</option>
@@ -585,7 +585,7 @@ const Profile = () => {
                     </form>
                   </div>
                 )}
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {user.vehicles?.length > 0 ? user.vehicles.map((vehicle, idx) => (
                     <div key={vehicle.id || idx} className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '24px', border: idx === 0 ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', background: idx === 0 ? 'rgba(255, 206, 0, 0.05)' : 'rgba(255,255,255,0.02)' }}>
@@ -632,7 +632,7 @@ const Profile = () => {
             {activeTab === 'payments' && (
               <section>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '32px' }}>Payments & Wallet</h2>
-                
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
                   <div className="glass-panel" style={{ padding: '32px', background: 'linear-gradient(135deg, #1a1a24, #0a0a0f)', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'var(--accent-primary)', opacity: 0.1, filter: 'blur(40px)', borderRadius: '50%' }}></div>
@@ -657,7 +657,7 @@ const Profile = () => {
                             <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{pm.label}</div>
                             <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{pm.provider}</div>
                           </div>
-                          <button 
+                          <button
                             onClick={async () => {
                               if (!window.confirm('Delete this payment method?')) return;
                               const userRef = doc(db, 'users', user.uid);
@@ -671,14 +671,14 @@ const Profile = () => {
                       ))}
                       {!user.paymentMethods?.length && <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>No payment methods saved.</p>}
                     </div>
-                    <button 
+                    <button
                       onClick={async () => {
                         const type = window.confirm('Press OK for Card, Cancel for UPI') ? 'card' : 'upi';
                         const label = window.prompt(type === 'card' ? 'Enter last 4 digits (e.g. •••• 4242):' : 'Enter UPI ID (e.g. user@upi):');
                         if (!label) return;
                         const provider = window.prompt('Enter provider (e.g. Visa, HDFC Bank, Primary UPI):');
                         if (!provider) return;
-                        
+
                         setIsSaving(true);
                         try {
                           const userRef = doc(db, 'users', user.uid);
@@ -700,9 +700,9 @@ const Profile = () => {
 
                 <h4 style={{ margin: '0 0 16px 0', fontWeight: 700 }}>Recent Activity</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                   <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.01)', borderRadius: 'var(--radius-card)', border: '1px dashed var(--glass-border)' }}>
-                     <p style={{ color: 'var(--text-secondary)' }}>No recent transactions found.</p>
-                   </div>
+                  <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.01)', borderRadius: 'var(--radius-card)', border: '1px dashed var(--glass-border)' }}>
+                    <p style={{ color: 'var(--text-secondary)' }}>No recent transactions found.</p>
+                  </div>
                 </div>
               </section>
             )}
@@ -732,7 +732,7 @@ const Profile = () => {
                     </div>
                   )) : (
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-                       <p>Your digital vault is empty. Securely store your RC, DL and Insurance here.</p>
+                      <p>Your digital vault is empty. Securely store your RC, DL and Insurance here.</p>
                     </div>
                   )}
                 </div>
@@ -742,7 +742,7 @@ const Profile = () => {
             {activeTab === 'settings' && (
               <section>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '32px' }}>Preferences</h2>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                   <div className="setting-row">
                     <h4 style={{ margin: '0 0 16px 0', fontWeight: 700 }}>Preferred Parking Type</h4>
@@ -754,14 +754,14 @@ const Profile = () => {
                           {['Open Space', 'Covered Parking'].map(type => {
                             const isActive = user.preferences?.parkingType === type;
                             return (
-                              <button 
-                                key={type} 
+                              <button
+                                key={type}
                                 onClick={() => updateUser({ preferences: { ...user.preferences, parkingType: type } })}
-                                className="glass-panel" 
-                                style={{ 
+                                className="glass-panel"
+                                style={{
                                   flex: 1, padding: '14px', borderRadius: 'var(--radius-button)',
-                                  border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', 
-                                  background: isActive ? 'rgba(255,206,0,0.06)' : 'rgba(255,255,255,0.02)', 
+                                  border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)',
+                                  background: isActive ? 'rgba(255,206,0,0.06)' : 'rgba(255,255,255,0.02)',
                                   cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
                                   color: isActive ? 'var(--accent-secondary)' : 'var(--text-secondary)'
                                 }}
@@ -783,14 +783,14 @@ const Profile = () => {
                           ].map(opt => {
                             const isActive = !!user.preferences?.evCharging === opt.value;
                             return (
-                              <button 
-                                key={opt.label} 
+                              <button
+                                key={opt.label}
                                 onClick={() => updateUser({ preferences: { ...user.preferences, evCharging: opt.value } })}
-                                className="glass-panel" 
-                                style={{ 
+                                className="glass-panel"
+                                style={{
                                   flex: 1, padding: '14px', borderRadius: 'var(--radius-button)',
-                                  border: isActive ? '1px solid #00cc6a' : '1px solid var(--glass-border)', 
-                                  background: isActive ? 'rgba(0, 204, 106, 0.05)' : 'rgba(255,255,255,0.02)', 
+                                  border: isActive ? '1px solid #00cc6a' : '1px solid var(--glass-border)',
+                                  background: isActive ? 'rgba(0, 204, 106, 0.05)' : 'rgba(255,255,255,0.02)',
                                   cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
                                   color: isActive ? '#00cc6a' : 'var(--text-secondary)'
                                 }}
@@ -807,35 +807,35 @@ const Profile = () => {
                   <div className="setting-row">
                     <h4 style={{ margin: '0 0 16px 0', fontWeight: 700 }}>Notifications</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                       {[
-                         { id: 'push', label: 'Push Notifications', icon: Bell },
-                         { id: 'email', label: 'Email Alerts', icon: User },
-                         { id: 'whatsapp', label: 'WhatsApp Updates', icon: User },
-                       ].map(item => {
-                         const isEnabled = user.notifications?.[item.id] ?? true;
-                         return (
-                           <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                 <item.icon size={20} color="var(--text-secondary)" />
-                                 <span style={{ fontWeight: 500 }}>{item.label}</span>
-                              </div>
-                              <div 
-                                onClick={() => updateUser({ notifications: { ...user.notifications, [item.id]: !isEnabled } })}
-                                style={{ 
-                                  width: '44px', height: '24px', 
-                                  background: isEnabled ? 'var(--accent-primary)' : 'var(--glass-border-light)', 
-                                  borderRadius: 'var(--radius-pill)', position: 'relative', cursor: 'pointer', transition: 'background 0.3s' 
-                                }}
-                              >
-                                 <motion.div 
-                                   animate={{ left: isEnabled ? '24px' : '3px' }}
-                                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                   style={{ width: '18px', height: '18px', background: isEnabled ? '#000' : '#fff', borderRadius: '50%', position: 'absolute', top: '3px' }} 
-                                 />
-                              </div>
-                           </div>
-                         );
-                       })}
+                      {[
+                        { id: 'push', label: 'Push Notifications', icon: Bell },
+                        { id: 'email', label: 'Email Alerts', icon: User },
+                        { id: 'whatsapp', label: 'WhatsApp Updates', icon: User },
+                      ].map(item => {
+                        const isEnabled = user.notifications?.[item.id] ?? true;
+                        return (
+                          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <item.icon size={20} color="var(--text-secondary)" />
+                              <span style={{ fontWeight: 500 }}>{item.label}</span>
+                            </div>
+                            <div
+                              onClick={() => updateUser({ notifications: { ...user.notifications, [item.id]: !isEnabled } })}
+                              style={{
+                                width: '44px', height: '24px',
+                                background: isEnabled ? 'var(--accent-primary)' : 'var(--glass-border-light)',
+                                borderRadius: 'var(--radius-pill)', position: 'relative', cursor: 'pointer', transition: 'background 0.3s'
+                              }}
+                            >
+                              <motion.div
+                                animate={{ left: isEnabled ? '24px' : '3px' }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                style={{ width: '18px', height: '18px', background: isEnabled ? '#000' : '#fff', borderRadius: '50%', position: 'absolute', top: '3px' }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -845,23 +845,23 @@ const Profile = () => {
             {activeTab === 'security' && (
               <section>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '32px' }}>Security & Verification</h2>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                   <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <h4 style={{ margin: '0 0 4px 0', fontWeight: 700 }}>Two-Factor Authentication</h4>
-                        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Add an extra layer of security to your account.</p>
-                      </div>
-                      <button className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Enable</button>
-                   </div>
 
-                   <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <h4 style={{ margin: '0 0 4px 0', fontWeight: 700 }}>Change Password</h4>
-                        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Last changed 3 months ago.</p>
-                      </div>
-                      <button className="btn btn-secondary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Update</button>
-                   </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 4px 0', fontWeight: 700 }}>Two-Factor Authentication</h4>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Add an extra layer of security to your account.</p>
+                    </div>
+                    <button className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Enable</button>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 4px 0', fontWeight: 700 }}>Change Password</h4>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Last changed 3 months ago.</p>
+                    </div>
+                    <button className="btn btn-secondary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Update</button>
+                  </div>
                 </div>
               </section>
             )}
