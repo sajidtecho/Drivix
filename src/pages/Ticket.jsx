@@ -43,7 +43,15 @@ const Ticket = () => {
       try { await navigator.share({ title: 'My Parking Ticket', text }); } catch (err) { console.error('Share failed', err); }
     } else {
       navigator.clipboard?.writeText(text);
+      alert('Ticket details copied to clipboard!');
     }
+  };
+
+  const handleWhatsAppShare = () => {
+    const text = `*Drivix Parking Ticket* 🚗\n\n*Booking ID:* ${booking.bookingId}\n*Slot:* ${booking.slotId} (${booking.floor})\n*Vehicle:* ${booking.vehicleNumber} (${booking.vehicleName})\n*Entry:* ${booking.entryTime} on ${booking.entryDate}\n\n✅ Your reservation at ${booking.locationName} is confirmed.\n_Please show this at the entry gate._`;
+    const encodedText = encodeURIComponent(text);
+    const whatsappUrl = `https://wa.me/${booking.mobile.startsWith('91') ? booking.mobile : '91' + booking.mobile}?text=${encodedText}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -216,6 +224,18 @@ const Ticket = () => {
             style={{ width: '100%', padding: '16px', fontSize: '1rem', fontWeight: 800 }}
           >
             <Navigation size={20} /> Navigate to Parking
+          </button>
+
+          <button
+            onClick={handleWhatsAppShare}
+            className="btn btn-primary"
+            style={{ 
+              width: '100%', padding: '16px', fontSize: '1rem', fontWeight: 800,
+              background: '#25D366', color: '#fff', border: 'none',
+              boxShadow: '0 4px 20px rgba(37, 211, 102, 0.3)'
+            }}
+          >
+            <Share2 size={20} /> Share via WhatsApp
           </button>
 
           <div style={{ display: 'flex', gap: '12px' }}>
