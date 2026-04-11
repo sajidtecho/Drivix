@@ -283,6 +283,43 @@ const Profile = () => {
     }
   };
 
+  const downloadBookingsCSV = () => {
+    if (bookings.length === 0) {
+      alert("No bookings found to export!");
+      return;
+    }
+
+    try {
+      const headers = ["bookingId", "locationName", "slotId", "floor", "entryDate", "entryTime", "duration", "totalCost", "status", "vehicleNumber", "vehicleName", "createdAt"];
+      
+      const csvRows = [headers.join(",")];
+      
+      bookings.forEach(b => {
+        const row = headers.map(header => {
+          let value = b[header] || "";
+          if (value && typeof value === 'object' && value.toMillis) {
+            value = new Date(value.toMillis()).toISOString();
+          }
+          return `"${value}"`;
+        });
+        csvRows.push(row.join(","));
+      });
+
+      const blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `drivix_bookings_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert("Failed to export data. Check console for details.");
+    }
+  };
+
   const menuItems = [
     { id: 'bookings', label: 'My Bookings', icon: Calendar },
     { id: 'profile', label: 'User Details', icon: User },
@@ -373,7 +410,18 @@ const Profile = () => {
 
             {activeTab === 'bookings' && (
               <section>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '32px' }}>My Bookings</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                  <h2 style={{ fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>My Bookings</h2>
+                  {bookings.length > 0 && (
+                    <button 
+                      onClick={downloadBookingsCSV}
+                      className="btn btn-secondary"
+                      style={{ padding: '10px 18px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--accent-primary)', background: 'rgba(250, 255, 0, 0.05)' }}
+                    >
+                      <FileText size={16} color="var(--accent-primary)" /> Export Dataset (CSV)
+                    </button>
+                  )}
+                </div>
                 {loadingBookings ? (
                   <div style={{ textAlign: 'center', padding: '40px' }}>
                     <Loader2 className="spin" size={32} color="var(--accent-primary)" />
