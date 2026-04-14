@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase';
 import { collection, query, orderBy, getDocs, updateDoc, doc } from 'firebase/firestore';
-import { AlertCircle, CheckCircle, Loader2, MessageSquare, User, Clock } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2, MessageSquare, User, Clock, Phone, Mail, MapPin, Image as ImageIcon } from 'lucide-react';
 
 const AdminComplaints = () => {
   const [complaints, setComplaints] = useState([]);
@@ -107,21 +107,57 @@ const AdminComplaints = () => {
                 </span>
               </div>
 
-              {/* Message */}
+              {/* Message & Details */}
               <div style={{ 
                 background: 'rgba(0,0,0,0.2)', 
                 padding: '16px', 
                 borderRadius: '8px',
                 borderLeft: `3px solid ${c.status === 'resolved' ? '#4CAF50' : '#f44336'}`
               }}>
+                {/* Contact Info Row */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  {c.contact && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      <Phone size={14} color="var(--accent-primary)" />
+                      {c.contact}
+                    </div>
+                  )}
+                  {c.email && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      <Mail size={14} color="var(--accent-primary)" />
+                      {c.email}
+                    </div>
+                  )}
+                  {c.slotLocation && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      <MapPin size={14} color="var(--accent-primary)" />
+                      {c.slotLocation}
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                  <MessageSquare size={16} color="var(--text-secondary)" style={{ marginTop: '2px' }} />
+                  <MessageSquare size={16} color="var(--text-secondary)" style={{ marginTop: '2px', flexShrink: 0 }} />
                   <p style={{ color: 'var(--text-primary)', margin: 0, lineHeight: 1.5 }}>
                     {c.message}
                   </p>
                 </div>
+                
+                {c.photo && (
+                  <div style={{ margin: '12px 0 12px 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <ImageIcon size={14} /> Attached Photo
+                    </div>
+                    <img 
+                      src={c.photo} 
+                      alt="Complaint attachment" 
+                      style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: '1px solid var(--glass-border)' }} 
+                    />
+                  </div>
+                )}
+
                 {c.createdAt && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '24px', marginTop: '12px' }}>
                     <Clock size={10} />
                     {new Date(c.createdAt.toDate()).toLocaleString()}
                   </div>
