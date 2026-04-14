@@ -74,6 +74,23 @@ const AdminParking = () => {
     }
   };
 
+  const handleDeleteFloor = async (e, floorName) => {
+    e.stopPropagation();
+    if (!window.confirm(`Delete the floor '${floorName}' from this location?`)) return;
+    
+    const updatedFloors = (selectedLoc.floors || []).filter(f => f !== floorName);
+    try {
+      await updateDoc(doc(db, 'parking_facilities', selectedLoc.id), {
+        floors: updatedFloors
+      });
+      if (selectedFloor === floorName) {
+        setSelectedFloor(updatedFloors.length > 0 ? updatedFloors[0] : '');
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  };
+
   const handleBulkAddSlots = async () => {
     if (!selectedFloor) return alert("Select a floor first");
     if (newSlotCount <= 0) return;
@@ -104,6 +121,33 @@ const AdminParking = () => {
       
       alert(`Successfully added ${added} slots to ${selectedFloor}`);
     } catch(err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteLocation = async (e, locId) => {
+    e.stopPropagation(); // prevent selecting it
+    if (!window.confirm("Are you sure you want to completely delete this location? All data will be lost.")) return;
+    try {
+      await deleteDoc(doc(db, 'parking_facilities', locId));
+      if (selectedLocId === locId) {
+         setSelectedLocId(null);
+         setSelectedFloor('');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteSlot = async (e, slotId) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this slot permanently?")) return;
+    try {
+      await deleteDoc(doc(db, `parking_facilities/${selectedLoc.id}/slots`, slotId));
+      await updateDoc(doc(db, 'parking_facilities', selectedLoc.id), {
+         totalSlots: Math.max(0, (selectedLoc.totalSlots || 1) - 1)
+      });
+    } catch (err) {
       console.error(err);
     }
   };
@@ -167,11 +211,24 @@ const AdminParking = () => {
                       padding: '12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
                       background: selectedLocId === loc.id ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
                       color: selectedLocId === loc.id ? '#000' : 'var(--text-primary)',
-                      border: selectedLocId === loc.id ? 'none' : '1px solid var(--glass-border)'
+                      border: selectedLocId === loc.id ? 'none' : '1px solid var(--glass-border)',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                     }}
                   >
-                    <div style={{ fontWeight: 800 }}>{loc.name}</div>
-                    <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{loc.totalSlots || 0} Slots • {loc.floors?.length || 0} Floors</div>
+                    <div>
+                      <div style={{ fontWeight: 800 }}>{loc.name}</div>
+                      <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{loc.totalSlots || 0} Slots • {loc.floors?.length || 0} Floors</div>
+                    </div>
+                    <button 
+                      onClick={(e) => handleDeleteLocation(e, loc.id)}
+                      style={{ 
+                        background: 'rgba(255, 75, 75, 0.1)', border: 'none', borderRadius: '4px', padding: '6px', 
+                        cursor: 'pointer', color: '#ff4b4b', display: 'flex', alignItems: 'center' 
+                      }}
+                      title="Delete Location"
+                    >
+                      <Trash size={16} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -200,9 +257,10 @@ const AdminParking = () => {
                     <span key={f} style={{ 
                       padding: '8px 16px', background: 'var(--bg-tertiary)', borderRadius: '8px', 
                       border: selectedFloor === f ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)',
-                      cursor: 'pointer' 
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' 
                     }} onClick={() => setSelectedFloor(f)}>
                       {f}
+                      <X size={14} color="#ff4b4b" onClick={(e) => handleDeleteFloor(e, f)} style={{ opacity: 0.8 }} title="Delete Floor" />
                     </span>
                   ))}
                 </div>
@@ -246,11 +304,23 @@ const AdminParking = () => {
                             style={{ 
                               width: '60px', height: '60px', borderRadius: '8px', 
                               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                              cursor: 'pointer', transition: 'all 0.2s',
+                              cursor: 'pointer', transition: 'all 0.2s', position: 'relative',
                               background: slot.status === 'available' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
                               border: `1px solid ${slot.status === 'available' ? '#4CAF50' : '#f44336'}`
                             }}
                           >
+                             <button
+                               onClick={(e) => handleDeleteSlot(e, slot.id)}
+                               style={{
+                                 position: 'absolute', top: '-6px', right: '-6px', width: '20px', height: '20px',
+                                 background: '#ff4b4b', color: '#fff', border: 'none', borderRadius: '50%',
+                                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                 boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
+                               }}
+                               title="Delete Slot"
+                             >
+                                <X size={12} strokeWidth={3} />
+                             </button>
                              <div style={{ fontWeight: 800, fontSize: '1rem', color: slot.status === 'available' ? '#4CAF50' : '#f44336' }}>{slot.id}</div>
                              <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>{slot.status}</div>
                           </div>
@@ -259,7 +329,7 @@ const AdminParking = () => {
                    </div>
                    
                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '20px', textAlign: 'left' }}>
-                     * Click on any generated slot to manually override its hardware status between Available (Green) and Booked (Red).
+                     * Click the main card area to toggle Booked/Available status. Click the red 'X' to permanently delete a generated slot.
                    </p>
                 </div>
               )}
