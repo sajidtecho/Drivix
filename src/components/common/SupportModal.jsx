@@ -66,7 +66,7 @@ const SupportModal = ({ onClose }) => {
       }, 2000);
     } catch (err) {
       console.error(err);
-      setError('Failed to submit. Please try again later.');
+      setError(`Failed to submit: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -190,11 +190,52 @@ const SupportModal = ({ onClose }) => {
                   disabled={!isAuthenticated || isSubmitting}
                   onChange={(e) => {
                     const file = e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onloadend = () => setPhotoData(reader.result);
-                      reader.readAsDataURL(file);
+                    if (!file) return;
+                    setError('');
+                    
+                    if (file.size > 8 * 1024 * 1024) {
+                      setError("File is too large (>8MB). Please choose a smaller file.");
+                      return;
                     }
+
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const img = new Image();
+                      img.onload = () => {
+                         const canvas = document.createElement('canvas');
+                         let width = img.width;
+                         let height = img.height;
+                         const MAX_SIZE = 800; // Resize to ensure small base64
+
+                         if (width > height) {
+                           if (width > MAX_SIZE) {
+                             height *= MAX_SIZE / width;
+                             width = MAX_SIZE;
+                           }
+                         } else {
+                           if (height > MAX_SIZE) {
+                             width *= MAX_SIZE / height;
+                             height = MAX_SIZE;
+                           }
+                         }
+                         canvas.width = width;
+                         canvas.height = height;
+                         const ctx = canvas.getContext('2d');
+                         ctx.drawImage(img, 0, 0, width, height);
+                         setPhotoData(canvas.toDataURL('image/jpeg', 0.6));
+                      };
+                      img.onerror = () => {
+                        // Fallback in case browser can't parse image (like HEIC on some devices)
+                        if (reader.result.length > 900000) {
+                           setError("Base image is too large for database (>1MB limit) and format cannot be compressed. Please take a JPG/PNG instead.");
+                           setPhotoData('');
+                        } else {
+                           setPhotoData(reader.result);
+                        }
+                      };
+                      img.src = reader.result;
+                    };
+                    reader.readAsDataURL(file);
                   }}
                   style={{...inputStyle, padding: '10px'}}
                 />
