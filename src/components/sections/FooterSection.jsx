@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import FadeIn from '../common/FadeIn';
+import SupportModal from '../common/SupportModal';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
 import logoImg from '../../assets/Logo.png';
@@ -28,6 +29,7 @@ const testimonials = [
 
 const FooterSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -190,7 +192,10 @@ const FooterSection = () => {
             {['Safety', 'Privacy', 'Network', 'Support', 'Careers'].map(link => (
               <span
                 key={link}
-                onClick={() => link === 'Safety' && navigate('/safety')}
+                onClick={() => {
+                  if (link === 'Safety') navigate('/safety');
+                  if (link === 'Support') setIsSupportOpen(true);
+                }}
                 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', cursor: 'pointer', transition: 'color 0.2s' }}
                 onMouseEnter={e => e.target.style.color = 'var(--text-primary)'}
                 onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
@@ -205,6 +210,7 @@ const FooterSection = () => {
           </div>
         </div>
       </div>
+      {isSupportOpen && <SupportModal onClose={() => setIsSupportOpen(false)} />}
     </footer>
   );
 };
