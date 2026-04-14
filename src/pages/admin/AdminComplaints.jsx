@@ -83,7 +83,9 @@ const AdminComplaints = () => {
                   </div>
                   <div>
                     <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{c.userName || 'Anonymous User'}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>UID: {c.userId || 'N/A'}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                      UID: {c.userId || 'N/A'} • <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{c.issueType || 'General Issue'}</span>
+                    </div>
                   </div>
                 </div>
                 

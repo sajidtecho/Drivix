@@ -7,6 +7,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const SupportModal = ({ onClose }) => {
   const { user, isAuthenticated } = useUser();
+  const [issueType, setIssueType] = useState('Payment Issue');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -31,6 +32,7 @@ const SupportModal = ({ onClose }) => {
       await addDoc(collection(db, 'complaints'), {
         userId: user.uid || 'unknown',
         userName: user.name || user.email || 'Anonymous user',
+        issueType: issueType,
         message: message.trim(),
         status: 'pending',
         createdAt: serverTimestamp()
@@ -114,6 +116,32 @@ const SupportModal = ({ onClose }) => {
               )}
 
               <form onSubmit={handleSubmit}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Issue Category</label>
+                <select 
+                  value={issueType}
+                  onChange={e => setIssueType(e.target.value)}
+                  disabled={!isAuthenticated || isSubmitting}
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    borderRadius: '12px',
+                    background: 'var(--bg-tertiary)',
+                    border: '1px solid var(--glass-border)',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'inherit',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                    marginBottom: '16px'
+                  }}
+                >
+                  <option value="Payment Issue">Payment Issue</option>
+                  <option value="Booking Issue">Booking Issue</option>
+                  <option value="Location/Slot Issue">Location/Slot Issue</option>
+                  <option value="App Bug">App Bug</option>
+                  <option value="Other">Other</option>
+                </select>
+
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Description</label>
                 <textarea 
                   value={message}
                   onChange={e => setMessage(e.target.value)}
