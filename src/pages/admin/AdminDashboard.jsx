@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../../hooks/useUser';
+import { db } from '../../firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { 
   Users, 
   MapPin, 
@@ -12,11 +14,54 @@ import {
 const AdminDashboard = () => {
   const { user, logout } = useUser();
 
+  const [realStats, setRealStats] = useState({
+    bookingsCount: '...',
+    usersCount: '...',
+    openComplaints: '...',
+    revenue: '...'
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const bookingsSnap = await getDocs(collection(db, 'bookings'));
+        const usersSnap = await getDocs(collection(db, 'users'));
+        
+        const qComplaints = query(collection(db, 'complaints'), where('status', '==', 'pending'));
+        const complaintsSnap = await getDocs(qComplaints);
+        
+        let totalRev = 0;
+        bookingsSnap.forEach(doc => {
+           const data = doc.data();
+           if (data.status === 'completed' || data.status === 'booked') {
+              totalRev += (Number(data.totalCost) || 0);
+           }
+        });
+
+        // Format revenue (e.g., 12400 -> 12.4k)
+        let formattedRev = totalRev.toString();
+        if (totalRev >= 1000) {
+           formattedRev = (totalRev / 1000).toFixed(1) + 'k';
+        }
+
+        setRealStats({
+          bookingsCount: bookingsSnap.size.toLocaleString(),
+          usersCount: usersSnap.size.toLocaleString(),
+          openComplaints: complaintsSnap.size.toLocaleString(),
+          revenue: formattedRev
+        });
+      } catch (err) {
+        console.error("Error fetching dashboard stats", err);
+      }
+    };
+    fetchStats();
+  }, []);
+
   const stats = [
-    { label: 'Total Bookings', value: '1,284', icon: <Calendar />, color: '#FFCE00' },
-    { label: 'Active Users', value: '452', icon: <Users />, color: '#4CAF50' },
-    { label: 'Open Complaints', value: '12', icon: <AlertCircle />, color: '#f44336' },
-    { label: 'Revenue (MTD)', value: '$12.4k', icon: <DollarSign />, color: '#2196F3' },
+    { label: 'Total Bookings', value: realStats.bookingsCount, icon: <Calendar />, color: '#FFCE00' },
+    { label: 'Active Users', value: realStats.usersCount, icon: <Users />, color: '#4CAF50' },
+    { label: 'Open Complaints', value: realStats.openComplaints, icon: <AlertCircle />, color: '#f44336' },
+    { label: 'Total Revenue', value: `₹${realStats.revenue}`, icon: <DollarSign />, color: '#2196F3' },
   ];
 
   return (
