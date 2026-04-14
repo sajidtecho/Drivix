@@ -9,6 +9,11 @@ const SupportModal = ({ onClose }) => {
   const { user, isAuthenticated } = useUser();
   const [issueType, setIssueType] = useState('Payment Issue');
   const [message, setMessage] = useState('');
+  const [slotLocation, setSlotLocation] = useState('');
+  const [contact, setContact] = useState(user?.mobile || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [photoData, setPhotoData] = useState('');
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -32,8 +37,12 @@ const SupportModal = ({ onClose }) => {
       await addDoc(collection(db, 'complaints'), {
         userId: user.uid || 'unknown',
         userName: user.name || user.email || 'Anonymous user',
+        email: email.trim(),
+        contact: contact.trim(),
+        slotLocation: slotLocation.trim(),
         issueType: issueType,
         message: message.trim(),
+        photo: photoData, // Base64 image
         status: 'pending',
         createdAt: serverTimestamp()
       });
@@ -75,7 +84,9 @@ const SupportModal = ({ onClose }) => {
           onClick={e => e.stopPropagation()}
           className="glass-panel"
           style={{
-            width: '100%', maxWidth: '500px',
+            width: '100%', maxWidth: '550px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             padding: '30px',
             borderRadius: 'var(--radius-card)',
             background: 'var(--bg-secondary)',
@@ -116,23 +127,12 @@ const SupportModal = ({ onClose }) => {
               )}
 
               <form onSubmit={handleSubmit}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Issue Category</label>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Issue Category</label>
                 <select 
                   value={issueType}
                   onChange={e => setIssueType(e.target.value)}
                   disabled={!isAuthenticated || isSubmitting}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    borderRadius: '12px',
-                    background: 'var(--bg-tertiary)',
-                    border: '1px solid var(--glass-border)',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'inherit',
-                    fontSize: '0.95rem',
-                    outline: 'none',
-                    marginBottom: '16px'
-                  }}
+                  style={inputStyle}
                 >
                   <option value="Payment Issue">Payment Issue</option>
                   <option value="Booking Issue">Booking Issue</option>
@@ -141,7 +141,21 @@ const SupportModal = ({ onClose }) => {
                   <option value="Other">Other</option>
                 </select>
 
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Description</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Contact Number</label>
+                    <input type="tel" value={contact} onChange={e => setContact(e.target.value)} disabled={!isAuthenticated || isSubmitting} style={inputStyle} placeholder="Your phone numbner" />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Email Address</label>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} disabled={!isAuthenticated || isSubmitting} style={inputStyle} placeholder="Your email" />
+                  </div>
+                </div>
+
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Parking Slot & Location (Optional)</label>
+                <input type="text" value={slotLocation} onChange={e => setSlotLocation(e.target.value)} disabled={!isAuthenticated || isSubmitting} style={inputStyle} placeholder="e.g. Sector 18, Slot A-12" />
+
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Description</label>
                 <textarea 
                   value={message}
                   onChange={e => setMessage(e.target.value)}
@@ -164,7 +178,23 @@ const SupportModal = ({ onClose }) => {
                   }}
                 />
                 
-                {error && <p style={{ color: '#ff4b4b', fontSize: '0.85rem', marginTop: 0, marginBottom: '16px', fontWeight: 600 }}>{error}</p>}
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', marginTop: '16px', textTransform: 'uppercase' }}>Upload Photo (Optional)</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  disabled={!isAuthenticated || isSubmitting}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => setPhotoData(reader.result);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  style={{...inputStyle, padding: '10px'}}
+                />
+
+                {error && <p style={{ color: '#ff4b4b', fontSize: '0.85rem', marginTop: '16px', marginBottom: '0', fontWeight: 600 }}>{error}</p>}
 
                 <button 
                   type="submit" 
