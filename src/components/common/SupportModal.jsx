@@ -5,6 +5,20 @@ import { useUser } from '../../hooks/useUser';
 import { db } from '../../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
+const inputStyle = {
+  width: '100%',
+  padding: '14px',
+  borderRadius: '12px',
+  background: 'var(--bg-tertiary)',
+  border: '1px solid var(--glass-border)',
+  color: 'var(--text-primary)',
+  fontFamily: 'inherit',
+  fontSize: '0.95rem',
+  outline: 'none',
+  marginBottom: '16px',
+  boxSizing: 'border-box'
+};
+
 const SupportModal = ({ onClose }) => {
   const { user, isAuthenticated } = useUser();
   const [issueType, setIssueType] = useState('Payment Issue');
@@ -21,7 +35,7 @@ const SupportModal = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!message.trim()) {
-      setError('Please enter a message to submit.');
+      setError('Please enter a description to submit.');
       return;
     }
 
@@ -42,7 +56,7 @@ const SupportModal = ({ onClose }) => {
         slotLocation: slotLocation.trim(),
         issueType: issueType,
         message: message.trim(),
-        photo: photoData, // Base64 image
+        photo: photoData,
         status: 'pending',
         createdAt: serverTimestamp()
       });
@@ -141,10 +155,10 @@ const SupportModal = ({ onClose }) => {
                   <option value="Other">Other</option>
                 </select>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '0' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Contact Number</label>
-                    <input type="tel" value={contact} onChange={e => setContact(e.target.value)} disabled={!isAuthenticated || isSubmitting} style={inputStyle} placeholder="Your phone numbner" />
+                    <input type="tel" value={contact} onChange={e => setContact(e.target.value)} disabled={!isAuthenticated || isSubmitting} style={inputStyle} placeholder="Your phone number" />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Email Address</label>
@@ -162,23 +176,14 @@ const SupportModal = ({ onClose }) => {
                   placeholder="Describe your issue in detail..."
                   disabled={!isAuthenticated || isSubmitting}
                   style={{
-                    width: '100%',
-                    minHeight: '140px',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    background: 'var(--bg-tertiary)',
-                    border: error ? '1px solid #ff4b4b' : '1px solid var(--glass-border)',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'inherit',
-                    fontSize: '0.95rem',
+                    ...inputStyle,
+                    minHeight: '120px',
                     resize: 'vertical',
-                    outline: 'none',
-                    marginBottom: '8px',
-                    boxSizing: 'border-box'
+                    marginBottom: '8px'
                   }}
                 />
                 
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', marginTop: '16px', textTransform: 'uppercase' }}>Upload Photo (Optional)</label>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', marginTop: '8px', textTransform: 'uppercase' }}>Upload Photo (Optional)</label>
                 <input 
                   type="file" 
                   accept="image/*"
@@ -212,7 +217,7 @@ const SupportModal = ({ onClose }) => {
                     background: (!isAuthenticated || isSubmitting) ? 'var(--glass-bg)' : '#ff4b4b',
                     color: (!isAuthenticated || isSubmitting) ? 'var(--text-muted)' : '#fff',
                     border: 'none',
-                    marginTop: error ? 0 : '16px'
+                    marginTop: error ? '16px' : '0px'
                   }}
                 >
                   {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
