@@ -12,7 +12,12 @@ import SlotBookingForm from './pages/SlotBookingForm';
 import Ticket from './pages/Ticket';
 import Safety from './pages/Safety';
 import AdminRoute from './components/admin/AdminRoute';
+import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminBookings from './pages/admin/AdminBookings';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminComplaints from './pages/admin/AdminComplaints';
+import AdminParking from './pages/admin/AdminParking';
 import './index.css';
 import loadingVideo from './assets/Loading_car.webm';
 
@@ -66,7 +71,13 @@ function App() {
 
             {/* Admin Routes */}
             <Route element={<AdminRoute />}>
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="bookings" element={<AdminBookings />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="complaints" element={<AdminComplaints />} />
+                <Route path="parking" element={<AdminParking />} />
+              </Route>
             </Route>
           </Routes>
         </main>
