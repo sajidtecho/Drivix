@@ -11,6 +11,8 @@ import ParkingList from './pages/ParkingList';
 import SlotBookingForm from './pages/SlotBookingForm';
 import Ticket from './pages/Ticket';
 import Safety from './pages/Safety';
+import AdminRoute from './components/admin/AdminRoute';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import './index.css';
 import loadingVideo from './assets/Loading_car.webm';
 
@@ -61,6 +63,11 @@ function App() {
             <Route path="/slot-booking" element={<SlotBookingForm />} />
             <Route path="/ticket" element={<Ticket />} />
             <Route path="/safety" element={<Safety />} />
+
+            {/* Admin Routes */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
           </Routes>
         </main>
       </div>

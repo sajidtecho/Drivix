@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { UserCircle, Moon } from 'lucide-react';
+import { UserCircle, Moon, Shield } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import sunVideo from '../assets/sun.webm';
 import logoImg from '../assets/Logo.png';
@@ -219,18 +219,20 @@ const Navbar = () => {
         {/* Right Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 
-          <div className="desktop-only" style={{ display: 'flex', gap: '12px' }}>
-            {isLanding && (
-              <button
-                onClick={() => isAuthenticated ? navigate('/find') : navigate('/login')}
-                className="btn btn-primary"
-                style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-              >
-                Start Booking
-              </button>
-            )}
-            <button className="btn btn-primary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>Get the App</button>
-          </div>
+          {user?.role !== 'admin' && (
+            <div className="desktop-only" style={{ display: 'flex', gap: '12px' }}>
+              {isLanding && (
+                <button
+                  onClick={() => isAuthenticated ? navigate('/find') : navigate('/login')}
+                  className="btn btn-primary"
+                  style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                >
+                  Start Booking
+                </button>
+              )}
+              <button className="btn btn-primary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>Get the App</button>
+            </div>
+          )}
 
           {/* Profile & Theme */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -258,6 +260,28 @@ const Navbar = () => {
               !isLanding && (
                 <button onClick={() => navigate('/login')} className="btn btn-primary" style={{ padding: '8px 16px' }}>Login</button>
               )
+            )}
+
+            {isAuthenticated && user?.role === 'admin' && (
+              <Link
+                to="/admin"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 14px',
+                  borderRadius: 'var(--radius-pill)',
+                  background: 'var(--accent-primary)',
+                  border: '1px solid var(--accent-secondary)',
+                  textDecoration: 'none',
+                  color: '#000',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                }}
+              >
+                <Shield size={16} />
+                <span className="desktop-only">Admin</span>
+              </Link>
             )}
 
             <button
@@ -350,7 +374,7 @@ const Navbar = () => {
               {link.label}
             </button>
           ))}
-          {isLanding && (
+          {isLanding && user?.role !== 'admin' && (
             <button
               onClick={() => {
                 if (isAuthenticated) navigate('/find');

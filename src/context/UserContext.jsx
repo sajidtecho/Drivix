@@ -19,11 +19,19 @@ export const UserProvider = ({ children }) => {
         // Use onSnapshot for real-time updates to user profile
         const unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
-            setUser({ uid: firebaseUser.uid, ...docSnap.data() });
+            const data = docSnap.data();
+            // Automatically upgrade specific user to admin if requested
+            if (firebaseUser.email === 'drivixmobility@gmail.com' && data.role !== 'admin') {
+              updateUser({ role: 'admin' });
+              setUser({ uid: firebaseUser.uid, ...data, role: 'admin' });
+            } else {
+              setUser({ uid: firebaseUser.uid, ...data });
+            }
           } else {
             // If document doesn't exist yet (might happen during signup), 
             // we'll wait for the signup process to create it
-            setUser({ uid: firebaseUser.uid, email: firebaseUser.email });
+            const defaultRole = firebaseUser.email === 'drivixmobility@gmail.com' ? 'admin' : 'user';
+            setUser({ uid: firebaseUser.uid, email: firebaseUser.email, role: defaultRole });
           }
           setIsAuthenticated(true);
           setLoading(false);
