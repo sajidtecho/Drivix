@@ -15,14 +15,45 @@ const itemVariants = {
   visible: { y: 0, opacity: 1 }
 };
 
+import challanIcon from '../assets/challan.png';
+import fastagIcon from '../assets/fastag.png';
+import documentIcon from '../assets/document.png';
+import pollutionIcon from '../assets/pollution.png';
+import ownershipIcon from '../assets/ownership.png';
+
 const VehicleServices = () => {
   const services = [
-    { title: 'Challan Management', icon: ShieldAlert, desc: 'View and pay pending traffic fines securely.', color: '#ff4b4b' },
-    { title: 'FASTag Recharge', icon: CreditCard, desc: 'Instant FASTag balance top-up.', color: 'var(--accent-primary)' },
-    { title: 'Document Manager', icon: FileText, desc: 'Digital vault for RC, DL, and Insurance.', color: 'var(--accent-secondary)' },
+    { 
+      title: 'Challan Management', 
+      icon: (props) => <img src={challanIcon} alt="Challan" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
+      desc: 'View and pay pending traffic fines securely.', 
+      color: '#ff4b4b' 
+    },
+    { 
+      title: 'FASTag Recharge', 
+      icon: (props) => <img src={fastagIcon} alt="FASTag" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
+      desc: 'Instant FASTag balance top-up.', 
+      color: 'var(--accent-primary)' 
+    },
+    { 
+      title: 'Document Manager', 
+      icon: (props) => <img src={documentIcon} alt="Document" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
+      desc: 'Digital vault for RC, DL, and Insurance.', 
+      color: 'var(--accent-secondary)' 
+    },
     { title: 'Registration Renewal', icon: RefreshCw, desc: 'Renew your vehicle registration easily.', color: '#bc00ff' },
-    { title: 'Pollution Certificate', icon: FileCheck, desc: 'Apply or renew PUCC online.', color: '#00ffcc' },
-    { title: 'Ownership Transfer', icon: CarFront, desc: 'Seamlessly transfer vehicle ownership.', color: '#ffc107' },
+    { 
+      title: 'Pollution Certificate', 
+      icon: (props) => <img src={pollutionIcon} alt="Pollution" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
+      desc: 'Apply or renew PUCC online.', 
+      color: '#00ffcc' 
+    },
+    { 
+      title: 'Ownership Transfer', 
+      icon: (props) => <img src={ownershipIcon} alt="Ownership" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
+      desc: 'Seamlessly transfer vehicle ownership.', 
+      color: '#ffc107' 
+    },
   ];
 
   return (
@@ -52,8 +83,8 @@ const VehicleServices = () => {
             >
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', background: service.color, width: '100px', height: '100px', borderRadius: '50%', filter: 'blur(50px)', opacity: 0.15 }}></div>
 
-              <div style={{ marginBottom: '24px', background: 'var(--bg-tertiary)', width: '64px', height: '64px', borderRadius: 'var(--radius-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)' }}>
-                <service.icon color={service.color} size={32} />
+              <div style={{ marginBottom: '24px', background: 'var(--bg-tertiary)', width: '72px', height: '72px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)' }}>
+                <service.icon color={service.color} size={40} />
               </div>
               <h3 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '12px' }}>{service.title}</h3>
               <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', flex: 1 }}>{service.desc}</p>

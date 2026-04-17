@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Key, Tag, Search, Gavel, Car, ShieldCheck, Banknote, Wallet } from 'lucide-react';
+import fastagIcon from '../../assets/fastag.png';
 import FadeIn from '../common/FadeIn';
 
 const FeaturesSection = () => {
@@ -90,8 +91,8 @@ const FeaturesSection = () => {
 
           {/* Wide Card */}
           <div className="glass-panel bento-card" style={{ gridArea: 'payment', padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-            <div style={{ padding: '16px', borderRadius: 'var(--radius-card)', background: 'rgba(250, 255, 0, 0.1)', color: 'var(--accent-primary)' }}>
-              <Wallet size={32} />
+            <div style={{ padding: '14px', borderRadius: '50%', background: 'rgba(250, 255, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px' }}>
+              <img src={fastagIcon} alt="FASTag" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
             </div>
             <div>
               <h4 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '4px' }}>Zero-Friction Payments</h4>

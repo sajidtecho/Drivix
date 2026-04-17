@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import * as htmlToImage from 'html-to-image';
+import challanIcon from '../assets/challan.png';
 import {
   CheckCircle2, MapPin, Navigation, Car, Clock,
   Calendar, Download, Home, Share2, Shield
@@ -148,8 +149,9 @@ const Ticket = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <img src={challanIcon} alt="Icon" style={{ width: '14px', height: '14px' }} />
                   <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', color: '#FFCE00', textTransform: 'uppercase' }}>
-                    🎟️ Drivix Ticket
+                    Drivix Ticket
                   </span>
                 </div>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '4px' }}>

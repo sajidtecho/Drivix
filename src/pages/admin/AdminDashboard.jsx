@@ -11,6 +11,7 @@ import {
   DollarSign,
   LogOut
 } from 'lucide-react';
+import challanIcon from '../../assets/challan.png';
 
 const AdminDashboard = () => {
   const { user, logout } = useUser();
@@ -62,7 +63,7 @@ const AdminDashboard = () => {
   const stats = [
     { label: 'Total Bookings', value: realStats.bookingsCount, icon: <Calendar />, color: '#FFCE00', path: '/admin/bookings' },
     { label: 'Active Users', value: realStats.usersCount, icon: <Users />, color: '#4CAF50', path: '/admin/users' },
-    { label: 'Open Complaints', value: realStats.openComplaints, icon: <AlertCircle />, color: '#f44336', path: '/admin/complaints' },
+    { label: 'Open Complaints', value: realStats.openComplaints, icon: <img src={challanIcon} alt="challan" style={{ width: '24px', height: '24px', filter: 'brightness(0) saturate(100%) invert(27%) sepia(91%) saturate(2352%) hue-rotate(346deg) brightness(104%) contrast(97%)' }} />, color: '#f44336', path: '/admin/complaints' },
     { label: 'Total Revenue', value: `₹${realStats.revenue}`, icon: <DollarSign />, color: '#2196F3', path: '/admin/revenue' },
   ];
 
@@ -115,14 +116,16 @@ const AdminDashboard = () => {
             onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
           >
             <div style={{
-              padding: '1rem',
-              borderRadius: '16px',
+              padding: '1.2rem',
+              borderRadius: '50%',
               background: `${stat.color}15`,
               color: stat.color,
-              fontSize: '1.5rem',
+              fontSize: '1.8rem',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              width: '56px',
+              height: '56px'
             }}>
               {stat.icon}
             </div>
@@ -173,7 +176,7 @@ const AdminDashboard = () => {
               style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}
               onClick={() => navigate('/admin/complaints')}
             >
-              <AlertCircle size={18} style={{ marginRight: '10px' }} /> Customer Complaints
+              <img src={challanIcon} alt="challan" style={{ width: '18px', height: '18px', marginRight: '10px' }} /> Customer Complaints
             </button>
           </div>
         </section>

@@ -4,6 +4,7 @@ import { X, Send, MessageSquare, Loader2, CheckCircle2 } from 'lucide-react';
 import { useUser } from '../../hooks/useUser';
 import { db } from '../../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import challanIcon from '../../assets/challan.png';
 
 const inputStyle = {
   width: '100%',
@@ -126,7 +127,7 @@ const SupportModal = ({ onClose }) => {
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 75, 75, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <MessageSquare size={20} color="#ff4b4b" />
+                  <img src={challanIcon} alt="Icon" style={{ width: '24px', height: '24px' }} />
                 </div>
                 <div>
                   <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Submit Complaint</h2>

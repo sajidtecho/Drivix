@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase';
 import { collection, query, orderBy, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { AlertCircle, CheckCircle, Loader2, MessageSquare, User, Clock, Phone, Mail, MapPin, Image as ImageIcon } from 'lucide-react';
+import challanIcon from '../../assets/challan.png';
 
 const AdminComplaints = () => {
   const [complaints, setComplaints] = useState([]);
@@ -44,7 +45,10 @@ const AdminComplaints = () => {
 
   return (
     <div className="glass-panel" style={{ padding: '2rem', minHeight: '100%', animation: 'fadeIn 0.5s ease-out' }}>
-      <h1 style={{ fontSize: '1.8rem', marginBottom: '8px', color: '#f44336' }}>Customer Complaints</h1>
+      <h1 style={{ fontSize: '1.8rem', marginBottom: '8px', color: '#f44336', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <img src={challanIcon} alt="challan" style={{ width: '32px', height: '32px' }} />
+        Customer Complaints
+      </h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Review, respond to, and resolve active customer issues.</p>
       
       {loading ? (
@@ -102,7 +106,7 @@ const AdminComplaints = () => {
                   alignItems: 'center',
                   gap: '6px'
                 }}>
-                  {c.status === 'resolved' ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                  {c.status === 'resolved' ? <CheckCircle size={14} /> : <img src={challanIcon} alt="challan" style={{ width: '14px', height: '14px' }} />}
                   {c.status || 'pending'}
                 </span>
               </div>

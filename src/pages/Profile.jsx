@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import documentIcon from '../assets/document.png';
 import { useUser } from '../hooks/useUser';
 import {
   User, Car, CreditCard, FileText, Settings, Shield,
@@ -341,7 +342,7 @@ const Profile = () => {
     { id: 'profile', label: 'User Details', icon: User },
     { id: 'vehicles', label: 'Vehicle Details', icon: Car },
     { id: 'payments', label: 'Payment Info', icon: CreditCard },
-    { id: 'documents', label: 'Identity & Docs', icon: FileText },
+    { id: 'documents', label: 'Identity & Docs', icon: (props) => <img src={documentIcon} alt="docs" style={{ width: props.size, height: props.size, objectFit: 'contain' }} /> },
     { id: 'settings', label: 'Preferences', icon: Settings },
     { id: 'security', label: 'Security & Verification', icon: Shield },
   ];
@@ -790,8 +791,8 @@ const Profile = () => {
                   {user.documents?.length > 0 ? user.documents.map((doc, idx) => (
                     <div key={idx} className="glass-panel" style={{ padding: '24px', transition: 'transform 0.3s' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                        <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-input)', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <FileText size={20} color="var(--text-secondary)" />
+                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <img src={documentIcon} alt="Doc" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
                         </div>
                         <ExternalLink size={16} color="var(--text-secondary)" />
                       </div>
