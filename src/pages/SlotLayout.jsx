@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Car, Layers, Loader2 } from 'lucide-react';
 import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
+import loadingCar from '../assets/Loading_car.webm';
 
 const SLOT_STATUS = {
   available: { label: 'Available', color: '#00cc6a', bg: 'rgba(0,204,106,0.12)', border: 'rgba(0,204,106,0.35)' },
@@ -156,8 +157,15 @@ const SlotLayout = () => {
             <div className="glass-panel" style={{ padding: '28px', borderRadius: 'var(--radius-card)', marginBottom: '24px', minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
               {loading ? (
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                   <Loader2 className="animate-spin" size={32} color="var(--accent-primary)" />
-                   <p style={{ color: 'var(--text-secondary)' }}>Syncing slots...</p>
+                   <video 
+                    src={loadingCar} 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }} 
+                  />
+                   <p style={{ color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.5px' }}>SYNCING SLOTS...</p>
                 </div>
               ) : (
                 <>
