@@ -83,8 +83,8 @@ const VehicleServices = () => {
             >
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', background: service.color, width: '100px', height: '100px', borderRadius: '50%', filter: 'blur(50px)', opacity: 0.15 }}></div>
 
-              <div style={{ marginBottom: '24px', background: 'var(--bg-tertiary)', width: '72px', height: '72px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)' }}>
-                <service.icon color={service.color} size={40} />
+              <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', minHeight: '80px' }}>
+                <service.icon color={service.color} size={80} />
               </div>
               <h3 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '12px' }}>{service.title}</h3>
               <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', flex: 1 }}>{service.desc}</p>

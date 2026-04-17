@@ -791,8 +791,8 @@ const Profile = () => {
                   {user.documents?.length > 0 ? user.documents.map((doc, idx) => (
                     <div key={idx} className="glass-panel" style={{ padding: '24px', transition: 'transform 0.3s' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <img src={documentIcon} alt="Doc" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                        <div style={{ marginBottom: '12px' }}>
+                          <img src={documentIcon} alt="Doc" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
                         </div>
                         <ExternalLink size={16} color="var(--text-secondary)" />
                       </div>
