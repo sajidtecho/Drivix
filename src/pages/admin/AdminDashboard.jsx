@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '../../hooks/useUser';
 import { db } from '../../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { 
-  Users, 
-  MapPin, 
-  Calendar, 
-  AlertCircle, 
+import {
+  Users,
+  MapPin,
+  Calendar,
+  AlertCircle,
   DollarSign,
   LogOut
 } from 'lucide-react';
@@ -26,22 +26,22 @@ const AdminDashboard = () => {
       try {
         const bookingsSnap = await getDocs(collection(db, 'bookings'));
         const usersSnap = await getDocs(collection(db, 'users'));
-        
+
         const qComplaints = query(collection(db, 'complaints'), where('status', '==', 'pending'));
         const complaintsSnap = await getDocs(qComplaints);
-        
+
         let totalRev = 0;
         bookingsSnap.forEach(doc => {
-           const data = doc.data();
-           if (data.status === 'completed' || data.status === 'booked') {
-              totalRev += (Number(data.totalCost) || 0);
-           }
+          const data = doc.data();
+          if (data.status === 'completed' || data.status === 'booked') {
+            totalRev += (Number(data.totalCost) || 0);
+          }
         });
 
         // Format revenue (e.g., 12400 -> 12.4k)
         let formattedRev = totalRev.toString();
         if (totalRev >= 1000) {
-           formattedRev = (totalRev / 1000).toFixed(1) + 'k';
+          formattedRev = (totalRev / 1000).toFixed(1) + 'k';
         }
 
         setRealStats({
@@ -65,15 +65,15 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div style={{ 
-      padding: '2rem', 
-      maxWidth: '1200px', 
+    <div style={{
+      padding: '2rem',
+      maxWidth: '1200px',
       margin: '0 auto',
       animation: 'fadeIn 0.5s ease-out'
     }}>
-      <header style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <header style={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: '2rem',
         padding: '1.5rem',
@@ -86,7 +86,7 @@ const AdminDashboard = () => {
           <h1 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>Admin Control Center</h1>
           <p style={{ color: 'var(--text-secondary)' }}>Welcome back, <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>{user?.name || 'Admin'}</span></p>
         </div>
-        <button 
+        <button
           onClick={logout}
           className="btn btn-secondary"
           style={{ padding: '10px 20px', fontSize: '0.9rem' }}
@@ -98,10 +98,10 @@ const AdminDashboard = () => {
       <div className="grid grid-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '3rem' }}>
         {stats.map((stat, i) => (
           <div key={i} className="glass-panel" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-            <div style={{ 
-              padding: '1rem', 
-              borderRadius: '16px', 
-              background: `${stat.color}15`, 
+            <div style={{
+              padding: '1rem',
+              borderRadius: '16px',
+              background: `${stat.color}15`,
               color: stat.color,
               fontSize: '1.5rem',
               display: 'flex',
@@ -146,9 +146,9 @@ const AdminDashboard = () => {
           <h2 style={{ fontSize: '1.4rem', marginBottom: '1.5rem' }}>Recent System Alerts</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {[1, 2, 3].map(i => (
-              <div key={i} style={{ 
-                padding: '1rem', 
-                borderRadius: '12px', 
+              <div key={i} style={{
+                padding: '1rem',
+                borderRadius: '12px',
                 background: 'var(--bg-secondary)',
                 fontSize: '0.9rem',
                 borderLeft: '4px solid var(--accent-primary)'
