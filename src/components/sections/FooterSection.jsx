@@ -184,7 +184,7 @@ const FooterSection = () => {
             }}>
               <img src={logoImg} alt="Drivix Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
-            <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.03em' }}>Drivix.</span>
+            <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.03em' }}>Drivix</span>
           </div>
 
 
