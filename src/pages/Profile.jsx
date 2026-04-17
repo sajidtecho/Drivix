@@ -931,7 +931,7 @@ const Profile = () => {
                       <h4 style={{ margin: '0 0 4px 0', fontWeight: 700 }}>Change Password</h4>
                       <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Last changed 3 months ago.</p>
                     </div>
-                    <button className="btn btn-secondary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Update</button>
+                    <button className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Update</button>
                   </div>
                 </div>
               </section>
