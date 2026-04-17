@@ -18,6 +18,8 @@ import AdminBookings from './pages/admin/AdminBookings';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminComplaints from './pages/admin/AdminComplaints';
 import AdminParking from './pages/admin/AdminParking';
+import AdminPricing from './pages/admin/AdminPricing';
+import AdminRevenue from './pages/admin/AdminRevenue';
 import ErrorBoundary from './ErrorBoundary';
 import './index.css';
 import loadingVideo from './assets/Loading_car.webm';
@@ -79,6 +81,8 @@ function App() {
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="complaints" element={<AdminComplaints />} />
                   <Route path="parking" element={<AdminParking />} />
+                  <Route path="pricing" element={<AdminPricing />} />
+                  <Route path="revenue" element={<AdminRevenue />} />
                 </Route>
               </Route>
             </Routes>

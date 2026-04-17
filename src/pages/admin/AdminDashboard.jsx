@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
 import { db } from '../../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -13,6 +14,7 @@ import {
 
 const AdminDashboard = () => {
   const { user, logout } = useUser();
+  const navigate = useNavigate();
 
   const [realStats, setRealStats] = useState({
     bookingsCount: '...',
@@ -58,10 +60,10 @@ const AdminDashboard = () => {
   }, []);
 
   const stats = [
-    { label: 'Total Bookings', value: realStats.bookingsCount, icon: <Calendar />, color: '#FFCE00' },
-    { label: 'Active Users', value: realStats.usersCount, icon: <Users />, color: '#4CAF50' },
-    { label: 'Open Complaints', value: realStats.openComplaints, icon: <AlertCircle />, color: '#f44336' },
-    { label: 'Total Revenue', value: `₹${realStats.revenue}`, icon: <DollarSign />, color: '#2196F3' },
+    { label: 'Total Bookings', value: realStats.bookingsCount, icon: <Calendar />, color: '#FFCE00', path: '/admin/bookings' },
+    { label: 'Active Users', value: realStats.usersCount, icon: <Users />, color: '#4CAF50', path: '/admin/users' },
+    { label: 'Open Complaints', value: realStats.openComplaints, icon: <AlertCircle />, color: '#f44336', path: '/admin/complaints' },
+    { label: 'Total Revenue', value: `₹${realStats.revenue}`, icon: <DollarSign />, color: '#2196F3', path: '/admin/revenue' },
   ];
 
   return (
@@ -95,9 +97,23 @@ const AdminDashboard = () => {
         </button>
       </header>
 
-      <div className="grid grid-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '3rem' }}>
+      <div className="grid grid-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '3rem' }}>
         {stats.map((stat, i) => (
-          <div key={i} className="glass-panel" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <div 
+            key={i} 
+            className="glass-panel" 
+            style={{ 
+              padding: '1.5rem', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '1.5rem',
+              cursor: 'pointer',
+              transition: 'transform 0.2s'
+            }}
+            onClick={() => stat.path && navigate(stat.path)}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
             <div style={{
               padding: '1rem',
               borderRadius: '16px',
@@ -124,19 +140,39 @@ const AdminDashboard = () => {
             <MapPin style={{ color: 'var(--accent-primary)' }} /> Quick Management
           </h2>
           <div style={{ display: 'grid', gap: '1rem' }}>
-            <button className="btn btn-secondary" style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}>
+            <button 
+              className="btn btn-secondary" 
+              style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}
+              onClick={() => navigate('/admin/bookings')}
+            >
               <Calendar size={18} style={{ marginRight: '10px' }} /> Manage All Bookings
             </button>
-            <button className="btn btn-secondary" style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}>
+            <button 
+              className="btn btn-secondary" 
+              style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}
+              onClick={() => navigate('/admin/users')}
+            >
               <Users size={18} style={{ marginRight: '10px' }} /> User Administration
             </button>
-            <button className="btn btn-secondary" style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}>
+            <button 
+              className="btn btn-secondary" 
+              style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}
+              onClick={() => navigate('/admin/parking')}
+            >
               <MapPin size={18} style={{ marginRight: '10px' }} /> Parking Locations & Slots
             </button>
-            <button className="btn btn-secondary" style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}>
+            <button 
+              className="btn btn-secondary" 
+              style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}
+              onClick={() => navigate('/admin/pricing')}
+            >
               <DollarSign size={18} style={{ marginRight: '10px' }} /> Pricing Configuration
             </button>
-            <button className="btn btn-secondary" style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}>
+            <button 
+              className="btn btn-secondary" 
+              style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}
+              onClick={() => navigate('/admin/complaints')}
+            >
               <AlertCircle size={18} style={{ marginRight: '10px' }} /> Customer Complaints
             </button>
           </div>
