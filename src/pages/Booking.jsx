@@ -5,7 +5,7 @@ import { useUser } from '../hooks/useUser';
 import {
   ArrowLeft, Calendar, Clock, BatteryCharging, CreditCard,
   Smartphone, Wallet, CheckCircle2, MapPin, Zap, Timer,
-  ChevronRight, Car, Loader2
+  ChevronRight, Car, Loader2, Plus
 } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';

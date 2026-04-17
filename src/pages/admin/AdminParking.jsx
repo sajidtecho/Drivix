@@ -99,7 +99,7 @@ const AdminParking = () => {
       // Very basic non-batched loop for simplicity (Firestore allows rapid writes)
       let added = 0;
       for (let i = 1; i <= newSlotCount; i++) {
-        const slotId = `${newSlotPrefix}${i}`;
+        const slotId = `${selectedFloor}-${newSlotPrefix}${i}`;
         // check if exists
         if(slots.find(s => s.id === slotId)) continue;
         
@@ -321,7 +321,7 @@ const AdminParking = () => {
                              >
                                 <X size={12} strokeWidth={3} />
                              </button>
-                             <div style={{ fontWeight: 800, fontSize: '1rem', color: slot.status === 'available' ? '#4CAF50' : '#f44336' }}>{slot.id}</div>
+                             <div style={{ fontWeight: 800, fontSize: '0.85rem', color: slot.status === 'available' ? '#4CAF50' : '#f44336' }}>{slot.id}</div>
                              <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>{slot.status}</div>
                           </div>
                        ))
