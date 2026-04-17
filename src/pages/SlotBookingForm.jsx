@@ -7,6 +7,7 @@ import {
 import { useUser } from '../hooks/useUser';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
+import loadingCar from '../assets/Loading_car.webm';
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8];
 
@@ -484,8 +485,15 @@ const SlotBookingForm = () => {
             <motion.div key="otp" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}>
               {isSubmitting ? (
                 <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                  <Loader2 size={48} className="animate-spin" color="var(--accent-primary)" style={{ margin: '0 auto 16px' }} />
-                  <p style={{ color: 'var(--text-secondary)' }}>Confirming your booking...</p>
+                  <video 
+                    src={loadingCar} 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    style={{ width: '120px', height: '120px', margin: '0 auto 16px', borderRadius: '50%', objectFit: 'cover' }} 
+                  />
+                  <p style={{ color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '1px' }}>CONFIRMING YOUR BOOKING...</p>
                 </div>
               ) : (
                 <OTPVerification
