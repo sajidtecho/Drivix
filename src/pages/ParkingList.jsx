@@ -8,6 +8,7 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../firebase';
 import seedParkingData from '../ParkingFacility/ShardaParking';
+import loadingCar from '../assets/Loading_car.webm';
 
 
 
@@ -320,8 +321,16 @@ const ParkingList = () => {
         )}
 
         {loading && (
-           <div style={{ textAlign: 'center', padding: '40px' }}>
-             <p style={{ color: 'var(--text-secondary)' }}>Connecting to Firestore...</p>
+           <div style={{ textAlign: 'center', padding: '60px 0' }}>
+              <video 
+                src={loadingCar} 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 16px' }} 
+              />
+              <p style={{ color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '2px' }}>CONNECTING TO DATABASE...</p>
            </div>
         )}
       </div>
