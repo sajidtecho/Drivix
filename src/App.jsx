@@ -18,6 +18,7 @@ import AdminBookings from './pages/admin/AdminBookings';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminComplaints from './pages/admin/AdminComplaints';
 import AdminParking from './pages/admin/AdminParking';
+import ErrorBoundary from './ErrorBoundary';
 import './index.css';
 import loadingVideo from './assets/Loading_car.webm';
 
@@ -52,34 +53,36 @@ function App() {
       <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
         <Navbar />
         <main style={{ flex: 1, width: '100%' }}>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/services" element={<VehicleServices />} />
-            <Route path="/login" element={<Auth />} />
-            <Route path="/profile" element={<Profile />} />
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/services" element={<VehicleServices />} />
+              <Route path="/login" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
 
-            {/* Main finding flow */}
-            <Route path="/find" element={<ParkingList />} />
-            <Route path="/parking" element={<ParkingList />} />
-            <Route path="/booking" element={<Navigate to="/find" replace />} />
+              {/* Main finding flow */}
+              <Route path="/find" element={<ParkingList />} />
+              <Route path="/parking" element={<ParkingList />} />
+              <Route path="/booking" element={<Navigate to="/find" replace />} />
 
-            {/* Facility-specific pages */}
-            <Route path="/slot-layout" element={<SlotLayout />} />
-            <Route path="/slot-booking" element={<SlotBookingForm />} />
-            <Route path="/ticket" element={<Ticket />} />
-            <Route path="/safety" element={<Safety />} />
+              {/* Facility-specific pages */}
+              <Route path="/slot-layout" element={<SlotLayout />} />
+              <Route path="/slot-booking" element={<SlotBookingForm />} />
+              <Route path="/ticket" element={<Ticket />} />
+              <Route path="/safety" element={<Safety />} />
 
-            {/* Admin Routes */}
-            <Route element={<AdminRoute />}>
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="bookings" element={<AdminBookings />} />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="complaints" element={<AdminComplaints />} />
-                <Route path="parking" element={<AdminParking />} />
+              {/* Admin Routes */}
+              <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="bookings" element={<AdminBookings />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="complaints" element={<AdminComplaints />} />
+                  <Route path="parking" element={<AdminParking />} />
+                </Route>
               </Route>
-            </Route>
-          </Routes>
+            </Routes>
+          </ErrorBoundary>
         </main>
       </div>
     </>

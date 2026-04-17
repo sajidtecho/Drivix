@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import fs from "fs";
 
-// 1. Your Firebase Config (Copy-pasted from your .env/firebase.js)
+// 1. Your Firebase Config 
 const firebaseConfig = {
     apiKey: "AIzaSyAL2JrL7YR55GaFAMg2klKh3oB1eCU2xGk",
     authDomain: "drivix-3ad9f.firebaseapp.com",

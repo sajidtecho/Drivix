@@ -165,10 +165,11 @@ const ParkingList = () => {
           {filtered.map((loc) => {
             // Calculate REAL availability based on current active bookings
             const currentOccupancy = activeBookingsCount[loc.id] || 0;
-            const dynamicAvailable = Math.max(0, loc.totalSlots - currentOccupancy);
+            const total = loc.totalSlots || 0;
+            const dynamicAvailable = Math.max(0, total - currentOccupancy);
             
-            const avColor = availabilityColor(dynamicAvailable, loc.totalSlots);
-            const pct = Math.round((dynamicAvailable / loc.totalSlots) * 100);
+            const avColor = availabilityColor(dynamicAvailable, total);
+            const pct = total > 0 ? Math.round((dynamicAvailable / total) * 100) : 0;
             return (
               <motion.div
                 key={loc.id}
@@ -251,7 +252,7 @@ const ParkingList = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Availability</span>
                         <span style={{ fontSize: '0.88rem', fontWeight: 800, color: avColor }}>
-                          {dynamicAvailable}/{loc.totalSlots} slots
+                          {dynamicAvailable}/{total} slots
                         </span>
                       </div>
                       <div style={{ height: '6px', borderRadius: '3px', background: 'var(--bg-secondary)', overflow: 'hidden' }}>
@@ -267,7 +268,7 @@ const ParkingList = () => {
                     {/* Bottom row */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }} className="parking-card-bottom">
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        {loc.features.map((f) => (
+                        {(loc.features || []).map((f) => (
                           <span key={f} style={{
                             fontSize: '0.7rem', fontWeight: 600, padding: '4px 10px',
                             borderRadius: 'var(--radius-input)', background: 'var(--bg-secondary)',
