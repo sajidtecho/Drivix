@@ -25,7 +25,7 @@ const ProblemSection = () => {
 
 
   return (
-    <section id="problem" style={{ padding: '160px 0', background: 'var(--bg-secondary)', position: 'relative', overflow: 'hidden' }}>
+    <section id="problem" style={{ padding: '80px 0', background: 'var(--bg-secondary)', position: 'relative', overflow: 'hidden' }}>
       {/* City Marquee */}
       <div style={{
         position: 'absolute',
