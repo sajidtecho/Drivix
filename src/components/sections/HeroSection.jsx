@@ -5,7 +5,7 @@ import { Map, ArrowRight, Search } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
 import AnimatedParkingHero from '../animations/AnimatedParkingHero';
 import heroVideo from '../../assets/Parking-Hero section.mp4';
-import heroImage from '../../assets/HeroSection-Parking-image.png';
+import heroImage from '../../assets/HeroSection.png';
 import { useUser } from '../../hooks/useUser';
 
 
@@ -33,38 +33,48 @@ const HeroSection = () => {
     <section id="hero" style={{
       display: 'flex',
       alignItems: 'center',
-      paddingTop: '160px',
-      paddingBottom: '40px',
+      paddingTop: 'clamp(120px, 15vh, 180px)',
+      paddingBottom: '60px',
       position: 'relative',
       overflow: 'hidden',
       background: 'radial-gradient(circle at 15% 50%, rgba(250, 255, 0, 0.03) 0%, transparent 50%)'
     }}>
-      <div className="container">
+      <div className="container" style={{ width: '100%', maxWidth: '1440px' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr',
-          gap: '60px',
+          gap: '40px',
           alignItems: 'center',
-          maxWidth: '1400px',
-          margin: '0 auto',
           textAlign: 'left'
         }} className="hero-grid-updated">
           <style>{`
-            @media (min-width: 769px) {
+            @media (min-width: 992px) {
               .hero-grid-updated {
-                grid-template-columns: 1.2fr 1fr !important;
-                gap: 60px !important;
+                grid-template-columns: 1.1fr 0.9fr !important;
+                gap: 80px !important;
               }
             }
-            @media (min-width: 1200px) {
+            @media (max-width: 768px) {
               .hero-grid-updated {
-                gap: 100px !important;
+                text-align: center !important;
+                gap: 48px !important;
+              }
+              .hero-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+              }
+              .hero-content p {
+                margin-left: auto;
+                margin-right: auto;
+              }
+              .hero-stat-container {
+                justify-content: center !important;
               }
             }
             .hero-tab-active {
               color: var(--accent-primary) !important;
               background: rgba(250, 255, 0, 0.1) !important;
-              border-bottom: 3px solid var(--accent-primary) !important;
             }
           `}</style>
 
@@ -77,18 +87,18 @@ const HeroSection = () => {
             </div>
 
             <h1 style={{
-              fontSize: 'clamp(2.5rem, 7vw, 4.2rem)',
+              fontSize: 'clamp(2.2rem, 8vw, 4rem)',
               fontWeight: 800,
-              lineHeight: 1,
+              lineHeight: 1.1,
               marginBottom: '20px',
               fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.05em',
+              letterSpacing: '-0.04em',
             }}>
               Don't just <span style={{ color: 'var(--accent-primary)' }}>drive</span>.<br/>Own your journey.
             </h1>
 
             <p style={{
-              fontSize: '1.2rem',
+              fontSize: 'clamp(1rem, 4vw, 1.15rem)',
               color: 'var(--text-secondary)',
               lineHeight: 1.5,
               marginBottom: '40px',
@@ -104,9 +114,11 @@ const HeroSection = () => {
               borderRadius: '24px', 
               background: 'rgba(255,255,255,0.03)',
               border: '1px solid var(--glass-border)',
-              maxWidth: '600px',
+              width: '100%',
+              maxWidth: '540px',
               marginBottom: '48px',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
+              boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+              marginInline: 'auto'
             }}>
               {/* Tabs */}
               <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
@@ -142,12 +154,12 @@ const HeroSection = () => {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '12px', 
-                padding: '8px 8px 8px 24px', 
+                padding: '8px 8px 8px 20px', 
                 background: 'var(--bg-primary)', 
                 borderRadius: '18px',
                 border: '1px solid var(--glass-border-light)'
               }}>
-                <Search size={20} color="var(--text-muted)" />
+                <Search size={18} color="var(--text-muted)" />
                 <input 
                   type="text" 
                   placeholder={TABS.find(t => t.id === activeTab).placeholder}
@@ -160,15 +172,16 @@ const HeroSection = () => {
                     border: 'none',
                     outline: 'none',
                     color: 'var(--text-primary)',
-                    fontSize: '1rem',
+                    fontSize: '0.95rem',
                     fontWeight: 500,
-                    fontFamily: 'inherit'
+                    fontFamily: 'inherit',
+                    minWidth: 0
                   }}
                 />
                 <button 
                   onClick={handleSearch}
                   className="btn btn-primary"
-                  style={{ padding: '12px 24px', borderRadius: '14px', fontSize: '0.9rem' }}
+                  style={{ padding: '10px 20px', borderRadius: '14px', fontSize: '0.85rem' }}
                 >
                   Go
                 </button>
@@ -176,23 +189,61 @@ const HeroSection = () => {
             </div>
 
             {/* Credibility Stat */}
-            <div style={{ display: 'flex', gap: '48px' }}>
+            <div style={{ display: 'flex', gap: '40px' }} className="hero-stat-container">
               <div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-primary)' }}>0</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Happy Users</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>1M+</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Happy Users</div>
               </div>
-              <div style={{ width: '1px', background: 'var(--glass-border)', height: '40px', alignSelf: 'center' }} />
+              <div style={{ width: '1px', background: 'var(--glass-border)', height: '32px', alignSelf: 'center' }} />
               <div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-primary)' }}>0</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Corporate Partners</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>500+</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Facilities</div>
               </div>
             </div>
           </FadeIn>
 
-          {/* Hero Media: Video replaces Animated Parking Hero */}
-          {/* Hero Media: Image replaces Video */}
           <FadeIn delay={0.2} style={{ display: 'flex', justifyContent: 'center' }} className="hero-animation-container">
-            <div style={{ position: 'relative', width: '100%', maxWidth: '800px', marginTop: '-40px', display: 'flex', justifyContent: 'center', borderRadius: 'var(--radius-card)', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.5)', border: '1px solid var(--glass-border)', aspectRatio: '16 / 10' }}>
+            <div style={{ 
+              position: 'relative', 
+              width: '100%', 
+              maxWidth: '700px', 
+              display: 'flex', 
+              justifyContent: 'center', 
+              borderRadius: '24px', 
+              overflow: 'hidden', 
+              boxShadow: '0 30px 80px rgba(0,0,0,0.5)', 
+              border: '1px solid var(--glass-border)',
+              background: 'rgba(255,255,255,0.02)',
+              aspectRatio: 'window.innerWidth < 768 ? "4 / 3" : "16 / 10"'
+            }} className="hero-image-wrapper">
+              <style>{`
+                .hero-image-wrapper {
+                  aspect-ratio: 16 / 10;
+                }
+                @media (max-width: 768px) {
+                  .hero-image-wrapper {
+                    aspect-ratio: 4 / 3 !important;
+                    max-width: 100% !important;
+                  }
+                }
+              `}</style>
+
+              <div style={{ position: 'absolute', right: '-10%', top: '0', width: '120%', height: '120%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.1, filter: 'blur(100px)', zIndex: 0 }} />
+              
+              <img 
+                src={heroImage} 
+                alt="Smart Parking Facility" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover', 
+                  position: 'relative', 
+                  zIndex: 1,
+                  display: 'block'
+                }} 
+              />
+            </div>
+          </FadeIn>
 
               <div style={{ position: 'absolute', right: '-10%', top: '0', width: '160%', height: '160%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.15, filter: 'blur(120px)', zIndex: 0 }} />
               
