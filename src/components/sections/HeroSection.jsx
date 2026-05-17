@@ -3,15 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Map, ArrowRight, Search } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
-import AnimatedParkingHero from '../animations/AnimatedParkingHero';
-import heroVideo from '../../assets/Parking-Hero section.mp4';
 import heroImage from '../../assets/HeroSection.png';
 import { useUser } from '../../hooks/useUser';
 
 
 
 const HeroSection = () => {
-  const { isAuthenticated } = useUser();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState('parking'); // 'parking' | 'challan' | 'fastag'
   const [vehicleNumber, setVehicleNumber] = React.useState('');
@@ -206,7 +203,7 @@ const HeroSection = () => {
             <div style={{ 
               position: 'relative', 
               width: '100%', 
-              maxWidth: '700px', 
+              maxWidth: '100%', 
               display: 'flex', 
               justifyContent: 'center', 
               borderRadius: '24px', 
@@ -245,34 +242,13 @@ const HeroSection = () => {
             </div>
           </FadeIn>
 
-              <div style={{ position: 'absolute', right: '-10%', top: '0', width: '160%', height: '160%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.15, filter: 'blur(120px)', zIndex: 0 }} />
-              
-              <img 
-                src={heroImage} 
-                alt="Smart Parking Facility" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative', zIndex: 1 }}
-              />
 
-              {/* Keep existing media for easy fallback: 
-              <video 
-                src={heroVideo} 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative', zIndex: 1 }}
-              />
-              <AnimatedParkingHero /> 
-              */}
-            </div>
-          </FadeIn>
 
 
           <style>{`
             @media (min-width: 769px) {
               .hero-animation-container {
                 justify-content: flex-end !important;
-                padding-right: 40px !important;
               }
               .hero-animation-container > div {
                 justify-content: flex-end !important;
