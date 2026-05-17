@@ -42,8 +42,8 @@ const Navbar = () => {
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     if (saved) return saved === 'dark';
-    // If no saved preference, default to dark
-    return true;
+    // If no saved preference, respect system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   const scrolled = isLanding && hasScrolled;
