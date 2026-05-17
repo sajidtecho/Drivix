@@ -1,20 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import challanIcon from '../../assets/icon_challan_new.png';
-import fastagIcon from '../../assets/icon_fastag_new.png';
-import documentIcon from '../../assets/icon_docs_new.png';
-import pollutionIcon from '../../assets/icon_pollution_new.png';
-import ownershipIcon from '../../assets/icon_sale_new.png';
-import parkingIcon from '../../assets/icon_parking_new.png';
-
 const SERVICES = [
-  { id: 'parking', title: 'Parking', desc: 'Secure spots nearby', icon: parkingIcon, color: 'var(--accent-primary)', path: '/find' },
-  { id: 'challan', title: 'Challan', desc: 'Check & Pay Alerts', icon: challanIcon, color: '#ff4b4b', path: '/admin/complaints' },
-  { id: 'fastag', title: 'FASTag', desc: 'Recharge instantly', icon: fastagIcon, color: '#FAFF00', path: '/services' },
-  { id: 'docs', title: 'Documents', desc: 'Secure Vault', icon: documentIcon, color: '#00D2FF', path: '/profile' },
-  { id: 'pollution', title: 'Pollution', desc: 'Expiries & Renewals', icon: pollutionIcon, color: '#00cc6a', path: '/services' },
-  { id: 'transfer', title: 'Car Sale', desc: 'Ownership Transfer', icon: ownershipIcon, color: '#FF7A00', path: '/services' },
+  { id: 'parking', title: 'Parking', desc: 'Secure spots nearby', color: 'var(--accent-primary)', path: '/find' },
+  { id: 'challan', title: 'Challan', desc: 'Check & Pay Alerts', color: '#ff4b4b', path: '/admin/complaints' },
+  { id: 'fastag', title: 'FASTag', desc: 'Recharge instantly', color: '#FAFF00', path: '/services' },
+  { id: 'docs', title: 'Documents', desc: 'Secure Vault', color: '#00D2FF', path: '/profile' },
+  { id: 'pollution', title: 'Pollution', desc: 'Expiries & Renewals', color: '#00cc6a', path: '/services' },
+  { id: 'transfer', title: 'Car Sale', desc: 'Ownership Transfer', color: '#FF7A00', path: '/services' },
 ];
 
 const ServicesHubSection = () => {
@@ -77,27 +70,23 @@ const ServicesHubSection = () => {
                 zIndex: 0
               }} />
 
-              <div style={{ 
-                width: '120px', 
-                height: '120px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                marginBottom: '8px',
-                position: 'relative',
-                zIndex: 1 
-              }}>
-                <motion.img 
-                  whileHover={{ scale: 1.15, rotate: 2 }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-                  src={service.icon} 
-                  alt={service.title} 
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.6))' }} 
-                />
-              </div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <h4 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-primary)' }}>{service.title}</h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{service.desc}</p>
+              <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <h4 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-primary)' }}>{service.title}</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', flex: 1 }}>{service.desc}</p>
+                <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                  <span style={{ 
+                    fontSize: '0.9rem', 
+                    fontWeight: 800, 
+                    color: service.color, 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '4px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                  }}>
+                    Explore <span style={{ fontSize: '1.1rem' }}>→</span>
+                  </span>
+                </div>
               </div>
             </motion.div>
           ))}
