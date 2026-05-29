@@ -45,6 +45,10 @@ const HeroSection = () => {
           textAlign: 'left'
         }} className="hero-grid-updated">
           <style>{`
+            .hero-search-container {
+              margin-left: 0;
+              margin-right: auto;
+            }
             @media (min-width: 992px) {
               .hero-grid-updated {
                 grid-template-columns: 1.1fr 0.9fr !important;
@@ -67,6 +71,10 @@ const HeroSection = () => {
               }
               .hero-stat-container {
                 justify-content: center !important;
+              }
+              .hero-search-container {
+                margin-left: auto !important;
+                margin-right: auto !important;
               }
             }
             .hero-tab-active {
@@ -106,7 +114,7 @@ const HeroSection = () => {
             </p>
 
             {/* Functional Search Center */}
-            <div className="glass-panel" style={{ 
+            <div className="glass-panel hero-search-container" style={{ 
               padding: '8px', 
               borderRadius: '24px', 
               background: 'rgba(255,255,255,0.03)',
@@ -114,8 +122,7 @@ const HeroSection = () => {
               width: '100%',
               maxWidth: '540px',
               marginBottom: '48px',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
-              marginInline: 'auto'
+              boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
             }}>
               {/* Tabs */}
               <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
