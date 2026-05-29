@@ -199,32 +199,15 @@ const HeroSection = () => {
             </div>
           </FadeIn>
 
-          <FadeIn delay={0.2} style={{ display: 'flex', justifyContent: 'center' }} className="hero-animation-container">
+          <FadeIn delay={0.2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
             <div style={{ 
               position: 'relative', 
               width: '100%', 
-              maxWidth: '100%', 
               display: 'flex', 
               justifyContent: 'center', 
-              borderRadius: '24px', 
-              overflow: 'hidden', 
-              boxShadow: '0 30px 80px rgba(0,0,0,0.5)', 
-              border: '1px solid var(--glass-border)',
-              background: 'rgba(255,255,255,0.02)',
-              aspectRatio: 'window.innerWidth < 768 ? "4 / 3" : "16 / 10"'
-            }} className="hero-image-wrapper">
-              <style>{`
-                .hero-image-wrapper {
-                  aspect-ratio: 16 / 10;
-                }
-                @media (max-width: 768px) {
-                  .hero-image-wrapper {
-                    aspect-ratio: 4 / 3 !important;
-                    max-width: 100% !important;
-                  }
-                }
-              `}</style>
-
+              alignItems: 'center',
+              transform: 'scale(1.15)', // Make it bigger
+            }}>
               <div style={{ position: 'absolute', right: '-10%', top: '0', width: '120%', height: '120%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.1, filter: 'blur(100px)', zIndex: 0 }} />
               
               <img 
@@ -232,8 +215,8 @@ const HeroSection = () => {
                 alt="Smart Parking Facility" 
                 style={{ 
                   width: '100%', 
-                  height: '100%', 
-                  objectFit: 'cover', 
+                  height: 'auto', 
+                  objectFit: 'contain', 
                   position: 'relative', 
                   zIndex: 1,
                   display: 'block'
@@ -241,20 +224,6 @@ const HeroSection = () => {
               />
             </div>
           </FadeIn>
-
-
-
-
-          <style>{`
-            @media (min-width: 769px) {
-              .hero-animation-container {
-                justify-content: flex-end !important;
-              }
-              .hero-animation-container > div {
-                justify-content: flex-end !important;
-              }
-            }
-          `}</style>
         </div>
       </div>
     </section>
