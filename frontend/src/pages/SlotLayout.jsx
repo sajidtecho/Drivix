@@ -2,8 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Car, Layers, Loader2 } from 'lucide-react';
-import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
-import { db } from '../firebase';
 import loadingCar from '../assets/Loading_car.webm';
 
 const SLOT_STATUS = {
@@ -17,66 +15,82 @@ const SlotLayout = () => {
   const navigate = useNavigate();
   const { state: locationState } = useLocation();
   
-  const [loc, setLoc] = useState(locationState?.location || null);
+  const [loc, setLoc] = useState(locationState?.location ? {
+    id: locationState.location._id || locationState.location.id,
+    name: locationState.location.parkingName || locationState.location.name,
+    address: locationState.location.address,
+    pricePerHr: locationState.location.hourlyPrice || locationState.location.pricePerHr,
+    floors: locationState.location.floors || ['L1'],
+    ...locationState.location
+  } : null);
+
   const [selectedFloor, setSelectedFloor] = useState(loc?.floors?.[0] || 'L1');
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [slots, setSlots] = useState([]);
-  const [activeBookings, setActiveBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch location if not passed in state
+  // Fetch locations list to set default location if not passed in state
   useEffect(() => {
     if (!loc) {
-      const docRef = doc(db, 'parking_facilities', 'sharda-university-mlp');
-      const unsub = onSnapshot(docRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const d = { id: snapshot.id, ...snapshot.data() };
-          setLoc(d);
-          if (!selectedFloor) setSelectedFloor(d.floors?.[0] || 'L1');
+      const fetchDefaultLoc = async () => {
+        const token = localStorage.getItem('drivix_auth_token');
+        try {
+          const res = await fetch('http://localhost:5000/api/v1/parking', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.length > 0) {
+              const target = data.find(l => l.parkingName === 'Sharda University') || data[0];
+              const mapped = {
+                id: target._id,
+                name: target.parkingName,
+                address: target.address,
+                pricePerHr: target.hourlyPrice,
+                floors: target.floors || ['L1'],
+                ...target
+              };
+              setLoc(mapped);
+              setSelectedFloor(mapped.floors?.[0] || 'L1');
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching fallback location:', err);
         }
-      });
-      return unsub;
+      };
+      fetchDefaultLoc();
     }
-  }, [loc, selectedFloor]);
+  }, [loc]);
 
   // Fetch slots for selected floor
   useEffect(() => {
     if (!loc) return;
 
-    const slotsRef = collection(doc(db, 'parking_facilities', loc.id), 'slots');
-    const q = query(slotsRef, where('floor', '==', selectedFloor));
-    
-    const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      data.sort((a, b) => {
-        if (a.row !== b.row) return a.row.localeCompare(b.row);
-        return a.number - b.number;
-      });
-      setSlots(data);
-      setLoading(false);
-    });
+    const fetchLocSlots = async () => {
+      const token = localStorage.getItem('drivix_auth_token');
+      try {
+        const res = await fetch(`http://localhost:5000/api/v1/parking/${loc.id}/slots`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Filter by selected floor
+          const filtered = data.filter(s => s.floor === selectedFloor);
+          filtered.sort((a, b) => {
+            if (a.row !== b.row) return a.row.localeCompare(b.row);
+            return a.number - b.number;
+          });
+          setSlots(filtered);
+        }
+      } catch (err) {
+        console.error('Error fetching slots:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return unsub;
+    fetchLocSlots();
   }, [loc, selectedFloor]);
-
-  // Fetch active bookings for this location to verify current occupancy
-  useEffect(() => {
-    if (!loc) return;
-
-    const bookingsRef = collection(db, 'bookings');
-    const q = query(
-      bookingsRef, 
-      where('locationId', '==', loc.id), 
-      where('status', '==', 'booked')
-    );
-    
-    const unsub = onSnapshot(q, (snapshot) => {
-      const bks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setActiveBookings(bks);
-    });
-
-    return unsub;
-  }, [loc]);
 
   const floors = useMemo(() => loc?.floors || ['L1'], [loc]);
 
@@ -191,17 +205,7 @@ const SlotLayout = () => {
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flex: 1, flexWrap: 'wrap' }}>
                           {rowSlots.map((slot) => {
-                             // Dynamic Real-time Availability Logic:
-                             // A slot is "booked" ONLY if there is an active booking record for it
-                             const hasActiveBooking = activeBookings.some(b => b.slotId === slot.id);
-                             
-                             let status = slot.id === selectedSlot ? 'selected' : (hasActiveBooking ? 'booked' : 'available');
-                             
-                             // Optional: If you want to keep 'reserved' support from the DB
-                             if (status === 'available' && slot.status === 'reserved') {
-                               status = 'reserved';
-                             }
-
+                             let status = slot.id === selectedSlot ? 'selected' : (slot.status === 'booked' ? 'booked' : (slot.status === 'reserved' ? 'reserved' : 'available'));
                              const st = SLOT_STATUS[status];
                              const isClickable = status === 'available' || status === 'selected';
 

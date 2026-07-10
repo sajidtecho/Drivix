@@ -4,9 +4,7 @@ import {
   MapPin, Car, Users, Star, ChevronRight, Search,
   Shield, Zap, Clock, Navigation
 } from 'lucide-react';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { db } from '../firebase';
 import seedParkingData from '../ParkingFacility/ShardaParking';
 import loadingCar from '../assets/Loading_car.webm';
 
@@ -24,34 +22,45 @@ const itemVariants = {
 const ParkingList = () => {
   const navigate = useNavigate();
   const [locations, setLocations] = useState([]);
-  const [activeBookingsCount, setActiveBookingsCount] = useState({});
   const [search, setSearch] = useState('');
   const [hoveredId, setHoveredId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
-    const q = query(collection(db, 'parking_facilities'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setLocations(data);
-      setLoading(false);
-    });
-    return unsub;
-  }, []);
+    const fetchLocations = async () => {
+      const token = localStorage.getItem('drivix_auth_token');
+      try {
+        const res = await fetch('http://localhost:5000/api/v1/parking', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Map MongoDB schema to client-side attributes
+          const mapped = data.map(loc => ({
+            id: loc._id || loc.id,
+            name: loc.parkingName,
+            address: loc.address,
+            distance: loc.distance || '1.1 km',
+            totalSlots: loc.totalSlots || 0,
+            availableSlots: loc.availableSlots || 0,
+            pricePerHr: loc.hourlyPrice || 20,
+            rating: loc.rating || 4.7,
+            features: loc.amenities && loc.amenities.length > 0 ? loc.amenities : ['CCTV', 'Covered'],
+            color: loc.color || '#FFCE00',
+            badge: loc.status === 'Active' ? 'Open' : 'Closed',
+            floors: loc.floors || ['L1'],
+            ...loc
+          }));
+          setLocations(mapped);
+        }
+      } catch (err) {
+        console.error('Error fetching parking locations:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Sync active bookings counts for accurate availability counters
-  React.useEffect(() => {
-    const q = query(collection(db, 'bookings'), where('status', '==', 'booked'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const counts = {};
-      snapshot.docs.forEach(doc => {
-        const data = doc.data();
-        const facId = data.locationId;
-        if (facId) counts[facId] = (counts[facId] || 0) + 1;
-      });
-      setActiveBookingsCount(counts);
-    });
-    return unsub;
+    fetchLocations();
   }, []);
 
   const seedRealData = async () => {
@@ -146,10 +155,7 @@ const ParkingList = () => {
             { label: 'Total Slots', value: locations.reduce((a, p) => a + (p.totalSlots || 0), 0), Icon: Car },
             { 
               label: 'Available', 
-              value: locations.reduce((a, p) => {
-                const occupancy = activeBookingsCount[p.id] || 0;
-                return a + Math.max(0, (p.totalSlots || 0) - occupancy);
-              }, 0), 
+              value: locations.reduce((a, p) => a + (p.availableSlots || 0), 0), 
               Icon: Zap 
             }
           ].map((stat) => (
@@ -164,10 +170,8 @@ const ParkingList = () => {
         {/* Location Cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {filtered.map((loc) => {
-            // Calculate REAL availability based on current active bookings
-            const currentOccupancy = activeBookingsCount[loc.id] || 0;
             const total = loc.totalSlots || 0;
-            const dynamicAvailable = Math.max(0, total - currentOccupancy);
+            const dynamicAvailable = loc.availableSlots || 0;
             
             const avColor = availabilityColor(dynamicAvailable, total);
             const pct = total > 0 ? Math.round((dynamicAvailable / total) * 100) : 0;
