@@ -15,16 +15,27 @@ const DocumentSchema = new mongoose.Schema({
 });
 
 const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  fullName: { type: String, required: true },
+  name: { type: String }, // maintained for backward compatibility with frontend forms
+  email: { 
+    type: String, 
+    required: true, 
+    unique: true,
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+  },
+  password: { type: String, required: true, select: false },
   mobile: { type: String, required: true },
   city: { type: String, required: true },
+  profileImage: { type: String, default: '' },
   vehicles: [VehicleSchema],
   documents: [DocumentSchema],
   walletBalance: { type: Number, default: 0 },
   role: { type: String, default: 'user', enum: ['user', 'admin'] },
-  createdAt: { type: Date, default: Date.now }
+  membershipType: { type: String, default: 'Free', enum: ['Free', 'Premium'] },
+  membershipExpiry: { type: Date, default: null },
+  isVerified: { type: Boolean, default: false }
+}, {
+  timestamps: true
 });
 
 // Hash password before saving
