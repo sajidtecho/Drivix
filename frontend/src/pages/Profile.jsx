@@ -9,11 +9,7 @@ import {
   Trash2, ExternalLink, QrCode, Wallet, Loader2, X,
   Calendar, MapPin, Navigation, Clock
 } from 'lucide-react';
-import { db } from '../firebase';
-import {
-  doc, updateDoc, arrayUnion, arrayRemove, collection,
-  query, where, onSnapshot, orderBy, increment, serverTimestamp
-} from 'firebase/firestore';
+
 
 /* ─── Active Booking Card Component ────────────────── */
 const BookingCard = ({ booking, onVacate, onExtend }) => {
@@ -162,6 +158,30 @@ const Profile = () => {
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
 
+  const fetchBookings = async () => {
+    const token = localStorage.getItem('drivix_auth_token');
+    if (!token) return;
+    setLoadingBookings(true);
+    try {
+      const route = user?.role === 'admin' ? 'http://localhost:5000/api/v1/bookings/all' : 'http://localhost:5000/api/v1/bookings/my';
+      const res = await fetch(route, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = data.map(b => ({
+          id: b._id || b.id,
+          ...b
+        }));
+        setBookings(mapped);
+      }
+    } catch (err) {
+      console.error("Booking fetch error:", err);
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
+
   // Protect route and handle data fetch
   useEffect(() => {
     if (loading) return; // Wait for auth state to resolve
@@ -170,30 +190,7 @@ const Profile = () => {
       navigate('/login');
     } else if (user) {
       setEditData({ ...user });
-
-      // Fetch bookings - Removed server-side orderBy to avoid missing index errors
-      const q = query(
-        collection(db, 'bookings'),
-        where('userId', '==', user.uid)
-      );
-
-      setLoadingBookings(true);
-      const unsub = onSnapshot(q, (snapshot) => {
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Sort client-side to ensure stable order without requiring composite index
-        data.sort((a, b) => {
-          const timeA = a.createdAt?.toMillis?.() || a.createdAt || 0;
-          const timeB = b.createdAt?.toMillis?.() || b.createdAt || 0;
-          return timeB - timeA;
-        });
-        setBookings(data);
-        setLoadingBookings(false);
-      }, (err) => {
-        console.error("Booking fetch error:", err);
-        setLoadingBookings(false);
-      });
-
-      return unsub;
+      fetchBookings();
     }
   }, [isAuthenticated, user, navigate, loading]);
 
