@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 import connectDB from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -18,7 +19,8 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Basic Routes
+// Routes
+app.use('/api/auth', authRoutes);
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the Drivix API',
