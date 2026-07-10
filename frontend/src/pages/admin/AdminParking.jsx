@@ -183,12 +183,12 @@ const AdminParking = () => {
               <input 
                 type="text" value={newLocName} onChange={e => setNewLocName(e.target.value)} 
                 placeholder="Facility Name (e.g. DLF Mall)" 
-                style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
+                style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
               />
               <input 
                 type="text" value={newLocAddress} onChange={e => setNewLocAddress(e.target.value)} 
                 placeholder="Address" 
-                style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
+                style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
               />
               <button type="submit" className="btn btn-primary" style={{ padding: '10px', marginTop: '4px' }}>Create Location</button>
             </form>
