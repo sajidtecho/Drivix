@@ -39,9 +39,5 @@ const VehicleSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Explicit Indexes for faster lookup performance
-VehicleSchema.index({ userId: 1 });
-VehicleSchema.index({ vehicleNumber: 1 });
-
 const Vehicle = mongoose.model('Vehicle', VehicleSchema);
 export default Vehicle;
