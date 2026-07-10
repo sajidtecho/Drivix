@@ -330,7 +330,7 @@ const ParkingList = () => {
                 playsInline 
                 style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 16px' }} 
               />
-              <p style={{ color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '2px' }}>CONNECTING TO DATABASE...</p>
+              <p style={{ color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '2px' }}>CONNECTING TO PARKING...</p>
            </div>
         )}
       </div>
