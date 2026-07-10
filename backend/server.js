@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import vehicleRoutes from './routes/vehicleRoutes.js';
+import parkingRoutes from './routes/parkingRoutes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 // Load environment variables
@@ -42,6 +43,7 @@ app.get('/api/v1/health', (req, res) => {
 // Mounted Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/vehicles', vehicleRoutes);
+app.use('/api/v1/parking', parkingRoutes);
 
 // Centralized Error Handling Middlewares
 app.use(notFound);

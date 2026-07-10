@@ -82,6 +82,10 @@ const ParkingLocationSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
+  floors: {
+    type: [String],
+    default: ['L1']
+  },
   status: {
     type: String,
     enum: {

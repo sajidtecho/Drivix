@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const SlotSchema = new mongoose.Schema({
-  facilityId: { type: mongoose.Schema.Types.ObjectId, ref: 'ParkingFacility', required: true },
+  facilityId: { type: mongoose.Schema.Types.ObjectId, ref: 'ParkingLocation', required: true },
   id: { type: String, required: true }, // e.g. 'L1-A1'
   floor: { type: String, required: true }, // e.g. 'L1'
   row: { type: String, required: true }, // e.g. 'A'

@@ -7,7 +7,7 @@ const BookingSchema = new mongoose.Schema({
   mobile: { type: String, required: true },
   vehicleNumber: { type: String, required: true },
   vehicleName: { type: String, required: true },
-  locationId: { type: mongoose.Schema.Types.ObjectId, ref: 'ParkingFacility', required: true },
+  locationId: { type: mongoose.Schema.Types.ObjectId, ref: 'ParkingLocation', required: true },
   locationName: { type: String, required: true },
   slotId: { type: String, required: true }, // e.g. 'A1'
   floor: { type: String, required: true }, // e.g. 'L1'
