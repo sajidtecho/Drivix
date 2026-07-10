@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, ArrowRight, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-import { auth, db, googleProvider } from "../firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber, signInWithPopup } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, googleProvider } from "../firebase";
+import { sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber, signInWithPopup } from "firebase/auth";
+import { useUser } from '../hooks/useUser';
 
 const Auth = () => {
+  const { login, register, loginWithGoogle, loginWithPhone } = useUser();
   const [isLogin, setIsLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -91,10 +92,11 @@ const Auth = () => {
     setError('');
     try {
       await confirmationResult.confirm(otp);
+      await loginWithPhone(formData.mobile);
       navigate('/find');
     } catch (err) {
       console.error(err);
-      setError('Invalid OTP. Please try again.');
+      setError(err.message || 'Invalid OTP. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -107,10 +109,8 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        // Real Login
-        await signInWithEmailAndPassword(auth, formData.email, formData.password);
+        await login(formData.email, formData.password);
 
-        // Handle Remember Me
         if (rememberMe) {
           localStorage.setItem('drivix_remembered_email', formData.email);
         } else {
@@ -119,29 +119,12 @@ const Auth = () => {
 
         navigate('/find');
       } else {
-
-        // Real Signup
-        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        const user = userCredential.user;
-
-        // Create user profile in Firestore
-        await setDoc(doc(db, "users", user.uid), {
-          name: formData.name,
-          email: formData.email,
-          mobile: formData.mobile,
-          city: formData.city,
-          vehicles: [],
-          documents: [],
-          walletBalance: 0,
-          role: "user",
-          createdAt: new Date().toISOString()
-        });
-
+        await register(formData.name, formData.email, formData.password, formData.mobile, formData.city);
         navigate('/find');
       }
     } catch (err) {
       console.error(err);
-      setError(err.message.replace('Firebase: ', ''));
+      setError(err.message || 'Authentication failed');
     } finally {
       setIsLoading(false);
     }
@@ -246,38 +229,19 @@ const Auth = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Ensure Remember Me saves Google email too
       if (rememberMe) {
         localStorage.setItem('drivix_remembered_email', user.email);
       } else {
         localStorage.removeItem('drivix_remembered_email');
       }
 
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
+      const dbUser = await loginWithGoogle(user.displayName, user.email);
 
-      if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-          name: user.displayName || 'Google User',
-          email: user.email,
-          mobile: user.phoneNumber || '',
-          city: '',
-          vehicles: [],
-          documents: [],
-          walletBalance: 0,
-          role: "user",
-          createdAt: new Date().toISOString()
-        });
-        alert("Welcome! Please complete your profile (Mobile number, Name, City) before continuing.");
-        navigate('/profile');
+      if (!dbUser.mobile || !dbUser.city) {
+         alert("Welcome! Please complete your profile details (Mobile number, City) before continuing.");
+         navigate('/profile');
       } else {
-        const data = userDoc.data();
-        if (!data.mobile || !data.city) {
-           alert("Please complete your profile details to continue booking parking slots.");
-           navigate('/profile');
-        } else {
-           navigate('/find');
-        }
+         navigate('/find');
       }
 
     } catch (err) {
@@ -290,7 +254,7 @@ const Auth = () => {
       } else if (err.code === 'auth/operation-not-allowed') {
         setError("Google Login is not enabled in your Firebase Console.");
       } else {
-        setError("Authentication failed: " + err.message.replace('Firebase: ', ''));
+        setError("Authentication failed: " + (err.message || err));
       }
     } finally {
       setIsLoading(false);
