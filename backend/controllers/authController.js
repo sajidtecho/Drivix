@@ -26,7 +26,8 @@ export const registerUser = async (req, res) => {
     const role = email === 'drivixmobility@gmail.com' ? 'admin' : 'user';
 
     const user = await User.create({
-      name,
+      fullName: name || 'Drivix User',
+      name: name || 'Drivix User',
       email,
       password,
       mobile,
@@ -37,6 +38,7 @@ export const registerUser = async (req, res) => {
     if (user) {
       res.status(201).json({
         _id: user._id,
+        fullName: user.fullName,
         name: user.name,
         email: user.email,
         mobile: user.mobile,
@@ -45,6 +47,8 @@ export const registerUser = async (req, res) => {
         walletBalance: user.walletBalance,
         vehicles: user.vehicles,
         documents: user.documents,
+        membershipType: user.membershipType,
+        isVerified: user.isVerified,
         token: generateToken(user._id)
       });
     } else {
@@ -62,11 +66,12 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
 
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id,
+        fullName: user.fullName,
         name: user.name,
         email: user.email,
         mobile: user.mobile,
@@ -75,6 +80,8 @@ export const loginUser = async (req, res) => {
         walletBalance: user.walletBalance,
         vehicles: user.vehicles,
         documents: user.documents,
+        membershipType: user.membershipType,
+        isVerified: user.isVerified,
         token: generateToken(user._id)
       });
     } else {
@@ -127,6 +134,7 @@ export const authGoogle = async (req, res) => {
       const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 
       user = await User.create({
+        fullName: name || 'Google User',
         name: name || 'Google User',
         email,
         password: randomPassword,
@@ -138,6 +146,7 @@ export const authGoogle = async (req, res) => {
 
     res.json({
       _id: user._id,
+      fullName: user.fullName,
       name: user.name,
       email: user.email,
       mobile: user.mobile,
@@ -146,6 +155,8 @@ export const authGoogle = async (req, res) => {
       walletBalance: user.walletBalance,
       vehicles: user.vehicles,
       documents: user.documents,
+      membershipType: user.membershipType,
+      isVerified: user.isVerified,
       token: generateToken(user._id)
     });
   } catch (error) {
@@ -168,6 +179,7 @@ export const authPhone = async (req, res) => {
       const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 
       user = await User.create({
+        fullName: 'Mobile User',
         name: 'Mobile User',
         email,
         password: randomPassword,
@@ -179,6 +191,7 @@ export const authPhone = async (req, res) => {
 
     res.json({
       _id: user._id,
+      fullName: user.fullName,
       name: user.name,
       email: user.email,
       mobile: user.mobile,
@@ -187,6 +200,8 @@ export const authPhone = async (req, res) => {
       walletBalance: user.walletBalance,
       vehicles: user.vehicles,
       documents: user.documents,
+      membershipType: user.membershipType,
+      isVerified: user.isVerified,
       token: generateToken(user._id)
     });
   } catch (error) {
