@@ -5,8 +5,6 @@ import {
   ArrowLeft, User, Phone, Car, Clock, Calendar, ChevronRight, CheckCircle2, Loader2, Shield
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
-import { db } from '../firebase';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import loadingCar from '../assets/Loading_car.webm';
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8];
@@ -242,57 +240,49 @@ const SlotBookingForm = () => {
 
   const handleOTPVerified = async () => {
     setIsSubmitting(true);
+    const token = localStorage.getItem('drivix_auth_token');
+    const bookingId = `DRX-${Date.now().toString(36).toUpperCase()}`;
     try {
-      const bookingId = `DRX-${Date.now().toString(36).toUpperCase()}`;
-      // 1. Save booking document
-      const ref = await addDoc(collection(db, 'bookings'), {
-        bookingId,
-        name,
-        mobile,
-        vehicleNumber: vehicleNumber.toUpperCase().replace(/\s/g, ''),
-        vehicleName,
-        locationId: location?.id,
-        locationName: location?.name,
-        slotId: slot,
-        floor,
-        entryDate,
-        entryTime,
-        duration,
-        totalCost,
-        status: 'booked',
-        userId: user?.uid || null,
-        createdAt: serverTimestamp(),
+      const res = await fetch('http://localhost:5000/api/v1/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          bookingId,
+          name,
+          mobile,
+          vehicleNumber: vehicleNumber.toUpperCase().replace(/\s/g, ''),
+          vehicleName,
+          locationId: location?.id || location?._id,
+          locationName: location?.name || location?.parkingName,
+          slotId: slot,
+          floor,
+          entryDate,
+          entryTime,
+          duration,
+          totalCost
+        })
       });
 
-      // 2. Update real-time slot status in the facility
-      const slotRef = doc(db, 'parking_facilities', location.id, 'slots', slot);
-      await updateDoc(slotRef, { status: 'booked', updatedAt: serverTimestamp() });
-
-      // 3. Decrement available slots count for the facility
-      const facilityRef = doc(db, 'parking_facilities', location.id);
-      await updateDoc(facilityRef, {
-        availableSlots: increment(-1)
-      });
-
-      setBookingData({
-        bookingId,
-        docId: ref.id,
-        name, mobile, vehicleNumber: vehicleNumber.toUpperCase().replace(/\s/g, ''),
-        vehicleName, slotId: slot, floor, entryDate, entryTime, duration, totalCost,
-        locationName: location?.name,
-      });
-      setStep('done');
+      if (res.ok) {
+        const createdBooking = await res.json();
+        setBookingData({
+          bookingId,
+          docId: createdBooking._id || createdBooking.id,
+          name, mobile, vehicleNumber: vehicleNumber.toUpperCase().replace(/\s/g, ''),
+          vehicleName, slotId: slot, floor, entryDate, entryTime, duration, totalCost,
+          locationName: location?.name || location?.parkingName,
+        });
+        setStep('done');
+      } else {
+        const errorData = await res.json();
+        alert('Booking failed: ' + (errorData.message || 'Unknown error'));
+      }
     } catch (err) {
       console.error(err);
-      // Still show ticket in demo mode even if Firestore fails
-      const bookingId = `DRX-${Date.now().toString(36).toUpperCase()}`;
-      setBookingData({
-        bookingId,
-        name, mobile, vehicleNumber: vehicleNumber.toUpperCase().replace(/\s/g, ''),
-        vehicleName, slotId: slot, floor, entryDate, entryTime, duration, totalCost,
-        locationName: location?.name,
-      });
-      setStep('done');
+      alert('Network error placing booking.');
     } finally {
       setIsSubmitting(false);
     }
