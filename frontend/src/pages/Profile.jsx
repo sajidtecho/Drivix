@@ -222,10 +222,12 @@ const Profile = () => {
     if (!newVehicle.plate || !newVehicle.model) return;
     setIsSaving(true);
     try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        vehicles: arrayUnion({ ...newVehicle, id: Date.now().toString(), status: 'Verified' })
-      });
+      const updatedVehicles = [...(user.vehicles || []), {
+        plate: newVehicle.plate,
+        model: newVehicle.model,
+        isPrimary: (user.vehicles || []).length === 0
+      }];
+      await updateUser({ vehicles: updatedVehicles });
       setShowAddVehicle(false);
       setNewVehicle({ plate: '', model: '', type: 'Petrol' });
     } catch (err) {
@@ -237,10 +239,15 @@ const Profile = () => {
 
   const handleRemoveVehicle = async (vehicle) => {
     if (!window.confirm('Remove this vehicle?')) return;
-    const userRef = doc(db, 'users', user.uid);
-    await updateDoc(userRef, {
-      vehicles: arrayRemove(vehicle)
-    });
+    setIsSaving(true);
+    try {
+      const updatedVehicles = (user.vehicles || []).filter(v => v.plate !== vehicle.plate);
+      await updateUser({ vehicles: updatedVehicles });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAddMoney = async () => {
@@ -248,10 +255,8 @@ const Profile = () => {
     if (!amount || isNaN(amount)) return;
     setIsSaving(true);
     try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        walletBalance: (user.walletBalance || 0) + parseFloat(amount)
-      });
+      const newBalance = (user.walletBalance || 0) + parseFloat(amount);
+      await updateUser({ walletBalance: newBalance });
     } catch (err) {
       console.error(err);
     } finally {
@@ -264,16 +269,15 @@ const Profile = () => {
     if (!title) return;
     setIsSaving(true);
     try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        documents: arrayUnion({
-          title,
-          status: 'Pending Verification',
-          expiry: '2027-01-01',
-          color: '#ffcc00',
-          id: Date.now().toString()
-        })
-      });
+      const updatedDocs = [...(user.documents || []), {
+        name: title,
+        type: 'PDF',
+        fileUrl: 'http://placeholder.url',
+        status: 'Pending Verification',
+        expiry: '2027-01-01',
+        color: '#ffcc00'
+      }];
+      await updateUser({ documents: updatedDocs });
     } catch (err) {
       console.error(err);
     } finally {
@@ -285,15 +289,21 @@ const Profile = () => {
     const isAdmin = user?.role === 'admin';
     let dataToExport = bookings;
 
-    // If admin, fetch ALL bookings from the entire system for the dataset
     if (isAdmin) {
+      const token = localStorage.getItem('drivix_auth_token');
       try {
-        const { getDocs, collection } = await import("firebase/firestore");
-        const allSnapshot = await getDocs(collection(db, 'bookings'));
-        dataToExport = allSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const res = await fetch('http://localhost:5000/api/v1/bookings/all', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          dataToExport = await res.json();
+        } else {
+          alert('Admin Export Failed');
+          return;
+        }
       } catch (err) {
         console.error("Admin fetch failed:", err);
-        alert("Admin Export Failed: You might not have permission to read all bookings.");
+        alert("Admin Export Failed");
         return;
       }
     }
@@ -311,9 +321,6 @@ const Profile = () => {
       dataToExport.forEach(b => {
         const row = headers.map(header => {
           let value = b[header] || "";
-          if (value && typeof value === 'object' && value.toMillis) {
-            value = new Date(value.toMillis()).toISOString();
-          }
           return `"${String(value).replace(/"/g, '""')}"`;
         });
         csvRows.push(row.join(","));
@@ -488,24 +495,20 @@ const Profile = () => {
                             onVacate={async (b) => {
                               if (!window.confirm('Are you vacating the slot? This will release the slot for other users.')) return;
 
+                              const token = localStorage.getItem('drivix_auth_token');
                               try {
                                 setIsSaving(true);
-                                // 1. Update booking status to completed (preserved for security history)
-                                await updateDoc(doc(db, 'bookings', b.id), {
-                                  status: 'completed',
-                                  vacatedAt: serverTimestamp()
+                                const res = await fetch(`http://localhost:5000/api/v1/bookings/${b.id || b._id}/vacate`, {
+                                  method: 'PUT',
+                                  headers: { 'Authorization': `Bearer ${token}` }
                                 });
-
-                                // 2. Mark slot as available in the facility record
-                                const slotRef = doc(db, 'parking_facilities', b.locationId, 'slots', b.slotId);
-                                await updateDoc(slotRef, { status: 'available', updatedAt: serverTimestamp() });
-
-                                // 3. Increment available slots count
-                                const facilityRef = doc(db, 'parking_facilities', b.locationId);
-                                await updateDoc(facilityRef, { availableSlots: increment(1) });
-
-                                alert('Thank you for using Drivix! Slot released successfully.');
-                                setBookingSubTab('history'); // Auto-switch to history to see the completed record
+                                if (res.ok) {
+                                  alert('Thank you for using Drivix! Slot released successfully.');
+                                  fetchBookings();
+                                  setBookingSubTab('history');
+                                } else {
+                                  alert('Failed to vacate slot.');
+                                }
                               } catch (err) {
                                 console.error(err);
                               } finally {
@@ -517,17 +520,31 @@ const Profile = () => {
                               if (!hrs || isNaN(hrs)) return;
 
                               const additionalHrs = parseInt(hrs);
-                              const additionalCost = additionalHrs * 60; // Assuming 60/hr
+                              const rate = b.totalCost / (b.duration || 1);
+                              const additionalCost = additionalHrs * rate;
 
                               if (!window.confirm(`Extend booking by ${additionalHrs}h for ₹${additionalCost}?`)) return;
 
+                              const token = localStorage.getItem('drivix_auth_token');
                               try {
                                 setIsSaving(true);
-                                await updateDoc(doc(db, 'bookings', b.id), {
-                                  duration: increment(additionalHrs),
-                                  totalCost: increment(additionalCost)
+                                const res = await fetch(`http://localhost:5000/api/v1/bookings/${b.id || b._id}/extend`, {
+                                  method: 'PUT',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                  },
+                                  body: JSON.stringify({
+                                    additionalHours: additionalHrs,
+                                    additionalCost
+                                  })
                                 });
-                                alert(`Booking extended successfully by ${additionalHrs} hour(s).`);
+                                if (res.ok) {
+                                  alert(`Booking extended successfully by ${additionalHrs} hour(s).`);
+                                  fetchBookings();
+                                } else {
+                                  alert('Failed to extend booking');
+                                }
                               } catch (err) {
                                 console.error(err);
                               } finally {

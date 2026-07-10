@@ -14,6 +14,12 @@ const DocumentSchema = new mongoose.Schema({
   uploadedAt: { type: Date, default: Date.now }
 });
 
+const PaymentMethodSchema = new mongoose.Schema({
+  type: { type: String, required: true },
+  label: { type: String, required: true },
+  provider: { type: String, required: true }
+});
+
 const UserSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   name: { type: String }, // maintained for backward compatibility with frontend forms
@@ -29,6 +35,7 @@ const UserSchema = new mongoose.Schema({
   profileImage: { type: String, default: '' },
   vehicles: [VehicleSchema],
   documents: [DocumentSchema],
+  paymentMethods: [PaymentMethodSchema],
   walletBalance: { type: Number, default: 0 },
   role: { type: String, default: 'user', enum: ['user', 'admin'] },
   membershipType: { type: String, default: 'Free', enum: ['Free', 'Premium'] },
