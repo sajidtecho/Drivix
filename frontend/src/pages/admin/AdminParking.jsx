@@ -1,75 +1,186 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
-import { collection, doc, query, onSnapshot, addDoc, updateDoc, setDoc, deleteDoc } from 'firebase/firestore';
-import { MapPin, Layers, Plus, Car, Check, X, Server, Trash, RefreshCw } from 'lucide-react';
+import { MapPin, Layers, Plus, Car, X, Trash, ShieldAlert } from 'lucide-react';
+import { useUser } from '../../hooks/useUser';
 
 const AdminParking = () => {
+  const { user, loading: userLoading } = useUser();
   const [locations, setLocations] = useState([]);
   const [selectedLocId, setSelectedLocId] = useState(null);
   const [slots, setSlots] = useState([]);
-  
-  // Forms
-  const [newLocName, setNewLocName] = useState('');
-  const [newLocAddress, setNewLocAddress] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // Schema Form States
+  const [parkingName, setParkingName] = useState('');
+  const [parkingCode, setParkingCode] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [stateField, setStateField] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [openingTime, setOpeningTime] = useState('08:00');
+  const [closingTime, setClosingTime] = useState('22:00');
+  const [totalFloors, setTotalFloors] = useState(1);
+  const [hourlyPrice, setHourlyPrice] = useState(30);
+
+  // Slot Management Form States
   const [newFloorName, setNewFloorName] = useState('');
   const [newSlotPrefix, setNewSlotPrefix] = useState('A');
   const [newSlotCount, setNewSlotCount] = useState(10);
   const [selectedFloor, setSelectedFloor] = useState('');
 
   // Fetch Locations
+  const fetchLocations = async () => {
+    const token = localStorage.getItem('drivix_auth_token');
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/v1/parking', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLocations(data);
+      }
+    } catch (err) {
+      console.error('Error fetching locations:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const q = query(collection(db, 'parking_facilities'));
-    const unsub = onSnapshot(q, snap => {
-      setLocations(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    return unsub;
-  }, []);
+    if (user && user.role === 'admin') {
+      fetchLocations();
+    }
+  }, [user]);
 
   // Fetch Slots when location selected
-  useEffect(() => {
+  const fetchSlots = async () => {
     if (!selectedLocId) {
       setSlots([]);
       return;
     }
-    const q = query(collection(db, `parking_facilities/${selectedLocId}/slots`));
-    const unsub = onSnapshot(q, snap => {
-      setSlots(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    return unsub;
-  }, [selectedLocId]);
-
-  const handleCreateLocation = async (e) => {
-    e.preventDefault();
-    if (!newLocName) return;
+    const token = localStorage.getItem('drivix_auth_token');
     try {
-      await addDoc(collection(db, 'parking_facilities'), {
-        name: newLocName,
-        address: newLocAddress,
-        floors: ['L1'],
-        totalSlots: 0,
-        pricePerHr: 10,
-        color: '#FFCE00'
+      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLocId}/slots`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      setNewLocName('');
-      setNewLocAddress('');
-    } catch(err) {
-      console.error(err);
-      alert('Failed to create location');
+      if (res.ok) {
+        const data = await res.json();
+        setSlots(data);
+      }
+    } catch (err) {
+      console.error('Error fetching slots:', err);
     }
   };
 
-  const selectedLoc = locations.find(l => l.id === selectedLocId);
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      fetchSlots();
+    }
+  }, [selectedLocId, user]);
+
+  // Role Guard View
+  if (userLoading) {
+    return (
+      <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>Loading console...</p>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+        <ShieldAlert size={48} color="#ff4b4b" />
+        <h1 style={{ color: '#ff4b4b', fontSize: '1.8rem', fontWeight: 800 }}>Access Denied</h1>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px' }}>
+          This administrative control panel is restricted to verified administrators only. Please log in using an admin account.
+        </p>
+      </div>
+    );
+  }
+
+  const handleCreateLocation = async (e) => {
+    e.preventDefault();
+    if (!parkingName || !parkingCode || !pincode) {
+      alert('Please fill out Name, Code, and Pincode fields.');
+      return;
+    }
+
+    const token = localStorage.getItem('drivix_auth_token');
+    try {
+      const res = await fetch('http://localhost:5000/api/v1/parking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          parkingName,
+          parkingCode,
+          address,
+          city,
+          state: stateField,
+          pincode,
+          latitude: Number(latitude || 28.4727),
+          longitude: Number(longitude || 77.4820),
+          openingTime,
+          closingTime,
+          totalFloors: Number(totalFloors),
+          hourlyPrice: Number(hourlyPrice),
+          floors: ['L1']
+        })
+      });
+
+      if (res.ok) {
+        setParkingName('');
+        setParkingCode('');
+        setAddress('');
+        setCity('');
+        setStateField('');
+        setPincode('');
+        setLatitude('');
+        setLongitude('');
+        setOpeningTime('08:00');
+        setClosingTime('22:00');
+        setTotalFloors(1);
+        setHourlyPrice(30);
+        fetchLocations();
+      } else {
+        const errData = await res.json();
+        alert('Failed to create location: ' + (errData.message || 'Invalid details'));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to create location due to connection error.');
+    }
+  };
+
+  const selectedLoc = locations.find(l => l._id === selectedLocId || l.id === selectedLocId);
 
   const handleAddFloor = async () => {
     if (!newFloorName || !selectedLoc) return;
     if (selectedLoc.floors?.includes(newFloorName)) return alert("Floor already exists");
-    
+
+    const token = localStorage.getItem('drivix_auth_token');
+    const updatedFloors = [...(selectedLoc.floors || []), newFloorName];
     try {
-      await updateDoc(doc(db, 'parking_facilities', selectedLoc.id), {
-        floors: [...(selectedLoc.floors || []), newFloorName]
+      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ floors: updatedFloors })
       });
-      setNewFloorName('');
-    } catch(err) {
+      if (res.ok) {
+        setNewFloorName('');
+        fetchLocations();
+      } else {
+        alert('Failed to add floor');
+      }
+    } catch (err) {
       console.error(err);
     }
   };
@@ -77,16 +188,27 @@ const AdminParking = () => {
   const handleDeleteFloor = async (e, floorName) => {
     e.stopPropagation();
     if (!window.confirm(`Delete the floor '${floorName}' from this location?`)) return;
-    
+
+    const token = localStorage.getItem('drivix_auth_token');
     const updatedFloors = (selectedLoc.floors || []).filter(f => f !== floorName);
     try {
-      await updateDoc(doc(db, 'parking_facilities', selectedLoc.id), {
-        floors: updatedFloors
+      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ floors: updatedFloors })
       });
-      if (selectedFloor === floorName) {
-        setSelectedFloor(updatedFloors.length > 0 ? updatedFloors[0] : '');
+      if (res.ok) {
+        if (selectedFloor === floorName) {
+          setSelectedFloor(updatedFloors.length > 0 ? updatedFloors[0] : '');
+        }
+        fetchLocations();
+      } else {
+        alert('Failed to delete floor');
       }
-    } catch(err) {
+    } catch (err) {
       console.error(err);
     }
   };
@@ -95,44 +217,52 @@ const AdminParking = () => {
     if (!selectedFloor) return alert("Select a floor first");
     if (newSlotCount <= 0) return;
 
+    const token = localStorage.getItem('drivix_auth_token');
     try {
-      // Very basic non-batched loop for simplicity (Firestore allows rapid writes)
-      let added = 0;
-      for (let i = 1; i <= newSlotCount; i++) {
-        const slotId = `${selectedFloor}-${newSlotPrefix}${i}`;
-        // check if exists
-        if(slots.find(s => s.id === slotId)) continue;
-        
-        await setDoc(doc(db, `parking_facilities/${selectedLoc.id}/slots`, slotId), {
-           id: slotId,
-           floor: selectedFloor,
-           row: newSlotPrefix,
-           number: i,
-           status: 'available',
-           updatedAt: new Date()
-        });
-        added++;
-      }
-      
-      // Update totalSlots count
-      await updateDoc(doc(db, 'parking_facilities', selectedLoc.id), {
-         totalSlots: (selectedLoc.totalSlots || 0) + added
+      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}/slots/bulk`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          selectedFloor,
+          newSlotPrefix,
+          newSlotCount
+        })
       });
-      
-      alert(`Successfully added ${added} slots to ${selectedFloor}`);
-    } catch(err) {
+
+      if (res.ok) {
+        const result = await res.json();
+        alert(`Successfully added ${result.added} slots to ${selectedFloor}`);
+        fetchSlots();
+        fetchLocations();
+      } else {
+        const err = await res.json();
+        alert('Failed to generate slots: ' + (err.message || 'Unknown error'));
+      }
+    } catch (err) {
       console.error(err);
     }
   };
 
   const handleDeleteLocation = async (e, locId) => {
-    e.stopPropagation(); // prevent selecting it
+    e.stopPropagation();
     if (!window.confirm("Are you sure you want to completely delete this location? All data will be lost.")) return;
+    const token = localStorage.getItem('drivix_auth_token');
     try {
-      await deleteDoc(doc(db, 'parking_facilities', locId));
-      if (selectedLocId === locId) {
-         setSelectedLocId(null);
-         setSelectedFloor('');
+      const res = await fetch(`http://localhost:5000/api/v1/parking/${locId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        if (selectedLocId === locId) {
+          setSelectedLocId(null);
+          setSelectedFloor('');
+        }
+        fetchLocations();
+      } else {
+        alert('Failed to delete location');
       }
     } catch (err) {
       console.error(err);
@@ -142,23 +272,35 @@ const AdminParking = () => {
   const handleDeleteSlot = async (e, slotId) => {
     e.stopPropagation();
     if (!window.confirm("Delete this slot permanently?")) return;
+    const token = localStorage.getItem('drivix_auth_token');
     try {
-      await deleteDoc(doc(db, `parking_facilities/${selectedLoc.id}/slots`, slotId));
-      await updateDoc(doc(db, 'parking_facilities', selectedLoc.id), {
-         totalSlots: Math.max(0, (selectedLoc.totalSlots || 1) - 1)
+      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}/slots/${slotId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.ok) {
+        fetchSlots();
+        fetchLocations();
+      } else {
+        alert('Failed to delete slot');
+      }
     } catch (err) {
       console.error(err);
     }
   };
 
   const toggleSlotStatus = async (slot) => {
-    const newStatus = slot.status === 'available' ? 'booked' : 'available';
+    const token = localStorage.getItem('drivix_auth_token');
     try {
-      await updateDoc(doc(db, `parking_facilities/${selectedLoc.id}/slots`, slot.id), {
-        status: newStatus
+      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}/slots/${slot.id}/toggle`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-    } catch(err) {
+      if (res.ok) {
+        fetchSlots();
+        fetchLocations();
+      }
+    } catch (err) {
       console.error(err);
     }
   };
@@ -173,24 +315,95 @@ const AdminParking = () => {
       <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
         
         {/* Left Column: Locations List & Create */}
-        <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ flex: '1', minWidth: '350px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
           <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
             <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                <MapPin size={18} color="var(--accent-primary)" /> Add New Location
             </h2>
             <form onSubmit={handleCreateLocation} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <input 
+                  type="text" value={parkingName} onChange={e => setParkingName(e.target.value)} 
+                  placeholder="Facility Name (e.g. DLF Mall)" required
+                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                />
+                <input 
+                  type="text" value={parkingCode} onChange={e => setParkingCode(e.target.value)} 
+                  placeholder="Parking Code (e.g. SU-MLP)" required
+                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                />
+              </div>
+              
               <input 
-                type="text" value={newLocName} onChange={e => setNewLocName(e.target.value)} 
-                placeholder="Facility Name (e.g. DLF Mall)" 
+                type="text" value={address} onChange={e => setAddress(e.target.value)} 
+                placeholder="Street Address" required
                 style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
               />
-              <input 
-                type="text" value={newLocAddress} onChange={e => setNewLocAddress(e.target.value)} 
-                placeholder="Address" 
-                style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
-              />
-              <button type="submit" className="btn btn-primary" style={{ padding: '10px', marginTop: '4px' }}>Create Location</button>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                <input 
+                  type="text" value={city} onChange={e => setCity(e.target.value)} 
+                  placeholder="City" required
+                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                />
+                <input 
+                  type="text" value={stateField} onChange={e => setStateField(e.target.value)} 
+                  placeholder="State" required
+                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                />
+                <input 
+                  type="text" value={pincode} onChange={e => setPincode(e.target.value)} 
+                  placeholder="Pincode (6-digit)" required
+                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <input 
+                  type="number" step="any" value={latitude} onChange={e => setLatitude(e.target.value)} 
+                  placeholder="Latitude (e.g. 28.47)" 
+                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                />
+                <input 
+                  type="number" step="any" value={longitude} onChange={e => setLongitude(e.target.value)} 
+                  placeholder="Longitude (e.g. 77.48)" 
+                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '6px' }}>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Opens</label>
+                  <input 
+                    type="text" value={openingTime} onChange={e => setOpeningTime(e.target.value)} 
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Closes</label>
+                  <input 
+                    type="text" value={closingTime} onChange={e => setClosingTime(e.target.value)} 
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Floors</label>
+                  <input 
+                    type="number" min="1" value={totalFloors} onChange={e => setTotalFloors(Number(e.target.value))} 
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Hourly Price</label>
+                  <input 
+                    type="number" min="0" value={hourlyPrice} onChange={e => setHourlyPrice(Number(e.target.value))} 
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  />
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ padding: '10px', marginTop: '8px' }}>Create Location</button>
             </form>
           </div>
 
@@ -200,37 +413,40 @@ const AdminParking = () => {
                <p style={{ color: 'var(--text-muted)' }}>No locations configured.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {locations.map(loc => (
-                  <div 
-                    key={loc.id} 
-                    onClick={() => {
-                       setSelectedLocId(loc.id);
-                       setSelectedFloor(loc.floors && loc.floors.length > 0 ? loc.floors[0] : '');
-                    }}
-                    style={{ 
-                      padding: '12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
-                      background: selectedLocId === loc.id ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                      color: selectedLocId === loc.id ? '#000' : 'var(--text-primary)',
-                      border: selectedLocId === loc.id ? 'none' : '1px solid var(--glass-border)',
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 800 }}>{loc.name}</div>
-                      <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{loc.totalSlots || 0} Slots • {loc.floors?.length || 0} Floors</div>
-                    </div>
-                    <button 
-                      onClick={(e) => handleDeleteLocation(e, loc.id)}
-                      style={{ 
-                        background: 'rgba(255, 75, 75, 0.1)', border: 'none', borderRadius: '4px', padding: '6px', 
-                        cursor: 'pointer', color: '#ff4b4b', display: 'flex', alignItems: 'center' 
+                {locations.map(loc => {
+                  const locId = loc._id || loc.id;
+                  return (
+                    <div 
+                      key={locId} 
+                      onClick={() => {
+                         setSelectedLocId(locId);
+                         setSelectedFloor(loc.floors && loc.floors.length > 0 ? loc.floors[0] : '');
                       }}
-                      title="Delete Location"
+                      style={{ 
+                        padding: '12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
+                        background: selectedLocId === locId ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                        color: selectedLocId === locId ? '#000' : 'var(--text-primary)',
+                        border: selectedLocId === locId ? 'none' : '1px solid var(--glass-border)',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                      }}
                     >
-                      <Trash size={16} />
-                    </button>
-                  </div>
-                ))}
+                      <div>
+                        <div style={{ fontWeight: 800 }}>{loc.parkingName || loc.name}</div>
+                        <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{loc.totalSlots || 0} Slots • {loc.floors?.length || 0} Floors</div>
+                      </div>
+                      <button 
+                        onClick={(e) => handleDeleteLocation(e, locId)}
+                        style={{ 
+                          background: 'rgba(255, 75, 75, 0.1)', border: 'none', borderRadius: '4px', padding: '6px', 
+                          cursor: 'pointer', color: '#ff4b4b', display: 'flex', alignItems: 'center' 
+                        }}
+                        title="Delete Location"
+                      >
+                        <Trash size={16} />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -239,7 +455,7 @@ const AdminParking = () => {
         {/* Right Column: Selected Location Layout Mgt */}
         <div style={{ flex: '2', minWidth: '400px' }}>
           {!selectedLoc ? (
-             <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px dashed var(--glass-border)' }}>
+             <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px dashed var(--glass-border)', minHeight: '300px' }}>
                <MapPin size={48} color="var(--text-muted)" style={{ marginBottom: '16px' }} />
                <p style={{ color: 'var(--text-secondary)' }}>Select a facility to manage its layout.</p>
              </div>
@@ -249,7 +465,7 @@ const AdminParking = () => {
               {/* Floor Management */}
               <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
                 <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Layers size={20} color="var(--accent-primary)" /> Manage Floors: {selectedLoc.name}
+                  <Layers size={20} color="var(--accent-primary)" /> Manage Floors: {selectedLoc.parkingName || selectedLoc.name}
                 </h2>
                 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '1rem' }}>
@@ -269,7 +485,7 @@ const AdminParking = () => {
                   <input 
                     type="text" value={newFloorName} onChange={e => setNewFloorName(e.target.value.toUpperCase())} 
                     placeholder="E.g. L4, B1" 
-                    style={{ flex: 1, padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
+                    style={{ flex: 1, padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
                   />
                   <button onClick={handleAddFloor} className="btn btn-secondary"><Plus size={16}/> Add Floor</button>
                 </div>
@@ -286,9 +502,9 @@ const AdminParking = () => {
                       {/* Bulk Add Tool */}
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Prefix:</span>
-                        <input type="text" value={newSlotPrefix} onChange={e=>setNewSlotPrefix(e.target.value.toUpperCase())} style={{ width: '40px', padding: '4px', background: 'var(--bg-tertiary)', border: 'none', color: '#fff', textAlign: 'center', borderRadius: '4px' }}/>
+                        <input type="text" value={newSlotPrefix} onChange={e=>setNewSlotPrefix(e.target.value.toUpperCase())} style={{ width: '40px', padding: '4px', background: 'var(--bg-tertiary)', border: 'none', color: '#000', textAlign: 'center', borderRadius: '4px' }}/>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Count:</span>
-                        <input type="number" min="1" max="50" value={newSlotCount} onChange={e=>setNewSlotCount(Number(e.target.value))} style={{ width: '50px', padding: '4px', background: 'var(--bg-tertiary)', border: 'none', color: '#fff', textAlign: 'center', borderRadius: '4px' }}/>
+                        <input type="number" min="1" max="50" value={newSlotCount} onChange={e=>setNewSlotCount(Number(e.target.value))} style={{ width: '50px', padding: '4px', background: 'var(--bg-tertiary)', border: 'none', color: '#000', textAlign: 'center', borderRadius: '4px' }}/>
                         <button onClick={handleBulkAddSlots} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>Generate</button>
                       </div>
                    </div>
@@ -316,7 +532,7 @@ const AdminParking = () => {
                                  background: '#ff4b4b', color: '#fff', border: 'none', borderRadius: '50%',
                                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                  boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
-                               }}
+                                }}
                                title="Delete Slot"
                              >
                                 <X size={12} strokeWidth={3} />
