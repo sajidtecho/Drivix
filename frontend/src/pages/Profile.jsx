@@ -746,8 +746,15 @@ const Profile = () => {
                           <button
                             onClick={async () => {
                               if (!window.confirm('Delete this payment method?')) return;
-                              const userRef = doc(db, 'users', user.uid);
-                              await updateDoc(userRef, { paymentMethods: arrayRemove(pm) });
+                              setIsSaving(true);
+                              try {
+                                const updatedMethods = (user.paymentMethods || []).filter(m => m.label !== pm.label);
+                                await updateUser({ paymentMethods: updatedMethods });
+                              } catch (err) {
+                                console.error(err);
+                              } finally {
+                                setIsSaving(false);
+                              }
                             }}
                             style={{ background: 'none', border: 'none', color: '#ff4b4b', cursor: 'pointer', opacity: 0.6 }}
                           >
@@ -767,10 +774,8 @@ const Profile = () => {
 
                         setIsSaving(true);
                         try {
-                          const userRef = doc(db, 'users', user.uid);
-                          await updateDoc(userRef, {
-                            paymentMethods: arrayUnion({ type, label, provider, id: Date.now().toString() })
-                          });
+                          const updatedMethods = [...(user.paymentMethods || []), { type, label, provider }];
+                          await updateUser({ paymentMethods: updatedMethods });
                         } catch (err) {
                           console.error(err);
                         } finally {

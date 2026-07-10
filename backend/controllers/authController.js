@@ -109,7 +109,8 @@ export const getUserProfile = async (req, res) => {
         role: user.role,
         walletBalance: user.walletBalance,
         vehicles: user.vehicles,
-        documents: user.documents
+        documents: user.documents,
+        paymentMethods: user.paymentMethods
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -225,6 +226,7 @@ export const updateUserProfile = async (req, res) => {
       // Update nested structures if provided
       if (req.body.vehicles) user.vehicles = req.body.vehicles;
       if (req.body.documents) user.documents = req.body.documents;
+      if (req.body.paymentMethods) user.paymentMethods = req.body.paymentMethods;
       
       // Merge wallet updates or additions
       if (req.body.walletBalance !== undefined) {
@@ -248,6 +250,7 @@ export const updateUserProfile = async (req, res) => {
         walletBalance: updatedUser.walletBalance,
         vehicles: updatedUser.vehicles,
         documents: updatedUser.documents,
+        paymentMethods: updatedUser.paymentMethods,
         token: generateToken(updatedUser._id)
       });
     } else {
