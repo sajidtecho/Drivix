@@ -292,3 +292,22 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+// @desc    Update user plan by admin
+// @route   PUT /api/auth/users/:id/plan
+// @access  Private/Admin
+export const updateUserPlan = async (req, res) => {
+  const { plan } = req.body;
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    user.membershipType = plan === 'premium' ? 'Premium' : 'Free';
+    await user.save();
+    res.json({ message: `Plan updated successfully to ${user.membershipType}` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+

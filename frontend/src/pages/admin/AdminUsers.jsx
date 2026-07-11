@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { Loader2, Users, Mail, Phone, Shield, User } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 
 const AdminUsers = () => {
   const [usersInfo, setUsersInfo] = useState([]);
@@ -9,13 +8,20 @@ const AdminUsers = () => {
   const [updatingId, setUpdatingId] = useState(null);
 
   const fetchUsers = async () => {
+    const token = localStorage.getItem('drivix_auth_token');
     try {
-      const querySnapshot = await getDocs(collection(db, 'users'));
-      const data = [];
-      querySnapshot.forEach((docSnap) => {
-        data.push({ id: docSnap.id, ...docSnap.data() });
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/users`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      setUsersInfo(data);
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = data.map(u => ({
+          id: u._id || u.id,
+          plan: (u.membershipType || 'Free').toLowerCase(),
+          ...u
+        }));
+        setUsersInfo(mapped);
+      }
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
@@ -30,10 +36,21 @@ const AdminUsers = () => {
   const handlePlanUpdate = async (id, currentPlan) => {
     const newPlan = currentPlan === 'premium' ? 'free' : 'premium';
     setUpdatingId(id);
+    const token = localStorage.getItem('drivix_auth_token');
     try {
-      const userRef = doc(db, 'users', id);
-      await updateDoc(userRef, { plan: newPlan });
-      setUsersInfo(prev => prev.map(u => u.id === id ? { ...u, plan: newPlan } : u));
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/users/${id}/plan`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ plan: newPlan })
+      });
+      if (res.ok) {
+        setUsersInfo(prev => prev.map(u => u.id === id ? { ...u, plan: newPlan } : u));
+      } else {
+        alert('Failed to update user plan');
+      }
     } catch (error) {
       console.error("Error updating user plan:", error);
     } finally {
@@ -63,109 +80,77 @@ const AdminUsers = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--glass-border)' }}>
-                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>User Profile</th>
+                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>User</th>
                 <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Contact Info</th>
-                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Vehicle Details</th>
-                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Subscription Plan</th>
-                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>City</th>
+                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Current Plan</th>
+                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {usersInfo.map((u) => (
                 <tr key={u.id} style={{ borderBottom: '1px solid var(--glass-border)', transition: 'background 0.2s' }}>
-                  
-                  {/* Name and Role */}
                   <td style={{ padding: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ 
-                         width: '40px', height: '40px', borderRadius: '50%', 
-                         background: u.role === 'admin' ? 'rgba(255, 206, 0, 0.1)' : 'rgba(255,255,255,0.05)', 
-                         color: u.role === 'admin' ? '#FFCE00' : 'var(--text-secondary)',
-                         display: 'flex', alignItems: 'center', justifyContent: 'center' 
+                        width: '40px', height: '40px', borderRadius: '50%', 
+                        background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)'
                       }}>
-                        {u.role === 'admin' ? <Shield size={20} /> : <User size={20} />}
+                        {u.profileImage ? (
+                          <img src={u.profileImage} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <User size={18} />
+                        )}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                          {u.name || 'Incomplete Profile'}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: u.role === 'admin' ? '#FFCE00' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          Role: {u.role || 'user'}
-                        </div>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{u.fullName || u.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>Role: {u.role || 'User'}</div>
                       </div>
                     </div>
                   </td>
-
-                  {/* Contact Info */}
                   <td style={{ padding: '16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                      <Mail size={14} color="var(--accent-primary)" /> {u.email || 'N/A'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                      <Mail size={14} color="var(--text-secondary)" /> {u.email}
                     </div>
                     {u.mobile && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        <Phone size={14} color="var(--accent-primary)" /> {u.mobile}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                        <Phone size={12} /> {u.mobile}
                       </div>
                     )}
                   </td>
-
-                  {/* Vehicle Details */}
-                  <td style={{ padding: '16px' }}>
-                    {u.vehicles && u.vehicles.length > 0 ? (
-                      <div>
-                        <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--glass-border)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '1px', marginBottom: '4px' }}>
-                          {u.vehicles[0].number}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>
-                          {u.vehicles[0].type || 'Vehicle'} • {u.vehicles[0].name || 'Unknown'}
-                        </div>
-                      </div>
-                    ) : (
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No vehicle registered</span>
-                    )}
+                  <td style={{ padding: '16px', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                    {u.city || 'N/A'}
                   </td>
-
-                  {/* Plan Badge */}
                   <td style={{ padding: '16px' }}>
                     <span style={{ 
-                      padding: '6px 14px', 
+                      padding: '4px 10px', 
                       borderRadius: '20px', 
                       fontSize: '0.75rem', 
                       fontWeight: 800, 
                       textTransform: 'uppercase',
-                      background: u.plan === 'premium' ? 'rgba(0, 210, 255, 0.1)' : 'rgba(255,255,255,0.1)',
-                      color: u.plan === 'premium' ? '#00D2FF' : 'var(--text-secondary)'
+                      background: u.plan === 'premium' ? 'rgba(255, 206, 0, 0.15)' : 'rgba(255,255,255,0.08)',
+                      color: u.plan === 'premium' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      border: `1px solid ${u.plan === 'premium' ? 'var(--accent-primary)' : 'var(--glass-border)'}`
                     }}>
-                      {u.plan || 'free'}
+                      {u.plan}
                     </span>
                   </td>
-
-                  {/* Actions */}
-                  <td style={{ padding: '16px', textAlign: 'right' }}>
-                    {u.role !== 'admin' && (
-                      <button 
-                        disabled={updatingId === u.id}
-                        onClick={() => handlePlanUpdate(u.id, u.plan || 'free')}
-                        style={{ 
-                          padding: '8px 16px', 
-                          borderRadius: '8px', 
-                          background: u.plan === 'premium' ? 'transparent' : 'var(--accent-primary)',
-                          border: u.plan === 'premium' ? '1px solid var(--glass-border)' : 'none',
-                          color: u.plan === 'premium' ? 'var(--text-secondary)' : '#000',
-                          fontSize: '0.85rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          opacity: updatingId === u.id ? 0.7 : 1,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}
-                      >
-                        {updatingId === u.id ? <Loader2 size={14} className="animate-spin" /> : null}
-                        {u.plan === 'premium' ? 'Downgrade to Free' : 'Upgrade to Premium'}
-                      </button>
-                    )}
+                  <td style={{ padding: '16px' }}>
+                    <button
+                      className={`btn ${u.plan === 'premium' ? 'btn-secondary' : 'btn-primary'}`}
+                      disabled={updatingId === u.id}
+                      onClick={() => handlePlanUpdate(u.id, u.plan)}
+                      style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      {updatingId === u.id ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Shield size={14} />
+                      )}
+                      {u.plan === 'premium' ? 'Downgrade Access' : 'Upgrade Premium'}
+                    </button>
                   </td>
-                  
                 </tr>
               ))}
             </tbody>

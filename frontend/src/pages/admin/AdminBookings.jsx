@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
-import { Calendar, Car, MapPin, Clock, Phone, Loader2, ArrowUpRight } from 'lucide-react';
+import { Calendar, Car, MapPin, Clock, Phone, Loader2 } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 
 const AdminBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -14,15 +13,19 @@ const AdminBookings = () => {
 
   useEffect(() => {
     const fetchBookings = async () => {
+      const token = localStorage.getItem('drivix_auth_token');
       try {
-        // Query bookings collection, order descending by creation time
-        const q = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const data = [];
-        querySnapshot.forEach((doc) => {
-          data.push({ id: doc.id, ...doc.data() });
+        const res = await fetch(`${API_BASE_URL}/api/v1/bookings/all`, {
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        setBookings(data);
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = data.map(b => ({
+            id: b._id || b.id,
+            ...b
+          }));
+          setBookings(mapped);
+        }
       } catch (error) {
         console.error("Error fetching bookings:", error);
       } finally {
@@ -41,8 +44,8 @@ const AdminBookings = () => {
     if (filterLocation !== 'all' && b.locationName !== filterLocation) return false;
     return true;
   }).sort((a, b) => {
-    const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
-    const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     if (sortBy === 'newest') return timeB - timeA;
     return timeA - timeB;
   });
@@ -126,7 +129,7 @@ const AdminBookings = () => {
                     <td style={{ padding: '16px', fontSize: '0.9rem', fontWeight: 600 }}>
                       {b.bookingId}
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        {b.createdAt ? new Date(b.createdAt.toDate()).toLocaleDateString() : 'N/A'}
+                        {b.createdAt ? new Date(b.createdAt).toLocaleDateString() : 'N/A'}
                       </div>
                     </td>
                     <td style={{ padding: '16px' }}>
@@ -140,43 +143,43 @@ const AdminBookings = () => {
                         </div>
                       )}
                     </td>
-                  <td style={{ padding: '16px' }}>
-                    <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--glass-border)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '1px', marginBottom: '4px' }}>
-                      {b.vehicleNumber}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Car size={12} /> {b.vehicleName}
-                    </div>
-                  </td>
-                  <td style={{ padding: '16px' }}>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{b.locationName}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <MapPin size={12} /> Slot {b.slotId} ({b.floor})
-                    </div>
-                  </td>
-                  <td style={{ padding: '16px' }}>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-                      <Clock size={12} /> {b.entryDate} at {b.entryTime}
-                    </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 800 }}>
-                       ₹{b.totalCost} <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', fontWeight: 500 }}>({b.duration}h)</span>
-                    </div>
-                  </td>
-                  <td style={{ padding: '16px' }}>
-                    <span style={{ 
-                      padding: '4px 10px', 
-                      borderRadius: '20px', 
-                      fontSize: '0.75rem', 
-                      fontWeight: 800, 
-                      textTransform: 'uppercase',
-                      background: b.status === 'booked' ? 'rgba(0, 210, 255, 0.1)' : 'rgba(255,255,255,0.1)',
-                      color: b.status === 'booked' ? '#00D2FF' : 'var(--text-secondary)'
-                    }}>
-                      {b.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    <td style={{ padding: '16px' }}>
+                      <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--glass-border)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '1px', marginBottom: '4px' }}>
+                        {b.vehicleNumber}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Car size={12} /> {b.vehicleName}
+                      </div>
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{b.locationName}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <MapPin size={12} /> Slot {b.slotId} ({b.floor})
+                      </div>
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                        <Clock size={12} /> {b.entryDate} at {b.entryTime}
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 800 }}>
+                        ₹{b.totalCost} <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', fontWeight: 500 }}>({b.duration}h)</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      <span style={{ 
+                        padding: '4px 10px', 
+                        borderRadius: '20px', 
+                        fontSize: '0.75rem', 
+                        fontWeight: 800, 
+                        textTransform: 'uppercase',
+                        background: b.status === 'booked' ? 'rgba(0, 210, 255, 0.1)' : 'rgba(255,255,255,0.1)',
+                        color: b.status === 'booked' ? '#00D2FF' : 'var(--text-secondary)'
+                      }}>
+                        {b.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
