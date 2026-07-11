@@ -1,5 +1,6 @@
 import ParkingLocation from '../models/ParkingLocation.js';
 import Slot from '../models/Slot.js';
+import { calculateDynamicPrice } from '../utils/pricingEngine.js';
 
 // ==========================================
 // PARKING LOCATION CONTROLLERS
@@ -387,6 +388,37 @@ export const releaseSlot = async (req, res) => {
     }
 
     res.json(slot);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get dynamic price recommendation for a parking location
+// @route   GET /api/v1/parking/:facilityId/pricing
+// @access  Private
+export const getPricingRecommendation = async (req, res) => {
+  const { facilityId } = req.params;
+  const { weather, isHoliday, nearbyEvent } = req.query;
+
+  try {
+    const location = await ParkingLocation.findById(facilityId);
+    if (!location) {
+      return res.status(404).json({ message: 'Parking location not found' });
+    }
+
+    const recommendation = calculateDynamicPrice({
+      basePrice: location.hourlyPrice,
+      totalSlots: location.totalSlots,
+      availableSlots: location.availableSlots,
+      weather: weather || 'clear',
+      isHoliday: isHoliday === 'true',
+      nearbyEvent: nearbyEvent === 'true'
+    });
+
+    res.json({
+      locationName: location.parkingName,
+      ...recommendation
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

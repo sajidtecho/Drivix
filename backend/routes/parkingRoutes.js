@@ -9,7 +9,8 @@ import {
   deleteSlot,
   toggleSlot,
   reserveSlot,
-  releaseSlot
+  releaseSlot,
+  getPricingRecommendation
 } from '../controllers/parkingController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -43,5 +44,8 @@ router.route('/:facilityId/slots/:slotId/reserve')
 
 router.route('/:facilityId/slots/:slotId/release')
   .post(releaseSlot);
+
+router.route('/:facilityId/pricing')
+  .get(getPricingRecommendation);
 
 export default router;
