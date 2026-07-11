@@ -1,20 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
-import { collection, doc, query, onSnapshot, updateDoc } from 'firebase/firestore';
 import { DollarSign, Save, RefreshCw, MapPin } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 
 const AdminPricing = () => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
 
-  useEffect(() => {
-    const q = query(collection(db, 'parking_facilities'));
-    const unsub = onSnapshot(q, (snap) => {
-      setLocations(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  const fetchLocations = async () => {
+    const token = localStorage.getItem('drivix_auth_token');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = data.map(loc => ({
+          id: loc._id || loc.id,
+          name: loc.parkingName || loc.name,
+          pricePerHr: loc.hourlyPrice || loc.pricePerHr || 0,
+          ...loc
+        }));
+        setLocations(mapped);
+      }
+    } catch (err) {
+      console.error("Error fetching pricing locations:", err);
+    } finally {
       setLoading(false);
-    });
-    return unsub;
+    }
+  };
+
+  useEffect(() => {
+    fetchLocations();
   }, []);
 
   const handlePriceChange = (id, newPrice) => {
@@ -25,11 +42,19 @@ const AdminPricing = () => {
 
   const savePrice = async (loc) => {
     setSavingId(loc.id);
+    const token = localStorage.getItem('drivix_auth_token');
     try {
-      await updateDoc(doc(db, 'parking_facilities', loc.id), {
-        pricePerHr: loc.pricePerHr
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ hourlyPrice: loc.pricePerHr })
       });
-      // Optional: Add a toast notification here
+      if (!res.ok) {
+        alert("Failed to update price");
+      }
     } catch (err) {
       console.error("Error updating price:", err);
       alert("Failed to update price");
