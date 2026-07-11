@@ -42,7 +42,23 @@ const UserSchema = new mongoose.Schema({
   membershipExpiry: { type: Date, default: null },
   isVerified: { type: Boolean, default: false }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// User → Vehicles (One to Many Virtual)
+UserSchema.virtual('ownedVehicles', {
+  ref: 'Vehicle',
+  localField: '_id',
+  foreignField: 'userId'
+});
+
+// User → Bookings (One to Many Virtual)
+UserSchema.virtual('bookings', {
+  ref: 'Booking',
+  localField: '_id',
+  foreignField: 'userId'
 });
 
 // Hash password before saving

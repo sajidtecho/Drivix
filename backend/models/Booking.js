@@ -22,6 +22,10 @@ const BookingSchema = new mongoose.Schema({
   actualExitTime: { type: Date, default: null },
   finalCost: { type: Number, default: 0 },
   status: { type: String, default: 'booked', enum: ['booked', 'completed', 'cancelled'] },
+  vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', default: null },
+  slotRefId: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot', default: null },
+  paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment', default: null },
+  complaintId: { type: mongoose.Schema.Types.ObjectId, ref: 'Complaint', default: null },
   createdAt: { type: Date, default: Date.now }
 });
 

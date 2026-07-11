@@ -23,7 +23,16 @@ const ParkingFloorSchema = new mongoose.Schema({
     min: [0, 'Available slots cannot be negative']
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// ParkingFloor → Slots (One to Many Virtual)
+ParkingFloorSchema.virtual('slotsList', {
+  ref: 'ParkingSlot',
+  localField: '_id',
+  foreignField: 'floorId'
 });
 
 // Ensure a floor number is unique within a specific parking location

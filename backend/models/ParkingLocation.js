@@ -95,7 +95,16 @@ const ParkingLocationSchema = new mongoose.Schema({
     default: 'Active'
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// ParkingLocation → Floors (One to Many Virtual)
+ParkingLocationSchema.virtual('floorsList', {
+  ref: 'ParkingFloor',
+  localField: '_id',
+  foreignField: 'parkingId'
 });
 
 const ParkingLocation = mongoose.model('ParkingLocation', ParkingLocationSchema);
