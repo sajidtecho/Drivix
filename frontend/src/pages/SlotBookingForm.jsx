@@ -253,6 +253,22 @@ const SlotBookingForm = () => {
 
     setIsSubmitting(true);
     try {
+      // Local Developer Bypass for testing (avoids billing block on Spark Free plan)
+      if (mobile === '7562828719') {
+        setConfirmationResult({
+          confirm: async (code) => {
+            if (code === '123456') {
+              return true;
+            } else {
+              throw new Error("Invalid OTP");
+            }
+          }
+        });
+        setStep('otp');
+        setIsSubmitting(false);
+        return;
+      }
+
       setupRecaptcha();
       const appVerifier = window.recaptchaVerifier;
       const formattedMobile = `+91${mobile}`;
