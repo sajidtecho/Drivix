@@ -303,16 +303,9 @@ const ParkingList = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-card)', border: '1px solid var(--glass-border)' }}>
             <MapPin size={48} color="var(--accent-primary)" style={{ margin: '0 auto 16px', opacity: 0.5 }} />
             <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>No Facilities Found</h3>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto 24px' }}>
-              We couldn't find any parking facilities in your system. Initialize the default configuration to begin.
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto' }}>
+              We couldn't find any parking facilities in your system. Please log in as an administrator to configure new locations.
             </p>
-            <button
-               onClick={seedRealData}
-               className="btn btn-primary"
-               style={{ padding: '14px 30px', fontWeight: 800 }}
-            >
-              Initialize Sharda University MLP
-            </button>
           </motion.div>
         )}
 
