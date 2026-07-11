@@ -50,6 +50,8 @@ export const registerUser = async (req, res) => {
         documents: user.documents,
         membershipType: user.membershipType,
         isVerified: user.isVerified,
+        preferences: user.preferences,
+        notifications: user.notifications,
         token: generateToken(user._id)
       });
     } else {
@@ -83,6 +85,8 @@ export const loginUser = async (req, res) => {
         documents: user.documents,
         membershipType: user.membershipType,
         isVerified: user.isVerified,
+        preferences: user.preferences,
+        notifications: user.notifications,
         token: generateToken(user._id)
       });
     } else {
@@ -111,7 +115,9 @@ export const getUserProfile = async (req, res) => {
         walletBalance: user.walletBalance,
         vehicles: user.vehicles,
         documents: user.documents,
-        paymentMethods: user.paymentMethods
+        paymentMethods: user.paymentMethods,
+        preferences: user.preferences,
+        notifications: user.notifications
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -247,6 +253,8 @@ export const updateUserProfile = async (req, res) => {
       if (req.body.vehicles) user.vehicles = req.body.vehicles;
       if (req.body.documents) user.documents = req.body.documents;
       if (req.body.paymentMethods) user.paymentMethods = req.body.paymentMethods;
+      if (req.body.preferences) user.preferences = req.body.preferences;
+      if (req.body.notifications) user.notifications = req.body.notifications;
       
       // Merge wallet updates or additions
       if (req.body.walletBalance !== undefined) {
@@ -271,6 +279,8 @@ export const updateUserProfile = async (req, res) => {
         vehicles: updatedUser.vehicles,
         documents: updatedUser.documents,
         paymentMethods: updatedUser.paymentMethods,
+        preferences: updatedUser.preferences,
+        notifications: updatedUser.notifications,
         token: generateToken(updatedUser._id)
       });
     } else {

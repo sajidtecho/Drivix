@@ -40,7 +40,16 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, default: 'user', enum: ['user', 'admin'] },
   membershipType: { type: String, default: 'Free', enum: ['Free', 'Premium'] },
   membershipExpiry: { type: Date, default: null },
-  isVerified: { type: Boolean, default: false }
+  isVerified: { type: Boolean, default: false },
+  preferences: {
+    parkingType: { type: String, default: 'Open Space' },
+    evCharging: { type: Boolean, default: false }
+  },
+  notifications: {
+    push: { type: Boolean, default: true },
+    email: { type: Boolean, default: true },
+    whatsapp: { type: Boolean, default: true }
+  }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
