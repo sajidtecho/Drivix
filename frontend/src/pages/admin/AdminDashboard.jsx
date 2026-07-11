@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
 import { db } from '../../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
+import { API_BASE_URL } from '../../config';
 import {
   Users,
   MapPin,
@@ -42,7 +43,7 @@ const AdminDashboard = () => {
         let totalBookings = 0;
         let totalRev = 0;
         try {
-          const bookRes = await fetch('http://localhost:5000/api/v1/bookings/all', {
+          const bookRes = await fetch(`${API_BASE_URL}/api/v1/bookings/all`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (bookRes.ok) {
@@ -61,7 +62,7 @@ const AdminDashboard = () => {
         // Fetch complaints from MongoDB Express API
         let openComplaintsCount = 0;
         try {
-          const compRes = await fetch('http://localhost:5000/api/v1/complaints/all', {
+          const compRes = await fetch(`${API_BASE_URL}/api/v1/complaints/all`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (compRes.ok) {

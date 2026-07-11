@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, Loader2, MessageSquare, User, Clock, Phone, Mail, MapPin, Image as ImageIcon } from 'lucide-react';
 import challanIcon from '../../assets/challan.png';
+import { API_BASE_URL } from '../../config';
 
 const AdminComplaints = () => {
   const [complaints, setComplaints] = useState([]);
@@ -10,7 +11,7 @@ const AdminComplaints = () => {
   const fetchComplaints = async () => {
     const token = localStorage.getItem('drivix_auth_token');
     try {
-      const res = await fetch('http://localhost:5000/api/v1/complaints/all', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/complaints/all`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -32,7 +33,7 @@ const AdminComplaints = () => {
     setUpdatingId(id);
     const token = localStorage.getItem('drivix_auth_token');
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/complaints/${id}/resolve`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/complaints/${id}/resolve`, {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,

@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, MessageSquare, Loader2, CheckCircle2 } from 'lucide-react';
 import { useUser } from '../../hooks/useUser';
-import { db } from '../../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import challanIcon from '../../assets/challan.png';
+import { API_BASE_URL } from '../../config';
 
 const inputStyle = {
   width: '100%',
@@ -50,7 +49,7 @@ const SupportModal = ({ onClose }) => {
 
     try {
       const token = localStorage.getItem('drivix_auth_token');
-      const response = await fetch('http://localhost:5000/api/v1/complaints', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/complaints`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
