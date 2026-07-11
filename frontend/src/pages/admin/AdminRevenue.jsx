@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import { DollarSign, TrendingUp, Calendar, CreditCard, RefreshCw } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 
 const AdminRevenue = () => {
   const [revenueData, setRevenueData] = useState({
@@ -12,27 +11,38 @@ const AdminRevenue = () => {
 
   useEffect(() => {
     const fetchRevenue = async () => {
+      const token = localStorage.getItem('drivix_auth_token');
       try {
-        const q = query(collection(db, 'bookings'), orderBy('date', 'desc'));
-        const snap = await getDocs(q);
-        
-        let total = 0;
-        const list = [];
-        
-        snap.forEach(doc => {
-          const data = doc.data();
-          if (data.status === 'completed' || data.status === 'booked') {
-            const amount = Number(data.totalCost) || 0;
-            total += amount;
-            list.push({ id: doc.id, ...data });
-          }
+        const res = await fetch(`${API_BASE_URL}/api/v1/bookings/all`, {
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        
-        setRevenueData({
-          total,
-          list,
-          loading: false
-        });
+        if (res.ok) {
+          const bookings = await res.json();
+          let total = 0;
+          const list = [];
+          
+          bookings.forEach(b => {
+            if (b.status === 'completed' || b.status === 'booked') {
+              const amount = Number(b.totalCost) || 0;
+              total += amount;
+              list.push({
+                id: b._id || b.id,
+                date: b.entryDate || 'N/A',
+                userName: b.name || 'Guest',
+                locationName: b.locationName || 'N/A',
+                totalCost: b.totalCost || 0,
+                status: b.status,
+                ...b
+              });
+            }
+          });
+          
+          setRevenueData({
+            total,
+            list,
+            loading: false
+          });
+        }
       } catch (err) {
         console.error("Error fetching revenue:", err);
         setRevenueData(prev => ({ ...prev, loading: false }));
