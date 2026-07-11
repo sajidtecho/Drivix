@@ -27,19 +27,50 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const bookingsSnap = await getDocs(collection(db, 'bookings'));
-        const usersSnap = await getDocs(collection(db, 'users'));
+        const token = localStorage.getItem('drivix_auth_token');
 
-        const qComplaints = query(collection(db, 'complaints'), where('status', '==', 'pending'));
-        const complaintsSnap = await getDocs(qComplaints);
+        // Fetch users from Firestore (as fallback until backend endpoint is available)
+        let usersCount = '0';
+        try {
+          const usersSnap = await getDocs(collection(db, 'users'));
+          usersCount = usersSnap.size.toLocaleString();
+        } catch (e) {
+          console.error("Error fetching users from Firestore:", e);
+        }
 
+        // Fetch bookings & revenue from MongoDB Express API
+        let totalBookings = 0;
         let totalRev = 0;
-        bookingsSnap.forEach(doc => {
-          const data = doc.data();
-          if (data.status === 'completed' || data.status === 'booked') {
-            totalRev += (Number(data.totalCost) || 0);
+        try {
+          const bookRes = await fetch('http://localhost:5000/api/v1/bookings/all', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (bookRes.ok) {
+            const bookings = await bookRes.json();
+            totalBookings = bookings.length;
+            bookings.forEach(b => {
+              if (b.status === 'completed' || b.status === 'booked') {
+                totalRev += (Number(b.totalCost) || 0);
+              }
+            });
           }
-        });
+        } catch (e) {
+          console.error("Error fetching bookings from Express API:", e);
+        }
+
+        // Fetch complaints from MongoDB Express API
+        let openComplaintsCount = 0;
+        try {
+          const compRes = await fetch('http://localhost:5000/api/v1/complaints/all', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (compRes.ok) {
+            const complaints = await compRes.json();
+            openComplaintsCount = complaints.filter(c => c.complaintStatus === 'pending').length;
+          }
+        } catch (e) {
+          console.error("Error fetching complaints from Express API:", e);
+        }
 
         // Format revenue (e.g., 12400 -> 12.4k)
         let formattedRev = totalRev.toString();
@@ -48,9 +79,9 @@ const AdminDashboard = () => {
         }
 
         setRealStats({
-          bookingsCount: bookingsSnap.size.toLocaleString(),
-          usersCount: usersSnap.size.toLocaleString(),
-          openComplaints: complaintsSnap.size.toLocaleString(),
+          bookingsCount: totalBookings.toLocaleString(),
+          usersCount: usersCount,
+          openComplaints: openComplaintsCount.toLocaleString(),
           revenue: formattedRev
         });
       } catch (err) {

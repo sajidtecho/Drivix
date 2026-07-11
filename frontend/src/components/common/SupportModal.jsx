@@ -49,18 +49,28 @@ const SupportModal = ({ onClose }) => {
     setError('');
 
     try {
-      await addDoc(collection(db, 'complaints'), {
-        userId: user.uid || 'unknown',
-        userName: user.name || user.email || 'Anonymous user',
-        email: email.trim(),
-        contact: contact.trim(),
-        slotLocation: slotLocation.trim(),
-        issueType: issueType,
-        message: message.trim(),
-        photo: photoData,
-        status: 'pending',
-        createdAt: serverTimestamp()
+      const token = localStorage.getItem('drivix_auth_token');
+      const response = await fetch('http://localhost:5000/api/v1/complaints', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: issueType,
+          description: message.trim(),
+          image: photoData,
+          contact: contact.trim(),
+          email: email.trim(),
+          slotLocation: slotLocation.trim()
+        })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Submission failed');
+      }
+
       setIsSuccess(true);
       setTimeout(() => {
         onClose();

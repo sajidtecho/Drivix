@@ -12,6 +12,18 @@ const ComplaintSchema = new mongoose.Schema(
       ref: 'Booking',
       required: false // Optional, as some complaints may be general or app-related
     },
+    email: {
+      type: String,
+      trim: true
+    },
+    contact: {
+      type: String,
+      trim: true
+    },
+    slotLocation: {
+      type: String,
+      trim: true
+    },
     title: {
       type: String,
       required: [true, 'Title is required'],
