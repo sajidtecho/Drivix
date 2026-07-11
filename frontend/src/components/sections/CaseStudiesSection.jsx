@@ -1,14 +1,15 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, TrendingUp, Users } from 'lucide-react';
-import shardaImg from '../../assets/sharda_parking_solution_1776455072363.png'; // Using the generated image
+import shardaCampusImg from '../../assets/sharda_campus.jpg';
 
 const CASE_STUDIES = [
   {
     id: 'sharda',
     title: 'Solving student parking at Sharda University',
     shortDesc: 'Automating entry for 20,000+ students and staff.',
-    image: shardaImg,
+    image: shardaCampusImg,
     fullStory: {
       problem: "With a massive influx of students and staff daily, the campus faced severe congestion at entry points. Traditional manual ticketing led to 15-minute wait times and unauthorized parking on internal roads.",
       solution: "Drivix implemented a high-speed ANPR (Automatic Number Plate Recognition) system integrated with the Multi-Level Parking (MLP) facility. We launched a dedicated mobile dashboard for students to book slots in advance.",
