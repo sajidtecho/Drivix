@@ -7,6 +7,7 @@ import { sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber } from
 import { useUser } from '../hooks/useUser';
 
 const Auth = () => {
+  const navigate = useNavigate();
   const { login, register, loginWithGoogle, loginWithPhone } = useUser();
   const [isLogin, setIsLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,7 +91,7 @@ const Auth = () => {
   }, [isLogin, rememberMe, handleCredentialResponse]);
 
 
-  const navigate = useNavigate();
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
