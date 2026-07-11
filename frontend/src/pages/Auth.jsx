@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, ArrowRight, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-import { auth, googleProvider } from "../firebase";
-import { sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber, signInWithPopup } from "firebase/auth";
+import { auth } from "../firebase";
+import { sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { useUser } from '../hooks/useUser';
 
 const Auth = () => {
@@ -39,6 +39,55 @@ const Auth = () => {
       setRememberMe(true);
     }
   }, []);
+
+  const handleCredentialResponse = React.useCallback(async (response) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const dbUser = await loginWithGoogle(response.credential);
+
+      if (rememberMe && dbUser.email) {
+        localStorage.setItem('drivix_remembered_email', dbUser.email);
+      }
+
+      if (!dbUser.mobile || !dbUser.city) {
+        alert("Welcome! Please complete your profile details (Mobile number, City) before continuing.");
+        navigate('/profile');
+      } else {
+        navigate('/find');
+      }
+    } catch (err) {
+      console.error("Google Auth Error:", err);
+      setError("Authentication failed: " + (err.message || err));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [rememberMe, loginWithGoogle, navigate]);
+
+  useEffect(() => {
+    const initGoogleSignIn = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '512528352400-placeholder.apps.googleusercontent.com',
+          callback: handleCredentialResponse
+        });
+
+        if (isLogin) {
+          const btnElement = document.getElementById("google-button-container");
+          if (btnElement) {
+            window.google.accounts.id.renderButton(
+              btnElement,
+              { theme: "outline", size: "large", width: 370 }
+            );
+          }
+        }
+      } else {
+        setTimeout(initGoogleSignIn, 500);
+      }
+    };
+
+    initGoogleSignIn();
+  }, [isLogin, rememberMe, handleCredentialResponse]);
 
 
   const navigate = useNavigate();
@@ -222,44 +271,7 @@ const Auth = () => {
   };
 
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      if (rememberMe) {
-        localStorage.setItem('drivix_remembered_email', user.email);
-      } else {
-        localStorage.removeItem('drivix_remembered_email');
-      }
-
-      const dbUser = await loginWithGoogle(user.displayName, user.email);
-
-      if (!dbUser.mobile || !dbUser.city) {
-         alert("Welcome! Please complete your profile details (Mobile number, City) before continuing.");
-         navigate('/profile');
-      } else {
-         navigate('/find');
-      }
-
-    } catch (err) {
-      console.error("Google Auth Error:", err);
-      
-      if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-        setError("Login popup was blocked or closed. Please try again.");
-      } else if (err.code === 'auth/unauthorized-domain') {
-        setError("Domain unauthorized. Please whitelist your Vercel URL in Firebase console.");
-      } else if (err.code === 'auth/operation-not-allowed') {
-        setError("Google Login is not enabled in your Firebase Console.");
-      } else {
-        setError("Authentication failed: " + (err.message || err));
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Deprecated handleGoogleLogin in favor of Google Identity Services SDK callback
 
   return (
     <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '100px', paddingBottom: '60px' }}>
@@ -515,20 +527,15 @@ const Auth = () => {
               <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }}></div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              style={{ width: '100%', padding: '14px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'transparent', color: 'var(--text-primary)', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', transition: 'all 0.2s' }}
-            >
-              <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-              </svg>
-              Continue with Google
-            </button>
+            <div 
+              id="google-button-container"
+              style={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                marginTop: '10px'
+              }}
+            ></div>
           </>
         )}
       </div>

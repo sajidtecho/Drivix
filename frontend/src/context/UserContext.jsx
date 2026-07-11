@@ -100,11 +100,11 @@ export const UserProvider = ({ children }) => {
     return mapUser(data);
   };
 
-  const loginWithGoogle = async (name, email) => {
+  const loginWithGoogle = async (credential) => {
     const response = await fetch(`${API_URL}/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email })
+      body: JSON.stringify({ credential })
     });
 
     const data = await response.json();

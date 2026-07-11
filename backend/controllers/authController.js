@@ -124,9 +124,26 @@ export const getUserProfile = async (req, res) => {
 // @route   POST /api/auth/google
 // @access  Public
 export const authGoogle = async (req, res) => {
-  const { name, email } = req.body;
+  const { credential } = req.body;
 
   try {
+    if (!credential) {
+      return res.status(400).json({ message: 'Google credential is required' });
+    }
+
+    // Verify Google ID Token (JWT) directly via Google's tokeninfo API
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    if (!response.ok) {
+      return res.status(401).json({ message: 'Invalid Google credential token' });
+    }
+
+    const payload = await response.json();
+    const { email, name, picture } = payload;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email address not found in Google account metadata' });
+    }
+
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -141,6 +158,7 @@ export const authGoogle = async (req, res) => {
         password: randomPassword,
         mobile: '',
         city: '',
+        profileImage: picture || '',
         role
       });
     }
@@ -164,6 +182,7 @@ export const authGoogle = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // @desc    Auth/Register user via Phone Login (after client OTP verify)
 // @route   POST /api/auth/phone
