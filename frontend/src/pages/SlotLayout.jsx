@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Car, Layers, Loader2 } from 'lucide-react';
 import loadingCar from '../assets/Loading_car.webm';
@@ -23,17 +22,17 @@ const SlotLayout = () => {
   
   const [loc, setLoc] = useState(locationState?.location ? {
     id: locationState.location._id || locationState.location.id,
-    name: locationState.location.parkingName || locationState.location.name,
+    name: locationState.location.parkingName,
     address: locationState.location.address,
-    pricePerHr: locationState.location.hourlyPrice || locationState.location.pricePerHr,
-    floors: locationState.location.floors || ['L1'],
-    ...locationState.location
+    floors: locationState.location.floors || ['L1']
   } : null);
 
-  const [selectedFloor, setSelectedFloor] = useState(loc?.floors?.[0] || 'L1');
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedFloor, setSelectedFloor] = useState('L1');
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  
+  // Real-time reservation countdown:
   const [reservationExpiry, setReservationExpiry] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
 
@@ -78,21 +77,22 @@ const SlotLayout = () => {
       if (showLoading) setLoading(true);
       const token = localStorage.getItem('drivix_auth_token');
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/slots`, {
+        const res = await fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/slots?floor=${selectedFloor}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
           const data = await res.json();
-          // Filter by selected floor
-          const filtered = data.filter(s => s.floor === selectedFloor);
-          filtered.sort((a, b) => {
-            if (a.row !== b.row) return a.row.localeCompare(b.row);
-            return a.number - b.number;
-          });
-          setSlots(filtered);
+          setSlots(data);
+
+          // Restore selection if slot is still reserved under our name
+          const ourReservedSlot = data.find(s => s.status === 'temporarily_reserved' && s.reservedBy === localStorage.getItem('drivix_user_uid'));
+          if (ourReservedSlot) {
+            setSelectedSlot(ourReservedSlot.id);
+            setReservationExpiry(new Date(ourReservedSlot.reservationExpiresAt));
+          }
         }
       } catch (err) {
-        console.error('Error fetching slots:', err);
+        console.error("Error fetching slots:", err);
       } finally {
         if (showLoading) setLoading(false);
       }
@@ -100,55 +100,58 @@ const SlotLayout = () => {
 
     fetchLocSlots(true);
 
-    // Poll for status changes every 5 seconds (only when tab is actively focused)
-    const pollInterval = setInterval(() => {
+    // Visibility-aware smart background interval (failsafe fallback for serverless hosting)
+    const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         fetchLocSlots(false);
       }
-    }, 5000);
+    }, 4000);
 
-    return () => clearInterval(pollInterval);
+    return () => clearInterval(interval);
   }, [loc, selectedFloor]);
 
-  // Connect to Socket.io with fail-silent fallback
+  // Connect Socket.IO for immediate state synchronization
   useEffect(() => {
-    let socket;
-    try {
-      // Connect to root backend server
-      const socketUrl = API_BASE_URL.replace('/api/v1', '');
-      socket = io(socketUrl, {
-        transports: ['websocket'],
-        reconnectionAttempts: 3
-      });
+    if (!loc) return;
 
-      socket.on('connect', () => {
-        console.log('🔌 Connected to Socket.IO for real-time slots');
-      });
+    const socket = io(API_BASE_URL.replace('/api/v1', ''), {
+      transports: ['websocket'],
+      upgrade: false
+    });
 
-      socket.on('slotStatusUpdated', (data) => {
-        if (data.facilityId === loc?.id) {
-          setSlots(prev => prev.map(s => {
-            if (s.id === data.id) {
-              return {
-                ...s,
-                status: data.status,
-                reservationExpiresAt: data.reservationExpiresAt
-              };
-            }
-            return s;
-          }));
+    socket.on('connect', () => {
+      console.log('Connected to real-time slots server via Socket.IO');
+    });
+
+    socket.on('slotStatusUpdated', (event) => {
+      if (event.facilityId === loc.id) {
+        setSlots((prevSlots) =>
+          prevSlots.map((slot) =>
+            slot.id === event.id
+              ? {
+                  ...slot,
+                  status: event.status,
+                  reservationExpiresAt: event.reservationExpiresAt,
+                  reservedBy: event.reservedBy || slot.reservedBy
+                }
+              : slot
+          )
+        );
+
+        // If the slot we currently hold was released by the server, clear local selection
+        if (event.id === selectedSlot && event.status === 'available') {
+          setSelectedSlot(null);
+          setReservationExpiry(null);
         }
-      });
-    } catch (err) {
-      console.warn("Socket.io connection failed, falling back to polling", err);
-    }
+      }
+    });
 
     return () => {
-      if (socket) socket.disconnect();
+      socket.disconnect();
     };
-  }, [loc]);
+  }, [loc, selectedSlot]);
 
-  // Handle Reservation Countdown Timer
+  // Handle active countdown timers
   useEffect(() => {
     if (!reservationExpiry) {
       setTimeLeft(0);
@@ -169,7 +172,7 @@ const SlotLayout = () => {
     updateTimer();
     const timerId = setInterval(updateTimer, 1000);
     return () => clearInterval(timerId);
-  }, [reservationExpiry]);
+  }, [reservationExpiry, showToast]);
 
   // Release slot on unmount if it's still reserved
   useEffect(() => {
