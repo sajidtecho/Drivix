@@ -327,36 +327,36 @@ const AdminParking = () => {
                 <input 
                   type="text" value={parkingName} onChange={e => setParkingName(e.target.value)} 
                   placeholder="Facility Name (e.g. DLF Mall)" required
-                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
                 />
                 <input 
                   type="text" value={parkingCode} onChange={e => setParkingCode(e.target.value)} 
                   placeholder="Parking Code (e.g. SU-MLP)" required
-                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
                 />
               </div>
               
               <input 
                 type="text" value={address} onChange={e => setAddress(e.target.value)} 
                 placeholder="Street Address" required
-                style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
               />
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 <input 
                   type="text" value={city} onChange={e => setCity(e.target.value)} 
                   placeholder="City" required
-                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
                 />
                 <input 
                   type="text" value={stateField} onChange={e => setStateField(e.target.value)} 
                   placeholder="State" required
-                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
                 />
                 <input 
                   type="text" value={pincode} onChange={e => setPincode(e.target.value)} 
                   placeholder="Pincode (6-digit)" required
-                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
                 />
               </div>
 
@@ -364,12 +364,12 @@ const AdminParking = () => {
                 <input 
                   type="number" step="any" value={latitude} onChange={e => setLatitude(e.target.value)} 
                   placeholder="Latitude (e.g. 28.47)" 
-                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
                 />
                 <input 
                   type="number" step="any" value={longitude} onChange={e => setLongitude(e.target.value)} 
                   placeholder="Longitude (e.g. 77.48)" 
-                  style={{ padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
                 />
               </div>
 
