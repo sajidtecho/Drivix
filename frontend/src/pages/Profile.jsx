@@ -385,6 +385,39 @@ const Profile = () => {
                padding: 24px !important;
             }
           }
+          .info-group p {
+            word-break: break-all;
+            overflow-wrap: break-word;
+          }
+          @media (max-width: 576px) {
+            .personal-info-grid {
+              grid-template-columns: 1fr !important;
+              gap: 16px !important;
+            }
+            .vehicle-card {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+              gap: 16px !important;
+              padding: 16px !important;
+            }
+            .vehicle-actions {
+              width: 100%;
+              flex-direction: row !important;
+              justify-content: space-between !important;
+              align-items: center !important;
+              border-top: 1px solid var(--glass-border);
+              padding-top: 16px;
+              margin-top: 8px;
+            }
+            .add-vehicle-form {
+              grid-template-columns: 1fr !important;
+              gap: 12px !important;
+            }
+            .add-vehicle-form button {
+              width: 100%;
+              margin-top: 8px;
+            }
+          }
         `}</style>
 
         {/* Sidebar / Top Nav */}
@@ -603,7 +636,7 @@ const Profile = () => {
                   )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                <div className="personal-info-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
                   <div className="info-group">
                     <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Full Name</label>
                     {isEditing ? (
@@ -637,33 +670,6 @@ const Profile = () => {
 
             {activeTab === 'vehicles' && (
               <section>
-                <style>{`
-                  @media (max-width: 576px) {
-                    .vehicle-card {
-                      flex-direction: column !important;
-                      align-items: flex-start !important;
-                      gap: 16px !important;
-                      padding: 16px !important;
-                    }
-                    .vehicle-actions {
-                      width: 100%;
-                      flex-direction: row !important;
-                      justify-content: space-between !important;
-                      align-items: center !important;
-                      border-top: 1px solid var(--glass-border);
-                      padding-top: 16px;
-                      margin-top: 8px;
-                    }
-                    .add-vehicle-form {
-                      grid-template-columns: 1fr !important;
-                      gap: 12px !important;
-                    }
-                    .add-vehicle-form button {
-                      width: 100%;
-                      margin-top: 8px;
-                    }
-                  }
-                `}</style>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                   <h2 style={{ fontSize: '1.8rem', fontWeight: 700 }}>My Vehicles</h2>
                   <button onClick={() => setShowAddVehicle(true)} className="btn btn-primary" style={{ padding: '10px 20px', fontSize: '0.85rem' }}>
