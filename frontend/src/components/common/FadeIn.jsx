@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const FadeIn = ({ children, delay = 0, y = 20 }) => (
+const FadeIn = ({ children, delay = 0, y = 20, className = '', style = {} }) => (
   <motion.div
+    className={className}
+    style={style}
     initial={{ opacity: 0, y }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: '-50px' }}
