@@ -1,5 +1,6 @@
 /* global process */
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 
 // Generate Token
@@ -305,6 +306,26 @@ export const updateUserPlan = async (req, res) => {
     user.membershipType = plan === 'premium' ? 'Premium' : 'Free';
     await user.save();
     res.json({ message: `Plan updated successfully to ${user.membershipType}` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get public statistics (counts of users and facilities)
+// @route   GET /api/auth/public-stats
+// @access  Public
+export const getPublicStats = async (req, res) => {
+  try {
+    const userCount = await User.countDocuments({});
+    
+    // Dynamically retrieve ParkingLocation model to avoid circular imports
+    const ParkingLocation = mongoose.model('ParkingLocation');
+    const facilityCount = await ParkingLocation.countDocuments({});
+    
+    res.json({
+      users: userCount || 0,
+      facilities: facilityCount || 0
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

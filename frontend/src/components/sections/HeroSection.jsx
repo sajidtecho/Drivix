@@ -5,6 +5,7 @@ import { Map, ArrowRight, Search } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
 import heroImage from '../../assets/HeroSection.png';
 import { useUser } from '../../hooks/useUser';
+import { API_BASE_URL } from '../../config';
 
 
 
@@ -12,6 +13,25 @@ const HeroSection = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState('parking'); // 'parking' | 'challan' | 'fastag'
   const [vehicleNumber, setVehicleNumber] = React.useState('');
+  const [stats, setStats] = React.useState({ users: 0, facilities: 0 });
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/auth/public-stats`);
+        if (res.ok) {
+          const data = await res.json();
+          setStats({
+            users: data.users || 0,
+            facilities: data.facilities || 0
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const TABS = [
     { id: 'parking', label: 'Parking', placeholder: 'Enter City, Mall or Building' },
@@ -230,12 +250,16 @@ const HeroSection = () => {
             {/* Credibility Stat */}
             <div style={{ display: 'flex', gap: '40px' }} className="hero-stat-container">
               <div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>1M+</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>
+                  {stats.users > 0 ? `${stats.users}` : '0'}
+                </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Happy Users</div>
               </div>
               <div style={{ width: '1px', background: 'var(--glass-border)', height: '32px', alignSelf: 'center' }} />
               <div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>500+</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>
+                  {stats.facilities > 0 ? `${stats.facilities}` : '0'}
+                </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Facilities</div>
               </div>
             </div>
