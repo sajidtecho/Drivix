@@ -5,6 +5,7 @@ import { Car, Layers, Loader2 } from 'lucide-react';
 import loadingCar from '../assets/Loading_car.webm';
 import { API_BASE_URL } from '../config';
 import { io } from 'socket.io-client';
+import { useToast } from '../context/ToastContext';
 
 const SLOT_STATUS = {
   available:             { label: 'Available',            color: '#00cc6a', bg: 'rgba(0,204,106,0.12)',  border: 'rgba(0,204,106,0.35)' },
@@ -18,6 +19,7 @@ const SLOT_STATUS = {
 const SlotLayout = () => {
   const navigate = useNavigate();
   const { state: locationState } = useLocation();
+  const { showToast } = useToast();
   
   const [loc, setLoc] = useState(locationState?.location ? {
     id: locationState.location._id || locationState.location.id,
@@ -160,7 +162,7 @@ const SlotLayout = () => {
       if (remaining === 0) {
         setSelectedSlot(null);
         setReservationExpiry(null);
-        alert("Your 5-minute temporary slot reservation has expired. Please select a slot again.");
+        showToast("Your 5-minute temporary slot reservation has expired. Please select a slot again.", "warning");
       }
     };
 
@@ -197,7 +199,7 @@ const SlotLayout = () => {
     
     // 1. If slot is already booked, occupied, maintenance, or reserved by another user
     if (status === 'booked' || status === 'occupied' || status === 'maintenance' || status === 'temporarily_reserved') {
-      alert("This slot is currently being booked by another user. Please choose another available slot.");
+      showToast("This slot is currently being booked by another user. Please choose another available slot.", "error");
       return;
     }
 
@@ -241,11 +243,11 @@ const SlotLayout = () => {
         setReservationExpiry(new Date(updatedSlot.reservationExpiresAt));
       } else {
         const errData = await res.json();
-        alert(errData.message || "This slot is currently being booked by another user. Please choose another available slot.");
+        showToast(errData.message || "This slot is currently being booked by another user. Please choose another available slot.", "error");
       }
     } catch (err) {
       console.error("Error reserving slot:", err);
-      alert("Could not reserve slot. Please try again.");
+      showToast("Could not reserve slot. Please try again.", "error");
     }
   };
 
