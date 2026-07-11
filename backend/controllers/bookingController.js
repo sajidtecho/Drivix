@@ -24,13 +24,20 @@ export const createBooking = async (req, res) => {
   } = req.body;
 
   try {
-    // 1. Verify Slot is available
+    // 1. Verify Slot is available (or reserved by the current user)
     const slot = await Slot.findOne({ facilityId: locationId, id: slotId });
     if (!slot) {
       return res.status(404).json({ message: 'Slot not found' });
     }
-    if (slot.status !== 'available') {
-      return res.status(400).json({ message: 'Slot is already booked' });
+    
+    const now = new Date();
+    const isReservedByMe = slot.status === 'temporarily_reserved' &&
+                           slot.reservedBy &&
+                           slot.reservedBy.toString() === req.user._id.toString() &&
+                           slot.reservationExpiresAt > now;
+
+    if (slot.status !== 'available' && !isReservedByMe) {
+      return res.status(400).json({ message: 'This slot is currently occupied or reserved by another user.' });
     }
 
     // 2. Create the booking document linked to logged-in user
@@ -59,9 +66,22 @@ export const createBooking = async (req, res) => {
       status: 'booked'
     });
 
-    // 3. Mark the slot as booked
+    // 3. Mark the slot as booked and clear reservation details
     slot.status = 'booked';
+    slot.reservedBy = null;
+    slot.reservationExpiresAt = null;
     await slot.save();
+
+    // Emit Socket.io update to all connected clients!
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('slotStatusUpdated', {
+        facilityId: locationId,
+        id: slotId,
+        status: 'booked',
+        reservationExpiresAt: null
+      });
+    }
 
     // 4. Decrement available slots on the parent location
     await ParkingLocation.findByIdAndUpdate(locationId, {

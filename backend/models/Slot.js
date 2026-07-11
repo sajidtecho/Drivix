@@ -6,7 +6,9 @@ const SlotSchema = new mongoose.Schema({
   floor: { type: String, required: true }, // e.g. 'L1'
   row: { type: String, required: true }, // e.g. 'A'
   number: { type: Number, required: true }, // e.g. 1
-  status: { type: String, default: 'available', enum: ['available', 'booked', 'reserved'] },
+  status: { type: String, default: 'available', enum: ['available', 'temporarily_reserved', 'booked', 'occupied', 'maintenance'] },
+  reservedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  reservationExpiresAt: { type: Date, default: null },
   updatedAt: { type: Date, default: Date.now }
 });
 

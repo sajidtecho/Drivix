@@ -7,7 +7,9 @@ import {
   getSlots,
   bulkAddSlots,
   deleteSlot,
-  toggleSlot
+  toggleSlot,
+  reserveSlot,
+  releaseSlot
 } from '../controllers/parkingController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -35,5 +37,11 @@ router.route('/:facilityId/slots/:slotId')
 
 router.route('/:facilityId/slots/:slotId/toggle')
   .put(toggleSlot);
+
+router.route('/:facilityId/slots/:slotId/reserve')
+  .post(reserveSlot);
+
+router.route('/:facilityId/slots/:slotId/release')
+  .post(releaseSlot);
 
 export default router;

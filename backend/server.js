@@ -1,4 +1,7 @@
 import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import Slot from './models/Slot.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -53,7 +56,54 @@ app.use('/api/v1/complaints', complaintRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
+// Create HTTP Server and bind Socket.IO
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+app.set('socketio', io);
+
+io.on('connection', (socket) => {
+  console.log(`🔌 Client connected: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`🔌 Client disconnected: ${socket.id}`);
+  });
+});
+
+// Periodically release expired temporary slot reservations (runs every 10 seconds)
+setInterval(async () => {
+  try {
+    const now = new Date();
+    const expiredSlots = await Slot.find({
+      status: 'temporarily_reserved',
+      reservationExpiresAt: { $lt: now }
+    });
+
+    if (expiredSlots.length > 0) {
+      console.log(`🧹 Releasing ${expiredSlots.length} expired reservations`);
+      for (const slot of expiredSlots) {
+        slot.status = 'available';
+        slot.reservedBy = null;
+        slot.reservationExpiresAt = null;
+        await slot.save();
+
+        io.emit('slotStatusUpdated', {
+          facilityId: slot.facilityId,
+          id: slot.id,
+          status: 'available',
+          reservationExpiresAt: null
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Error during expired slot cleanup:', err);
+  }
+}, 10000);
+
 // Start Server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

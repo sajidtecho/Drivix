@@ -1,15 +1,18 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Car, Layers, Loader2 } from 'lucide-react';
 import loadingCar from '../assets/Loading_car.webm';
 import { API_BASE_URL } from '../config';
+import { io } from 'socket.io-client';
 
 const SLOT_STATUS = {
-  available: { label: 'Available', color: '#00cc6a', bg: 'rgba(0,204,106,0.12)', border: 'rgba(0,204,106,0.35)' },
-  booked:    { label: 'Booked',    color: '#ff4b4b', bg: 'rgba(255,75,75,0.12)',  border: 'rgba(255,75,75,0.35)' },
-  reserved:  { label: 'Reserved',  color: '#FFAD00', bg: 'rgba(255,173,0,0.12)', border: 'rgba(255,173,0,0.35)' },
-  selected:  { label: 'Selected',  color: 'var(--accent-primary)', bg: 'rgba(255,206,0,0.15)', border: 'var(--accent-primary)' },
+  available:             { label: 'Available',            color: '#00cc6a', bg: 'rgba(0,204,106,0.12)',  border: 'rgba(0,204,106,0.35)' },
+  temporarily_reserved:  { label: 'Temporarily Reserved', color: '#FFCE00', bg: 'rgba(255,206,0,0.12)',  border: 'rgba(255,206,0,0.35)' },
+  booked:                { label: 'Booking Confirmed',    color: '#0090FF', bg: 'rgba(0,144,255,0.12)',  border: 'rgba(0,144,255,0.35)' },
+  occupied:              { label: 'Occupied',             color: '#ff4b4b', bg: 'rgba(255,75,75,0.12)',   border: 'rgba(255,75,75,0.35)' },
+  maintenance:           { label: 'Maintenance',          color: '#8a8a8a', bg: 'rgba(138,138,138,0.12)', border: 'rgba(138,138,138,0.35)' },
+  selected:              { label: 'Selected by You',      color: 'var(--accent-primary)', bg: 'rgba(255,206,0,0.15)', border: 'var(--accent-primary)' },
 };
 
 const SlotLayout = () => {
@@ -29,6 +32,8 @@ const SlotLayout = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reservationExpiry, setReservationExpiry] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   // Fetch locations list to set default location if not passed in state
   useEffect(() => {
@@ -103,6 +108,80 @@ const SlotLayout = () => {
     return () => clearInterval(pollInterval);
   }, [loc, selectedFloor]);
 
+  // Connect to Socket.io with fail-silent fallback
+  useEffect(() => {
+    let socket;
+    try {
+      // Connect to root backend server
+      const socketUrl = API_BASE_URL.replace('/api/v1', '');
+      socket = io(socketUrl, {
+        transports: ['websocket'],
+        reconnectionAttempts: 3
+      });
+
+      socket.on('connect', () => {
+        console.log('🔌 Connected to Socket.IO for real-time slots');
+      });
+
+      socket.on('slotStatusUpdated', (data) => {
+        if (data.facilityId === loc?.id) {
+          setSlots(prev => prev.map(s => {
+            if (s.id === data.id) {
+              return {
+                ...s,
+                status: data.status,
+                reservationExpiresAt: data.reservationExpiresAt
+              };
+            }
+            return s;
+          }));
+        }
+      });
+    } catch (err) {
+      console.warn("Socket.io connection failed, falling back to polling", err);
+    }
+
+    return () => {
+      if (socket) socket.disconnect();
+    };
+  }, [loc]);
+
+  // Handle Reservation Countdown Timer
+  useEffect(() => {
+    if (!reservationExpiry) {
+      setTimeLeft(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const remaining = Math.max(0, Math.round((new Date(reservationExpiry) - new Date()) / 1000));
+      setTimeLeft(remaining);
+
+      if (remaining === 0) {
+        setSelectedSlot(null);
+        setReservationExpiry(null);
+        alert("Your 5-minute temporary slot reservation has expired. Please select a slot again.");
+      }
+    };
+
+    updateTimer();
+    const timerId = setInterval(updateTimer, 1000);
+    return () => clearInterval(timerId);
+  }, [reservationExpiry]);
+
+  // Release slot on unmount if it's still reserved
+  useEffect(() => {
+    return () => {
+      if (selectedSlot && loc?.id) {
+        const token = localStorage.getItem('drivix_auth_token');
+        fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/slots/${selectedSlot}/release`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(err => console.error("Error releasing slot on unmount:", err));
+      }
+    };
+  }, [selectedSlot, loc]);
+
   const floors = useMemo(() => loc?.floors || ['L1'], [loc]);
 
   const slotRows = useMemo(() => {
@@ -113,10 +192,62 @@ const SlotLayout = () => {
     }, {});
   }, [slots]);
 
-  const handleSlotClick = useCallback((slotId, status) => {
-    if (status === 'booked' || status === 'reserved') return;
-    setSelectedSlot(prev => prev === slotId ? null : slotId);
-  }, []);
+  const handleSlotClick = async (slotId, status) => {
+    const token = localStorage.getItem('drivix_auth_token');
+    
+    // 1. If slot is already booked, occupied, maintenance, or reserved by another user
+    if (status === 'booked' || status === 'occupied' || status === 'maintenance' || status === 'temporarily_reserved') {
+      alert("This slot is currently being booked by another user. Please choose another available slot.");
+      return;
+    }
+
+    // 2. If slot is already selected by current user -> release it
+    if (slotId === selectedSlot) {
+      try {
+        setSelectedSlot(null);
+        setReservationExpiry(null);
+        setTimeLeft(0);
+        await fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/slots/${slotId}/release`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (err) {
+        console.error("Error releasing slot:", err);
+      }
+      return;
+    }
+
+    // 3. If another slot was selected previously -> release it first
+    if (selectedSlot) {
+      try {
+        await fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/slots/${selectedSlot}/release`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (err) {
+        console.error("Error releasing previous slot:", err);
+      }
+    }
+
+    // 4. Reserve the new slot
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/slots/${slotId}/reserve`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const updatedSlot = await res.json();
+        setSelectedSlot(slotId);
+        setReservationExpiry(new Date(updatedSlot.reservationExpiresAt));
+      } else {
+        const errData = await res.json();
+        alert(errData.message || "This slot is currently being booked by another user. Please choose another available slot.");
+      }
+    } catch (err) {
+      console.error("Error reserving slot:", err);
+      alert("Could not reserve slot. Please try again.");
+    }
+  };
 
   return (
     <div style={{ paddingTop: '90px', minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -216,7 +347,21 @@ const SlotLayout = () => {
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flex: 1, flexWrap: 'wrap' }}>
                           {rowSlots.map((slot) => {
-                             let status = slot.id === selectedSlot ? 'selected' : (slot.status === 'booked' ? 'booked' : (slot.status === 'reserved' ? 'reserved' : 'available'));
+                             const isTempReserved = slot.status === 'temporarily_reserved' && new Date(slot.reservationExpiresAt) > new Date();
+                             
+                             let status = 'available';
+                             if (slot.id === selectedSlot) {
+                               status = 'selected';
+                             } else if (isTempReserved) {
+                               status = 'temporarily_reserved';
+                             } else if (slot.status === 'booked') {
+                               status = 'booked';
+                             } else if (slot.status === 'occupied') {
+                               status = 'occupied';
+                             } else if (slot.status === 'maintenance') {
+                               status = 'maintenance';
+                             }
+
                              const st = SLOT_STATUS[status];
                              const isClickable = status === 'available' || status === 'selected';
 
@@ -252,6 +397,27 @@ const SlotLayout = () => {
               )}
             </div>
           </motion.div>
+        </AnimatePresence>
+
+        {/* Reservation Countdown Alert */}
+        <AnimatePresence>
+          {selectedSlot && timeLeft > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="glass-panel"
+              style={{
+                padding: '16px', borderRadius: 'var(--radius-card)', marginBottom: '24px',
+                background: 'rgba(255, 206, 0, 0.08)', border: '1.5px solid var(--accent-primary)',
+                textAlign: 'center'
+              }}
+            >
+              <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: 'var(--accent-primary)' }}>
+                ⚠️ Slot {selectedSlot} reserved temporarily. Complete booking in <strong>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</strong>
+              </p>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* Selected Slot Information */}
