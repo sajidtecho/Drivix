@@ -63,11 +63,12 @@ const SlotLayout = () => {
     }
   }, [loc]);
 
-  // Fetch slots for selected floor
+  // Fetch slots for selected floor with Focus-Aware Smart Polling (Serverless Real-Time Sync)
   useEffect(() => {
     if (!loc) return;
 
-    const fetchLocSlots = async () => {
+    const fetchLocSlots = async (showLoading = false) => {
+      if (showLoading) setLoading(true);
       const token = localStorage.getItem('drivix_auth_token');
       try {
         const res = await fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/slots`, {
@@ -86,11 +87,20 @@ const SlotLayout = () => {
       } catch (err) {
         console.error('Error fetching slots:', err);
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     };
 
-    fetchLocSlots();
+    fetchLocSlots(true);
+
+    // Poll for status changes every 5 seconds (only when tab is actively focused)
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchLocSlots(false);
+      }
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
   }, [loc, selectedFloor]);
 
   const floors = useMemo(() => loc?.floors || ['L1'], [loc]);
