@@ -11,6 +11,10 @@
 
 ---
 
+### 🌐 [Live Production Link (Vercel)](https://drivix-pearl.vercel.app/)
+
+---
+
 ## 🛠️ System Architecture
 
 Drivix uses a decoupled, hybrid-polling micro-architecture designed to maintain real-time sync across modern cloud hosting boundaries.
@@ -38,10 +42,73 @@ graph TD
 
 ---
 
+## 📊 Flowcharts & Workflows
+
+### 1. Frontend Application Navigation Flow
+
+```mermaid
+graph TD
+    A[Landing Page] --> B{Is Authenticated?}
+    B -->|No| C[Login / Register]
+    B -->|Yes| D[Dashboard / Map View]
+    D --> E[Select Parking Facility]
+    E --> F[Select Parking Floor]
+    F --> G[Interactive Slot Layout]
+    G -->|Click Available Slot| H[Request Atomic 5-Min Hold]
+    H -->|Lock Success| I[Slot Booking Form]
+    H -->|Lock Occupied/Expired| G
+    I --> J[Enter Duration & Confirm]
+    J --> K[Checkout: Deduct Wallet Balance]
+    K -->|Payment Success| L[Generate Booking Pass & QR]
+    L --> M[ANPR Gate Recognition: Access Granted]
+    M --> N[Active Session Timer]
+    N --> O[Exit Scan: Vacate Slot]
+```
+
+### 2. Backend API Request Routing
+
+```mermaid
+graph TD
+    A[Incoming Request] --> B[Nginx Reverse Proxy]
+    B --> C[Express Router]
+    C --> D{Requires Auth?}
+    D -->|Yes| E[protect Middleware]
+    D -->|No| F[Route Handler]
+    E -->|JWT Valid| F
+    E -->|JWT Invalid| G[401 Unauthorized Response]
+    F --> H{Endpoint Type}
+    H -->|GET /pricing| I[Calculate Dynamic Price]
+    H -->|POST /bookings| J[Process Booking & Save to DB]
+    H -->|PUT /slots/reserve| K[Acquire Atomic Hold in MongoDB]
+    I --> L[AI Pricing Engine]
+    J --> M[MongoDB Atlas: Save & Populate Virtuals]
+    K --> M
+    M --> N[Broadcast Live Update via Socket.IO]
+    N --> O[Send JSON Response to Client]
+```
+
+### 3. AI Dynamic Pricing Model Engine
+
+```mermaid
+graph TD
+    A[Pricing Request] --> B[Fetch Inputs]
+    B --> C[Calculate Base Occupancy Ratio]
+    B --> D[Detect Current Hour & Peak Status]
+    B --> E[Check Weather Conditions]
+    B --> F[Identify Nearby Special Events / Holidays]
+    C & D & E & F --> G[AI Random Forest Estimator]
+    G -->|Calculate Demand Score 0-100| H[Select Billing Multiplier]
+    H -->|Score > 85: Surge Multiplier 1.50x| I[Final Rate Output]
+    H -->|Score > 60: Premium Multiplier 1.25x| I
+    H -->|Score < 30: Off-Peak Discount 0.85x| I
+    H -->|Default: Standard Base Rate 1.00x| I
+```
+
+---
+
 ## ⚙️ Core Engineering Concepts (Deep Dive)
 
-<details>
-<summary><b>🧠 1. Hybrid Dynamic Pricing Model</b></summary>
+### 🧠 1. Hybrid Dynamic Pricing Model Details
 
 Drivix optimizes facility occupancy and revenue using a dual-layer pricing engine combining machine learning prediction with safety-critical business rules:
 
@@ -55,10 +122,8 @@ graph TD
 ```
 
 * **Explainable AI Integration**: Instead of letting a black-box model set prices directly (which is risky and non-auditable), the AI estimates the demand score while deterministic business rules scale the multiplier.
-</details>
 
-<details>
-<summary><b>🔒 2. Atomic Slot Locks (Concurrency Protection)</b></summary>
+### 🔒 2. Atomic Slot Locks (Concurrency Protection)
 
 To prevent race conditions where two users attempt to capture the same parking slot at the exact same millisecond, Drivix utilizes an atomic soft-lock algorithm:
 
@@ -81,16 +146,14 @@ sequenceDiagram
 ```
 
 * **Auto-Release Worker**: A server-side scheduler runs continuously to sweep the database and release soft locks for slots where the 5-minute checkout window has expired without payment.
-</details>
 
-<details>
-<summary><b>📡 3. Serverless Socket.IO Smart Polling Fallback</b></summary>
+### 📡 3. Serverless Socket.IO Smart Polling Fallback
 
 Because Vercel serverless functions freeze after delivering an HTTP response, persistent WebSocket channels can experience connection timeouts. Drivix implements a client-side wrapper:
+
 * **WebSocket Priority**: Tries to connect using active Socket.IO streams.
 * **Focus-Aware Fallback**: If disconnected, shifts to a 4-second API polling schedule.
 * **Tab-Activity Guard**: Polling completely pauses when the browser tab goes into the background, preventing rate-limiting and unnecessary database reads.
-</details>
 
 ---
 
@@ -110,13 +173,16 @@ Because Vercel serverless functions freeze after delivering an HTTP response, pe
 Follow these steps to run the entire Drivix ecosystem on your local machine:
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/sajidtecho/Drivix.git
 cd Drivix
 ```
 
 ### 2. Configure Backend Variables
+
 Create a `.env` file in the `/backend` folder:
+
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_atlas_connection_string
@@ -124,6 +190,7 @@ JWT_SECRET=your_jwt_secret_key
 ```
 
 ### 3. Run Backend Server
+
 ```bash
 cd backend
 npm install
@@ -131,12 +198,15 @@ npm run dev
 ```
 
 ### 4. Configure Frontend URL
+
 In `frontend/src/config.js`, set your backend API path:
+
 ```javascript
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 ```
 
 ### 5. Run Frontend Client
+
 ```bash
 cd ../frontend
 npm install
