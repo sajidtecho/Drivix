@@ -417,6 +417,10 @@ const Profile = () => {
               width: 100%;
               margin-top: 8px;
             }
+            .payments-grid {
+              grid-template-columns: 1fr !important;
+              gap: 16px !important;
+            }
           }
         `}</style>
 
@@ -755,7 +759,7 @@ const Profile = () => {
               <section>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '32px' }}>Payments & Wallet</h2>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
+                <div className="payments-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
                   <div className="glass-panel" style={{ padding: '32px', background: 'linear-gradient(135deg, #1a1a24, #0a0a0f)', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'var(--accent-primary)', opacity: 0.1, filter: 'blur(40px)', borderRadius: '50%' }}></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
