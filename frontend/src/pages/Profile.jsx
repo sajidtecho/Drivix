@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -635,6 +637,33 @@ const Profile = () => {
 
             {activeTab === 'vehicles' && (
               <section>
+                <style>{`
+                  @media (max-width: 576px) {
+                    .vehicle-card {
+                      flex-direction: column !important;
+                      align-items: flex-start !important;
+                      gap: 16px !important;
+                      padding: 16px !important;
+                    }
+                    .vehicle-actions {
+                      width: 100%;
+                      flex-direction: row !important;
+                      justify-content: space-between !important;
+                      align-items: center !important;
+                      border-top: 1px solid var(--glass-border);
+                      padding-top: 16px;
+                      margin-top: 8px;
+                    }
+                    .add-vehicle-form {
+                      grid-template-columns: 1fr !important;
+                      gap: 12px !important;
+                    }
+                    .add-vehicle-form button {
+                      width: 100%;
+                      margin-top: 8px;
+                    }
+                  }
+                `}</style>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                   <h2 style={{ fontSize: '1.8rem', fontWeight: 700 }}>My Vehicles</h2>
                   <button onClick={() => setShowAddVehicle(true)} className="btn btn-primary" style={{ padding: '10px 20px', fontSize: '0.85rem' }}>
@@ -648,7 +677,7 @@ const Profile = () => {
                       <h4 style={{ margin: 0 }}>Register New Vehicle</h4>
                       <X size={20} cursor="pointer" onClick={() => setShowAddVehicle(false)} />
                     </div>
-                    <form onSubmit={handleAddVehicle} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
+                    <form onSubmit={handleAddVehicle} className="add-vehicle-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
                       <div>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>License Plate</label>
                         <input type="text" placeholder="Car Number(e.g. MH 01 AB 1234)" value={newVehicle.plate} onChange={(e) => setNewVehicle({ ...newVehicle, plate: e.target.value.toUpperCase() })} required style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', textTransform: 'uppercase' }} />
@@ -675,8 +704,8 @@ const Profile = () => {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {user.vehicles?.length > 0 ? user.vehicles.map((vehicle, idx) => (
-                    <div key={vehicle.id || idx} className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '24px', border: idx === 0 ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', background: idx === 0 ? 'rgba(255, 206, 0, 0.05)' : 'rgba(255,255,255,0.02)' }}>
-                      <div style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-card)', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div key={vehicle.id || idx} className="glass-panel vehicle-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '24px', border: idx === 0 ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', background: idx === 0 ? 'rgba(255, 206, 0, 0.05)' : 'rgba(255,255,255,0.02)' }}>
+                      <div style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-card)', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <Car size={32} color={idx === 0 ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
                       </div>
                       <div style={{ flex: 1 }}>
@@ -686,7 +715,7 @@ const Profile = () => {
                         </div>
                         <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{vehicle.model} • {vehicle.type}</p>
                       </div>
-                      <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                      <div className="vehicle-actions" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                         <span style={{ display: 'block', fontSize: '0.85rem', color: '#00cc6a', fontWeight: 600 }}>ANPR Verified</span>
                         <div style={{ display: 'flex', gap: '12px' }}>
                           <button style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><Edit2 size={16} /></button>
