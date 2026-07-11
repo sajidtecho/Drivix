@@ -15,6 +15,7 @@ const LANDING_LINKS = [
 ];
 
 const APP_LINKS = [
+  { label: 'Home', path: '/' },
   { label: 'Services', path: '/services' },
 ];
 
@@ -172,14 +173,20 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation Capsule */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '32px',
+          gap: '8px',
           position: 'absolute',
           left: '50%',
           transform: 'translateX(-50%)',
+          background: 'var(--glass-bg)',
+          border: '1px solid var(--glass-border)',
+          padding: '5px 10px',
+          borderRadius: 'var(--radius-pill)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
         }} className="desktop-only">
           {isLanding ?
             LANDING_LINKS.map((link) => (
@@ -190,29 +197,60 @@ const Navbar = () => {
                   background: 'none',
                   border: 'none',
                   color: 'var(--text-secondary)',
-                  fontSize: '0.95rem',
-                  fontWeight: 600,
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
                   cursor: 'pointer',
-                  transition: 'color var(--transition-fast)',
+                  padding: '6px 14px',
+                  borderRadius: 'var(--radius-pill)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.color = 'var(--text-primary)';
+                  e.target.style.background = 'rgba(255,255,255,0.03)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.color = 'var(--text-secondary)';
+                  e.target.style.background = 'none';
                 }}
               >
                 {link.label}
               </button>
             )) :
-            APP_LINKS.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                style={{
-                  textDecoration: 'none',
-                  color: location.pathname === link.path ? 'var(--accent-secondary)' : 'var(--text-secondary)',
-                  fontSize: '0.95rem',
-                  fontWeight: 700,
-                }}
-              >
-                {link.label}
-              </Link>
-            ))}
+            APP_LINKS.map((link) => {
+              const isActive = location.pathname === link.path || (link.path === '/' && isLanding);
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  style={{
+                    textDecoration: 'none',
+                    color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    fontSize: '0.82rem',
+                    fontWeight: 800,
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-pill)',
+                    background: isActive ? 'rgba(250, 255, 0, 0.08)' : 'transparent',
+                    border: isActive ? '1px solid rgba(250, 255, 0, 0.15)' : '1px solid transparent',
+                    transition: 'all 0.2s',
+                    display: 'inline-block'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.target.style.color = 'var(--text-primary)';
+                      e.target.style.background = 'rgba(255,255,255,0.03)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.target.style.color = 'var(--text-secondary)';
+                      e.target.style.background = 'transparent';
+                    }
+                  }}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
         </div>
 
 
