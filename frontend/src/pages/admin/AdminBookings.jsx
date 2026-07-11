@@ -113,13 +113,14 @@ const AdminBookings = () => {
                 <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Vehicle</th>
                 <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Location & Slot</th>
                 <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Time & Cost</th>
+                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Payment</th>
                 <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Status</th>
               </tr>
             </thead>
             <tbody>
               {filteredBookings.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  <td colSpan="7" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                     No bookings match your current filters.
                   </td>
                 </tr>
@@ -164,6 +165,22 @@ const AdminBookings = () => {
                       <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 800 }}>
                         ₹{b.totalCost} <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', fontWeight: 500 }}>({b.duration}h)</span>
                       </div>
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                        {b.paymentMode === 'PAY_NOW' ? 'Pay Now' : 'Pay After Exit'}
+                      </div>
+                      <span style={{ 
+                        padding: '4px 8px', 
+                        borderRadius: '4px', 
+                        fontSize: '0.7rem', 
+                        fontWeight: 700, 
+                        textTransform: 'uppercase',
+                        background: b.paymentStatus === 'paid' ? 'rgba(0, 204, 106, 0.15)' : 'rgba(255, 206, 0, 0.15)',
+                        color: b.paymentStatus === 'paid' ? '#00cc6a' : '#FFB300'
+                      }}>
+                        {b.paymentStatus || 'pending'}
+                      </span>
                     </td>
                     <td style={{ padding: '16px' }}>
                       <span style={{ 

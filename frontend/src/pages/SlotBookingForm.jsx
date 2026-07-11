@@ -282,7 +282,6 @@ const SlotBookingForm = () => {
           totalCost,
           paymentMode
         })
-        })
       });
 
       if (res.ok) {
