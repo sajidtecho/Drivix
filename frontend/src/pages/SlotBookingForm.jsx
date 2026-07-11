@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  ArrowLeft, User, Phone, Car, Clock, Calendar, ChevronRight, CheckCircle2, Loader2, Shield
+  ArrowLeft, User, Phone, Car, Clock, Calendar, ChevronRight, CheckCircle2, Loader2, Shield, CreditCard
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import loadingCar from '../assets/Loading_car.webm';
@@ -183,7 +183,8 @@ const SlotBookingForm = () => {
   const locState = useLocation().state;
   const { location, slot, floor } = locState || {};
 
-  const [step, setStep] = useState('form'); // 'form' | 'otp' | 'done'
+  const [step, setStep] = useState('form'); // 'form' | 'payment' | 'otp' | 'done'
+  const [paymentMode, setPaymentMode] = useState('PAY_AFTER_CHECKOUT');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingData, setBookingData] = useState(null);
   const [confirmationResult, setConfirmationResult] = useState(null);
@@ -238,26 +239,20 @@ const SlotBookingForm = () => {
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length > 0) return;
+    setStep('payment');
+  };
 
-    setIsSubmitting(true);
-    try {
-      // Local Bypass for testing (completely removes Firebase Auth dependency)
-      setConfirmationResult({
-        confirm: async (code) => {
-          if (code === '123456') {
-            return true;
-          } else {
-            throw new Error("Invalid OTP");
-          }
+  const handlePaymentSubmit = () => {
+    setConfirmationResult({
+      confirm: async (code) => {
+        if (code === '123456') {
+          return true;
+        } else {
+          throw new Error("Invalid OTP");
         }
-      });
-      setStep('otp');
-    } catch (err) {
-      console.error(err);
-      alert("Failed to send verification SMS: " + err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
+      }
+    });
+    setStep('otp');
   };
 
   const handleOTPVerified = async () => {
@@ -284,7 +279,9 @@ const SlotBookingForm = () => {
           entryDate,
           entryTime,
           duration,
-          totalCost
+          totalCost,
+          paymentMode
+        })
         })
       });
 
@@ -295,7 +292,7 @@ const SlotBookingForm = () => {
           docId: createdBooking._id || createdBooking.id,
           name, mobile, vehicleNumber: vehicleNumber.toUpperCase().replace(/\s/g, ''),
           vehicleName, slotId: slot, floor, entryDate, entryTime, duration, totalCost,
-          locationName: location?.name || location?.parkingName,
+          locationName: location?.name || location?.parkingName, paymentMode
         });
         setStep('done');
       } else {
@@ -487,7 +484,123 @@ const SlotBookingForm = () => {
               </div>
 
               <button onClick={handleFormSubmit} className="btn btn-primary" style={{ width: '100%', padding: '16px', fontSize: '1.05rem', fontWeight: 800 }}>
-                Continue to OTP Verification <ChevronRight size={18} />
+                Continue to Payment Options <ChevronRight size={18} />
+              </button>
+            </motion.div>
+          )}
+
+          {/* PAYMENT STEP */}
+          {step === 'payment' && (
+            <motion.div key="payment" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}>
+              <button onClick={() => setStep('form')} className="btn btn-secondary" style={{ marginBottom: '28px', padding: '10px 18px', fontSize: '0.9rem' }}>
+                <ArrowLeft size={16} /> Back to Details
+              </button>
+
+              <h1 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '6px' }}>
+                Select <span className="text-gradient">Payment Option</span>
+              </h1>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '28px' }}>
+                Choose how you want to pay for your parking reservation.
+              </p>
+
+              {/* Options list */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
+                
+                {/* PAY_AFTER_CHECKOUT Option Card */}
+                <div 
+                  onClick={() => setPaymentMode('PAY_AFTER_CHECKOUT')}
+                  className="glass-panel"
+                  style={{
+                    padding: '20px', borderRadius: 'var(--radius-card)', cursor: 'pointer',
+                    background: paymentMode === 'PAY_AFTER_CHECKOUT' ? 'rgba(0, 204, 106, 0.05)' : 'var(--bg-tertiary)',
+                    border: paymentMode === 'PAY_AFTER_CHECKOUT' ? '2.5px solid #00cc6a' : '1px solid var(--glass-border)',
+                    boxShadow: paymentMode === 'PAY_AFTER_CHECKOUT' ? '0 0 16px rgba(0, 204, 106, 0.15)' : 'none',
+                    transition: 'all 0.2s', position: 'relative'
+                  }}
+                >
+                  <div style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(0, 204, 106, 0.15)', color: '#00cc6a', fontSize: '0.72rem', fontWeight: 800, padding: '4px 10px', borderRadius: '20px', letterSpacing: '0.5px' }}>
+                    RECOMMENDED
+                  </div>
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0, 204, 106, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00cc6a', flexShrink: 0 }}>
+                      <Clock size={20} />
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <h3 style={{ margin: '0 0 4px 0', fontSize: '1.08rem', fontWeight: 800 }}>Pay After Checkout</h3>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
+                        No advance pay. Session starts at entry. Pay only for actual parked hours upon exit.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PAY_NOW Option Card */}
+                <div 
+                  onClick={() => setPaymentMode('PAY_NOW')}
+                  className="glass-panel"
+                  style={{
+                    padding: '20px', borderRadius: 'var(--radius-card)', cursor: 'pointer',
+                    background: paymentMode === 'PAY_NOW' ? 'rgba(255, 206, 0, 0.05)' : 'var(--bg-tertiary)',
+                    border: paymentMode === 'PAY_NOW' ? '2.5px solid var(--accent-primary)' : '1px solid var(--glass-border)',
+                    boxShadow: paymentMode === 'PAY_NOW' ? '0 0 16px var(--accent-glow)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 206, 0, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)', flexShrink: 0 }}>
+                      <CreditCard size={20} />
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <h3 style={{ margin: '0 0 4px 0', fontSize: '1.08rem', fontWeight: 800 }}>Pay Now</h3>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
+                        Prepay ₹{totalCost} for {duration} hours now. Quick exit with pre-generated QR ticket.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Comparison table */}
+              <h3 style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'left' }}>
+                Comparison
+              </h3>
+              <div className="glass-panel" style={{ overflow: 'hidden', borderRadius: 'var(--radius-card)', border: '1px solid var(--glass-border)', marginBottom: '32px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)' }}>
+                      <th style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontWeight: 700 }}>Feature</th>
+                      <th style={{ padding: '12px 14px', color: '#00cc6a', fontWeight: 800 }}>Pay After Checkout</th>
+                      <th style={{ padding: '12px 14px', color: 'var(--accent-primary)', fontWeight: 800 }}>Pay Now</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Entry Cost</td>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>₹0 (Book Free)</td>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>₹{totalCost} prepaid</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Flexibility</td>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>High (leave early/late)</td>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>Fixed duration</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Overstay</td>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>No extra penalty</td>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>Penalty charges at exit</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Best For</td>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>Shopping, Errands</td>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-primary)' }}>Work, Fixed events</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <button onClick={handlePaymentSubmit} className="btn btn-primary" style={{ width: '100%', padding: '16px', fontSize: '1.05rem', fontWeight: 800 }}>
+                Proceed to Verification <ChevronRight size={18} />
               </button>
             </motion.div>
           )}

@@ -19,7 +19,8 @@ export const createBooking = async (req, res) => {
     entryDate,
     entryTime,
     duration,
-    totalCost
+    totalCost,
+    paymentMode
   } = req.body;
 
   try {
@@ -33,6 +34,9 @@ export const createBooking = async (req, res) => {
     }
 
     // 2. Create the booking document linked to logged-in user
+    const finalPaymentMode = paymentMode || 'PAY_AFTER_CHECKOUT';
+    const isPayNow = finalPaymentMode === 'PAY_NOW';
+
     const booking = await Booking.create({
       bookingId: bookingId || `DRX-${Date.now().toString(36).toUpperCase()}`,
       userId: req.user._id,
@@ -48,6 +52,10 @@ export const createBooking = async (req, res) => {
       entryTime,
       duration: Number(duration),
       totalCost: Number(totalCost),
+      paymentMode: finalPaymentMode,
+      paymentStatus: isPayNow ? 'paid' : 'pending',
+      prepaidAmount: isPayNow ? Number(totalCost) : 0,
+      finalCost: isPayNow ? Number(totalCost) : 0,
       status: 'booked'
     });
 

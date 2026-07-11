@@ -15,6 +15,12 @@ const BookingSchema = new mongoose.Schema({
   entryTime: { type: String, required: true }, // e.g. '12:30'
   duration: { type: Number, required: true }, // duration in hours
   totalCost: { type: Number, required: true },
+  paymentMode: { type: String, enum: ['PAY_NOW', 'PAY_AFTER_CHECKOUT'], default: 'PAY_AFTER_CHECKOUT' },
+  paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
+  prepaidAmount: { type: Number, default: 0 },
+  actualEntryTime: { type: Date, default: null },
+  actualExitTime: { type: Date, default: null },
+  finalCost: { type: Number, default: 0 },
   status: { type: String, default: 'booked', enum: ['booked', 'completed', 'cancelled'] },
   createdAt: { type: Date, default: Date.now }
 });
