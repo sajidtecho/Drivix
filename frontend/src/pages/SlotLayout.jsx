@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Car, Layers, Loader2 } from 'lucide-react';
 import loadingCar from '../assets/Loading_car.webm';
+import { API_BASE_URL } from '../config';
 
 const SLOT_STATUS = {
   available: { label: 'Available', color: '#00cc6a', bg: 'rgba(0,204,106,0.12)', border: 'rgba(0,204,106,0.35)' },
@@ -35,7 +36,7 @@ const SlotLayout = () => {
       const fetchDefaultLoc = async () => {
         const token = localStorage.getItem('drivix_auth_token');
         try {
-          const res = await fetch('http://localhost:5000/api/v1/parking', {
+          const res = await fetch(`${API_BASE_URL}/api/v1/parking`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) {
@@ -69,7 +70,7 @@ const SlotLayout = () => {
     const fetchLocSlots = async () => {
       const token = localStorage.getItem('drivix_auth_token');
       try {
-        const res = await fetch(`http://localhost:5000/api/v1/parking/${loc.id}/slots`, {
+        const res = await fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/slots`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import documentIcon from '../assets/document.png';
 import { useUser } from '../hooks/useUser';
+import { API_BASE_URL } from '../config';
 import {
   User, Car, CreditCard, FileText, Settings, Shield,
   ChevronRight, Edit2, Plus, Bell, Lock,
@@ -163,7 +164,7 @@ const Profile = () => {
     if (!token) return;
     setLoadingBookings(true);
     try {
-      const route = user?.role === 'admin' ? 'http://localhost:5000/api/v1/bookings/all' : 'http://localhost:5000/api/v1/bookings/my';
+      const route = user?.role === 'admin' ? `${API_BASE_URL}/api/v1/bookings/all` : `${API_BASE_URL}/api/v1/bookings/my`;
       const res = await fetch(route, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -292,7 +293,7 @@ const Profile = () => {
     if (isAdmin) {
       const token = localStorage.getItem('drivix_auth_token');
       try {
-        const res = await fetch('http://localhost:5000/api/v1/bookings/all', {
+        const res = await fetch(`${API_BASE_URL}/api/v1/bookings/all`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -498,7 +499,7 @@ const Profile = () => {
                               const token = localStorage.getItem('drivix_auth_token');
                               try {
                                 setIsSaving(true);
-                                const res = await fetch(`http://localhost:5000/api/v1/bookings/${b.id || b._id}/vacate`, {
+                                 const res = await fetch(`${API_BASE_URL}/api/v1/bookings/${b.id || b._id}/vacate`, {
                                   method: 'PUT',
                                   headers: { 'Authorization': `Bearer ${token}` }
                                 });
@@ -528,7 +529,7 @@ const Profile = () => {
                               const token = localStorage.getItem('drivix_auth_token');
                               try {
                                 setIsSaving(true);
-                                const res = await fetch(`http://localhost:5000/api/v1/bookings/${b.id || b._id}/extend`, {
+                                 const res = await fetch(`${API_BASE_URL}/api/v1/bookings/${b.id || b._id}/extend`, {
                                   method: 'PUT',
                                   headers: {
                                     'Content-Type': 'application/json',

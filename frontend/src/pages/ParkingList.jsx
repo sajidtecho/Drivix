@@ -7,6 +7,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import seedParkingData from '../ParkingFacility/ShardaParking';
 import loadingCar from '../assets/Loading_car.webm';
+import { API_BASE_URL } from '../config';
 
 
 
@@ -30,7 +31,7 @@ const ParkingList = () => {
     const fetchLocations = async () => {
       const token = localStorage.getItem('drivix_auth_token');
       try {
-        const res = await fetch('http://localhost:5000/api/v1/parking', {
+        const res = await fetch(`${API_BASE_URL}/api/v1/parking`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {

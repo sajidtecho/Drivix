@@ -7,6 +7,7 @@ import {
 import { useUser } from '../hooks/useUser';
 import loadingCar from '../assets/Loading_car.webm';
 import { auth } from "../firebase";
+import { API_BASE_URL } from '../config';
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8];
@@ -288,7 +289,7 @@ const SlotBookingForm = () => {
     const token = localStorage.getItem('drivix_auth_token');
     const bookingId = `DRX-${Date.now().toString(36).toUpperCase()}`;
     try {
-      const res = await fetch('http://localhost:5000/api/v1/bookings', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

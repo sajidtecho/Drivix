@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Layers, Plus, Car, X, Trash, ShieldAlert } from 'lucide-react';
 import { useUser } from '../../hooks/useUser';
+import { API_BASE_URL } from '../../config';
 
 const AdminParking = () => {
   const { user, loading: userLoading } = useUser();
@@ -34,7 +35,7 @@ const AdminParking = () => {
     const token = localStorage.getItem('drivix_auth_token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/v1/parking', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -62,7 +63,7 @@ const AdminParking = () => {
     }
     const token = localStorage.getItem('drivix_auth_token');
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLocId}/slots`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking/${selectedLocId}/slots`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -110,7 +111,7 @@ const AdminParking = () => {
 
     const token = localStorage.getItem('drivix_auth_token');
     try {
-      const res = await fetch('http://localhost:5000/api/v1/parking', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +167,7 @@ const AdminParking = () => {
     const token = localStorage.getItem('drivix_auth_token');
     const updatedFloors = [...(selectedLoc.floors || []), newFloorName];
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking/${selectedLoc._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -192,7 +193,7 @@ const AdminParking = () => {
     const token = localStorage.getItem('drivix_auth_token');
     const updatedFloors = (selectedLoc.floors || []).filter(f => f !== floorName);
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking/${selectedLoc._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -219,7 +220,7 @@ const AdminParking = () => {
 
     const token = localStorage.getItem('drivix_auth_token');
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}/slots/bulk`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking/${selectedLoc._id}/slots/bulk`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -251,7 +252,7 @@ const AdminParking = () => {
     if (!window.confirm("Are you sure you want to completely delete this location? All data will be lost.")) return;
     const token = localStorage.getItem('drivix_auth_token');
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/parking/${locId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking/${locId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -274,7 +275,7 @@ const AdminParking = () => {
     if (!window.confirm("Delete this slot permanently?")) return;
     const token = localStorage.getItem('drivix_auth_token');
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}/slots/${slotId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking/${selectedLoc._id}/slots/${slotId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -292,7 +293,7 @@ const AdminParking = () => {
   const toggleSlotStatus = async (slot) => {
     const token = localStorage.getItem('drivix_auth_token');
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/parking/${selectedLoc._id}/slots/${slot.id}/toggle`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/parking/${selectedLoc._id}/slots/${slot.id}/toggle`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
