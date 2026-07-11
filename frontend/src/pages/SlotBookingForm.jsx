@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import loadingCar from '../assets/Loading_car.webm';
+import { auth } from "../firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8];
 
@@ -39,16 +41,12 @@ const inputStyle = {
 };
 
 /* ─── OTP Component ──────────────────────────────── */
-const OTPVerification = ({ mobile, onVerified, onBack }) => {
+const OTPVerification = ({ mobile, confirmationResult, onVerified, onBack }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // OTP is simulated – always 123456 in demo
   const [resendCooldown, setResendCooldown] = useState(30);
   const refs = useRef([]);
-
-  // Simulated OTP: always '123456' for demo
-  const DEMO_OTP = '123456';
 
   React.useEffect(() => {
     if (resendCooldown > 0) {
@@ -71,18 +69,22 @@ const OTPVerification = ({ mobile, onVerified, onBack }) => {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     const entered = otp.join('');
     if (entered.length < 6) { setError('Enter all 6 digits'); return; }
     setLoading(true);
-    setTimeout(() => {
-      if (entered === DEMO_OTP) {
-        onVerified();
-      } else {
-        setError('Invalid OTP. (Demo: use 123456)');
-        setLoading(false);
+    setError('');
+    try {
+      if (!confirmationResult) {
+        throw new Error("Verification session expired. Please go back and request a new code.");
       }
-    }, 900);
+      await confirmationResult.confirm(entered);
+      onVerified();
+    } catch (err) {
+      console.error(err);
+      setError('Invalid OTP. Please check the code and try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -116,8 +118,8 @@ const OTPVerification = ({ mobile, onVerified, onBack }) => {
       </p>
 
       {/* Demo hint */}
-      <div style={{ marginBottom: '24px', padding: '10px 16px', borderRadius: 'var(--radius-input)', background: 'rgba(255,206,0,0.1)', border: '1px solid rgba(255,206,0,0.25)', fontSize: '0.82rem', color: 'var(--accent-secondary)', fontWeight: 600 }}>
-        🔐 Demo Mode — Use OTP: <strong>123456</strong>
+      <div style={{ marginBottom: '24px', padding: '10px 16px', borderRadius: 'var(--radius-input)', background: 'rgba(0, 204, 106, 0.1)', border: '1px solid rgba(0, 204, 106, 0.25)', fontSize: '0.82rem', color: '#00cc6a', fontWeight: 600 }}>
+        💬 A 6-digit verification code has been sent to your phone.
       </div>
 
       {/* OTP inputs */}
@@ -185,6 +187,7 @@ const SlotBookingForm = () => {
   const [step, setStep] = useState('form'); // 'form' | 'otp' | 'done'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingData, setBookingData] = useState(null);
+  const [confirmationResult, setConfirmationResult] = useState(null);
 
   // Autofill logic
   const [showAutofillPrompt, setShowAutofillPrompt] = useState(false);
@@ -232,10 +235,36 @@ const SlotBookingForm = () => {
     return e;
   };
 
-  const handleFormSubmit = () => {
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': () => {
+          // reCAPTCHA solved
+        }
+      });
+    }
+  };
+
+  const handleFormSubmit = async () => {
     const e = validate();
     setErrors(e);
-    if (Object.keys(e).length === 0) setStep('otp');
+    if (Object.keys(e).length > 0) return;
+
+    setIsSubmitting(true);
+    try {
+      setupRecaptcha();
+      const appVerifier = window.recaptchaVerifier;
+      const formattedMobile = `+91${mobile}`;
+      const result = await signInWithPhoneNumber(auth, formattedMobile, appVerifier);
+      setConfirmationResult(result);
+      setStep('otp');
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send verification SMS: " + err.message.replace('Firebase: ', ''));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleOTPVerified = async () => {
@@ -488,12 +517,15 @@ const SlotBookingForm = () => {
               ) : (
                 <OTPVerification
                   mobile={mobile}
+                  confirmationResult={confirmationResult}
                   onVerified={handleOTPVerified}
                   onBack={() => setStep('form')}
                 />
               )}
             </motion.div>
           )}
+
+          <div id="recaptcha-container"></div>
 
         </AnimatePresence>
       </div>
