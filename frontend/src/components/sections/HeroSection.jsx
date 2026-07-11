@@ -48,35 +48,70 @@ const HeroSection = () => {
             .hero-search-container {
               margin-left: 0;
               margin-right: auto;
+              transition: all 0.3s ease;
             }
-            @media (min-width: 992px) {
-              .hero-grid-updated {
-                grid-template-columns: 1.1fr 0.9fr !important;
-                gap: 80px !important;
+            .hero-grid-updated {
+              transition: all 0.3s ease;
+            }
+            .hero-image-container {
+              transition: all 0.3s ease;
+            }
+            
+            /* Mobile Viewports (< 768px) */
+            @media (max-width: 767.98px) {
+              #hero {
+                padding-top: 100px !important;
+                padding-bottom: 24px !important;
               }
-            }
-            @media (max-width: 768px) {
               .hero-grid-updated {
+                grid-template-columns: 1fr !important;
                 text-align: center !important;
-                gap: 48px !important;
+                gap: 16px !important;
+              }
+              .hero-image-container {
+                display: none !important;
               }
               .hero-content {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                width: 100%;
               }
               .hero-content p {
                 margin-left: auto;
                 margin-right: auto;
-              }
-              .hero-stat-container {
-                justify-content: center !important;
+                margin-bottom: 24px !important;
               }
               .hero-search-container {
                 margin-left: auto !important;
                 margin-right: auto !important;
+                margin-bottom: 24px !important;
+              }
+              .hero-stat-container {
+                justify-content: center !important;
+                gap: 24px !important;
               }
             }
+
+            /* Tablet Viewports (>= 768px) */
+            @media (min-width: 768px) {
+              .hero-grid-updated {
+                grid-template-columns: 1.1fr 0.9fr !important;
+                gap: 40px !important;
+              }
+              .hero-image-container {
+                display: flex !important;
+              }
+            }
+
+            /* Desktop Viewports (>= 1024px) */
+            @media (min-width: 1024px) {
+              .hero-grid-updated {
+                grid-template-columns: 1.1fr 0.9fr !important;
+                gap: 80px !important;
+              }
+            }
+
             .hero-tab-active {
               color: var(--accent-primary) !important;
               background: rgba(250, 255, 0, 0.1) !important;
@@ -206,7 +241,7 @@ const HeroSection = () => {
             </div>
           </FadeIn>
 
-          <FadeIn delay={0.2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+          <FadeIn delay={0.2} className="hero-image-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
             <div style={{ 
               position: 'relative', 
               width: '100%', 
