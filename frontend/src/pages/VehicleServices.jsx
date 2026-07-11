@@ -1,6 +1,8 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FileText, CreditCard, RefreshCw, FileCheck, ShieldAlert, CarFront } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { RefreshCw } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -22,39 +24,60 @@ import pollutionIcon from '../assets/pollution.png';
 import ownershipIcon from '../assets/ownership.png';
 
 const VehicleServices = () => {
+  const navigate = useNavigate();
+
   const services = [
     { 
       title: 'Challan Management', 
       icon: (props) => <img src={challanIcon} alt="Challan" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
       desc: 'View and pay pending traffic fines securely.', 
-      color: '#ff4b4b' 
+      color: '#ff4b4b',
+      url: 'https://echallan.parivahan.gov.in/index/accused-challan'
     },
     { 
       title: 'FASTag Recharge', 
       icon: (props) => <img src={fastagIcon} alt="FASTag" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
       desc: 'Instant FASTag balance top-up.', 
-      color: 'var(--accent-primary)' 
+      color: 'var(--accent-primary)',
+      url: 'https://paytm.com/fastag-recharge'
     },
     { 
       title: 'Document Manager', 
       icon: (props) => <img src={documentIcon} alt="Document" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
       desc: 'Digital vault for RC, DL, and Insurance.', 
-      color: 'var(--accent-secondary)' 
+      color: 'var(--accent-secondary)',
+      path: '/profile'
     },
-    { title: 'Registration Renewal', icon: RefreshCw, desc: 'Renew your vehicle registration easily.', color: '#bc00ff' },
+    { 
+      title: 'Registration Renewal', 
+      icon: RefreshCw, 
+      desc: 'Renew your vehicle registration easily.', 
+      color: '#bc00ff',
+      url: 'https://vahan.parivahan.gov.in/vahanservice/vahan/ui/stateselector/homepage.xhtml'
+    },
     { 
       title: 'Pollution Certificate', 
       icon: (props) => <img src={pollutionIcon} alt="Pollution" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
       desc: 'Apply or renew PUCC online.', 
-      color: '#00ffcc' 
+      color: '#00ffcc',
+      url: 'https://vahan.parivahan.gov.in/puc/'
     },
     { 
       title: 'Ownership Transfer', 
       icon: (props) => <img src={ownershipIcon} alt="Ownership" style={{ width: props.size, height: props.size, objectFit: 'contain' }} />, 
       desc: 'Seamlessly transfer vehicle ownership.', 
-      color: '#ffc107' 
+      color: '#ffc107',
+      url: 'https://sarathi.parivahan.gov.in/'
     },
   ];
+
+  const handleServiceClick = (service) => {
+    if (service.url) {
+      window.open(service.url, '_blank', 'noopener,noreferrer');
+    } else if (service.path) {
+      navigate(service.path);
+    }
+  };
 
   return (
     <div style={{ paddingTop: '100px', paddingBottom: '60px', minHeight: '100vh', background: 'var(--bg-primary)', padding: '100px 5% 60px', maxWidth: '1200px', margin: '0 auto' }}>
@@ -78,6 +101,7 @@ const VehicleServices = () => {
               key={index}
               variants={itemVariants}
               whileHover={{ y: -8, boxShadow: '0 12px 40px rgba(0,0,0,0.6)' }}
+              onClick={() => handleServiceClick(service)}
               className="glass-panel"
               style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', height: '100%', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
             >
