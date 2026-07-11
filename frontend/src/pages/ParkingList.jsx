@@ -5,7 +5,6 @@ import {
   Shield, Zap, Clock, Navigation
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import seedParkingData from '../ParkingFacility/ShardaParking';
 import loadingCar from '../assets/Loading_car.webm';
 import { API_BASE_URL } from '../config';
 
@@ -64,15 +63,7 @@ const ParkingList = () => {
     fetchLocations();
   }, []);
 
-  const seedRealData = async () => {
-    try {
-      await seedParkingData();
-      alert('Sharda University MLP Initialized Successfully!');
-    } catch (err) {
-      console.error(err);
-      alert('Initialization Failed: ' + err.message);
-    }
-  };
+
 
   const filtered = locations.filter((p) =>
     (p.name?.toLowerCase() || '').includes(search.toLowerCase()) ||

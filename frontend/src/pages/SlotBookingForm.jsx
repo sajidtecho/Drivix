@@ -6,9 +6,7 @@ import {
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import loadingCar from '../assets/Loading_car.webm';
-import { auth } from "../firebase";
 import { API_BASE_URL } from '../config';
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8];
 
@@ -236,17 +234,6 @@ const SlotBookingForm = () => {
     return e;
   };
 
-  const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': () => {
-          // reCAPTCHA solved
-        }
-      });
-    }
-  };
-
   const handleFormSubmit = async () => {
     const e = validate();
     setErrors(e);
@@ -254,31 +241,20 @@ const SlotBookingForm = () => {
 
     setIsSubmitting(true);
     try {
-      // Local Developer Bypass for testing (avoids billing block on Spark Free plan)
-      if (mobile === '7562828719') {
-        setConfirmationResult({
-          confirm: async (code) => {
-            if (code === '123456') {
-              return true;
-            } else {
-              throw new Error("Invalid OTP");
-            }
+      // Local Bypass for testing (completely removes Firebase Auth dependency)
+      setConfirmationResult({
+        confirm: async (code) => {
+          if (code === '123456') {
+            return true;
+          } else {
+            throw new Error("Invalid OTP");
           }
-        });
-        setStep('otp');
-        setIsSubmitting(false);
-        return;
-      }
-
-      setupRecaptcha();
-      const appVerifier = window.recaptchaVerifier;
-      const formattedMobile = `+91${mobile}`;
-      const result = await signInWithPhoneNumber(auth, formattedMobile, appVerifier);
-      setConfirmationResult(result);
+        }
+      });
       setStep('otp');
     } catch (err) {
       console.error(err);
-      alert("Failed to send verification SMS: " + err.message.replace('Firebase: ', ''));
+      alert("Failed to send verification SMS: " + err.message);
     } finally {
       setIsSubmitting(false);
     }
