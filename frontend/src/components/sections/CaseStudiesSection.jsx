@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, TrendingUp, Users } from 'lucide-react';
 import shardaCampusImg from '../../assets/sharda_campus.jpg';
+import phoenixImg from '../../assets/phoenix_parking.png';
+import emaarImg from '../../assets/emaar_security.png';
 
 const CASE_STUDIES = [
   {
@@ -29,7 +31,7 @@ const CASE_STUDIES = [
     id: 'phoenix',
     title: 'Optimizing capacity at Phoenix Mall',
     shortDesc: 'Scaling weekend throughput by 30% through dynamic routing.',
-    image: 'https://images.unsplash.com/photo-1573111804705-40f4258f9672?auto=format&fit=crop&q=80&w=800',
+    image: phoenixImg,
     fullStory: {
       problem: "Weekend surges caused 1km long queues outside the mall, discouraging shoppers and affecting surrounding city traffic.",
       solution: "We deployed dynamic digital signage and real-time floor-level guidance to distribute load across 4 parking levels.",
@@ -49,7 +51,7 @@ const CASE_STUDIES = [
     id: 'emaar',
     title: 'Premium security for Emaar Palm Drive',
     shortDesc: 'Transitioning to a keyless, automated residential experience.',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800',
+    image: emaarImg,
     fullStory: {
       problem: "Managing guest vehicles and preventing unauthorized residential entry was a manual, error-prone task for security guards.",
       solution: "Biometric tag integration for residents and 'Invite-link' based pre-registration for guests.",
