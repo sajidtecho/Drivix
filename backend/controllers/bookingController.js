@@ -1,6 +1,7 @@
 import Booking from '../models/Booking.js';
 import Slot from '../models/Slot.js';
 import ParkingLocation from '../models/ParkingLocation.js';
+import { calculateDynamicPrice } from '../utils/pricingEngine.js';
 
 // @desc    Create a new booking ticket
 // @route   POST /api/v1/bookings
@@ -20,12 +21,25 @@ export const createBooking = async (req, res) => {
     entryTime,
     duration,
     totalCost,
-    paymentMode
+    paymentMode,
+
+    // Fallbacks from React Native client
+    facilityId,
+    durationHours,
+    vehicleModel,
+    paymentOption
   } = req.body;
 
   try {
+    const resolvedLocationId = locationId || facilityId;
+    const resolvedSlotId = slotId;
+    const resolvedDuration = duration !== undefined ? duration : durationHours;
+    const resolvedVehicleNumber = vehicleNumber;
+    const resolvedVehicleName = vehicleName || vehicleModel;
+    const resolvedPaymentMode = paymentMode || paymentOption || 'PAY_AFTER_CHECKOUT';
+
     // 1. Verify Slot is available (or reserved by the current user)
-    const slot = await Slot.findOne({ facilityId: locationId, id: slotId });
+    const slot = await Slot.findOne({ facilityId: resolvedLocationId, id: resolvedSlotId });
     if (!slot) {
       return res.status(404).json({ message: 'Slot not found' });
     }
@@ -40,29 +54,56 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ message: 'This slot is currently occupied or reserved by another user.' });
     }
 
+    // Resolve details from Slot and Location if missing (common in mobile app requests)
+    const resolvedFloor = floor || slot.floor;
+    const location = await ParkingLocation.findById(resolvedLocationId);
+    if (!location) {
+      return res.status(404).json({ message: 'Parking location not found' });
+    }
+    const resolvedLocationName = locationName || location.parkingName;
+
+    // Resolve user details if missing
+    const resolvedName = name || req.user.fullName || req.user.name || 'Drivix User';
+    const resolvedMobile = mobile || req.user.mobile || '0000000000';
+
+    // Resolve date and time
+    const resolvedEntryDate = entryDate || now.toISOString().split('T')[0];
+    const resolvedEntryTime = entryTime || `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    // Resolve total cost
+    let resolvedTotalCost = totalCost;
+    if (resolvedTotalCost === undefined || resolvedTotalCost === null) {
+      const recommendation = calculateDynamicPrice({
+        basePrice: location.hourlyPrice,
+        totalSlots: location.totalSlots,
+        availableSlots: location.availableSlots
+      });
+      resolvedTotalCost = recommendation.recommendedPrice * Number(resolvedDuration || 1);
+    }
+
     // 2. Create the booking document linked to logged-in user
-    const finalPaymentMode = paymentMode || 'PAY_AFTER_CHECKOUT';
+    const finalPaymentMode = resolvedPaymentMode;
     const isPayNow = finalPaymentMode === 'PAY_NOW';
 
     const booking = await Booking.create({
       bookingId: bookingId || `DRX-${Date.now().toString(36).toUpperCase()}`,
       userId: req.user._id,
-      name,
-      mobile,
-      vehicleNumber,
-      vehicleName,
-      locationId,
-      locationName,
-      slotId,
-      floor,
-      entryDate,
-      entryTime,
-      duration: Number(duration),
-      totalCost: Number(totalCost),
+      name: resolvedName,
+      mobile: resolvedMobile,
+      vehicleNumber: resolvedVehicleNumber,
+      vehicleName: resolvedVehicleName,
+      locationId: resolvedLocationId,
+      locationName: resolvedLocationName,
+      slotId: resolvedSlotId,
+      floor: resolvedFloor,
+      entryDate: resolvedEntryDate,
+      entryTime: resolvedEntryTime,
+      duration: Number(resolvedDuration),
+      totalCost: Number(resolvedTotalCost),
       paymentMode: finalPaymentMode,
       paymentStatus: isPayNow ? 'paid' : 'pending',
-      prepaidAmount: isPayNow ? Number(totalCost) : 0,
-      finalCost: isPayNow ? Number(totalCost) : 0,
+      prepaidAmount: isPayNow ? Number(resolvedTotalCost) : 0,
+      finalCost: isPayNow ? Number(resolvedTotalCost) : 0,
       status: 'booked'
     });
 
@@ -76,15 +117,15 @@ export const createBooking = async (req, res) => {
     const io = req.app.get('socketio');
     if (io) {
       io.emit('slotStatusUpdated', {
-        facilityId: locationId,
-        id: slotId,
+        facilityId: resolvedLocationId,
+        id: resolvedSlotId,
         status: 'booked',
         reservationExpiresAt: null
       });
     }
 
     // 4. Decrement available slots on the parent location
-    await ParkingLocation.findByIdAndUpdate(locationId, {
+    await ParkingLocation.findByIdAndUpdate(resolvedLocationId, {
       $inc: { availableSlots: -1 }
     });
 
