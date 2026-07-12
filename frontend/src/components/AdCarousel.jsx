@@ -88,6 +88,54 @@ const AdCarousel = () => {
     }
   };
 
+  const renderHeroStyleTitle = (titleText) => {
+    const separators = ['|', '-', ':'];
+    let parts = [];
+    
+    for (const sep of separators) {
+      if (titleText.includes(sep)) {
+        parts = titleText.split(sep);
+        break;
+      }
+    }
+    
+    if (parts.length < 2) {
+      const words = titleText.split(' ');
+      if (words.length > 2) {
+        const mid = Math.ceil(words.length / 2);
+        parts = [
+          words.slice(0, mid).join(' '),
+          words.slice(mid).join(' ')
+        ];
+      } else {
+        parts = [titleText, ''];
+      }
+    }
+    
+    const firstLine = parts[0].trim();
+    const secondLine = parts.slice(1).join(' ').trim();
+    
+    return (
+      <h3 
+        style={{
+          fontSize: '1.8rem',
+          fontWeight: 800,
+          color: '#ffffff',
+          marginBottom: '10px',
+          lineHeight: 1.25
+        }}
+      >
+        {firstLine}
+        {secondLine && (
+          <>
+            <br />
+            <span style={{ color: 'var(--accent-primary)' }}>{secondLine}</span>
+          </>
+        )}
+      </h3>
+    );
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
@@ -106,7 +154,7 @@ const AdCarousel = () => {
       style={{
         position: 'relative',
         width: '100%',
-        height: '240px',
+        height: '220px',
         borderRadius: 'var(--radius-card)',
         overflow: 'hidden',
         border: '1.5px solid var(--glass-border)',
@@ -118,29 +166,58 @@ const AdCarousel = () => {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.4, ease: 'easeInOut' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35 }}
           style={{
-            display: 'flex',
-            width: '100%',
-            height: '100%',
-            flexDirection: 'row',
             position: 'absolute',
-            top: 0,
-            left: 0
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '32px 48px'
           }}
         >
-          {/* Text content section */}
+          {/* Blended Background Watermark Image */}
           <div 
             style={{
-              flex: 1.2,
-              padding: '32px 40px',
+              position: 'absolute',
+              inset: 0,
+              zIndex: 1,
+              overflow: 'hidden'
+            }}
+          >
+            <img 
+              src={currentBanner.imageUrl} 
+              alt={currentBanner.title}
+              loading="lazy"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                opacity: 0.12
+              }}
+            />
+            <div 
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'radial-gradient(circle at center, transparent 30%, var(--bg-tertiary) 90%)'
+              }}
+            />
+          </div>
+
+          {/* Left Column: Hero-style Text Layout */}
+          <div 
+            style={{
+              position: 'relative',
+              zIndex: 3,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              zIndex: 3
+              width: '80%',
+              gap: '6px'
             }}
           >
             <span 
@@ -148,32 +225,23 @@ const AdCarousel = () => {
                 fontSize: '0.75rem',
                 fontWeight: 900,
                 color: 'var(--accent-primary)',
-                letterSpacing: '2px',
+                letterSpacing: '2.5px',
                 textTransform: 'uppercase',
-                marginBottom: '8px'
+                marginBottom: '4px'
               }}
             >
               Sponsored Promotion
             </span>
-            <h3 
-              style={{
-                fontSize: '1.5rem',
-                fontWeight: 800,
-                color: 'var(--text-primary)',
-                marginBottom: '8px',
-                lineHeight: 1.2
-              }}
-            >
-              {currentBanner.title}
-            </h3>
+            
+            {renderHeroStyleTitle(currentBanner.title)}
+            
             <p 
               style={{
                 color: 'var(--text-secondary)',
-                fontSize: '0.9rem',
-                lineHeight: 1.4,
-                marginBottom: '20px',
-                maxHeight: '60px',
-                overflow: 'hidden'
+                fontSize: '0.92rem',
+                lineHeight: 1.45,
+                marginBottom: '16px',
+                maxWidth: '650px'
               }}
             >
               {currentBanner.description}
@@ -184,54 +252,23 @@ const AdCarousel = () => {
               className="btn btn-primary"
               style={{
                 alignSelf: 'flex-start',
-                padding: '10px 20px',
+                padding: '10px 24px',
                 fontSize: '0.85rem',
                 fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                borderRadius: 'var(--radius-button)',
-                boxShadow: '0 4px 15px var(--accent-glow)'
+                borderRadius: '24px', // Capsule Shape
+                boxShadow: '0 4px 15px var(--accent-glow)',
+                border: 'none',
+                background: 'var(--accent-primary)',
+                color: '#000'
               }}
             >
               {currentBanner.ctaText} 
               {currentBanner.redirectUrl.startsWith('http') && <ExternalLink size={13} />}
             </button>
-          </div>
-
-          {/* Image visual section */}
-          <div 
-            style={{
-              flex: 1,
-              height: '100%',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-          >
-            {/* Visual fade overlays */}
-            <div 
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                bottom: 0,
-                width: '120px',
-                background: 'linear-gradient(to right, var(--bg-tertiary) 0%, transparent 100%)',
-                zIndex: 2
-              }}
-            />
-            <img 
-              src={currentBanner.imageUrl} 
-              alt={currentBanner.title}
-              loading="lazy"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                opacity: 0.85
-              }}
-            />
           </div>
         </motion.div>
       </AnimatePresence>
@@ -292,16 +329,19 @@ const AdCarousel = () => {
         </>
       )}
 
-      {/* Pagination Dot Indicators */}
+      {/* Pagination Dot Indicators (Top Right Capsule) */}
       {banners.length > 1 && (
         <div 
           style={{
             position: 'absolute',
-            bottom: '16px',
-            left: '40px',
+            top: '16px',
+            right: '16px',
             display: 'flex',
-            gap: '8px',
-            zIndex: 10
+            gap: '6px',
+            zIndex: 10,
+            background: 'rgba(0,0,0,0.45)',
+            padding: '6px 10px',
+            borderRadius: '12px'
           }}
         >
           {banners.map((_, index) => (
@@ -309,12 +349,13 @@ const AdCarousel = () => {
               key={index}
               onClick={() => handleDotClick(index)}
               style={{
-                width: index === currentIndex ? '24px' : '8px',
-                height: '8px',
-                borderRadius: '4px',
-                background: index === currentIndex ? 'var(--accent-primary)' : 'rgba(255,255,255,0.25)',
+                width: index === currentIndex ? '16px' : '6px',
+                height: '6px',
+                borderRadius: '3px',
+                background: index === currentIndex ? 'var(--accent-primary)' : 'rgba(255,255,255,0.4)',
                 border: 'none',
                 cursor: 'pointer',
+                padding: 0,
                 transition: 'all 0.3s ease'
               }}
             />
