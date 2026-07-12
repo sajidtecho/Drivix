@@ -205,13 +205,11 @@ export const authPhone = async (req, res) => {
 
     if (!user) {
       // Create user if not exists
-      const email = `${mobile}@drivix.com`; // placeholder email for Schema constraint
       const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 
       user = await User.create({
         fullName: 'Mobile User',
         name: 'Mobile User',
-        email,
         password: randomPassword,
         mobile,
         city: '',
