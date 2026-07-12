@@ -20,11 +20,11 @@ const VehicleSchema = new mongoose.Schema({
   },
   brand: {
     type: String,
-    required: true
+    default: ''
   },
   model: {
     type: String,
-    required: true
+    default: ''
   },
   color: {
     type: String,
@@ -33,7 +33,7 @@ const VehicleSchema = new mongoose.Schema({
   fuelType: {
     type: String,
     enum: ['Petrol', 'Diesel', 'CNG', 'EV'],
-    required: true
+    default: 'Petrol'
   }
 }, {
   timestamps: true

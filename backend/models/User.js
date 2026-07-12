@@ -25,13 +25,15 @@ const UserSchema = new mongoose.Schema({
   name: { type: String }, // maintained for backward compatibility with frontend forms
   email: { 
     type: String, 
-    required: true, 
     unique: true,
+    sparse: true,
     match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
   },
-  password: { type: String, required: true, select: false },
+  password: { type: String, select: false },
   mobile: { type: String, required: true },
-  city: { type: String, required: true },
+  city: { type: String, default: '' },
+  drivingLicence: { type: String, default: '' },
+  isProfileCompleted: { type: Boolean, default: false },
   profileImage: { type: String, default: '' },
   vehicles: [VehicleSchema],
   documents: [DocumentSchema],

@@ -108,9 +108,12 @@ export const getUserProfile = async (req, res) => {
       res.json({
         _id: user._id,
         name: user.name,
+        fullName: user.fullName,
         email: user.email,
         mobile: user.mobile,
         city: user.city,
+        drivingLicence: user.drivingLicence || '',
+        isProfileCompleted: user.isProfileCompleted || false,
         role: user.role,
         walletBalance: user.walletBalance,
         vehicles: user.vehicles,
@@ -224,6 +227,7 @@ export const authPhone = async (req, res) => {
       mobile: user.mobile,
       city: user.city,
       role: user.role,
+      isProfileCompleted: user.isProfileCompleted || false,
       walletBalance: user.walletBalance,
       vehicles: user.vehicles,
       documents: user.documents,
@@ -244,10 +248,17 @@ export const updateUserProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
-      user.name = req.body.name || user.name;
+      if (req.body.name || req.body.fullName) {
+        user.name = req.body.name || req.body.fullName;
+        user.fullName = req.body.fullName || req.body.name;
+      }
       user.email = req.body.email || user.email;
       user.mobile = req.body.mobile || user.mobile;
       user.city = req.body.city || user.city;
+      user.drivingLicence = req.body.drivingLicence || user.drivingLicence;
+      if (req.body.isProfileCompleted !== undefined) {
+        user.isProfileCompleted = req.body.isProfileCompleted;
+      }
       
       // Update nested structures if provided
       if (req.body.vehicles) user.vehicles = req.body.vehicles;
@@ -271,9 +282,12 @@ export const updateUserProfile = async (req, res) => {
       res.json({
         _id: updatedUser._id,
         name: updatedUser.name,
+        fullName: updatedUser.fullName,
         email: updatedUser.email,
         mobile: updatedUser.mobile,
         city: updatedUser.city,
+        drivingLicence: updatedUser.drivingLicence || '',
+        isProfileCompleted: updatedUser.isProfileCompleted || false,
         role: updatedUser.role,
         walletBalance: updatedUser.walletBalance,
         vehicles: updatedUser.vehicles,
