@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, CarFront, Zap, ShieldCheck, Clock, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AdCarousel from '../components/AdCarousel';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -140,6 +141,11 @@ const Home = () => {
             )}
           </motion.div>
         ))}
+      </motion.div>
+
+      {/* Dynamic Advertisement Carousel */}
+      <motion.div variants={itemVariants} style={{ width: '100%' }}>
+        <AdCarousel />
       </motion.div>
     </motion.div>
   );
