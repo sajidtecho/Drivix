@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Car, Layers, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import loadingCar from '../assets/Loading_car.webm';
 import { API_BASE_URL } from '../config';
 import { io } from 'socket.io-client';
