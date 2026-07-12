@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AdCarousel from '../components/AdCarousel';
 import {
   MapPin, Car, Users, Star, ChevronRight, Search,
   Shield, Zap, Clock, Navigation
@@ -297,6 +298,11 @@ const ParkingList = () => {
               </motion.div>
             );
           })}
+        </div>
+
+        {/* Dynamic Advertisement Carousel */}
+        <div style={{ marginTop: '32px', width: '100%' }}>
+          <AdCarousel />
         </div>
 
         {filtered.length === 0 && !loading && (
