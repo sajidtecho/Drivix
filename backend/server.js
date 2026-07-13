@@ -13,7 +13,9 @@ import parkingRoutes from './routes/parkingRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import complaintRoutes from './routes/complaintRoutes.js';
 import bannerRoutes from './routes/bannerRoutes.js';
+import placeRoutes from './routes/placeRoutes.js';
 import { seedBanners } from './utils/seedBanners.js';
+import { seedPlaces } from './controllers/placeController.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 // Load environment variables
@@ -22,6 +24,7 @@ dotenv.config();
 // Connect to Database
 connectDB().then(() => {
   seedBanners();
+  seedPlaces();
 }).catch(err => console.error('Database connection error during seeding:', err));
 
 const app = express();
@@ -59,6 +62,7 @@ app.use('/api/v1/parking', parkingRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/complaints', complaintRoutes);
 app.use('/api/v1/banners', bannerRoutes);
+app.use('/api/v1/places', placeRoutes);
 
 // Centralized Error Handling Middlewares
 app.use(notFound);
