@@ -191,6 +191,17 @@ export const vacateBooking = async (req, res) => {
     if (slot) {
       slot.status = 'available';
       await slot.save();
+
+      // Emit Socket.io update to all connected clients!
+      const io = req.app.get('socketio');
+      if (io) {
+        io.emit('slotStatusUpdated', {
+          facilityId: booking.locationId.toString(),
+          id: booking.slotId,
+          status: 'available',
+          reservationExpiresAt: null
+        });
+      }
     }
 
     // 3. Increment available slots on the parent location
