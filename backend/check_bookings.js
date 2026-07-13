@@ -1,13 +1,12 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import Booking from './models/Booking.js';
+import Slot from './models/Slot.js';
 dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI;
 console.log('Connecting...');
 await mongoose.connect(MONGO_URI);
-
-const Booking = mongoose.model('Booking');
-const Slot = mongoose.model('Slot');
 
 const activeBookings = await Booking.find({ status: 'booked' });
 console.log(`Found ${activeBookings.length} active bookings:`);
