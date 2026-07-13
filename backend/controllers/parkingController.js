@@ -330,62 +330,7 @@ export const reserveSlot = async (req, res) => {
       return res.status(409).json({ message: 'This slot is currently being booked by another user. Please choose another available slot.' });
     }
 
-    // Emit Socket.io update to all connected clients!
-    const io = req.app.get('socketio');
-    if (io) {
-      io.emit('slotStatusUpdated', {
-        facilityId,
-        id: slotId,
-        status: 'temporarily_reserved',
-        reservationExpiresAt: slot.reservationExpiresAt
-      });
-    }
 
-    res.json(slot);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Release a temporarily reserved slot
-// @route   POST /api/v1/parking/:facilityId/slots/:slotId/release
-// @access  Private
-export const releaseSlot = async (req, res) => {
-  const { facilityId, slotId } = req.params;
-  const userId = req.user._id;
-
-  try {
-    // Only release if reserved by the current user
-    const slot = await Slot.findOneAndUpdate(
-      {
-        facilityId,
-        id: slotId,
-        status: 'temporarily_reserved',
-        reservedBy: userId
-      },
-      {
-        $set: {
-          status: 'available',
-          reservedBy: null,
-          reservationExpiresAt: null
-        }
-      },
-      { new: true }
-    );
-
-    if (!slot) {
-      return res.status(400).json({ message: 'Slot was not reserved by you or is already released.' });
-    }
-
-    const io = req.app.get('socketio');
-    if (io) {
-      io.emit('slotStatusUpdated', {
-        facilityId,
-        id: slotId,
-        status: 'available',
-        reservationExpiresAt: null
-      });
-    }
 
     res.json(slot);
   } catch (error) {
