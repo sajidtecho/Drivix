@@ -18,6 +18,7 @@ import { seedBanners } from './utils/seedBanners.js';
 import { seedPlaces } from './controllers/placeController.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
+import mongoose from 'mongoose';
 // Load environment variables
 dotenv.config();
 
@@ -51,7 +52,8 @@ app.get('/api/v1/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
