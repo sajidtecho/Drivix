@@ -340,12 +340,16 @@ export const getPublicStats = async (req, res) => {
   try {
     const userCount = await User.countDocuments({});
     
+    // Dynamically retrieve Booking model to count bookings as happy users
+    const Booking = mongoose.model('Booking');
+    const bookingCount = await Booking.countDocuments({});
+    
     // Dynamically retrieve ParkingLocation model to avoid circular imports
     const ParkingLocation = mongoose.model('ParkingLocation');
     const facilityCount = await ParkingLocation.countDocuments({});
     
     res.json({
-      users: userCount || 0,
+      users: (userCount + bookingCount) || 0,
       facilities: facilityCount || 0
     });
   } catch (error) {
