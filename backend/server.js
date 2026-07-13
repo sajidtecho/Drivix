@@ -87,7 +87,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Periodically release expired temporary slot reservations (runs every 10 seconds)
+// Periodically release expired temporary slot reservations and auto-vacate expired bookings (runs every 10 seconds)
 setInterval(async () => {
   try {
     const now = new Date();
@@ -105,7 +105,7 @@ setInterval(async () => {
         await slot.save();
 
         io.emit('slotStatusUpdated', {
-          facilityId: slot.facilityId,
+          facilityId: slot.facilityId.toString(),
           id: slot.id,
           status: 'available',
           reservationExpiresAt: null,
@@ -113,8 +113,37 @@ setInterval(async () => {
         });
       }
     }
+
+    // Auto-vacate active bookings that are past their duration
+    const Booking = mongoose.model('Booking');
+    const expiredBookings = await Booking.find({
+      status: 'booked'
+    });
+
+    for (const booking of expiredBookings) {
+      const endTime = new Date(booking.createdAt.getTime() + booking.duration * 60 * 60 * 1000);
+      if (endTime < now) {
+        console.log(`🧹 Auto-vacating expired booking: ${booking.bookingId}`);
+        booking.status = 'completed';
+        await booking.save();
+
+        const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
+        if (slot) {
+          slot.status = 'available';
+          await slot.save();
+
+          io.emit('slotStatusUpdated', {
+            facilityId: booking.locationId.toString(),
+            id: booking.slotId,
+            status: 'available',
+            reservationExpiresAt: null,
+            reservedBy: null
+          });
+        }
+      }
+    }
   } catch (err) {
-    console.error('Error during expired slot cleanup:', err);
+    console.error('Error during expired slot/booking cleanup:', err);
   }
 }, 10000);
 
