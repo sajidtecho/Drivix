@@ -125,7 +125,7 @@ const SlotLayout = () => {
     });
 
     socket.on('slotStatusUpdated', (event) => {
-      if (event.facilityId === loc.id) {
+      if (String(event.facilityId) === String(loc.id)) {
         setSlots((prevSlots) =>
           prevSlots.map((slot) =>
             slot.id === event.id

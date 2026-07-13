@@ -117,7 +117,7 @@ export const createBooking = async (req, res) => {
     const io = req.app.get('socketio');
     if (io) {
       io.emit('slotStatusUpdated', {
-        facilityId: resolvedLocationId,
+        facilityId: resolvedLocationId.toString(),
         id: resolvedSlotId,
         status: 'booked',
         reservationExpiresAt: null,
