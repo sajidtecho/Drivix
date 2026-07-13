@@ -96,59 +96,62 @@ const AdminBookings = () => {
           <p style={{ color: 'var(--text-secondary)' }}>View and manage all active and past parking reservations across all locations.</p>
         </div>
 
-        {!loading && bookings.length > 0 && (
-          <button 
-            onClick={handleDeleteAllBookings}
-            style={{ 
-              backgroundColor: 'rgba(255, 75, 75, 0.15)', 
-              color: '#ff4b4b', 
-              border: '1px solid rgba(255, 75, 75, 0.3)', 
-              padding: '10px 20px', 
-              borderRadius: '12px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 75, 75, 0.25)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 75, 75, 0.15)'}
-          >
-            Remove All Bookings
-          </button>
-        )}
-      </div>  
-        {/* Filters and Sorting UI */}
-        {!loading && bookings.length > 0 && (
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <select 
-              value={filterLocation} 
-              onChange={(e) => setFilterLocation(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', outline: 'none' }}
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {!loading && bookings.length > 0 && (
+            <button 
+              onClick={handleDeleteAllBookings}
+              style={{ 
+                backgroundColor: 'rgba(255, 75, 75, 0.15)', 
+                color: '#ff4b4b', 
+                border: '1px solid rgba(255, 75, 75, 0.3)', 
+                padding: '10px 20px', 
+                borderRadius: '12px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                marginRight: '12px'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 75, 75, 0.25)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 75, 75, 0.15)'}
             >
-              <option value="all">All Locations</option>
-              {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-            </select>
+              Remove All Bookings
+            </button>
+          )}
 
-            <select 
-              value={filterStatus} 
-              onChange={(e) => setFilterStatus(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', outline: 'none' }}
-            >
-              <option value="all">All Statuses</option>
-              <option value="booked">Booked</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+          {/* Filters and Sorting UI */}
+          {!loading && bookings.length > 0 && (
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <select 
+                value={filterLocation} 
+                onChange={(e) => setFilterLocation(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', outline: 'none' }}
+              >
+                <option value="all">All Locations</option>
+                {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+              </select>
 
-            <select 
-              value={sortBy} 
-              onChange={(e) => setSortBy(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', outline: 'none' }}
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-            </select>
-          </div>
-        )}
+              <select 
+                value={filterStatus} 
+                onChange={(e) => setFilterStatus(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', outline: 'none' }}
+              >
+                <option value="all">All Statuses</option>
+                <option value="booked">Booked</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', outline: 'none' }}
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
+            </div>
+          )}
+        </div>
       </div>
       
       {loading ? (
