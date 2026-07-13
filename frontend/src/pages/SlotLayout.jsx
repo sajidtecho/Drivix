@@ -191,12 +191,14 @@ const SlotLayout = () => {
   const floors = useMemo(() => loc?.floors || ['L1'], [loc]);
 
   const slotRows = useMemo(() => {
-    return slots.reduce((acc, slot) => {
-      if (!acc[slot.row]) acc[slot.row] = [];
-      acc[slot.row].push(slot);
-      return acc;
-    }, {});
-  }, [slots]);
+    return slots
+      .filter((slot) => slot.floor === selectedFloor)
+      .reduce((acc, slot) => {
+        if (!acc[slot.row]) acc[slot.row] = [];
+        acc[slot.row].push(slot);
+        return acc;
+      }, {});
+  }, [slots, selectedFloor]);
 
   const handleSlotClick = async (slotId, status) => {
     const token = localStorage.getItem('drivix_auth_token');
