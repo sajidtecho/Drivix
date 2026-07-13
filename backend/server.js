@@ -106,7 +106,8 @@ setInterval(async () => {
           facilityId: slot.facilityId,
           id: slot.id,
           status: 'available',
-          reservationExpiresAt: null
+          reservationExpiresAt: null,
+          reservedBy: null
         });
       }
     }
