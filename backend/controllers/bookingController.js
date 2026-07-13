@@ -120,7 +120,8 @@ export const createBooking = async (req, res) => {
         facilityId: resolvedLocationId,
         id: resolvedSlotId,
         status: 'booked',
-        reservationExpiresAt: null
+        reservationExpiresAt: null,
+        reservedBy: null
       });
     }
 
