@@ -10,7 +10,7 @@ import { useToast } from '../context/ToastContext';
 const SLOT_STATUS = {
   available:             { label: 'Available',            color: '#00cc6a', bg: 'rgba(0,204,106,0.12)',  border: 'rgba(0,204,106,0.35)' },
   temporarily_reserved:  { label: 'Temporarily Reserved', color: '#FFCE00', bg: 'rgba(255,206,0,0.12)',  border: 'rgba(255,206,0,0.35)' },
-  booked:                { label: 'Booking Confirmed',    color: '#0090FF', bg: 'rgba(0,144,255,0.12)',  border: 'rgba(0,144,255,0.35)' },
+  booked:                { label: 'Booked',               color: '#ff4b4b', bg: 'rgba(255,75,75,0.12)',   border: 'rgba(255,75,75,0.35)' },
   occupied:              { label: 'Occupied',             color: '#ff4b4b', bg: 'rgba(255,75,75,0.12)',   border: 'rgba(255,75,75,0.35)' },
   maintenance:           { label: 'Maintenance',          color: '#8a8a8a', bg: 'rgba(138,138,138,0.12)', border: 'rgba(138,138,138,0.35)' },
   selected:              { label: 'Selected by You',      color: 'var(--accent-primary)', bg: 'rgba(255,206,0,0.15)', border: 'var(--accent-primary)' },
