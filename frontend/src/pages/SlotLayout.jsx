@@ -270,7 +270,7 @@ const SlotLayout = () => {
 
         {/* Legend */}
         <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {Object.entries(SLOT_STATUS).filter(([k]) => k !== 'selected').map(([key, val]) => (
+          {Object.entries(SLOT_STATUS).filter(([k]) => ['available', 'booked', 'maintenance'].includes(k)).map(([key, val]) => (
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ width: '20px', height: '20px', borderRadius: 'var(--radius-button)', background: val.bg, border: `2px solid ${val.border}` }} />
               <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{val.label}</span>
