@@ -45,11 +45,13 @@ export const UserProvider = ({ children }) => {
 
         if (response.ok) {
           const data = await response.json();
+          localStorage.setItem('drivix_user_uid', data._id);
           setUser(mapUser(data));
           setIsAuthenticated(true);
         } else {
           // If token expired or invalid, clear session
           localStorage.removeItem('drivix_auth_token');
+          localStorage.removeItem('drivix_user_uid');
           setUser(null);
           setIsAuthenticated(false);
         }
@@ -77,6 +79,7 @@ export const UserProvider = ({ children }) => {
     }
 
     localStorage.setItem('drivix_auth_token', data.token);
+    localStorage.setItem('drivix_user_uid', data._id);
     setUser(mapUser(data));
     setIsAuthenticated(true);
     return mapUser(data);
@@ -96,6 +99,7 @@ export const UserProvider = ({ children }) => {
     }
 
     localStorage.setItem('drivix_auth_token', data.token);
+    localStorage.setItem('drivix_user_uid', data._id);
     setUser(mapUser(data));
     setIsAuthenticated(true);
     return mapUser(data);
@@ -115,6 +119,7 @@ export const UserProvider = ({ children }) => {
     }
 
     localStorage.setItem('drivix_auth_token', data.token);
+    localStorage.setItem('drivix_user_uid', data._id);
     setUser(mapUser(data));
     setIsAuthenticated(true);
     return mapUser(data);
@@ -134,6 +139,7 @@ export const UserProvider = ({ children }) => {
     }
 
     localStorage.setItem('drivix_auth_token', data.token);
+    localStorage.setItem('drivix_user_uid', data._id);
     setUser(mapUser(data));
     setIsAuthenticated(true);
     return mapUser(data);
@@ -141,6 +147,7 @@ export const UserProvider = ({ children }) => {
 
   const logout = async () => {
     localStorage.removeItem('drivix_auth_token');
+    localStorage.removeItem('drivix_user_uid');
     setUser(null);
     setIsAuthenticated(false);
   };
