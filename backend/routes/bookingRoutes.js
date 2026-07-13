@@ -4,9 +4,11 @@ import {
   getMyBookings,
   getAllBookings,
   vacateBooking,
-  extendBooking
+  extendBooking,
+  deleteBookingAdmin,
+  deleteAllBookingsAdmin
 } from '../controllers/bookingController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -18,5 +20,9 @@ router.get('/my', getMyBookings);
 router.get('/all', getAllBookings);
 router.put('/:id/vacate', vacateBooking);
 router.put('/:id/extend', extendBooking);
+
+// Admin-only management endpoints
+router.delete('/admin/all', adminOnly, deleteAllBookingsAdmin);
+router.delete('/admin/:id', adminOnly, deleteBookingAdmin);
 
 export default router;

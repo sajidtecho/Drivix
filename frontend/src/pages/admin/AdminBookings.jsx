@@ -36,6 +36,44 @@ const AdminBookings = () => {
     fetchBookings();
   }, []);
 
+  const handleDeleteBooking = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to delete this booking? This will vacate the slot immediately.")) return;
+    
+    const token = localStorage.getItem('drivix_auth_token');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/bookings/admin/${bookingId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setBookings(prev => prev.filter(b => b.id !== bookingId));
+      } else {
+        alert("Failed to delete booking.");
+      }
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+    }
+  };
+
+  const handleDeleteAllBookings = async () => {
+    if (!window.confirm("WARNING: Are you sure you want to delete ALL bookings from the system? This will release all slots to available immediately.")) return;
+    
+    const token = localStorage.getItem('drivix_auth_token');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/bookings/admin/all`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setBookings([]);
+      } else {
+        alert("Failed to delete all bookings.");
+      }
+    } catch (error) {
+      console.error("Error deleting all bookings:", error);
+    }
+  };
+
   // Derived Values
   const uniqueLocations = [...new Set(bookings.map(b => b.locationName).filter(Boolean))];
 
@@ -57,7 +95,27 @@ const AdminBookings = () => {
           <h1 style={{ fontSize: '1.8rem', marginBottom: '8px' }}>Manage Bookings</h1>
           <p style={{ color: 'var(--text-secondary)' }}>View and manage all active and past parking reservations across all locations.</p>
         </div>
-        
+
+        {!loading && bookings.length > 0 && (
+          <button 
+            onClick={handleDeleteAllBookings}
+            style={{ 
+              backgroundColor: 'rgba(255, 75, 75, 0.15)', 
+              color: '#ff4b4b', 
+              border: '1px solid rgba(255, 75, 75, 0.3)', 
+              padding: '10px 20px', 
+              borderRadius: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 75, 75, 0.25)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 75, 75, 0.15)'}
+          >
+            Remove All Bookings
+          </button>
+        )}
+      </div>  
         {/* Filters and Sorting UI */}
         {!loading && bookings.length > 0 && (
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -115,6 +173,7 @@ const AdminBookings = () => {
                 <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Time & Cost</th>
                 <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Payment</th>
                 <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Status</th>
+                <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -194,6 +253,22 @@ const AdminBookings = () => {
                       }}>
                         {b.status}
                       </span>
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      <button 
+                        onClick={() => handleDeleteBooking(b.id)}
+                        style={{ 
+                          background: 'none', 
+                          border: 'none', 
+                          color: '#ff4b4b', 
+                          fontWeight: 700, 
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        Remove
+                      </button>
                     </td>
                   </tr>
                 ))}

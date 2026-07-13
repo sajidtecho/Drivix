@@ -242,3 +242,109 @@ export const extendBooking = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Delete a specific booking (Admin only)
+// @route   DELETE /api/v1/bookings/admin/:id
+// @access  Private/Admin
+export const deleteBookingAdmin = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // Mark the associated slot as available again
+    const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
+    if (slot) {
+      slot.status = 'available';
+      await slot.save();
+
+      // Emit Socket.io update to all connected clients!
+      const io = req.app.get('socketio');
+      if (io) {
+        io.emit('slotStatusUpdated', {
+          facilityId: booking.locationId.toString(),
+          id: booking.slotId,
+          status: 'available',
+          reservationExpiresAt: null,
+          reservedBy: null
+        });
+      }
+    }
+
+    // Increment available slots on the parent location
+    await ParkingLocation.findByIdAndUpdate(booking.locationId, {
+      $inc: { availableSlots: 1 }
+    });
+
+    // Delete booking from database
+    await Booking.findByIdAndDelete(req.params.id);
+
+    // Notify user via Socket.IO that their booking was removed by admin
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('bookingRemoved', {
+        userId: booking.userId.toString(),
+        bookingId: booking.bookingId,
+        message: 'Your booking has been removed by the admin.'
+      });
+    }
+
+    res.json({ message: 'Booking removed successfully by Admin' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete all bookings (Admin only)
+// @route   DELETE /api/v1/bookings/admin/all
+// @access  Private/Admin
+export const deleteAllBookingsAdmin = async (req, res) => {
+  try {
+    const bookings = await Booking.find({});
+    
+    // For each booking, reset its slot status
+    for (const booking of bookings) {
+      const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
+      if (slot) {
+        slot.status = 'available';
+        await slot.save();
+
+        const io = req.app.get('socketio');
+        if (io) {
+          io.emit('slotStatusUpdated', {
+            facilityId: booking.locationId.toString(),
+            id: booking.slotId,
+            status: 'available',
+            reservationExpiresAt: null,
+            reservedBy: null
+          });
+        }
+      }
+
+      // Restore availableSlots on parent facility
+      await ParkingLocation.findByIdAndUpdate(booking.locationId, {
+        $inc: { availableSlots: 1 }
+      });
+    }
+
+    // Delete all bookings from database
+    await Booking.deleteMany({});
+
+    // Notify all affected users via Socket.IO
+    const io = req.app.get('socketio');
+    if (io) {
+      for (const booking of bookings) {
+        io.emit('bookingRemoved', {
+          userId: booking.userId.toString(),
+          bookingId: booking.bookingId,
+          message: 'Your booking has been removed by the admin.'
+        });
+      }
+    }
+
+    res.json({ message: 'All bookings removed successfully by Admin' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

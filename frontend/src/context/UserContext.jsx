@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
+import { io } from 'socket.io-client';
 
 export const UserContext = createContext();
 
@@ -9,6 +10,27 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Real-time booking removal socket notification listener
+  useEffect(() => {
+    if (!user) return;
+
+    const socket = io(API_BASE_URL.replace('/api/v1', ''), {
+      transports: ['websocket'],
+      upgrade: false
+    });
+
+    socket.on('bookingRemoved', (event) => {
+      if (event.userId === user.uid || event.userId === user._id) {
+        alert(`Admin removed the bookings. Booking ID: ${event.bookingId}`);
+        window.location.reload();
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user]);
 
   // Helper to construct headers with JWT token
   const getAuthHeaders = (token) => {
