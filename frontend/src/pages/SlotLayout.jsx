@@ -117,8 +117,7 @@ const SlotLayout = () => {
     if (!loc) return;
 
     const socket = io(API_BASE_URL.replace('/api/v1', ''), {
-      transports: ['websocket'],
-      upgrade: false
+      transports: ['polling', 'websocket']
     });
 
     socket.on('connect', () => {
@@ -134,7 +133,7 @@ const SlotLayout = () => {
                   ...slot,
                   status: event.status,
                   reservationExpiresAt: event.reservationExpiresAt,
-                  reservedBy: event.reservedBy || slot.reservedBy
+                  reservedBy: event.reservedBy
                 }
               : slot
           )
