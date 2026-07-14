@@ -7,8 +7,7 @@ dotenv.config();
 
 const checkURI = async (uri, name) => {
   try {
-    console.log(`\n=== Checking ${name} (${uri.split('@').pop()}) ===`);
-    // Close existing connection if any
+    console.log(`\n=== Checking ${name} ===`);
     if (mongoose.connection.readyState !== 0) {
       await mongoose.disconnect();
     }
@@ -17,19 +16,11 @@ const checkURI = async (uri, name) => {
       serverSelectionTimeoutMS: 2000,
       connectTimeoutMS: 2000,
     });
-    console.log('Connected successfully!');
-
-    const users = await User.find({});
-    console.log(`Total Users: ${users.length}`);
-    users.forEach(u => {
-      console.log(`- User: ${u.fullName || u.name} | Mobile: ${u.mobile}`);
-      console.log(`  Embedded Vehicles:`, u.vehicles);
-    });
 
     const vehicles = await Vehicle.find({});
     console.log(`Total Standalone Vehicles: ${vehicles.length}`);
     vehicles.forEach(v => {
-      console.log(`- Vehicle: ${v.vehicleNumber} | Model: ${v.model}`);
+      console.log(`- Vehicle Number: ${v.vehicleNumber} | Model: ${v.model} | fuelType: "${v.fuelType}" | vehicleType: "${v.vehicleType}"`);
     });
 
   } catch (error) {
@@ -49,7 +40,6 @@ const run = async () => {
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
   }
-  console.log('\nDone.');
 };
 
 run();
