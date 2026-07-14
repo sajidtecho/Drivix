@@ -143,7 +143,7 @@ const ParkingList = () => {
         </motion.div>
 
         {/* Stats row */}
-        <motion.div variants={itemVariants} style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
+        <motion.div variants={itemVariants} style={{ display: 'flex', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
           {[{ label: 'Locations', value: locations.length, Icon: MapPin },
             { label: 'Total Slots', value: locations.reduce((a, p) => a + (p.totalSlots || 0), 0), Icon: Car },
             { 
@@ -152,10 +152,33 @@ const ParkingList = () => {
               Icon: Zap 
             }
           ].map((stat) => (
-            <div key={stat.label} className="glass-panel" style={{ flex: '1 1 120px', padding: '16px 20px', borderRadius: 'var(--radius-input)', textAlign: 'center' }}>
-              <stat.Icon size={18} color="var(--accent-primary)" style={{ marginBottom: '6px' }} />
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{stat.value}</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{stat.label}</div>
+            <div key={stat.label} className="glass-panel" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              padding: '6px 16px', 
+              borderRadius: '99px', 
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid var(--glass-border)',
+              flex: '0 1 auto',
+              minWidth: '135px',
+            }}>
+              <div style={{ 
+                width: '28px', 
+                height: '28px', 
+                borderRadius: '50%', 
+                background: 'rgba(255, 206, 0, 0.08)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <stat.Icon size={13} color="var(--accent-primary)" />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: '1.05rem', fontWeight: 800, lineHeight: 1.1 }}>{stat.value}</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.3px', textTransform: 'uppercase', marginTop: '1px' }}>{stat.label}</div>
+              </div>
             </div>
           ))}
         </motion.div>
