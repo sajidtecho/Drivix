@@ -24,6 +24,7 @@ const promoteAdmin = async () => {
 };
 
 const connectDB = async () => {
+  console.log('ATLAS_URI check:', process.env.MONGO_URI || 'undefined');
   // --- 1. Try Atlas first ---
   if (ATLAS_URI) {
     try {
