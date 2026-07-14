@@ -357,9 +357,6 @@ const SlotBookingForm = () => {
                 </div>
               </div>
 
-                )}
-              </AnimatePresence>
-
               {/* Personal Details */}
               <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '16px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Personal Info
