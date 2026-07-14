@@ -23,6 +23,10 @@ export const addVehicle = async (req, res) => {
       return res.status(400).json({ message: 'Vehicle already registered' });
     }
 
+    // Default to primary if this is the user's first registered vehicle
+    const existingCount = await Vehicle.countDocuments({ userId: req.user._id });
+    const isPrimary = existingCount === 0;
+
     const vehicle = await Vehicle.create({
       userId: req.user._id,
       vehicleNumber: resolvedNumber,
@@ -30,7 +34,8 @@ export const addVehicle = async (req, res) => {
       brand: brand || 'Generic',
       model: model || 'Generic',
       color: color || 'Generic',
-      fuelType: resolvedFuel
+      fuelType: resolvedFuel,
+      isPrimary
     });
 
     // Sync with User's embedded vehicles array
@@ -41,7 +46,7 @@ export const addVehicle = async (req, res) => {
         user.vehicles.push({
           plate: resolvedNumber,
           model: model || brand || 'Vehicle',
-          isPrimary: user.vehicles.length === 0
+          isPrimary: isPrimary
         });
         await user.save();
       }
@@ -50,6 +55,7 @@ export const addVehicle = async (req, res) => {
     const responseObj = vehicle.toObject();
     responseObj.plate = resolvedNumber;
     responseObj.type = resolvedFuel;
+    responseObj.isPrimary = vehicle.isPrimary;
 
     res.status(201).json(responseObj);
   } catch (error) {
@@ -84,7 +90,8 @@ export const getUserVehicles = async (req, res) => {
               brand: 'Generic',
               model: embedded.model || 'Generic',
               color: 'Generic',
-              fuelType: 'Petrol' // fallback default
+              fuelType: 'Petrol', // fallback default
+              isPrimary: embedded.isPrimary || false
             });
             syncedVehicles.push(newVehicle);
             console.log(`Synced missing standalone vehicle ${plateUpper} for user ${user.email}`);
@@ -100,6 +107,7 @@ export const getUserVehicles = async (req, res) => {
       const obj = v.toObject();
       obj.plate = obj.vehicleNumber;
       obj.type = obj.fuelType || obj.vehicleType;
+      obj.isPrimary = obj.isPrimary || false;
       return obj;
     });
 
@@ -126,16 +134,71 @@ export const deleteVehicle = async (req, res) => {
     }
 
     const resolvedNumber = vehicle.vehicleNumber;
+    const wasPrimary = vehicle.isPrimary;
     await vehicle.deleteOne();
 
     // Sync with User's embedded vehicles array
     const user = await User.findById(req.user._id);
     if (user) {
       user.vehicles = user.vehicles.filter(v => v.plate !== resolvedNumber);
+      
+      // If we deleted the primary vehicle, elect a new primary if there are other vehicles
+      if (wasPrimary && user.vehicles.length > 0) {
+        user.vehicles[0].isPrimary = true;
+        const nextPlate = user.vehicles[0].plate.trim().toUpperCase();
+        await Vehicle.findOneAndUpdate({ userId: req.user._id, vehicleNumber: nextPlate }, { isPrimary: true });
+      }
+      
       await user.save();
     }
 
     res.json({ message: 'Vehicle removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Set a vehicle as primary
+// @route   PUT /api/v1/vehicles/:id/primary
+// @access  Private
+export const setPrimaryVehicle = async (req, res) => {
+  try {
+    const vehicleId = req.params.id;
+    const userId = req.user._id;
+
+    // 1. Find the vehicle to set as primary
+    const primaryVehicle = await Vehicle.findOne({ _id: vehicleId, userId });
+    if (!primaryVehicle) {
+      return res.status(404).json({ message: 'Vehicle not found or not owned by you' });
+    }
+
+    // 2. Set all other user vehicles to non-primary in standalone collection
+    await Vehicle.updateMany(
+      { userId, _id: { $ne: vehicleId } },
+      { $set: { isPrimary: false } }
+    );
+
+    // 3. Mark this one as primary
+    primaryVehicle.isPrimary = true;
+    await primaryVehicle.save();
+
+    // 4. Update the User's embedded vehicles list
+    const user = await User.findById(userId);
+    if (user) {
+      const targetPlate = primaryVehicle.vehicleNumber.trim().toUpperCase();
+      user.vehicles = user.vehicles.map(v => {
+        const isTarget = v.plate.trim().toUpperCase() === targetPlate;
+        return {
+          _id: v._id,
+          plate: v.plate,
+          model: v.model,
+          isPrimary: isTarget
+        };
+      });
+      await user.save();
+    }
+
+    res.json({ message: 'Vehicle set as primary successfully', vehicle: primaryVehicle });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

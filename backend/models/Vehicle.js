@@ -34,6 +34,10 @@ const VehicleSchema = new mongoose.Schema({
     type: String,
     enum: ['Petrol', 'Diesel', 'CNG', 'EV'],
     default: 'Petrol'
+  },
+  isPrimary: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

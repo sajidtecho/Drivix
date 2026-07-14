@@ -1,6 +1,5 @@
 import express from 'express';
-import { addVehicle, getUserVehicles, deleteVehicle } from '../controllers/vehicleController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { addVehicle, getUserVehicles, deleteVehicle, setPrimaryVehicle } from '../controllers/vehicleController.js';
 
 const router = express.Router();
 
@@ -13,5 +12,8 @@ router.route('/')
 
 router.route('/:id')
   .delete(deleteVehicle);
+
+router.route('/:id/primary')
+  .put(setPrimaryVehicle);
 
 export default router;
