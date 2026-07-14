@@ -379,6 +379,285 @@ const HeroSection = () => {
           </FadeIn>
         </div>
       </div>
+
+      {/* Search Result Modal Dialog */}
+      <AnimatePresence>
+        {searchResult && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(12px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px'
+          }}>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="glass-panel"
+              style={{
+                width: '100%',
+                maxWidth: '500px',
+                background: 'var(--bg-tertiary)',
+                border: '1.5px solid var(--glass-border)',
+                borderRadius: 'var(--radius-card)',
+                padding: '30px',
+                position: 'relative',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.4)',
+                textAlign: 'left'
+              }}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSearchResult(null)}
+                style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '20px',
+                  background: 'var(--glass-bg)',
+                  border: '1px solid var(--glass-border)',
+                  color: 'var(--text-primary)',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  zIndex: 2
+                }}
+              >
+                <X size={16} />
+              </button>
+
+              {/* MODAL HEADER */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: searchResult.type === 'challan' ? 'rgba(255, 75, 75, 0.15)' : 'rgba(250, 255, 0, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: searchResult.type === 'challan' ? '#ff4b4b' : 'var(--accent-primary)',
+                }}>
+                  {searchResult.type === 'challan' ? <AlertTriangle size={24} /> : <CreditCard size={24} />}
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.4rem', fontWeight: 900, margin: 0 }}>
+                    {searchResult.type === 'challan' ? 'E-Challan Status' : 'FASTag Details'}
+                  </h2>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                    VEHICLE: {searchResult.vehicle}
+                  </p>
+                </div>
+              </div>
+
+              {/* CHALLAN VIEW */}
+              {searchResult.type === 'challan' && (
+                <div>
+                  <p style={{ fontSize: '0.9rem', marginBottom: '16px', color: 'var(--text-secondary)' }}>
+                    Registered Owner: <strong style={{ color: 'var(--text-primary)' }}>{searchResult.owner}</strong>
+                  </p>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                    {searchResult.challans.map(ch => (
+                      <div 
+                        key={ch.id} 
+                        style={{
+                          padding: '14px 16px',
+                          borderRadius: 'var(--radius-button)',
+                          background: 'var(--bg-primary)',
+                          border: '1.5px solid var(--glass-border)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '12px'
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 800 }}>{ch.id} · {ch.date}</span>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>{ch.offense}</p>
+                        </div>
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <div style={{ fontSize: '1rem', fontWeight: 900, color: ch.status === 'unpaid' ? '#ff4b4b' : '#00cc6a' }}>
+                            ₹{ch.amount}
+                          </div>
+                          {ch.status === 'unpaid' ? (
+                            <button
+                              disabled={isProcessingAction}
+                              onClick={() => handlePayChallan(ch.id)}
+                              className="btn btn-primary"
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '0.75rem',
+                                marginTop: '6px',
+                                background: '#ff4b4b',
+                                color: '#fff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                border: 'none'
+                              }}
+                            >
+                              {isProcessingAction ? 'Paying...' : 'Pay Now'}
+                            </button>
+                          ) : (
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.7rem',
+                              color: '#00cc6a',
+                              fontWeight: 800,
+                              textTransform: 'uppercase',
+                              marginTop: '6px'
+                            }}>
+                              <Check size={12} /> Paid
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--glass-border)', paddingTop: '16px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Outstanding Balance</span>
+                    <span style={{ fontSize: '1.4rem', fontWeight: 900, color: searchResult.challans.some(c => c.status === 'unpaid') ? '#ff4b4b' : '#00cc6a' }}>
+                      ₹{searchResult.challans.reduce((sum, c) => c.status === 'unpaid' ? sum + c.amount : sum, 0)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* FASTAG VIEW */}
+              {searchResult.type === 'fastag' && (
+                <div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: 'var(--bg-primary)',
+                    padding: '16px 20px',
+                    borderRadius: 'var(--radius-button)',
+                    border: '1.5px solid var(--glass-border)',
+                    marginBottom: '20px'
+                  }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Active Balance</span>
+                      <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--accent-primary)', marginTop: '2px' }}>
+                        ₹{searchResult.balance.toFixed(2)}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 800 }}>STATUS</span>
+                      <div style={{
+                        marginTop: '4px',
+                        padding: '4px 10px',
+                        borderRadius: '20px',
+                        background: 'rgba(0, 204, 106, 0.12)',
+                        color: '#00cc6a',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        textTransform: 'uppercase'
+                      }}>
+                        {searchResult.status}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Recharge */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
+                      Quick Recharge Wallet
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <div style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: 'var(--bg-primary)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: 'var(--radius-button)',
+                        padding: '10px 14px'
+                      }}>
+                        <span style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>₹</span>
+                        <input
+                          type="number"
+                          placeholder="Enter Amount"
+                          value={rechargeAmount}
+                          onChange={(e) => setRechargeAmount(e.target.value)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            color: 'var(--text-primary)',
+                            fontSize: '0.9rem',
+                            fontWeight: 600,
+                            width: '100%'
+                          }}
+                        />
+                      </div>
+                      <button
+                        disabled={isProcessingAction}
+                        onClick={handleRechargeFASTag}
+                        className="btn btn-primary"
+                        style={{ padding: '10px 20px', fontSize: '0.85rem' }}
+                      >
+                        {isProcessingAction ? 'Processing...' : 'Recharge'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Recent Toll Transactions */}
+                  <div>
+                    <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '10px' }}>
+                      Recent Crossings
+                    </h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {searchResult.transactions.map(txn => (
+                        <div 
+                          key={txn.id}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '10px 12px',
+                            background: 'rgba(255,255,255,0.01)',
+                            borderBottom: '1.5px solid var(--glass-border-light)',
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{txn.location}</div>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{txn.date} · {txn.id}</span>
+                          </div>
+                          <span style={{ 
+                            fontWeight: 900, 
+                            color: txn.amount > 0 ? '#00cc6a' : '#ff4b4b' 
+                          }}>
+                            {txn.amount > 0 ? `+₹${txn.amount}` : `-₹${Math.abs(txn.amount)}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
