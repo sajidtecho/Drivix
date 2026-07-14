@@ -381,8 +381,8 @@ const SlotLayout = () => {
                                   whileTap={isClickable ? { scale: 0.95 } : {}}
                                   onClick={() => handleSlotClick(slot.id, status)}
                                   style={{
-                                    width: 'clamp(36px, 10vw, 48px)',
-                                    height: 'clamp(36px, 8vw, 42px)',
+                                    width: 'clamp(44px, 10vw, 48px)',
+                                    height: 'clamp(42px, 8vw, 44px)',
                                     borderRadius: 'var(--radius-button)',
                                     background: st.bg,
                                     border: `2px solid ${st.border}`,

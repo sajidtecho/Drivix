@@ -63,8 +63,8 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
     >
       <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: isOverdue && isActive ? '#ff4b4b' : 'var(--accent-primary)' }} />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }} className="booking-card-flex">
+        <div style={{ flex: 1, minWidth: '200px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-secondary)' }}>#{booking.bookingId}</span>
             <span style={{
@@ -117,11 +117,11 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
           )}
         </div>
 
-        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end', minWidth: '140px' }}>
+        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end', minWidth: '140px' }} className="booking-card-right">
           <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)' }}>₹{booking.totalCost}</div>
 
           {isActive ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'flex-end' }} className="booking-card-actions">
               <button
                 onClick={() => onExtend(booking)}
                 className="btn btn-secondary"
@@ -435,6 +435,21 @@ const Profile = () => {
             .payments-grid {
               grid-template-columns: 1fr !important;
               gap: 16px !important;
+            }
+            .booking-card-flex {
+              flex-direction: column !important;
+              gap: 16px !important;
+            }
+            .booking-card-right {
+              text-align: left !important;
+              align-items: flex-start !important;
+              width: 100% !important;
+              border-top: 1px dashed var(--glass-border);
+              padding-top: 16px;
+            }
+            .booking-card-actions {
+              justify-content: flex-start !important;
+              width: 100% !important;
             }
           }
         `}</style>
