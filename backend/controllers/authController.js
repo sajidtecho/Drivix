@@ -259,7 +259,35 @@ export const updateUserProfile = async (req, res) => {
       }
       
       // Update nested structures if provided
-      if (req.body.vehicles) user.vehicles = req.body.vehicles;
+      if (req.body.vehicles) {
+        user.vehicles = req.body.vehicles;
+        try {
+          const Vehicle = mongoose.model('Vehicle');
+          const incomingPlates = req.body.vehicles.map(v => v.plate.trim().toUpperCase());
+          await Vehicle.deleteMany({
+            userId: user._id,
+            vehicleNumber: { $nin: incomingPlates }
+          });
+          for (const v of req.body.vehicles) {
+            const plateUpper = v.plate.trim().toUpperCase();
+            await Vehicle.findOneAndUpdate(
+              { userId: user._id, vehicleNumber: plateUpper },
+              {
+                $set: {
+                  vehicleNumber: plateUpper,
+                  model: v.model || 'Generic',
+                  isPrimary: !!v.isPrimary,
+                  vehicleType: 'Car',
+                  fuelType: 'Petrol'
+                }
+              },
+              { upsert: true, new: true }
+            );
+          }
+        } catch (syncErr) {
+          console.warn('Error syncing standalone vehicles during profile update:', syncErr.message);
+        }
+      }
       if (req.body.documents) user.documents = req.body.documents;
       if (req.body.paymentMethods) user.paymentMethods = req.body.paymentMethods;
       if (req.body.preferences) user.preferences = req.body.preferences;
