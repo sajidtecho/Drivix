@@ -327,6 +327,18 @@ const SlotBookingForm = () => {
 
   return (
     <div style={{ paddingTop: '90px', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      <style>{`
+        @media (max-width: 480px) {
+          .booking-summary-card {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+          .booking-summary-card > div:last-child {
+            text-align: left !important;
+          }
+        }
+      `}</style>
       <div style={{ maxWidth: '560px', margin: '0 auto', padding: '32px 5% 80px' }}>
 
         <AnimatePresence mode="wait">
@@ -346,7 +358,7 @@ const SlotBookingForm = () => {
               </p>
 
               {/* Summary card */}
-              <div className="glass-panel" style={{ padding: '18px 22px', marginBottom: '28px', borderRadius: 'var(--radius-card)', background: 'var(--bg-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div className="glass-panel booking-summary-card" style={{ padding: '18px 22px', marginBottom: '28px', borderRadius: 'var(--radius-card)', background: 'var(--bg-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '3px' }}>{location.name}</p>
                   <p style={{ fontWeight: 800, fontSize: '1.1rem' }}>Slot {slot} · {floor}</p>
@@ -635,8 +647,8 @@ const SlotBookingForm = () => {
               <h3 style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'left' }}>
                 Comparison
               </h3>
-              <div className="glass-panel" style={{ overflow: 'hidden', borderRadius: 'var(--radius-card)', border: '1px solid var(--glass-border)', marginBottom: '32px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
+              <div className="glass-panel" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: 'var(--radius-card)', border: '1px solid var(--glass-border)', marginBottom: '32px' }}>
+                <table style={{ width: '100%', minWidth: '460px', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)' }}>
                       <th style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontWeight: 700 }}>Feature</th>
