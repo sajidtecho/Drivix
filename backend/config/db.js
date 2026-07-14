@@ -2,9 +2,6 @@
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 
-const ATLAS_URI = process.env.MONGO_URI;
-const LOCAL_URI  = process.env.MONGO_LOCAL_URI || 'mongodb://127.0.0.1:27017/drivix';
-
 // Shared Mongoose options: short server-selection timeout so we fail fast
 const CONN_OPTIONS = {
   serverSelectionTimeoutMS: 5000,  // give up after 5 s instead of 30 s
@@ -24,7 +21,10 @@ const promoteAdmin = async () => {
 };
 
 const connectDB = async () => {
-  console.log('ATLAS_URI check:', process.env.MONGO_URI || 'undefined');
+  const ATLAS_URI = process.env.MONGO_URI;
+  const LOCAL_URI = process.env.MONGO_LOCAL_URI || 'mongodb://127.0.0.1:27017/drivix';
+  
+  console.log('ATLAS_URI check:', ATLAS_URI || 'undefined');
   // --- 1. Try Atlas first ---
   if (ATLAS_URI) {
     try {
