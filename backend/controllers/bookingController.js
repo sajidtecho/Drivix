@@ -27,7 +27,8 @@ export const createBooking = async (req, res) => {
     facilityId,
     durationHours,
     vehicleModel,
-    paymentOption
+    paymentOption,
+    additionalServices
   } = req.body;
 
   try {
@@ -37,6 +38,24 @@ export const createBooking = async (req, res) => {
     const resolvedVehicleNumber = vehicleNumber;
     const resolvedVehicleName = vehicleName || vehicleModel;
     const resolvedPaymentMode = paymentMode || paymentOption || 'PAY_AFTER_CHECKOUT';
+
+    // Pricing mapping for additional services
+    const SERVICE_PRICES = {
+      'Rest Area': 150,
+      'EV Charging': 250,
+      'Car Wash': 300,
+      'Food & Beverages': 200
+    };
+
+    let resolvedServicesCost = 0;
+    const resolvedServices = additionalServices || [];
+    if (Array.isArray(resolvedServices)) {
+      resolvedServices.forEach(srv => {
+        if (SERVICE_PRICES[srv]) {
+          resolvedServicesCost += SERVICE_PRICES[srv];
+        }
+      });
+    }
 
     // 1. Verify Slot is available (or reserved by the current user)
     const slot = await Slot.findOne({ facilityId: resolvedLocationId, id: resolvedSlotId });
@@ -78,7 +97,7 @@ export const createBooking = async (req, res) => {
         totalSlots: location.totalSlots,
         availableSlots: location.availableSlots
       });
-      resolvedTotalCost = recommendation.recommendedPrice * Number(resolvedDuration || 1);
+      resolvedTotalCost = (recommendation.recommendedPrice * Number(resolvedDuration || 1)) + resolvedServicesCost;
     }
 
     // 2. Create the booking document linked to logged-in user
@@ -104,7 +123,9 @@ export const createBooking = async (req, res) => {
       paymentStatus: isPayNow ? 'paid' : 'pending',
       prepaidAmount: isPayNow ? Number(resolvedTotalCost) : 0,
       finalCost: isPayNow ? Number(resolvedTotalCost) : 0,
-      status: 'booked'
+      status: 'booked',
+      additionalServices: resolvedServices,
+      servicesCost: resolvedServicesCost
     });
 
     // 3. Mark the slot as booked and clear reservation details

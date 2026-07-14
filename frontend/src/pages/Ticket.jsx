@@ -229,6 +229,37 @@ const Ticket = () => {
               ))}
             </div>
 
+            {/* Selected Services on Ticket */}
+            {booking.additionalServices && booking.additionalServices.length > 0 && (
+              <div style={{
+                marginTop: '16px', padding: '14px 16px', borderRadius: 'var(--radius-input)',
+                background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)',
+                textAlign: 'left'
+              }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
+                  ADDITIONAL SERVICES
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {booking.additionalServices.map(srv => {
+                    let icon = '⚙️';
+                    if (srv === 'Rest Area') icon = '🛋️';
+                    if (srv === 'EV Charging') icon = '⚡';
+                    if (srv === 'Car Wash') icon = '🧼';
+                    if (srv === 'Food & Beverages') icon = '🍔';
+                    return (
+                      <span key={srv} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '4px 10px', borderRadius: '20px', background: 'rgba(255, 206, 0, 0.12)',
+                        border: '1px solid rgba(255, 206, 0, 0.25)', fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-primary)'
+                      }}>
+                        {icon} {srv}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Total */}
             <div style={{
               marginTop: '20px', padding: '16px 20px', borderRadius: 'var(--radius-card)',
@@ -238,7 +269,9 @@ const Ticket = () => {
             }}>
               <div>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700 }}>TOTAL AMOUNT</p>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{booking.duration}h × ₹{Math.round(booking.totalCost / booking.duration)}/hr</p>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  {booking.duration}h duration {booking.additionalServices && booking.additionalServices.length > 0 ? '+ services' : ''}
+                </p>
               </div>
               <p style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--accent-primary)' }}>₹{booking.totalCost}</p>
             </div>

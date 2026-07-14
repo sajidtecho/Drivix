@@ -221,8 +221,17 @@ const SlotBookingForm = () => {
   const [entryTime, setEntryTime] = useState('');
   const [duration, setDuration] = useState(2);
   const [errors, setErrors] = useState({});
+  const [selectedServices, setSelectedServices] = useState([]);
 
-  const totalCost = (location?.pricePerHr || 60) * duration;
+  const SERVICE_PRICES = {
+    'Rest Area': 150,
+    'EV Charging': 250,
+    'Car Wash': 300,
+    'Food & Beverages': 200
+  };
+
+  const servicesCost = selectedServices.reduce((sum, srv) => sum + (SERVICE_PRICES[srv] || 0), 0);
+  const totalCost = (location?.pricePerHr || 60) * duration + servicesCost;
 
   const validate = () => {
     const e = {};
@@ -280,7 +289,8 @@ const SlotBookingForm = () => {
           entryTime,
           duration,
           totalCost,
-          paymentMode
+          paymentMode,
+          additionalServices: selectedServices
         })
       });
 
@@ -291,7 +301,8 @@ const SlotBookingForm = () => {
           docId: createdBooking._id || createdBooking.id,
           name, mobile, vehicleNumber: vehicleNumber.toUpperCase().replace(/\s/g, ''),
           vehicleName, slotId: slot, floor, entryDate, entryTime, duration, totalCost,
-          locationName: location?.name || location?.parkingName, paymentMode
+          locationName: location?.name || location?.parkingName, paymentMode,
+          additionalServices: selectedServices
         });
         setStep('done');
       } else {
@@ -474,12 +485,82 @@ const SlotBookingForm = () => {
                 </div>
               </div>
 
+              {/* Optional Services */}
+              <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '16px', marginTop: '16px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Optional Services
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
+                {[
+                  { name: 'Rest Area', price: 150, desc: 'Access to premium waiting lounge with Wi-Fi & refreshments', icon: '🛋️' },
+                  { name: 'EV Charging', price: 250, desc: 'High-speed EV charging slot setup', icon: '⚡' },
+                  { name: 'Car Wash', price: 300, desc: 'Full exterior foam wash & internal vacuuming', icon: '🧼' },
+                  { name: 'Food & Beverages', price: 200, desc: 'Pre-ordered snack & beverage package delivered to car', icon: '🍔' }
+                ].map((srv) => {
+                  const isChecked = selectedServices.includes(srv.name);
+                  return (
+                    <div 
+                      key={srv.name}
+                      onClick={() => {
+                        if (isChecked) {
+                          setSelectedServices(selectedServices.filter(s => s !== srv.name));
+                        } else {
+                          setSelectedServices([...selectedServices, srv.name]);
+                        }
+                      }}
+                      className="glass-panel"
+                      style={{
+                        padding: '16px 20px', borderRadius: 'var(--radius-card)', cursor: 'pointer',
+                        background: isChecked ? 'rgba(255, 206, 0, 0.05)' : 'var(--bg-tertiary)',
+                        border: isChecked ? '2px solid var(--accent-primary)' : '1px solid var(--glass-border)',
+                        boxShadow: isChecked ? '0 0 16px var(--accent-glow)' : 'none',
+                        transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '14px'
+                      }}
+                    >
+                      <div style={{ fontSize: '1.5rem', width: '36px', height: '36px', borderRadius: '50%', background: isChecked ? 'rgba(255,206,0,0.15)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {srv.icon}
+                      </div>
+                      <div style={{ flex: 1, textAlign: 'left' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{srv.name}</span>
+                          <span style={{ fontWeight: 900, fontSize: '0.95rem', color: 'var(--accent-primary)' }}>+₹{srv.price}</span>
+                        </div>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>{srv.desc}</p>
+                      </div>
+                      <div style={{
+                        width: '20px', height: '20px', borderRadius: '4px',
+                        border: isChecked ? '2px solid var(--accent-primary)' : '2px solid var(--text-muted)',
+                        background: isChecked ? 'var(--accent-primary)' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                      }}>
+                        {isChecked && <span style={{ color: '#000', fontSize: '0.75rem', fontWeight: 900 }}>✓</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
               {/* Cost preview */}
-              <div className="glass-panel" style={{ padding: '18px 22px', borderRadius: 'var(--radius-card)', marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-tertiary)' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                  {duration}h × ₹{location.pricePerHr}/hr
-                </span>
-                <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--accent-primary)' }}>₹{totalCost}</span>
+              <div className="glass-panel" style={{ padding: '18px 22px', borderRadius: 'var(--radius-card)', marginBottom: '28px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--bg-tertiary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                    Parking ({duration}h × ₹{location.pricePerHr}/hr)
+                  </span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>₹{(location?.pricePerHr || 60) * duration}</span>
+                </div>
+                {servicesCost > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--glass-border-light)', paddingTop: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                      Additional Services Cost
+                    </span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>+₹{servicesCost}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid var(--glass-border)', paddingTop: '10px', marginTop: '4px' }}>
+                  <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>
+                    Total Payable
+                  </span>
+                  <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--accent-primary)' }}>₹{totalCost}</span>
+                </div>
               </div>
 
               <button onClick={handleFormSubmit} className="btn btn-primary" style={{ width: '100%', padding: '16px', fontSize: '1.05rem', fontWeight: 800 }}>
