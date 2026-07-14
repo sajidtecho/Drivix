@@ -181,13 +181,80 @@ const SlotBookingForm = () => {
   const navigate = useNavigate();
   const { user } = useUser();
   const locState = useLocation().state;
-  const { location, slot, floor } = locState || {};
+  const { location, slot, floor, reservationExpiresAt } = locState || {};
 
   const [step, setStep] = useState('form'); // 'form' | 'payment' | 'otp' | 'done'
   const [paymentMode, setPaymentMode] = useState('PAY_AFTER_CHECKOUT');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingData, setBookingData] = useState(null);
   const [confirmationResult, setConfirmationResult] = useState(null);
+
+  // Expiration countdown state:
+  const [timeLeft, setTimeLeft] = useState(() => {
+    if (!reservationExpiresAt) return 0;
+    const remaining = Math.max(0, Math.round((new Date(reservationExpiresAt) - new Date()) / 1000));
+    return remaining;
+  });
+
+  // Handle active countdown timers
+  React.useEffect(() => {
+    if (!reservationExpiresAt || step === 'done') return;
+
+    const updateTimer = () => {
+      const remaining = Math.max(0, Math.round((new Date(reservationExpiresAt) - new Date()) / 1000));
+      setTimeLeft(remaining);
+
+      if (remaining === 0) {
+        // Release slot on the backend to be clean
+        const token = localStorage.getItem('drivix_auth_token');
+        if (location?.id && slot) {
+          fetch(`${API_BASE_URL}/api/v1/parking/${location.id}/slots/${slot}/release`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).catch(err => console.error("Error releasing slot on expiration:", err));
+        }
+        alert("Your 5-minute temporary slot reservation has expired. Returning to slot selection.");
+        navigate('/slot-layout', { state: { location } });
+      }
+    };
+
+    updateTimer();
+    const timerId = setInterval(updateTimer, 1000);
+    return () => clearInterval(timerId);
+  }, [reservationExpiresAt, step, location, slot, navigate]);
+
+  // Release slot on unmount if they leave the booking flow incomplete
+  const isBookingSuccessRef = React.useRef(false);
+  if (step === 'done') {
+    isBookingSuccessRef.current = true;
+  }
+
+  React.useEffect(() => {
+    return () => {
+      if (!isBookingSuccessRef.current && location?.id && slot) {
+        const token = localStorage.getItem('drivix_auth_token');
+        fetch(`${API_BASE_URL}/api/v1/parking/${location.id}/slots/${slot}/release`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(err => console.error("Error releasing slot on unmount:", err));
+      }
+    };
+  }, [location, slot]);
+
+  const handleBack = async () => {
+    const token = localStorage.getItem('drivix_auth_token');
+    if (location?.id && slot) {
+      try {
+        await fetch(`${API_BASE_URL}/api/v1/parking/${location.id}/slots/${slot}/release`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (err) {
+        console.error("Error releasing slot on back:", err);
+      }
+    }
+    navigate(-1);
+  };
 
   // Autofill logic
   React.useEffect(() => {
@@ -341,12 +408,28 @@ const SlotBookingForm = () => {
       `}</style>
       <div style={{ maxWidth: '560px', margin: '0 auto', padding: '32px 5% 80px' }}>
 
+        {/* Reservation Countdown Alert */}
+        {reservationExpiresAt && timeLeft > 0 && step !== 'done' && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-panel"
+            style={{
+              padding: '12px 16px', borderRadius: 'var(--radius-card)', marginBottom: '24px',
+              background: 'rgba(255, 75, 75, 0.08)', border: '1.5px solid #ff4b4b',
+              textAlign: 'center', color: '#ff4b4b', fontWeight: 700, fontSize: '0.9rem'
+            }}
+          >
+            ⚠️ Reservation lock active. Complete booking in <strong>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</strong>
+          </motion.div>
+        )}
+
         <AnimatePresence mode="wait">
 
           {/* FORM STEP */}
           {step === 'form' && (
             <motion.div key="form" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}>
-              <button onClick={() => navigate(-1)} className="btn btn-secondary" style={{ marginBottom: '28px', padding: '10px 18px', fontSize: '0.9rem' }}>
+              <button onClick={handleBack} className="btn btn-secondary" style={{ marginBottom: '28px', padding: '10px 18px', fontSize: '0.9rem' }}>
                 <ArrowLeft size={16} /> Back
               </button>
 

@@ -20,6 +20,7 @@ const SlotLayout = () => {
   const navigate = useNavigate();
   const { state: locationState } = useLocation();
   const { showToast } = useToast();
+  const isProceedingRef = React.useRef(false);
   
   const [loc, setLoc] = useState(locationState?.location ? {
     id: locationState.location._id || locationState.location.id,
@@ -178,7 +179,7 @@ const SlotLayout = () => {
   // Release slot on unmount if it's still reserved
   useEffect(() => {
     return () => {
-      if (selectedSlot && loc?.id) {
+      if (selectedSlot && loc?.id && !isProceedingRef.current) {
         const token = localStorage.getItem('drivix_auth_token');
         fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/slots/${selectedSlot}/release`, {
           method: 'POST',
@@ -475,11 +476,13 @@ const SlotLayout = () => {
           whileTap={selectedSlot ? { scale: 0.98 } : {}}
           onClick={() => {
             if (!selectedSlot) return;
+            isProceedingRef.current = true;
             navigate('/slot-booking', {
               state: {
                 location: loc,
                 slot: selectedSlot,
                 floor: selectedFloor,
+                reservationExpiresAt: reservationExpiry ? reservationExpiry.toISOString() : null
               }
             });
           }}
