@@ -10,7 +10,7 @@ import {
   User, Car, CreditCard, FileText, Settings, Shield,
   ChevronRight, Edit2, Plus, Bell, Lock,
   Trash2, ExternalLink, QrCode, Wallet, Loader2, X,
-  Calendar, MapPin, Navigation, Clock
+  Calendar, MapPin, Navigation, Clock, Star
 } from 'lucide-react';
 
 
@@ -233,6 +233,21 @@ const Profile = () => {
       await updateUser({ vehicles: updatedVehicles });
       setShowAddVehicle(false);
       setNewVehicle({ plate: '', model: '', type: 'Petrol' });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSetPrimaryVehicle = async (vehicle) => {
+    setIsSaving(true);
+    try {
+      const updatedVehicles = (user.vehicles || []).map(v => ({
+        ...v,
+        isPrimary: v.plate === vehicle.plate
+      }));
+      await updateUser({ vehicles: updatedVehicles });
     } catch (err) {
       console.error(err);
     } finally {
@@ -713,27 +728,38 @@ const Profile = () => {
                 )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {user.vehicles?.length > 0 ? user.vehicles.map((vehicle, idx) => (
-                    <div key={vehicle.id || idx} className="glass-panel vehicle-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '24px', border: idx === 0 ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', background: idx === 0 ? 'rgba(255, 206, 0, 0.05)' : 'rgba(255,255,255,0.02)' }}>
-                      <div style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-card)', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Car size={32} color={idx === 0 ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                          <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>{vehicle.plate}</h4>
-                          {idx === 0 && <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)', background: 'var(--accent-primary)', color: '#000', fontWeight: 600 }}>PRIMARY</span>}
+                  {user.vehicles?.length > 0 ? user.vehicles.map((vehicle, idx) => {
+                    const isPrimary = vehicle.isPrimary || (idx === 0 && !user.vehicles.some(veh => veh.isPrimary));
+                    return (
+                      <div key={vehicle.id || idx} className="glass-panel vehicle-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '24px', border: isPrimary ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)', background: isPrimary ? 'rgba(255, 206, 0, 0.05)' : 'rgba(255,255,255,0.02)' }}>
+                        <div style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-card)', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Car size={32} color={isPrimary ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
                         </div>
-                        <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{vehicle.model} • {vehicle.type}</p>
-                      </div>
-                      <div className="vehicle-actions" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                        <span style={{ display: 'block', fontSize: '0.85rem', color: '#00cc6a', fontWeight: 600 }}>ANPR Verified</span>
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                          <button style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><Edit2 size={16} /></button>
-                          <button onClick={() => handleRemoveVehicle(vehicle)} style={{ background: 'none', border: 'none', color: '#ff4b4b', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                            <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>{vehicle.plate}</h4>
+                            {isPrimary && <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)', background: 'var(--accent-primary)', color: '#000', fontWeight: 600 }}>PRIMARY</span>}
+                          </div>
+                          <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{vehicle.model} • {vehicle.type}</p>
+                        </div>
+                        <div className="vehicle-actions" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                          <span style={{ display: 'block', fontSize: '0.85rem', color: '#00cc6a', fontWeight: 600 }}>ANPR Verified</span>
+                          <div style={{ display: 'flex', gap: '12px' }}>
+                            <button 
+                              onClick={() => !isPrimary && handleSetPrimaryVehicle(vehicle)}
+                              disabled={isPrimary}
+                              title={isPrimary ? "Primary Vehicle" : "Set as Primary"} 
+                              style={{ background: 'none', border: 'none', color: isPrimary ? 'var(--accent-primary)' : 'var(--text-secondary)', cursor: isPrimary ? 'default' : 'pointer' }}
+                            >
+                              <Star size={16} fill={isPrimary ? 'var(--accent-primary)' : 'none'} />
+                            </button>
+                            <button style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                            <button onClick={() => handleRemoveVehicle(vehicle)} style={{ background: 'none', border: 'none', color: '#ff4b4b', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )) : (
+                    );
+                  }) : (
                     <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>
                       <Car size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
                       <p>No vehicles registered. Add one to get started with ANPR parking.</p>
