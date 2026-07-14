@@ -342,64 +342,67 @@ const SlotLayout = () => {
                     🚗 ENTRY / EXIT
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {Object.entries(slotRows).map(([rowLabel, rowSlots]) => (
-                      <div key={rowLabel} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                         <div style={{
-                          width: '28px', height: '28px', borderRadius: 'var(--radius-button)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: 'var(--bg-secondary)', fontSize: '0.8rem',
-                          fontWeight: 800, color: 'var(--text-secondary)', flexShrink: 0,
-                        }}>
-                          {rowLabel}
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px', flex: 1, flexWrap: 'wrap' }}>
-                          {rowSlots.map((slot) => {
-                             const isTempReserved = slot.status === 'temporarily_reserved' && new Date(slot.reservationExpiresAt) > new Date();
-                             
-                             let status = 'available';
-                             if (slot.id === selectedSlot) {
-                               status = 'selected';
-                             } else if (isTempReserved) {
-                               status = 'temporarily_reserved';
-                             } else if (slot.status === 'booked') {
-                               status = 'booked';
-                             } else if (slot.status === 'occupied') {
-                               status = 'occupied';
-                             } else if (slot.status === 'maintenance') {
-                               status = 'maintenance';
-                             }
+                  <div className="custom-scrollbar" style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 'max-content' }}>
+                      {Object.entries(slotRows).map(([rowLabel, rowSlots]) => (
+                        <div key={rowLabel} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div style={{
+                            width: '28px', height: '28px', borderRadius: 'var(--radius-button)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: 'var(--bg-secondary)', fontSize: '0.8rem',
+                            fontWeight: 800, color: 'var(--text-secondary)', flexShrink: 0,
+                          }}>
+                            {rowLabel}
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap' }}>
+                            {rowSlots.map((slot) => {
+                              const isTempReserved = slot.status === 'temporarily_reserved' && new Date(slot.reservationExpiresAt) > new Date();
+                              
+                              let status = 'available';
+                              if (slot.id === selectedSlot) {
+                                status = 'selected';
+                              } else if (isTempReserved) {
+                                status = 'temporarily_reserved';
+                              } else if (slot.status === 'booked') {
+                                status = 'booked';
+                              } else if (slot.status === 'occupied') {
+                                status = 'occupied';
+                              } else if (slot.status === 'maintenance') {
+                                status = 'maintenance';
+                              }
 
-                             const st = SLOT_STATUS[status];
-                             const isClickable = status === 'available' || status === 'selected';
+                              const st = SLOT_STATUS[status];
+                              const isClickable = status === 'available' || status === 'selected';
 
-                             return (
-                               <motion.button
-                                 key={slot.id}
-                                 whileHover={isClickable ? { scale: 1.12, y: -2 } : {}}
-                                 whileTap={isClickable ? { scale: 0.95 } : {}}
-                                 onClick={() => handleSlotClick(slot.id, status)}
-                                 style={{
-                                   width: 'clamp(32px, 10vw, 52px)',
-                                   height: 'clamp(32px, 8vw, 44px)',
-                                   borderRadius: 'var(--radius-button)',
-                                   background: st.bg,
-                                   border: `2px solid ${st.border}`,
-                                   cursor: isClickable ? 'pointer' : 'not-allowed',
-                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                   fontSize: '0.65rem', fontWeight: 800,
-                                   color: st.color,
-                                   position: 'relative',
-                                   boxShadow: status === 'selected' ? `0 0 12px ${st.color}44` : 'none',
-                                 }}
-                               >
-                                 {status === 'selected' ? <Car size={14} color={st.color} /> : slot.id}
-                               </motion.button>
-                             );
-                          })}
+                              return (
+                                <motion.button
+                                  key={slot.id}
+                                  whileHover={isClickable ? { scale: 1.12, y: -2 } : {}}
+                                  whileTap={isClickable ? { scale: 0.95 } : {}}
+                                  onClick={() => handleSlotClick(slot.id, status)}
+                                  style={{
+                                    width: 'clamp(36px, 10vw, 48px)',
+                                    height: 'clamp(36px, 8vw, 42px)',
+                                    borderRadius: 'var(--radius-button)',
+                                    background: st.bg,
+                                    border: `2px solid ${st.border}`,
+                                    cursor: isClickable ? 'pointer' : 'not-allowed',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '0.65rem', fontWeight: 800,
+                                    color: st.color,
+                                    position: 'relative',
+                                    flexShrink: 0,
+                                    boxShadow: status === 'selected' ? `0 0 12px ${st.color}44` : 'none',
+                                  }}
+                                >
+                                  {status === 'selected' ? <Car size={14} color={st.color} /> : slot.id}
+                                </motion.button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </>
               )}
