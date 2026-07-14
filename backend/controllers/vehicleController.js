@@ -9,7 +9,8 @@ export const addVehicle = async (req, res) => {
 
   const resolvedNumber = (vehicleNumber || plate || '').trim().toUpperCase();
   const resolvedType = (vehicleType || type || 'Car').trim();
-  const resolvedFuel = (fuelType || type || 'Petrol').trim();
+  let resolvedFuel = (fuelType || type || 'Petrol').trim();
+  if (resolvedFuel === 'Electric') resolvedFuel = 'EV';
 
   if (!resolvedNumber) {
     return res.status(400).json({ message: 'Vehicle number/plate is required' });
@@ -61,10 +62,41 @@ export const addVehicle = async (req, res) => {
 // @access  Private
 export const getUserVehicles = async (req, res) => {
   try {
-    const vehicles = await Vehicle.find({ userId: req.user._id });
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const standaloneVehicles = await Vehicle.find({ userId: req.user._id });
     
+    // Auto-sync missing standalone vehicles from embedded array
+    const syncedVehicles = [...standaloneVehicles];
+    if (user.vehicles && user.vehicles.length > 0) {
+      for (const embedded of user.vehicles) {
+        const plateUpper = embedded.plate.trim().toUpperCase();
+        const exists = standaloneVehicles.some(v => v.vehicleNumber === plateUpper);
+        if (!exists) {
+          try {
+            const newVehicle = await Vehicle.create({
+              userId: req.user._id,
+              vehicleNumber: plateUpper,
+              vehicleType: 'Car',
+              brand: 'Generic',
+              model: embedded.model || 'Generic',
+              color: 'Generic',
+              fuelType: 'Petrol' // fallback default
+            });
+            syncedVehicles.push(newVehicle);
+            console.log(`Synced missing standalone vehicle ${plateUpper} for user ${user.email}`);
+          } catch (createErr) {
+            console.warn(`Failed to auto-sync vehicle ${plateUpper}:`, createErr.message);
+          }
+        }
+      }
+    }
+
     // Map to include both fields for compatibility with different mobile/web clients
-    const mapped = vehicles.map(v => {
+    const mapped = syncedVehicles.map(v => {
       const obj = v.toObject();
       obj.plate = obj.vehicleNumber;
       obj.type = obj.fuelType || obj.vehicleType;
