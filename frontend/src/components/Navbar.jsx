@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { UserCircle, Moon, Shield } from 'lucide-react';
+import { UserCircle, Moon, Shield, LogOut } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import sunVideo from '../assets/sun.webm';
 import logoImg from '../assets/Logo.png';
@@ -20,7 +20,7 @@ const APP_LINKS = [
 ];
 
 const Navbar = () => {
-  const { user, isAuthenticated } = useUser();
+  const { user, isAuthenticated, logout } = useUser();
   const location = useLocation();
   const navigate = useNavigate();
   const isLanding = location.pathname === '/';
@@ -387,7 +387,8 @@ const Navbar = () => {
           padding: '40px 20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '24px',
+          gap: '16px',
+          overflowY: 'auto',
         }} className="mobile-only">
           {(isLanding ? LANDING_LINKS : APP_LINKS).map((link) => (
             <button
@@ -412,6 +413,87 @@ const Navbar = () => {
               {link.label}
             </button>
           ))}
+
+          {isAuthenticated && (
+            <>
+              {user?.role === 'admin' && (
+                <button
+                  onClick={() => {
+                    navigate('/admin');
+                    setIsMenuOpen(false);
+                  }}
+                  style={{
+                    background: 'var(--accent-primary)',
+                    border: 'none',
+                    padding: '20px',
+                    borderRadius: 'var(--radius-card)',
+                    color: '#000',
+                    fontSize: '1.2rem',
+                    fontWeight: 700,
+                    textAlign: 'left',
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Shield size={24} /> Admin Dashboard
+                </button>
+              )}
+              
+              <button
+                onClick={() => {
+                  navigate('/profile');
+                  setIsMenuOpen(false);
+                }}
+                style={{
+                  background: 'var(--glass-bg)',
+                  border: '1px solid var(--glass-border)',
+                  padding: '20px',
+                  borderRadius: 'var(--radius-card)',
+                  color: 'var(--text-primary)',
+                  fontSize: '1.2rem',
+                  fontWeight: 700,
+                  textAlign: 'left',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  cursor: 'pointer'
+                }}
+              >
+                <UserCircle size={24} color="var(--accent-primary)" />
+                My Profile ({user?.name?.split(' ')[0]})
+              </button>
+
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/');
+                  setIsMenuOpen(false);
+                }}
+                style={{
+                  background: 'rgba(255, 75, 75, 0.1)',
+                  border: '1px solid rgba(255, 75, 75, 0.2)',
+                  padding: '20px',
+                  borderRadius: 'var(--radius-card)',
+                  color: '#ff4b4b',
+                  fontSize: '1.2rem',
+                  fontWeight: 700,
+                  textAlign: 'left',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  cursor: 'pointer'
+                }}
+              >
+                <LogOut size={24} /> Logout
+              </button>
+            </>
+          )}
+
           {isLanding && user?.role !== 'admin' && (
             <button
               onClick={() => {

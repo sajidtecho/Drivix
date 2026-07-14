@@ -472,7 +472,6 @@ const Profile = () => {
             <button
               onClick={logout}
               style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', borderRadius: 'var(--radius-button)', border: 'none', background: 'transparent', color: '#ff4b4b', fontWeight: 600, cursor: 'pointer' }}
-              className="desktop-only"
             >
               <Trash2 size={20} /> Logout
             </button>
