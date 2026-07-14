@@ -1,5 +1,6 @@
 import express from 'express';
 import { addVehicle, getUserVehicles, deleteVehicle, setPrimaryVehicle } from '../controllers/vehicleController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
