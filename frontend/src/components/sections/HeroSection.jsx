@@ -1,19 +1,26 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Map, ArrowRight, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Map, ArrowRight, Search, X, Check, CreditCard, AlertTriangle, DollarSign } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
 import heroImage from '../../assets/HeroSection.png';
 import { useUser } from '../../hooks/useUser';
+import { useToast } from '../../context/ToastContext';
 import { API_BASE_URL } from '../../config';
 
 
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = React.useState('parking'); // 'parking' | 'challan' | 'fastag'
   const [vehicleNumber, setVehicleNumber] = React.useState('');
   const [stats, setStats] = React.useState({ users: 0, facilities: 0 });
+
+  // Mock search states
+  const [searchResult, setSearchResult] = React.useState(null);
+  const [rechargeAmount, setRechargeAmount] = React.useState('');
+  const [isProcessingAction, setIsProcessingAction] = React.useState(false);
 
   React.useEffect(() => {
     const fetchStats = async () => {
@@ -35,15 +42,95 @@ const HeroSection = () => {
 
   const TABS = [
     { id: 'parking', label: 'Parking', placeholder: 'Enter City, Mall or Building' },
-    { id: 'challan', label: 'Challan', placeholder: 'Enter Vehicle Number' },
-    { id: 'fastag', label: 'FASTag', placeholder: 'Enter Vehicle Number' }
+    { id: 'challan', label: 'Challan', placeholder: 'Enter Vehicle Number (e.g. UP32AB1234)' },
+    { id: 'fastag', label: 'FASTag', placeholder: 'Enter Vehicle Number (e.g. UP32AB1234)' }
   ];
 
   const handleSearch = () => {
-    if (!vehicleNumber.trim()) return;
-    if (activeTab === 'parking') navigate('/find');
-    else if (activeTab === 'challan') navigate('/admin/complaints'); // Example redirect
-    else if (activeTab === 'fastag') navigate('/services');
+    const query = vehicleNumber.trim();
+    if (!query) return;
+
+    if (activeTab === 'parking') {
+      navigate('/find');
+    } else if (activeTab === 'challan') {
+      if (!/^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/i.test(query.replace(/\s/g, ''))) {
+        showToast("Please enter a valid vehicle number (e.g. UP32AB1234)", "error");
+        return;
+      }
+
+      setSearchResult({
+        type: 'challan',
+        vehicle: query.toUpperCase().replace(/\s/g, ''),
+        owner: 'Rakesh Sharma',
+        challans: [
+          { id: 'CH-9827', offense: 'Over-speeding on Noida Expressway', amount: 1000, status: 'unpaid', date: '2026-07-12' },
+          { id: 'CH-6184', offense: 'Parking in No-Parking Zone near Sector 18', amount: 500, status: 'paid', date: '2026-06-25' }
+        ]
+      });
+    } else if (activeTab === 'fastag') {
+      if (!/^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/i.test(query.replace(/\s/g, ''))) {
+        showToast("Please enter a valid vehicle number (e.g. UP32AB1234)", "error");
+        return;
+      }
+
+      setSearchResult({
+        type: 'fastag',
+        vehicle: query.toUpperCase().replace(/\s/g, ''),
+        provider: 'HDFC Bank FASTag',
+        balance: 450,
+        status: 'Active',
+        transactions: [
+          { id: 'TXN-1029', location: 'Jewar Toll Plaza (Yamuna Expressway)', amount: 150, date: 'Today, 14:22' },
+          { id: 'TXN-0938', location: 'DND Flyway (Noida-Delhi)', amount: 30, date: 'Yesterday, 09:15' }
+        ]
+      });
+    }
+  };
+
+  const handlePayChallan = async (challanId) => {
+    setIsProcessingAction(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setSearchResult(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        challans: prev.challans.map(c => c.id === challanId ? { ...c, status: 'paid' } : c)
+      };
+    });
+    
+    setIsProcessingAction(false);
+    showToast(`Challan ${challanId} has been successfully paid!`, "success");
+  };
+
+  const handleRechargeFASTag = async () => {
+    const amount = Number(rechargeAmount);
+    if (!amount || amount <= 0) {
+      showToast("Please enter a valid recharge amount", "error");
+      return;
+    }
+    
+    setIsProcessingAction(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    setSearchResult(prev => {
+      if (!prev) return null;
+      const newTxn = {
+        id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`,
+        location: 'FASTag Wallet Recharge',
+        amount: -amount,
+        date: 'Just Now'
+      };
+      return {
+        ...prev,
+        balance: prev.balance + amount,
+        transactions: [newTxn, ...prev.transactions]
+      };
+    });
+
+    setRechargeAmount('');
+    setIsProcessingAction(false);
+    showToast(`Successfully recharged ₹${amount} to FASTag wallet!`, "success");
   };
 
   return (
