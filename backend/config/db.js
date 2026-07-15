@@ -8,6 +8,24 @@ const CONN_OPTIONS = {
   connectTimeoutMS: 5000,
 };
 
+// Listen to Mongoose connection events for better diagnostics
+mongoose.connection.on('connected', () => {
+  console.log('📡 Database connection established successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error(`❌ Database connection error: ${err.message}`);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠️ Database connection disconnected');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('🔄 Database connection reconnected');
+});
+
+
 const promoteAdmin = async () => {
   try {
     await User.findOneAndUpdate(

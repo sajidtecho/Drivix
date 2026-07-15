@@ -89,6 +89,11 @@ io.on('connection', (socket) => {
 
 // Periodically release expired temporary slot reservations and auto-vacate expired bookings (runs every 10 seconds)
 setInterval(async () => {
+  // Check if database is connected before querying
+  if (mongoose.connection.readyState !== 1) {
+    return;
+  }
+
   try {
     const now = new Date();
     const expiredSlots = await Slot.find({
@@ -143,7 +148,11 @@ setInterval(async () => {
       }
     }
   } catch (err) {
-    console.error('Error during expired slot/booking cleanup:', err);
+    if (err.name === 'MongoServerSelectionError' || err.name === 'MongoNetworkError' || err.name === 'MongoNetworkTimeoutError') {
+      console.warn(`⚠️ Database connection issues during cleanup: ${err.message}`);
+    } else {
+      console.error('Error during expired slot/booking cleanup:', err);
+    }
   }
 }, 10000);
 
