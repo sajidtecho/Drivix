@@ -414,6 +414,31 @@ const Navbar = () => {
             </button>
           ))}
 
+          <button
+            onClick={() => {
+              navigate('/partner');
+              setIsMenuOpen(false);
+            }}
+            style={{
+              background: 'linear-gradient(135deg, rgba(250, 255, 0, 0.1) 0%, rgba(255, 122, 0, 0.03) 100%)',
+              border: '1.5px solid var(--accent-primary)',
+              padding: '20px',
+              borderRadius: 'var(--radius-card)',
+              color: 'var(--accent-primary)',
+              fontSize: '1.2rem',
+              fontWeight: 800,
+              textAlign: 'left',
+              width: '100%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <span>Become a Partner</span>
+            <span>&rarr;</span>
+          </button>
+
           {isAuthenticated && user?.role === 'admin' && (
             <button
               onClick={() => {
