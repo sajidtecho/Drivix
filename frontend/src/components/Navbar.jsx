@@ -167,10 +167,6 @@ const Navbar = () => {
           }}>
             <img src={logoImg} alt="Drivix Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
-
-          <span style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.05em', color: 'var(--text-primary)' }}>
-            Drivix
-          </span>
         </Link>
 
         {/* Desktop Navigation Capsule */}
