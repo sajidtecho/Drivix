@@ -11,6 +11,7 @@ import ParkingList from './pages/ParkingList';
 import SlotBookingForm from './pages/SlotBookingForm';
 import Ticket from './pages/Ticket';
 import Safety from './pages/Safety';
+import PartnerLandingPage from './pages/PartnerLandingPage';
 import AdminRoute from './components/admin/AdminRoute';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -57,6 +58,7 @@ function App() {
               <Route path="/slot-booking" element={<SlotBookingForm />} />
               <Route path="/ticket" element={<Ticket />} />
               <Route path="/safety" element={<Safety />} />
+              <Route path="/partner" element={<PartnerLandingPage />} />
 
               {/* Admin Routes */}
               <Route element={<AdminRoute />}>
