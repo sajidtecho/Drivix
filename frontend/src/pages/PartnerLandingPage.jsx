@@ -249,9 +249,6 @@ const PartnerLandingPage = () => {
               <button onClick={scrollToForm} className="btn btn-primary" style={{ padding: '16px 36px', fontSize: '1.05rem', fontWeight: 800 }}>
                 Become a Partner
               </button>
-              <button onClick={scrollToForm} className="btn" style={{ padding: '16px 36px', fontSize: '1.05rem', fontWeight: 800, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                Register Now
-              </button>
             </motion.div>
           </div>
         </div>
