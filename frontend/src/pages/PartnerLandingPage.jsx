@@ -5,6 +5,7 @@ import {
   ChevronDown, Upload, FileText, MapPin, Building, 
   Star, Zap, Clock, Users, ArrowRight, Shield, Award
 } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const BENEFIT_CARDS = [
   { title: 'Passive Income', desc: 'Earn steady passive revenue from unused or underutilized parking spaces.', icon: DollarSign, color: '#FFCE00' },
@@ -72,6 +73,7 @@ const PartnerLandingPage = () => {
 
   const [documentFile, setDocumentFile] = useState(null);
   const [submitStatus, setSubmitStatus] = useState('idle'); // idle, submitting, success
+  const [error, setError] = useState('');
 
   const monthlyEarnings = slots * rate * hours * 30;
 
@@ -88,28 +90,80 @@ const PartnerLandingPage = () => {
     }
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!documentFile) {
+      setError('Please upload the required verification document.');
+      return;
+    }
+
+    if (formData.vehicles.length === 0) {
+      setError('Please select at least one vehicle type supported.');
+      return;
+    }
+
     setSubmitStatus('submitting');
-    setTimeout(() => {
-      setSubmitStatus('success');
-      setFormData({
-        fullName: '',
-        businessName: '',
-        phone: '',
-        email: '',
-        address: '',
-        city: '',
-        state: '',
-        pin: '',
-        facilityType: 'Commercial',
-        slotsCount: '10',
-        vehicles: [],
-        operatingHours: '24/7',
-        notes: '',
-      });
-      setDocumentFile(null);
-    }, 1800);
+    setError('');
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = reader.result;
+        
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/v1/partners/register`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ...formData,
+              documentFile: base64Data
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.message || 'Registration failed');
+          }
+
+          setSubmitStatus('success');
+          setFormData({
+            fullName: '',
+            businessName: '',
+            phone: '',
+            email: '',
+            address: '',
+            city: '',
+            state: '',
+            pin: '',
+            facilityType: 'Commercial',
+            slotsCount: '10',
+            vehicles: [],
+            operatingHours: '24/7',
+            notes: '',
+          });
+          setDocumentFile(null);
+        } catch (err) {
+          console.error(err);
+          setError(err.message || 'Something went wrong. Please try again.');
+          setSubmitStatus('idle');
+        }
+      };
+
+      reader.onerror = () => {
+        setError('Error reading the uploaded file. Please choose another file.');
+        setSubmitStatus('idle');
+      };
+
+      reader.readAsDataURL(documentFile);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to process submission. Please try again.');
+      setSubmitStatus('idle');
+    }
   };
 
   return (
@@ -851,6 +905,8 @@ const PartnerLandingPage = () => {
                       style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', color: '#fff', fontSize: '0.95rem', resize: 'vertical' }}
                     />
                   </div>
+
+                  {error && <p style={{ color: '#ff4b4b', fontSize: '0.9rem', marginBottom: '16px', fontWeight: 600, textAlign: 'center' }}>{error}</p>}
 
                   {/* Submit Button */}
                   <button 
