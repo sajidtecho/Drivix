@@ -1,4 +1,7 @@
 import Partner from '../models/Partner.js';
+import Booking from '../models/Booking.js';
+import Review from '../models/Review.js';
+import ParkingLocation from '../models/ParkingLocation.js';
 
 // @desc    Submit a new partner registration application
 // @route   POST /api/v1/partners/register
@@ -83,6 +86,41 @@ export const getAllPartnerApplications = async (req, res) => {
     res.json(applications);
   } catch (error) {
     console.error('Error in getAllPartnerApplications:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get partner stats for the landing page
+// @route   GET /api/v1/partners/stats
+// @access  Public
+export const getPartnerStats = async (req, res) => {
+  try {
+    const approvedPartnersCount = await Partner.countDocuments({ status: 'approved' });
+    const activeLocationsCount = await ParkingLocation.countDocuments({ status: 'Active' });
+    const activePartners = approvedPartnersCount + activeLocationsCount;
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const monthlyBookings = await Booking.countDocuments({
+      createdAt: { $gte: thirtyDaysAgo }
+    });
+
+    const reviews = await Review.find({});
+    let satisfactionRating = 100;
+    if (reviews.length > 0) {
+      const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+      const avgRating = totalRating / reviews.length;
+      satisfactionRating = Math.round((avgRating / 5) * 100);
+    }
+
+    res.json({
+      success: true,
+      activePartners,
+      monthlyBookings,
+      satisfactionRating
+    });
+  } catch (error) {
+    console.error('Error in getPartnerStats:', error.message);
     res.status(500).json({ message: error.message });
   }
 };
