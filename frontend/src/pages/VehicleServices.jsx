@@ -14,12 +14,12 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08 }
+    transition: { staggerChildren: 0.06 }
   }
 };
 
 const itemVariants = {
-  hidden: { y: 30, opacity: 0, filter: 'blur(8px)' },
+  hidden: { y: 20, opacity: 0, filter: 'blur(8px)' },
   visible: { 
     y: 0, 
     opacity: 1, 
@@ -44,8 +44,8 @@ const ServiceCard = ({ title, desc, color, icon: Icon, onClick }) => {
     const normalizedX = (x / rect.width) - 0.5;
     const normalizedY = (y / rect.height) - 0.5;
     
-    setRotateX(-normalizedY * 6); // Max tilt of 6 degrees
-    setRotateY(normalizedX * 6);
+    setRotateX(-normalizedY * 5); // Subtle 3D tilt
+    setRotateY(normalizedX * 5);
     setCoords({ x, y });
   };
 
@@ -65,18 +65,18 @@ const ServiceCard = ({ title, desc, color, icon: Icon, onClick }) => {
       whileTap={{ scale: 0.98 }}
       style={{
         position: 'relative',
-        borderRadius: '28px',
-        padding: '36px 28px',
+        borderRadius: '24px', // Reduced radius for compact One UI widget look
+        padding: '24px 20px', // Reduced padding
         background: isHovered 
-          ? `radial-gradient(350px circle at ${coords.x}px ${coords.y}px, ${color}10, rgba(255, 255, 255, 0.02))`
-          : 'rgba(255, 255, 255, 0.02)',
+          ? `radial-gradient(300px circle at ${coords.x}px ${coords.y}px, ${color}08, rgba(255, 255, 255, 0.015))`
+          : 'rgba(255, 255, 255, 0.015)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        border: isHovered ? `1px solid ${color}50` : '1px solid rgba(255, 255, 255, 0.08)',
+        border: isHovered ? `1px solid ${color}40` : '1px solid rgba(255, 255, 255, 0.06)',
         boxShadow: isHovered 
-          ? `0 24px 48px rgba(0,0,0,0.5), 0 0 20px ${color}15` 
-          : '0 12px 30px rgba(0,0,0,0.2)',
-        transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(${isHovered ? -6 : 0}px)`,
+          ? `0 20px 40px rgba(0,0,0,0.4), 0 0 15px ${color}10` 
+          : '0 8px 24px rgba(0,0,0,0.15)',
+        transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(${isHovered ? -4 : 0}px)`,
         transition: 'transform 0.1s ease, border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease',
         cursor: 'pointer',
         display: 'flex',
@@ -93,9 +93,9 @@ const ServiceCard = ({ title, desc, color, icon: Icon, onClick }) => {
           left: 0,
           right: 0,
           bottom: 0,
-          borderRadius: '28px',
+          borderRadius: '24px',
           pointerEvents: 'none',
-          background: `radial-gradient(180px circle at ${coords.x}px ${coords.y}px, ${color}15, transparent)`,
+          background: `radial-gradient(150px circle at ${coords.x}px ${coords.y}px, ${color}10, transparent)`,
           mixBlendMode: 'screen',
           zIndex: 0
         }} />
@@ -108,7 +108,7 @@ const ServiceCard = ({ title, desc, color, icon: Icon, onClick }) => {
         left: '25%',
         right: '25%',
         height: '1px',
-        background: `linear-gradient(90deg, transparent, ${color}50, transparent)`,
+        background: `linear-gradient(90deg, transparent, ${color}40, transparent)`,
         zIndex: 1,
         pointerEvents: 'none',
         opacity: isHovered ? 1 : 0.4,
@@ -119,20 +119,20 @@ const ServiceCard = ({ title, desc, color, icon: Icon, onClick }) => {
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
         {/* Icon Container */}
         <div style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '18px',
+          width: '48px', // Reduced from 64px
+          height: '48px', // Reduced from 64px
+          borderRadius: '12px', // Reduced from 18px
           background: isHovered 
-            ? `linear-gradient(135deg, ${color}30 0%, ${color}08 100%)`
-            : `linear-gradient(135deg, ${color}15 0%, ${color}02 100%)`,
-          border: isHovered ? `1px solid ${color}50` : '1px solid rgba(255, 255, 255, 0.08)',
+            ? `linear-gradient(135deg, ${color}25 0%, ${color}05 100%)`
+            : `linear-gradient(135deg, ${color}12 0%, ${color}02 100%)`,
+          border: isHovered ? `1px solid ${color}40` : '1px solid rgba(255, 255, 255, 0.06)',
           boxShadow: isHovered 
-            ? `inset 0 1px 1px rgba(255,255,255,0.2), 0 0 15px ${color}30`
-            : `inset 0 1px 1px rgba(255,255,255,0.1), 0 4px 10px rgba(0,0,0,0.15)`,
+            ? `inset 0 1px 1px rgba(255,255,255,0.15), 0 0 10px ${color}20`
+            : `inset 0 1px 1px rgba(255,255,255,0.08), 0 2px 6px rgba(0,0,0,0.1)`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: '28px',
+          marginBottom: '20px', // Reduced from 28px
           position: 'relative',
           overflow: 'hidden',
           transition: 'all 0.3s ease'
@@ -144,21 +144,20 @@ const ServiceCard = ({ title, desc, color, icon: Icon, onClick }) => {
             left: 0,
             width: '100%',
             height: '50%',
-            background: 'linear-gradient(rgba(255, 255, 255, 0.1), transparent)',
+            background: 'linear-gradient(rgba(255, 255, 255, 0.08), transparent)',
             pointerEvents: 'none'
           }} />
           
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {/* Render element if already instantiated, else instantiate component */}
-            {React.isValidElement(Icon) ? Icon : <Icon size={28} color={color} />}
+            {React.isValidElement(Icon) ? Icon : <Icon size={20} color={color} />}
           </div>
         </div>
 
         {/* Title */}
         <h3 style={{
-          fontSize: '1.4rem',
+          fontSize: '1.2rem', // Reduced from 1.4rem
           fontWeight: 800,
-          marginBottom: '12px',
+          marginBottom: '10px',
           color: 'var(--text-primary)',
           letterSpacing: '-0.02em',
           fontFamily: 'var(--font-display)',
@@ -169,11 +168,11 @@ const ServiceCard = ({ title, desc, color, icon: Icon, onClick }) => {
         {/* Description */}
         <p style={{
           color: 'var(--text-secondary)',
-          lineHeight: '1.5',
-          fontSize: '0.95rem',
+          lineHeight: '1.4',
+          fontSize: '0.85rem', // Reduced from 0.95rem
           fontWeight: 500,
           flex: 1,
-          marginBottom: '32px'
+          marginBottom: '20px' // Reduced from 32px
         }}>
           {desc}
         </p>
@@ -182,15 +181,15 @@ const ServiceCard = ({ title, desc, color, icon: Icon, onClick }) => {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: '6px',
           color: 'var(--accent-primary)',
           fontWeight: 700,
-          fontSize: '0.95rem',
+          fontSize: '0.85rem', // Reduced from 0.95rem
           marginTop: 'auto',
         }}>
           <span>Access Service</span>
           <motion.span
-            animate={{ x: isHovered ? 4 : 0 }}
+            animate={{ x: isHovered ? 3 : 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 15 }}
             style={{ display: 'inline-block' }}
           >
@@ -208,22 +207,22 @@ const VehicleServices = () => {
   const services = [
     { 
       title: 'Challan Management', 
-      icon: <img src={challanIcon} alt="Challan" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />, 
+      icon: <img src={challanIcon} alt="Challan" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />, 
       desc: 'View and pay pending traffic fines securely.', 
       color: '#bc00ff',
       url: 'https://echallan.parivahan.gov.in/index/accused-challan'
     },
     { 
       title: 'FASTag Recharge', 
-      icon: <img src={fastagIcon} alt="FASTag" style={{ width: '38px', height: '18px', objectFit: 'contain' }} />, 
+      icon: <img src={fastagIcon} alt="FASTag" style={{ width: '32px', height: '14px', objectFit: 'contain' }} />, 
       desc: 'Instant FASTag balance top-up.', 
       color: '#10b981',
       url: 'https://paytm.com/fastag-recharge'
     },
     { 
       title: 'Document Manager', 
-      icon: <img src={documentIcon} alt="Document" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />, 
-      desc: 'Digital vault for RC, DL, and Insurance.', 
+      icon: <img src={documentIcon} alt="Document" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />, 
+      desc: 'Secure vault for DL, RC, and Insurance.', 
       color: '#3b82f6',
       path: '/profile'
     },
@@ -236,22 +235,24 @@ const VehicleServices = () => {
     },
     { 
       title: 'Pollution Certificate', 
-      icon: <img src={pollutionIcon} alt="Pollution" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />, 
-      desc: 'Apply or renew PUCC online.', 
+      icon: <img src={pollutionIcon} alt="Pollution" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />, 
+      desc: 'Track validity and renew PUCC online.', 
       color: '#059669',
       url: 'https://vahan.parivahan.gov.in/puc/'
     },
     { 
       title: 'Ownership Transfer', 
-      icon: <img src={ownershipIcon} alt="Ownership" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />, 
-      desc: 'Seamlessly transfer vehicle ownership.', 
+      icon: <img src={ownershipIcon} alt="Ownership" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />, 
+      desc: 'Transfer vehicle ownership digitally.', 
       color: '#f97316',
       url: 'https://sarathi.parivahan.gov.in/'
     },
   ];
 
   const handleServiceClick = (service) => {
-    if (service.url) {
+    if (service.path === '/profile') {
+      navigate('/profile', { state: { activeTab: 'documents' } });
+    } else if (service.url) {
       window.open(service.url, '_blank', 'noopener,noreferrer');
     } else if (service.path) {
       navigate(service.path);
@@ -264,7 +265,7 @@ const VehicleServices = () => {
         <style>{`
           .vehicle-services-grid {
             display: grid;
-            gap: 28px;
+            gap: 24px;
             grid-template-columns: repeat(3, 1fr);
             width: 100%;
           }
@@ -285,7 +286,7 @@ const VehicleServices = () => {
           animate="visible"
           variants={containerVariants}
         >
-          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '56px' }}>
             <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '16px', fontFamily: 'var(--font-display)' }}>
               All-in-One <span className="text-gradient">Vehicle Services</span>
             </h2>

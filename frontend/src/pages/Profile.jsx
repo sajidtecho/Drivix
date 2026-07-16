@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import documentIcon from '../assets/document.png';
 import { useUser } from '../hooks/useUser';
@@ -151,7 +151,8 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
 const Profile = () => {
   const { user, isAuthenticated, loading, updateUser, logout } = useUser();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('bookings'); // Default to bookings to see recent activity
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'bookings'); // Default to bookings to see recent activity
   const [bookingSubTab, setBookingSubTab] = useState('active'); // 'active' or 'history'
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
@@ -196,6 +197,13 @@ const Profile = () => {
       fetchBookings();
     }
   }, [isAuthenticated, user, navigate, loading]);
+
+  // Sync active tab if navigated via route state
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
 
   const activeBookings = bookings.filter(b => b.status === 'booked');
   const historyBookings = bookings.filter(b => b.status === 'completed');
