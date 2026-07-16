@@ -647,7 +647,7 @@ const HeroSection = () => {
                 <input
                   type="text"
                   value={vehicleNumber}
-                  onChange={(e) => setVehicleNumber(e.target.value)}
+                  onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -664,7 +664,8 @@ const HeroSection = () => {
                     outline: 'none',
                     boxShadow: isFocused ? '0 0 15px rgba(255, 206, 0, 0.15)' : 'none',
                     transition: 'border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease',
-                    cursor: isSearching ? 'not-allowed' : 'text'
+                    cursor: isSearching ? 'not-allowed' : 'text',
+                    textTransform: 'uppercase'
                   }}
                 />
 
