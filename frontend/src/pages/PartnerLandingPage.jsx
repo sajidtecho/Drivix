@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  TrendingUp, DollarSign, ShieldCheck, CheckCircle2, 
-  ChevronDown, Upload, FileText, MapPin, Building, 
+import {
+  TrendingUp, DollarSign, ShieldCheck, CheckCircle2,
+  ChevronDown, Upload, FileText, MapPin, Building,
   Star, Zap, Clock, Users, ArrowRight, Shield, Award
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
@@ -92,7 +92,7 @@ const PartnerLandingPage = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!documentFile) {
       setError('Please upload the required verification document.');
       return;
@@ -110,7 +110,7 @@ const PartnerLandingPage = () => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64Data = reader.result;
-        
+
         try {
           const response = await fetch(`${API_BASE_URL}/api/v1/partners/register`, {
             method: 'POST',
@@ -168,7 +168,7 @@ const PartnerLandingPage = () => {
 
   return (
     <div style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', minHeight: '100vh', paddingTop: '100px' }}>
-      
+
       {/* ─── HERO SECTION ─── */}
       <section style={{ position: 'relative', padding: '100px 0 60px 0', overflow: 'hidden' }}>
         <div style={{
@@ -412,11 +412,11 @@ const PartnerLandingPage = () => {
                   <span>Parking Slots</span>
                   <span style={{ color: 'var(--accent-primary)' }}>{slots} Slots</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="5" 
-                  max="500" 
-                  value={slots} 
+                <input
+                  type="range"
+                  min="5"
+                  max="500"
+                  value={slots}
                   onChange={(e) => setSlots(Number(e.target.value))}
                   style={{ width: '100%', accentColor: 'var(--accent-primary)' }}
                 />
@@ -428,11 +428,11 @@ const PartnerLandingPage = () => {
                   <span>Hourly Rate (₹)</span>
                   <span style={{ color: 'var(--accent-primary)' }}>₹{rate}/hr</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="10" 
-                  max="200" 
-                  value={rate} 
+                <input
+                  type="range"
+                  min="10"
+                  max="200"
+                  value={rate}
                   onChange={(e) => setRate(Number(e.target.value))}
                   style={{ width: '100%', accentColor: 'var(--accent-primary)' }}
                 />
@@ -444,22 +444,22 @@ const PartnerLandingPage = () => {
                   <span>Avg. Hours Booked Daily</span>
                   <span style={{ color: 'var(--accent-primary)' }}>{hours} Hours</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="2" 
-                  max="24" 
-                  value={hours} 
+                <input
+                  type="range"
+                  min="2"
+                  max="24"
+                  value={hours}
                   onChange={(e) => setHours(Number(e.target.value))}
                   style={{ width: '100%', accentColor: 'var(--accent-primary)' }}
                 />
               </div>
 
-              <div style={{ 
-                background: 'rgba(255,255,255,0.02)', 
-                border: '1px solid rgba(255,255,255,0.06)', 
-                borderRadius: '20px', 
-                padding: '24px', 
-                textAlign: 'center' 
+              <div style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '20px',
+                padding: '24px',
+                textAlign: 'center'
               }}>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 800 }}>Estimated Monthly Income</p>
                 <h2 style={{ fontSize: '2.8rem', fontWeight: 900, margin: '8px 0', color: 'var(--accent-primary)' }}>
@@ -475,7 +475,7 @@ const PartnerLandingPage = () => {
       {/* ─── SOCIAL PROOF ─── */}
       <section style={{ padding: '80px 0', background: 'rgba(255,255,255,0.01)', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
         <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 5%' }}>
-          
+
           {/* Stats Bar */}
           <div style={{
             display: 'grid',
@@ -583,12 +583,12 @@ const PartnerLandingPage = () => {
             {FAQS.map((faq, idx) => {
               const isOpen = activeFaq === idx;
               return (
-                <div 
-                  key={idx} 
-                  className="glass-panel" 
-                  style={{ 
-                    borderRadius: '16px', 
-                    border: '1px solid var(--glass-border)', 
+                <div
+                  key={idx}
+                  className="glass-panel"
+                  style={{
+                    borderRadius: '16px',
+                    border: '1px solid var(--glass-border)',
                     overflow: 'hidden',
                     cursor: 'pointer'
                   }}
@@ -630,7 +630,7 @@ const PartnerLandingPage = () => {
       {/* ─── REGISTRATION FORM ─── */}
       <section ref={formRef} style={{ padding: '80px 0', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
         <div className="container" style={{ maxWidth: '750px', margin: '0 auto', padding: '0 5%' }}>
-          
+
           <AnimatePresence mode="wait">
             {submitStatus === 'success' ? (
               <motion.div
@@ -681,15 +681,15 @@ const PartnerLandingPage = () => {
                 </p>
 
                 <form onSubmit={handleFormSubmit}>
-                  
+
                   {/* Basic Info */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>Full Name *</label>
-                      <input 
-                        type="text" 
-                        required 
-                        placeholder="John Doe"
+                      <input
+                        type="text"
+                        required
+                        placeholder="Full Name"
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                         style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', color: '#fff', fontSize: '0.95rem' }}
@@ -697,9 +697,9 @@ const PartnerLandingPage = () => {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>Business / Facility Name *</label>
-                      <input 
-                        type="text" 
-                        required 
+                      <input
+                        type="text"
+                        required
                         placeholder="e.g. Phoenix Mall, Sharda Residences"
                         value={formData.businessName}
                         onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
@@ -711,9 +711,9 @@ const PartnerLandingPage = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>Mobile Number *</label>
-                      <input 
-                        type="tel" 
-                        required 
+                      <input
+                        type="tel"
+                        required
                         placeholder="+91 99999 99999"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -722,10 +722,10 @@ const PartnerLandingPage = () => {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>Email Address *</label>
-                      <input 
-                        type="email" 
-                        required 
-                        placeholder="john@company.com"
+                      <input
+                        type="email"
+                        required
+                        placeholder="Email Address"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', color: '#fff', fontSize: '0.95rem' }}
@@ -736,9 +736,9 @@ const PartnerLandingPage = () => {
                   {/* Address Info */}
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>Parking Facility Address *</label>
-                    <input 
-                      type="text" 
-                      required 
+                    <input
+                      type="text"
+                      required
                       placeholder="Street address, building block, locality"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -756,9 +756,9 @@ const PartnerLandingPage = () => {
                     `}</style>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>City *</label>
-                      <input 
-                        type="text" 
-                        required 
+                      <input
+                        type="text"
+                        required
                         placeholder="Noida"
                         value={formData.city}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
@@ -767,9 +767,9 @@ const PartnerLandingPage = () => {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>State *</label>
-                      <input 
-                        type="text" 
-                        required 
+                      <input
+                        type="text"
+                        required
                         placeholder="Uttar Pradesh"
                         value={formData.state}
                         onChange={(e) => setFormData({ ...formData, state: e.target.value })}
@@ -778,9 +778,9 @@ const PartnerLandingPage = () => {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>PIN Code *</label>
-                      <input 
-                        type="text" 
-                        required 
+                      <input
+                        type="text"
+                        required
                         placeholder="201301"
                         value={formData.pin}
                         onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
@@ -842,18 +842,18 @@ const PartnerLandingPage = () => {
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>Vehicle Types Supported *</label>
                       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', paddingTop: '8px' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer' }}>
-                          <input 
-                            type="checkbox" 
-                            checked={formData.vehicles.includes('2Wheeler')} 
+                          <input
+                            type="checkbox"
+                            checked={formData.vehicles.includes('2Wheeler')}
                             onChange={() => handleVehicleChange('2Wheeler')}
                             style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px' }}
                           />
                           2-Wheelers
                         </label>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer' }}>
-                          <input 
-                            type="checkbox" 
-                            checked={formData.vehicles.includes('4Wheeler')} 
+                          <input
+                            type="checkbox"
+                            checked={formData.vehicles.includes('4Wheeler')}
                             onChange={() => handleVehicleChange('4Wheeler')}
                             style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px' }}
                           />
@@ -875,8 +875,8 @@ const PartnerLandingPage = () => {
                       position: 'relative',
                       cursor: 'pointer'
                     }}>
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         required
                         onChange={(e) => setDocumentFile(e.target.files[0])}
                         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
@@ -894,8 +894,8 @@ const PartnerLandingPage = () => {
                   {/* Additional notes */}
                   <div style={{ marginBottom: '32px' }}>
                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-secondary)' }}>Additional Notes (Optional)</label>
-                    <textarea 
-                      rows="3" 
+                    <textarea
+                      rows="3"
                       placeholder="Add any specific parking access instructions or notes..."
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -906,9 +906,9 @@ const PartnerLandingPage = () => {
                   {error && <p style={{ color: '#ff4b4b', fontSize: '0.9rem', marginBottom: '16px', fontWeight: 600, textAlign: 'center' }}>{error}</p>}
 
                   {/* Submit Button */}
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary" 
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
                     disabled={submitStatus === 'submitting'}
                     style={{ width: '100%', padding: '16px', fontSize: '1.05rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
                   >
