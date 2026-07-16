@@ -109,6 +109,14 @@ const HeroSection = () => {
     }
   };
 
+  const handlePayChallan = (challanId) => {
+    showToast("Coming Soon", "info");
+  };
+
+  const handleRechargeFASTag = () => {
+    showToast("Coming Soon", "info");
+  };
+
   const handleButtonClick = (e) => {
     if (isSearching) return;
     
