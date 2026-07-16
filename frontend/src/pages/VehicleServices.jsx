@@ -149,8 +149,8 @@ const ServiceCard = ({ title, desc, color, icon: Icon, onClick }) => {
           }} />
           
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {/* If it's a React component, render it, else it's a render function or image */}
-            {typeof Icon === 'function' ? <Icon size={28} color={color} /> : Icon}
+            {/* Render element if already instantiated, else instantiate component */}
+            {React.isValidElement(Icon) ? Icon : <Icon size={28} color={color} />}
           </div>
         </div>
 
