@@ -10,6 +10,7 @@ import { API_BASE_URL } from '../../config';
 const HeroSection = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { user } = useUser();
   const [activeTab, setActiveTab] = React.useState('parking'); // 'parking' | 'challan' | 'fastag'
   const [vehicleNumber, setVehicleNumber] = React.useState('');
   const [stats, setStats] = React.useState({ users: 0, facilities: 0 });
@@ -23,6 +24,16 @@ const HeroSection = () => {
   const [isSearching, setIsSearching] = React.useState(false);
   const [isFocused, setIsFocused] = React.useState(false);
   const [ripples, setRipples] = React.useState([]);
+
+  // Auto-populate vehicle number from user profile
+  React.useEffect(() => {
+    if (user && user.vehicles && user.vehicles.length > 0) {
+      const primary = user.vehicles.find(v => v.isPrimary) || user.vehicles[0];
+      if (primary && primary.plate) {
+        setVehicleNumber(primary.plate.toUpperCase());
+      }
+    }
+  }, [user]);
 
   // Card hover tilt states
   const cardRef = React.useRef(null);
@@ -43,15 +54,15 @@ const HeroSection = () => {
           });
         }
       } catch (err) {
-        console.error("Error fetching stats:", err);
+        console.error("Failed to fetch public stats:", err);
       }
     };
     fetchStats();
   }, []);
 
   const TABS = [
-    { id: 'parking', label: 'Parking', placeholder: 'Search City, Mall, Airport...' },
-    { id: 'challan', label: 'Challan', placeholder: 'Enter Vehicle Number' },
+    { id: 'parking', label: 'Book Slot', placeholder: 'Search parking locations...' },
+    { id: 'challan', label: 'E-Challan', placeholder: 'Enter Vehicle Number' },
     { id: 'fastag', label: 'FASTag', placeholder: 'Enter FASTag Number' }
   ];
 
@@ -77,7 +88,7 @@ const HeroSection = () => {
       setSearchResult({
         type: 'challan',
         vehicle: query.toUpperCase().replace(/\s/g, ''),
-        owner: 'Rakesh Sharma',
+        owner: 'Sajid Ahmad',
         challans: [
           { id: 'CH-9827', offense: 'Over-speeding on Noida Expressway', amount: 1000, status: 'unpaid', date: '2026-07-12' },
           { id: 'CH-6184', offense: 'Parking in No-Parking Zone near Sector 18', amount: 500, status: 'paid', date: '2026-06-25' }
