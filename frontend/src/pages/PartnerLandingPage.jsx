@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp, DollarSign, ShieldCheck, CheckCircle2,
@@ -53,6 +53,33 @@ const PartnerLandingPage = () => {
 
   // FAQ Accordion
   const [activeFaq, setActiveFaq] = useState(null);
+
+  // Stats state (with fallback defaults matching original design)
+  const [stats, setStats] = useState({
+    activePartners: 120,
+    monthlyBookings: 15000,
+    satisfactionRating: 98
+  });
+
+  // Fetch stats from backend
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/partners/stats`);
+        const data = await response.json();
+        if (response.ok && data.success) {
+          setStats({
+            activePartners: data.activePartners,
+            monthlyBookings: data.monthlyBookings,
+            satisfactionRating: data.satisfactionRating
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch partner stats:', err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -485,15 +512,15 @@ const PartnerLandingPage = () => {
             textAlign: 'center'
           }}>
             <div className="glass-panel" style={{ padding: '24px', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-              <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>120+</h3>
+              <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>{stats.activePartners.toLocaleString()}+</h3>
               <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Active Parking Partners</p>
             </div>
             <div className="glass-panel" style={{ padding: '24px', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-              <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>15,000+</h3>
+              <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>{stats.monthlyBookings.toLocaleString()}+</h3>
               <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Monthly Bookings</p>
             </div>
             <div className="glass-panel" style={{ padding: '24px', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-              <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>98%</h3>
+              <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>{stats.satisfactionRating}%</h3>
               <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Satisfaction Rating</p>
             </div>
           </div>
