@@ -414,84 +414,30 @@ const Navbar = () => {
             </button>
           ))}
 
-          {isAuthenticated && (
-            <>
-              {user?.role === 'admin' && (
-                <button
-                  onClick={() => {
-                    navigate('/admin');
-                    setIsMenuOpen(false);
-                  }}
-                  style={{
-                    background: 'var(--accent-primary)',
-                    border: 'none',
-                    padding: '20px',
-                    borderRadius: 'var(--radius-card)',
-                    color: '#000',
-                    fontSize: '1.2rem',
-                    fontWeight: 700,
-                    textAlign: 'left',
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Shield size={24} /> Admin Dashboard
-                </button>
-              )}
-              
-              <button
-                onClick={() => {
-                  navigate('/profile');
-                  setIsMenuOpen(false);
-                }}
-                style={{
-                  background: 'var(--glass-bg)',
-                  border: '1px solid var(--glass-border)',
-                  padding: '20px',
-                  borderRadius: 'var(--radius-card)',
-                  color: 'var(--text-primary)',
-                  fontSize: '1.2rem',
-                  fontWeight: 700,
-                  textAlign: 'left',
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  cursor: 'pointer'
-                }}
-              >
-                <UserCircle size={24} color="var(--accent-primary)" />
-                My Profile ({user?.name?.split(' ')[0]})
-              </button>
-
-              <button
-                onClick={() => {
-                  logout();
-                  navigate('/');
-                  setIsMenuOpen(false);
-                }}
-                style={{
-                  background: 'rgba(255, 75, 75, 0.1)',
-                  border: '1px solid rgba(255, 75, 75, 0.2)',
-                  padding: '20px',
-                  borderRadius: 'var(--radius-card)',
-                  color: '#ff4b4b',
-                  fontSize: '1.2rem',
-                  fontWeight: 700,
-                  textAlign: 'left',
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  cursor: 'pointer'
-                }}
-              >
-                <LogOut size={24} /> Logout
-              </button>
-            </>
+          {isAuthenticated && user?.role === 'admin' && (
+            <button
+              onClick={() => {
+                navigate('/admin');
+                setIsMenuOpen(false);
+              }}
+              style={{
+                background: 'var(--accent-primary)',
+                border: 'none',
+                padding: '20px',
+                borderRadius: 'var(--radius-card)',
+                color: '#000',
+                fontSize: '1.2rem',
+                fontWeight: 700,
+                textAlign: 'left',
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                cursor: 'pointer'
+              }}
+            >
+              <Shield size={24} /> Admin Dashboard
+            </button>
           )}
 
           {isLanding && user?.role !== 'admin' && (
