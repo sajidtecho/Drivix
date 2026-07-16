@@ -3,12 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Map, ArrowRight, Search, X, Check, CreditCard, AlertTriangle, DollarSign } from 'lucide-react';
 import FadeIn from '../common/FadeIn';
-import heroImage from '../../assets/HeroSection.png';
 import { useUser } from '../../hooks/useUser';
 import { useToast } from '../../context/ToastContext';
 import { API_BASE_URL } from '../../config';
-
-
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -21,6 +18,18 @@ const HeroSection = () => {
   const [searchResult, setSearchResult] = React.useState(null);
   const [rechargeAmount, setRechargeAmount] = React.useState('');
   const [isProcessingAction, setIsProcessingAction] = React.useState(false);
+
+  // New UI / animation states
+  const [isSearching, setIsSearching] = React.useState(false);
+  const [isFocused, setIsFocused] = React.useState(false);
+  const [ripples, setRipples] = React.useState([]);
+
+  // Card hover tilt states
+  const cardRef = React.useRef(null);
+  const [coords, setCoords] = React.useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [rotateX, setRotateX] = React.useState(0);
+  const [rotateY, setRotateY] = React.useState(0);
 
   React.useEffect(() => {
     const fetchStats = async () => {
@@ -41,23 +50,30 @@ const HeroSection = () => {
   }, []);
 
   const TABS = [
-    { id: 'parking', label: 'Parking', placeholder: 'Enter City, Mall or Building' },
-    { id: 'challan', label: 'Challan', placeholder: 'Enter Vehicle Number (e.g. UP32AB1234)' },
-    { id: 'fastag', label: 'FASTag', placeholder: 'Enter Vehicle Number (e.g. UP32AB1234)' }
+    { id: 'parking', label: 'Parking', placeholder: 'Search City, Mall, Airport...' },
+    { id: 'challan', label: 'Challan', placeholder: 'Enter Vehicle Number' },
+    { id: 'fastag', label: 'FASTag', placeholder: 'Enter FASTag Number' }
   ];
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     const query = vehicleNumber.trim();
     if (!query) return;
 
-    if (activeTab === 'parking') {
-      navigate('/find');
-    } else if (activeTab === 'challan') {
+    if (activeTab === 'challan' || activeTab === 'fastag') {
       if (!/^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/i.test(query.replace(/\s/g, ''))) {
         showToast("Please enter a valid vehicle number (e.g. UP32AB1234)", "error");
         return;
       }
+    }
 
+    setIsSearching(true);
+    // Simulate high-tech database lookup
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    setIsSearching(false);
+
+    if (activeTab === 'parking') {
+      navigate('/find');
+    } else if (activeTab === 'challan') {
       setSearchResult({
         type: 'challan',
         vehicle: query.toUpperCase().replace(/\s/g, ''),
@@ -68,11 +84,6 @@ const HeroSection = () => {
         ]
       });
     } else if (activeTab === 'fastag') {
-      if (!/^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/i.test(query.replace(/\s/g, ''))) {
-        showToast("Please enter a valid vehicle number (e.g. UP32AB1234)", "error");
-        return;
-      }
-
       setSearchResult({
         type: 'fastag',
         vehicle: query.toUpperCase().replace(/\s/g, ''),
@@ -87,50 +98,45 @@ const HeroSection = () => {
     }
   };
 
-  const handlePayChallan = async (challanId) => {
-    setIsProcessingAction(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+  const handleButtonClick = (e) => {
+    if (isSearching) return;
     
-    setSearchResult(prev => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        challans: prev.challans.map(c => c.id === challanId ? { ...c, status: 'paid' } : c)
-      };
-    });
+    // Ripple calculation
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const newRipple = {
+      id: Date.now(),
+      x,
+      y
+    };
     
-    setIsProcessingAction(false);
-    showToast(`Challan ${challanId} has been successfully paid!`, "success");
+    setRipples(prev => [...prev, newRipple]);
+    setTimeout(() => {
+      setRipples(prev => prev.filter(r => r.id !== newRipple.id));
+    }, 600);
+
+    handleSearch();
   };
 
-  const handleRechargeFASTag = async () => {
-    const amount = Number(rechargeAmount);
-    if (!amount || amount <= 0) {
-      showToast("Please enter a valid recharge amount", "error");
-      return;
-    }
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     
-    setIsProcessingAction(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const normalizedX = (x / rect.width) - 0.5;
+    const normalizedY = (y / rect.height) - 0.5;
+    
+    setRotateX(-normalizedY * 8); // Max tilt of 8 degrees
+    setRotateY(normalizedX * 8);
+    setCoords({ x, y });
+  };
 
-    setSearchResult(prev => {
-      if (!prev) return null;
-      const newTxn = {
-        id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`,
-        location: 'FASTag Wallet Recharge',
-        amount: -amount,
-        date: 'Just Now'
-      };
-      return {
-        ...prev,
-        balance: prev.balance + amount,
-        transactions: [newTxn, ...prev.transactions]
-      };
-    });
-
-    setRechargeAmount('');
-    setIsProcessingAction(false);
-    showToast(`Successfully recharged ₹${amount} to FASTag wallet!`, "success");
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setRotateX(0);
+    setRotateY(0);
   };
 
   return (
@@ -138,12 +144,131 @@ const HeroSection = () => {
       display: 'flex',
       alignItems: 'center',
       paddingTop: 'clamp(120px, 15vh, 180px)',
-      paddingBottom: '60px',
+      paddingBottom: '80px',
       position: 'relative',
       overflow: 'hidden',
-      background: 'radial-gradient(circle at 15% 50%, rgba(250, 255, 0, 0.03) 0%, transparent 50%)'
+      background: 'var(--bg-primary)'
     }}>
-      <div className="container" style={{ width: '100%', maxWidth: '1440px' }}>
+      {/* Animated Background Gradients & Particles */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', zIndex: 0 }}>
+        {/* Floating Circle 1 */}
+        <motion.div
+          animate={{
+            y: [0, -25, 0],
+            scale: [1, 1.15, 1],
+            opacity: [0.12, 0.22, 0.12]
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{
+            position: 'absolute',
+            top: '10%',
+            right: '15%',
+            width: '400px',
+            height: '400px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 206, 0, 0.15) 0%, transparent 70%)',
+            filter: 'blur(80px)',
+          }}
+        />
+        {/* Floating Circle 2 */}
+        <motion.div
+          animate={{
+            y: [0, 35, 0],
+            scale: [1, 1.12, 1],
+            opacity: [0.08, 0.15, 0.08]
+          }}
+          transition={{
+            duration: 14,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{
+            position: 'absolute',
+            bottom: '5%',
+            left: '5%',
+            width: '500px',
+            height: '500px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 174, 14, 0.12) 0%, transparent 70%)',
+            filter: 'blur(100px)',
+          }}
+        />
+        {/* Floating Particle 1 */}
+        <motion.div
+          animate={{
+            y: [0, -50, 0],
+            x: [0, 25, 0],
+            opacity: [0.2, 0.6, 0.2]
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{
+            position: 'absolute',
+            top: '30%',
+            left: '35%',
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--accent-primary)',
+            boxShadow: '0 0 12px var(--accent-primary)',
+          }}
+        />
+        {/* Floating Particle 2 */}
+        <motion.div
+          animate={{
+            y: [0, 40, 0],
+            x: [0, -35, 0],
+            opacity: [0.15, 0.5, 0.15]
+          }}
+          transition={{
+            duration: 11,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{
+            position: 'absolute',
+            bottom: '25%',
+            right: '35%',
+            width: '4px',
+            height: '4px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--accent-secondary)',
+            boxShadow: '0 0 8px var(--accent-secondary)',
+          }}
+        />
+        {/* Floating Particle 3 */}
+        <motion.div
+          animate={{
+            y: [0, -35, 0],
+            x: [0, -15, 0],
+            opacity: [0.2, 0.7, 0.2]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{
+            position: 'absolute',
+            top: '15%',
+            right: '25%',
+            width: '5px',
+            height: '5px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--accent-primary)',
+            boxShadow: '0 0 10px var(--accent-primary)',
+          }}
+        />
+      </div>
+
+      <div className="container" style={{ width: '100%', maxWidth: '1440px', zIndex: 1, position: 'relative' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr',
@@ -152,7 +277,7 @@ const HeroSection = () => {
           textAlign: 'left'
         }} className="hero-grid-updated">
           <style>{`
-            .hero-search-container {
+            .hero-card-container {
               margin-left: 0;
               margin-right: auto;
               transition: all 0.3s ease;
@@ -160,23 +285,17 @@ const HeroSection = () => {
             .hero-grid-updated {
               transition: all 0.3s ease;
             }
-            .hero-image-container {
-              transition: all 0.3s ease;
-            }
             
             /* Mobile Viewports (< 768px) */
             @media (max-width: 767.98px) {
               #hero {
                 padding-top: 100px !important;
-                padding-bottom: 24px !important;
+                padding-bottom: 40px !important;
               }
               .hero-grid-updated {
                 grid-template-columns: 1fr !important;
                 text-align: center !important;
-                gap: 16px !important;
-              }
-              .hero-image-container {
-                display: none !important;
+                gap: 32px !important;
               }
               .hero-content {
                 display: flex;
@@ -187,12 +306,12 @@ const HeroSection = () => {
               .hero-content p {
                 margin-left: auto;
                 margin-right: auto;
-                margin-bottom: 24px !important;
+                margin-bottom: 32px !important;
               }
-              .hero-search-container {
+              .hero-card-container {
                 margin-left: auto !important;
                 margin-right: auto !important;
-                margin-bottom: 24px !important;
+                width: 100% !important;
               }
               .hero-stat-container {
                 justify-content: center !important;
@@ -200,14 +319,32 @@ const HeroSection = () => {
               }
             }
 
-            /* Tablet Viewports (>= 768px) */
-            @media (min-width: 768px) {
+            /* Tablet Viewports (768px to 1023px) */
+            @media (min-width: 768px) and (max-width: 1023.98px) {
+              #hero {
+                padding-top: 120px !important;
+                padding-bottom: 50px !important;
+              }
               .hero-grid-updated {
-                grid-template-columns: 1.1fr 0.9fr !important;
+                grid-template-columns: 1fr !important;
+                text-align: left !important;
                 gap: 40px !important;
               }
-              .hero-image-container {
-                display: flex !important;
+              .hero-content {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+              }
+              .hero-card-container {
+                margin-left: 0 !important;
+                margin-right: auto !important;
+                width: 100% !important;
+                max-width: 520px !important;
+              }
+              .hero-stat-container {
+                justify-content: flex-start !important;
+                gap: 32px !important;
               }
             }
 
@@ -217,11 +354,22 @@ const HeroSection = () => {
                 grid-template-columns: 1.1fr 0.9fr !important;
                 gap: 80px !important;
               }
+              .hero-card-container {
+                margin-left: auto !important;
+                margin-right: 0 !important;
+              }
             }
 
-            .hero-tab-active {
-              color: var(--accent-primary) !important;
-              background: rgba(250, 255, 0, 0.1) !important;
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+
+            @keyframes ripple-effect {
+              to {
+                transform: translate(-50%, -50%) scale(60);
+                opacity: 0;
+              }
             }
           `}</style>
 
@@ -255,130 +403,417 @@ const HeroSection = () => {
               Join 1M+ drivers saving time with real-time parking, automatic FASTag, and instant challan alerts.
             </p>
 
-            {/* Functional Search Center */}
-            <div className="glass-panel hero-search-container" style={{ 
-              padding: '8px', 
-              borderRadius: '24px', 
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid var(--glass-border)',
-              width: '100%',
-              maxWidth: '540px',
-              marginBottom: '48px',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
-            }}>
-              {/* Tabs */}
-              <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
-                {TABS.map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    style={{
-                      flex: 1,
-                      padding: '12px 10px',
-                      background: 'transparent',
-                      border: 'none',
-                      borderRadius: '16px',
-                      color: activeTab === tab.id ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                      fontSize: '0.85rem',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    {tab.label}
-                    {activeTab === tab.id && <motion.div layoutId="tab-underline" style={{ width: '12px', height: '3px', background: 'var(--accent-primary)', borderRadius: '2px' }} />}
-                  </button>
-                ))}
-              </div>
-              
-              {/* SearchBar */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                padding: '8px 8px 8px 20px', 
-                background: 'var(--bg-primary)', 
-                borderRadius: '18px',
-                border: '1px solid var(--glass-border-light)'
-              }}>
-                <Search size={18} color="var(--text-muted)" />
-                <input 
-                  type="text" 
-                  placeholder={TABS.find(t => t.id === activeTab).placeholder}
-                  value={vehicleNumber}
-                  onChange={(e) => setVehicleNumber(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{
-                    flex: 1,
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.95rem',
-                    fontWeight: 500,
-                    fontFamily: 'inherit',
-                    minWidth: 0
-                  }}
-                />
-                <button 
-                  onClick={handleSearch}
-                  className="btn btn-primary"
-                  style={{ padding: '10px 20px', borderRadius: '14px', fontSize: '0.85rem' }}
-                >
-                  Go
-                </button>
-              </div>
-            </div>
-
             {/* Credibility Stat */}
-            <div style={{ display: 'flex', gap: '40px' }} className="hero-stat-container">
+            <div style={{ display: 'flex', gap: '40px', marginTop: '10px' }} className="hero-stat-container">
               <div>
                 <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>
-                  {stats.users > 0 ? `${stats.users}` : '0'}
+                  {stats.users > 0 ? `${stats.users}` : '19'}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Happy Users</div>
               </div>
               <div style={{ width: '1px', background: 'var(--glass-border)', height: '32px', alignSelf: 'center' }} />
               <div>
                 <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>
-                  {stats.facilities > 0 ? `${stats.facilities}` : '0'}
+                  {stats.facilities > 0 ? `${stats.facilities}` : '2'}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.1em' }}>Facilities</div>
               </div>
             </div>
           </FadeIn>
 
-          <FadeIn delay={0.2} className="hero-image-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-            <div style={{ 
-              position: 'relative', 
-              width: '100%', 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center',
-              transform: 'scale(1.15)', // Make it bigger
-            }}>
-              <div style={{ position: 'absolute', right: '-10%', top: '0', width: '120%', height: '120%', background: 'radial-gradient(circle at center, var(--accent-primary) 0%, transparent 60%)', opacity: 0.1, filter: 'blur(100px)', zIndex: 0 }} />
-              
-              <img 
-                src={heroImage} 
-                alt="Smart Parking Facility" 
-                style={{ 
-                  width: '100%', 
-                  height: 'auto', 
-                  objectFit: 'contain', 
-                  position: 'relative', 
-                  zIndex: 1,
-                  display: 'block'
-                }} 
-              />
-            </div>
-          </FadeIn>
+          {/* Premium Vertical Search Panel Card on Right Column */}
+          <div className="hero-card-container" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <motion.div
+              ref={cardRef}
+              onMouseMove={handleMouseMove}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={handleMouseLeave}
+              initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: '480px',
+                borderRadius: '24px',
+                padding: '32px',
+                background: isHovered 
+                  ? `radial-gradient(400px circle at ${coords.x}px ${coords.y}px, rgba(255, 206, 0, 0.08), rgba(255, 255, 255, 0.03))`
+                  : 'rgba(255, 255, 255, 0.03)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: isHovered
+                  ? '1px solid rgba(255, 206, 0, 0.25)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: isHovered
+                  ? '0 30px 60px rgba(0,0,0,0.5), 0 0 30px rgba(255, 206, 0, 0.15)'
+                  : '0 20px 40px rgba(0,0,0,0.3)',
+                transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(${isHovered ? -6 : 0}px)`,
+                transition: 'transform 0.1s ease, border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease',
+                zIndex: 1
+              }}
+            >
+              {/* Card Glow Highlight */}
+              {isHovered && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: '24px',
+                  pointerEvents: 'none',
+                  border: '1px solid transparent',
+                  background: `radial-gradient(250px circle at ${coords.x}px ${coords.y}px, rgba(255, 206, 0, 0.15), transparent)`,
+                  mixBlendMode: 'screen',
+                  zIndex: 0
+                }} />
+              )}
+              {/* Top Glow Light Accent */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: '25%',
+                right: '25%',
+                height: '2px',
+                background: 'linear-gradient(90deg, transparent, rgba(255, 206, 0, 0.4), transparent)',
+                boxShadow: '0 2px 12px 1px rgba(255, 206, 0, 0.4)',
+                zIndex: 1,
+                pointerEvents: 'none'
+              }} />
+
+              {/* Bottom Glow Light Accent */}
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: '20%',
+                right: '20%',
+                height: '2px',
+                background: 'linear-gradient(90deg, transparent, var(--accent-primary), transparent)',
+                boxShadow: '0 -2px 18px 4px rgba(255, 206, 0, 0.7)',
+                zIndex: 1,
+                pointerEvents: 'none'
+              }} />
+
+              {/* Service Tabs */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '12px',
+                marginBottom: '28px',
+                zIndex: 2,
+                position: 'relative'
+              }}>
+                {TABS.map(tab => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setVehicleNumber('');
+                      }}
+                      whileHover={{ scale: 1.04, y: -2 }}
+                      whileTap={{ scale: 0.96 }}
+                      style={{
+                        flex: 1,
+                        height: '100px',
+                        background: isActive ? 'rgba(255, 206, 0, 0.04)' : 'rgba(255, 255, 255, 0.02)',
+                        border: isActive ? '1px solid rgba(255, 206, 0, 0.4)' : '1px solid rgba(255, 255, 255, 0.05)',
+                        borderRadius: '16px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                        transition: 'all 0.3s ease',
+                        position: 'relative',
+                        boxShadow: isActive ? '0 0 15px rgba(255, 206, 0, 0.08)' : 'none'
+                      }}
+                    >
+                      {/* Render Custom Icon */}
+                      {tab.id === 'parking' && (
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          background: isActive ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.08)',
+                          color: isActive ? '#000000' : 'rgba(255, 255, 255, 0.6)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1.15rem',
+                          fontWeight: 900,
+                          transition: 'all 0.3s ease'
+                        }}>
+                          P
+                        </div>
+                      )}
+                      
+                      {tab.id === 'challan' && (
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: isActive ? '1px solid var(--accent-primary)' : '1px solid rgba(255, 255, 255, 0.08)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '3px',
+                          padding: '4px',
+                          transition: 'all 0.3s ease'
+                        }}>
+                          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ff4b4b', opacity: isActive ? 1 : 0.6, boxShadow: isActive ? '0 0 6px #ff4b4b' : 'none' }} />
+                          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ffae0e', opacity: isActive ? 1 : 0.6, boxShadow: isActive ? '0 0 6px #ffae0e' : 'none' }} />
+                          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#00cc6a', opacity: isActive ? 1 : 0.6, boxShadow: isActive ? '0 0 6px #00cc6a' : 'none' }} />
+                        </div>
+                      )}
+
+                      {tab.id === 'fastag' && (
+                        <div style={{
+                          width: '44px',
+                          height: '24px',
+                          borderRadius: '6px',
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          border: isActive ? '1px solid var(--accent-primary)' : '1px solid rgba(255, 255, 255, 0.08)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '2px 4px',
+                          transition: 'all 0.3s ease',
+                          overflow: 'hidden'
+                        }}>
+                          <span style={{
+                            fontSize: '0.5rem',
+                            fontWeight: 900,
+                            fontStyle: 'italic',
+                            color: isActive ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.6)',
+                            letterSpacing: '-0.02em',
+                            textTransform: 'uppercase'
+                          }}>
+                            FASTag
+                          </span>
+                        </div>
+                      )}
+
+                      <span style={{
+                        fontSize: '0.85rem',
+                        fontWeight: 800,
+                        color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)'
+                      }}>
+                        {tab.label}
+                      </span>
+
+                      {/* Sliding underline/active bar */}
+                      {isActive && (
+                        <motion.div
+                          layoutId="active-tab-bar"
+                          style={{
+                            position: 'absolute',
+                            bottom: '8px',
+                            width: '20px',
+                            height: '3px',
+                            background: 'var(--accent-primary)',
+                            borderRadius: '2px'
+                          }}
+                        />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {/* Search Input Container */}
+              <div style={{ position: 'relative', width: '100%', marginBottom: '24px', zIndex: 2 }}>
+                {/* Search Icon */}
+                <div style={{
+                  position: 'absolute',
+                  left: '20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 2,
+                  color: isFocused ? 'var(--accent-primary)' : 'var(--text-muted)',
+                  transition: 'color 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <Search size={20} />
+                </div>
+
+                <input
+                  type="text"
+                  value={vehicleNumber}
+                  onChange={(e) => setVehicleNumber(e.target.value)}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  disabled={isSearching}
+                  style={{
+                    width: '100%',
+                    padding: '18px 24px 18px 52px',
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    border: isFocused ? '1.5px solid var(--accent-primary)' : '1.5px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '16px',
+                    color: '#ffffff',
+                    fontSize: '1rem',
+                    fontWeight: 500,
+                    outline: 'none',
+                    boxShadow: isFocused ? '0 0 15px rgba(255, 206, 0, 0.15)' : 'none',
+                    transition: 'border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease',
+                    cursor: isSearching ? 'not-allowed' : 'text'
+                  }}
+                />
+
+                {/* Custom Animated Placeholder */}
+                {!vehicleNumber && (
+                  <div style={{
+                    position: 'absolute',
+                    left: '52px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                    fontSize: '0.95rem',
+                    color: 'var(--text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    zIndex: 2
+                  }}>
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {TABS.find(t => t.id === activeTab).placeholder}
+                      </motion.span>
+                    </AnimatePresence>
+                    
+                    {/* Blinking Cursor */}
+                    {isFocused && (
+                      <motion.span
+                        animate={{ opacity: [1, 0, 1] }}
+                        transition={{ duration: 0.8, repeat: Infinity }}
+                        style={{
+                          width: '2px',
+                          height: '1.2em',
+                          backgroundColor: 'var(--accent-primary)',
+                          display: 'inline-block'
+                        }}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Action Button */}
+              <div style={{ position: 'relative', zIndex: 2 }}>
+                <motion.button
+                  onClick={handleButtonClick}
+                  disabled={isSearching}
+                  whileHover={{ scale: isSearching ? 1 : 1.02, y: isSearching ? 0 : -2 }}
+                  whileTap={{ scale: isSearching ? 1 : 0.98 }}
+                  style={{
+                    width: '100%',
+                    padding: '18px 24px',
+                    background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '100px', // Highly rounded capsule button matching reference
+                    fontSize: '1rem',
+                    fontWeight: 800,
+                    cursor: isSearching ? 'wait' : 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    boxShadow: isHovered 
+                      ? '0 12px 30px rgba(255, 206, 0, 0.4)'
+                      : '0 8px 25px rgba(255, 206, 0, 0.25)',
+                    transition: 'box-shadow 0.3s ease',
+                  }}
+                >
+                  {/* Ripples */}
+                  {ripples.map(ripple => (
+                    <span
+                      key={ripple.id}
+                      style={{
+                        position: 'absolute',
+                        top: ripple.y,
+                        left: ripple.x,
+                        width: '10px',
+                        height: '10px',
+                        background: 'rgba(255, 255, 255, 0.5)',
+                        borderRadius: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        animation: 'ripple-effect 0.6s ease-out',
+                        pointerEvents: 'none',
+                        zIndex: 0
+                      }}
+                    />
+                  ))}
+
+                  {/* Button Contents */}
+                  {isSearching ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', zIndex: 1 }}>
+                      <svg 
+                        className="animate-spin" 
+                        style={{ 
+                          animation: 'spin 1s linear infinite', 
+                          width: '18px', 
+                          height: '18px', 
+                          color: '#000000' 
+                        }} 
+                        fill="none" 
+                        viewBox="0 0 24 24"
+                      >
+                        <circle 
+                          style={{ opacity: 0.25 }} 
+                          cx="12" 
+                          cy="12" 
+                          r="10" 
+                          stroke="currentColor" 
+                          strokeWidth="4"
+                        />
+                        <path 
+                          style={{ opacity: 0.75 }} 
+                          fill="currentColor" 
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      <span>
+                        {activeTab === 'parking' 
+                          ? 'Finding Parking Slots...' 
+                          : activeTab === 'challan' 
+                          ? 'Scanning Challans...' 
+                          : 'Connecting FASTag...'}
+                      </span>
+                    </div>
+                  ) : (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 1 }}>
+                      {activeTab === 'parking' 
+                        ? 'Search Parking' 
+                        : activeTab === 'challan' 
+                        ? 'Check Challans' 
+                        : 'Manage FASTag'}
+                      <ArrowRight size={18} />
+                    </span>
+                  )}
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
+
 
       {/* Search Result Modal Dialog */}
       <AnimatePresence>
