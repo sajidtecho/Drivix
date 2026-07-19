@@ -4,6 +4,7 @@ import {
   getMyBookings,
   getAllBookings,
   vacateBooking,
+  calculateBill,
   extendBooking,
   deleteBookingAdmin,
   deleteAllBookingsAdmin
@@ -18,6 +19,7 @@ router.use(protect);
 router.post('/', createBooking);
 router.get('/my', getMyBookings);
 router.get('/all', getAllBookings);
+router.get('/:id/calculate-bill', calculateBill);
 router.put('/:id/vacate', vacateBooking);
 router.put('/:id/extend', extendBooking);
 

@@ -1,6 +1,7 @@
 import Booking from '../models/Booking.js';
 import Slot from '../models/Slot.js';
 import ParkingLocation from '../models/ParkingLocation.js';
+import User from '../models/User.js';
 import { calculateDynamicPrice } from '../utils/pricingEngine.js';
 
 // @desc    Create a new booking ticket
@@ -185,10 +186,56 @@ export const getAllBookings = async (req, res) => {
   }
 };
 
+// @desc    Calculate bill details on checkout
+// @route   GET /api/v1/bookings/:id/calculate-bill
+// @access  Private
+export const calculateBill = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    const location = await ParkingLocation.findById(booking.locationId);
+    const hourlyRate = location ? location.hourlyPrice : 30;
+
+    // Calculate actual duration in hours (min 1 hour)
+    const msElapsed = Date.now() - booking.createdAt.getTime();
+    const hoursParked = Math.max(1, Math.ceil(msElapsed / (1000 * 60 * 60)));
+
+    const finalCost = (hoursParked * hourlyRate) + (booking.servicesCost || 0);
+    const prepaidAmount = booking.prepaidAmount || 0;
+    const amountDue = Math.max(0, finalCost - prepaidAmount);
+
+    // Fetch user wallet balance
+    const userDoc = await User.findById(req.user._id);
+    const walletBalance = userDoc ? userDoc.walletBalance : 0;
+
+    res.json({
+      bookingId: booking._id,
+      entryTime: booking.createdAt,
+      exitTime: new Date(),
+      hoursParked,
+      hourlyRate,
+      servicesCost: booking.servicesCost || 0,
+      finalCost,
+      prepaidAmount,
+      amountDue,
+      paymentMode: booking.paymentMode,
+      paymentStatus: booking.paymentStatus,
+      walletBalance
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Vacate/release a booking slot
 // @route   PUT /api/v1/bookings/:id/vacate
 // @access  Private
 export const vacateBooking = async (req, res) => {
+  const { paymentMethod } = req.body; // 'wallet' or 'cash' or 'card'
+
   try {
     const booking = await Booking.findById(req.params.id);
     if (!booking) {
@@ -204,11 +251,49 @@ export const vacateBooking = async (req, res) => {
       return res.status(400).json({ message: 'Booking is already completed' });
     }
 
-    // 1. Update booking status
+    // 1. Calculate final cost
+    const location = await ParkingLocation.findById(booking.locationId);
+    const hourlyRate = location ? location.hourlyPrice : 30;
+
+    const msElapsed = Date.now() - booking.createdAt.getTime();
+    const hoursParked = Math.max(1, Math.ceil(msElapsed / (1000 * 60 * 60)));
+
+    const finalCost = (hoursParked * hourlyRate) + (booking.servicesCost || 0);
+    const prepaidAmount = booking.prepaidAmount || 0;
+    const amountDue = Math.max(0, finalCost - prepaidAmount);
+
+    // 2. Enforce payment if amountDue > 0
+    if (amountDue > 0) {
+      if (!paymentMethod) {
+        return res.status(400).json({ 
+          message: 'Payment required to check out', 
+          amountDue,
+          requiresPaymentOptions: true 
+        });
+      }
+
+      if (paymentMethod === 'wallet') {
+        const userDoc = await User.findById(req.user._id);
+        if (!userDoc || userDoc.walletBalance < amountDue) {
+          return res.status(400).json({ message: 'Insufficient wallet balance' });
+        }
+        userDoc.walletBalance -= amountDue;
+        await userDoc.save();
+      } else if (paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'online') {
+        // Simulate gate/online checkout payment success
+      } else {
+        return res.status(400).json({ message: 'Invalid payment method' });
+      }
+    }
+
+    // 3. Update booking status
+    booking.finalCost = finalCost;
+    booking.actualExitTime = new Date();
+    booking.paymentStatus = 'paid';
     booking.status = 'completed';
     await booking.save();
 
-    // 2. Mark the slot as available again
+    // 4. Mark the slot as available again
     const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
     if (slot) {
       slot.status = 'available';
@@ -226,12 +311,12 @@ export const vacateBooking = async (req, res) => {
       }
     }
 
-    // 3. Increment available slots on the parent location
+    // 5. Increment available slots on the parent location
     await ParkingLocation.findByIdAndUpdate(booking.locationId, {
       $inc: { availableSlots: 1 }
     });
 
-    res.json({ message: 'Slot vacated successfully', booking });
+    res.json({ message: 'Checked out and slot vacated successfully', booking });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
