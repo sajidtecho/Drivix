@@ -570,24 +570,71 @@ const Profile = () => {
                             key={booking.id}
                             booking={booking}
                             onVacate={async (b) => {
-                              if (!window.confirm('Are you vacating the slot? This will release the slot for other users.')) return;
-
                               const token = localStorage.getItem('drivix_auth_token');
                               try {
                                 setIsSaving(true);
-                                 const res = await fetch(`${API_BASE_URL}/api/v1/bookings/${b.id || b._id}/vacate`, {
-                                  method: 'PUT',
+                                
+                                // 1. Fetch real-time checkout bill details
+                                const billRes = await fetch(`${API_BASE_URL}/api/v1/bookings/${b.id || b._id}/calculate-bill`, {
                                   headers: { 'Authorization': `Bearer ${token}` }
                                 });
+                                if (!billRes.ok) throw new Error('Failed to fetch bill');
+                                const bill = await billRes.json();
+
+                                // 2. Determine payment method if balance is due
+                                let paymentMethod = undefined;
+                                if (bill.amountDue > 0) {
+                                  const payMsg = `🧾 Exit Checkout Bill\n` +
+                                                 `-------------------------\n` +
+                                                 `• Parked Duration: ${bill.hoursParked} hours\n` +
+                                                 `• Rate: ₹${bill.hourlyRate}/hr\n` +
+                                                 `• Services: ₹${bill.servicesCost}\n` +
+                                                 `• Subtotal: ₹${bill.finalCost}\n` +
+                                                 `• Prepaid: -₹${bill.prepaidAmount}\n` +
+                                                 `• Balance Due: ₹${bill.amountDue}\n\n` +
+                                                 `Your Wallet Balance: ₹${bill.walletBalance}\n\n` +
+                                                 `Select Payment Method:\n` +
+                                                 `- Click [OK] to pay ₹${bill.amountDue} using Drivix Wallet.\n` +
+                                                 `- Click [Cancel] to pay using Cash/Card at the Exit Gate.`;
+
+                                  if (window.confirm(payMsg)) {
+                                    if (bill.walletBalance < bill.amountDue) {
+                                      alert('⚠️ Insufficient Wallet Balance! Please pay Cash/Card at the Exit Gate.');
+                                      paymentMethod = 'cash';
+                                    } else {
+                                      paymentMethod = 'wallet';
+                                    }
+                                  } else {
+                                    paymentMethod = 'cash';
+                                  }
+                                } else {
+                                  if (!window.confirm('Are you vacating the slot? This will end your session.')) {
+                                    setIsSaving(false);
+                                    return;
+                                  }
+                                }
+
+                                // 3. Submit vacate check-out request
+                                const res = await fetch(`${API_BASE_URL}/api/v1/bookings/${b.id || b._id}/vacate`, {
+                                  method: 'PUT',
+                                  headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}` 
+                                  },
+                                  body: JSON.stringify({ paymentMethod })
+                                });
+
                                 if (res.ok) {
-                                  alert('Thank you for using Drivix! Slot released successfully.');
+                                  alert('Thank you for using Drivix! Session checked out and slot released successfully.');
                                   fetchBookings();
                                   setBookingSubTab('history');
                                 } else {
-                                  alert('Failed to vacate slot.');
+                                  const errorData = await res.json();
+                                  alert(`Failed to vacate slot: ${errorData.message || 'Server error'}`);
                                 }
                               } catch (err) {
                                 console.error(err);
+                                alert('Error: Failed to process check out.');
                               } finally {
                                 setIsSaving(false);
                               }
