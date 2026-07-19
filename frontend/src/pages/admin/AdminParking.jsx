@@ -380,36 +380,36 @@ const AdminParking = () => {
                 <input 
                   type="text" value={parkingName} onChange={e => setParkingName(e.target.value)} 
                   placeholder="Facility Name (e.g. DLF Mall)" required
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                 />
                 <input 
                   type="text" value={parkingCode} onChange={e => setParkingCode(e.target.value)} 
                   placeholder="Parking Code (e.g. SU-MLP)" required
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                 />
               </div>
               
               <input 
                 type="text" value={address} onChange={e => setAddress(e.target.value)} 
                 placeholder="Street Address" required
-                style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
               />
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 <input 
                   type="text" value={city} onChange={e => setCity(e.target.value)} 
                   placeholder="City" required
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                 />
                 <input 
                   type="text" value={stateField} onChange={e => setStateField(e.target.value)} 
                   placeholder="State" required
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                 />
                 <input 
                   type="text" value={pincode} onChange={e => setPincode(e.target.value)} 
                   placeholder="Pincode (6-digit)" required
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                 />
               </div>
 
@@ -417,12 +417,12 @@ const AdminParking = () => {
                 <input 
                   type="number" step="any" value={latitude} onChange={e => setLatitude(e.target.value)} 
                   placeholder="Latitude (e.g. 28.47)" 
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                 />
                 <input 
                   type="number" step="any" value={longitude} onChange={e => setLongitude(e.target.value)} 
                   placeholder="Longitude (e.g. 77.48)" 
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                 />
               </div>
 
@@ -449,28 +449,28 @@ const AdminParking = () => {
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Opens</label>
                   <input 
                     type="text" value={openingTime} onChange={e => setOpeningTime(e.target.value)} 
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Closes</label>
                   <input 
                     type="text" value={closingTime} onChange={e => setClosingTime(e.target.value)} 
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Floors</label>
                   <input 
                     type="number" min="1" value={totalFloors} onChange={e => setTotalFloors(Number(e.target.value))} 
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Hourly Price</label>
                   <input 
                     type="number" min="0" value={hourlyPrice} onChange={e => setHourlyPrice(Number(e.target.value))} 
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                   />
                 </div>
               </div>
@@ -557,7 +557,7 @@ const AdminParking = () => {
                   <input 
                     type="text" value={newFloorName} onChange={e => setNewFloorName(e.target.value.toUpperCase())} 
                     placeholder="E.g. L4, B1" 
-                    style={{ flex: 1, padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
+                    style={{ flex: 1, padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#fff', outline: 'none' }} 
                   />
                   <button onClick={handleAddFloor} className="btn btn-secondary"><Plus size={16}/> Add Floor</button>
                 </div>
@@ -574,9 +574,9 @@ const AdminParking = () => {
                       {/* Bulk Add Tool */}
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Prefix:</span>
-                        <input type="text" value={newSlotPrefix} onChange={e=>setNewSlotPrefix(e.target.value.toUpperCase())} style={{ width: '40px', padding: '4px', background: 'var(--bg-tertiary)', border: 'none', color: '#000', textAlign: 'center', borderRadius: '4px' }}/>
+                        <input type="text" value={newSlotPrefix} onChange={e=>setNewSlotPrefix(e.target.value.toUpperCase())} style={{ width: '40px', padding: '4px', background: 'var(--bg-tertiary)', border: 'none', color: '#fff', textAlign: 'center', borderRadius: '4px' }}/>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Count:</span>
-                        <input type="number" min="1" max="50" value={newSlotCount} onChange={e=>setNewSlotCount(Number(e.target.value))} style={{ width: '50px', padding: '4px', background: 'var(--bg-tertiary)', border: 'none', color: '#000', textAlign: 'center', borderRadius: '4px' }}/>
+                        <input type="number" min="1" max="50" value={newSlotCount} onChange={e=>setNewSlotCount(Number(e.target.value))} style={{ width: '50px', padding: '4px', background: 'var(--bg-tertiary)', border: 'none', color: '#fff', textAlign: 'center', borderRadius: '4px' }}/>
                         <button onClick={handleBulkAddSlots} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>Generate</button>
                       </div>
                    </div>
