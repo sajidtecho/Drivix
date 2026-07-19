@@ -26,6 +26,87 @@ const AdminParking = () => {
 
   const [geocoding, setGeocoding] = useState(false);
 
+  // Zomato-style Map Picker States and Refs
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = React.useRef(null);
+  const markerRef = React.useRef(null);
+
+  useEffect(() => {
+    // Inject Leaflet CSS
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    // Inject Leaflet JS
+    if (!document.getElementById('leaflet-js')) {
+      const script = document.createElement('script');
+      script.id = 'leaflet-js';
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => setMapLoaded(true);
+      document.head.appendChild(script);
+    } else {
+      setMapLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!mapLoaded || !window.L) return;
+
+    const lat = Number(latitude) || 28.4727;
+    const lng = Number(longitude) || 77.4820;
+
+    if (!mapRef.current) {
+      const container = document.getElementById('admin-map');
+      if (!container) return;
+
+      const map = window.L.map('admin-map').setView([lat, lng], 13);
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      const marker = window.L.marker([lat, lng], { draggable: true }).addTo(map);
+
+      marker.on('dragend', () => {
+        const pos = marker.getLatLng();
+        setLatitude(pos.lat.toFixed(6));
+        setLongitude(pos.lng.toFixed(6));
+      });
+
+      map.on('click', (e) => {
+        marker.setLatLng(e.latlng);
+        setLatitude(e.latlng.lat.toFixed(6));
+        setLongitude(e.latlng.lng.toFixed(6));
+      });
+
+      mapRef.current = map;
+      markerRef.current = marker;
+    } else {
+      const map = mapRef.current;
+      const marker = markerRef.current;
+      if (map && marker) {
+        const currentLatLng = marker.getLatLng();
+        if (Math.abs(currentLatLng.lat - lat) > 0.0001 || Math.abs(currentLatLng.lng - lng) > 0.0001) {
+          marker.setLatLng([lat, lng]);
+          map.panTo([lat, lng]);
+        }
+      }
+    }
+  }, [mapLoaded, latitude, longitude]);
+
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
+    };
+  }, []);
+
   const handleAutoDetectLocation = () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser.');
@@ -442,6 +523,12 @@ const AdminParking = () => {
                 >
                   {geocoding ? '🔍 Fetching...' : '🗺️ Find from Address'}
                 </button>
+              </div>
+
+              {/* Interactive Map Picker */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginVertical: '6px' }}>
+                <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>📍 Click or drag pin to indicate exact entrance manually:</label>
+                <div id="admin-map" style={{ height: '180px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)', zIndex: 1 }} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '6px' }}>
