@@ -24,6 +24,59 @@ const AdminParking = () => {
   const [totalFloors, setTotalFloors] = useState(1);
   const [hourlyPrice, setHourlyPrice] = useState(30);
 
+  const [geocoding, setGeocoding] = useState(false);
+
+  const handleAutoDetectLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatitude(position.coords.latitude.toString());
+        setLongitude(position.coords.longitude.toString());
+      },
+      (error) => {
+        alert('Failed to detect location: ' + error.message);
+      }
+    );
+  };
+
+  const handleGeocodeAddress = async () => {
+    const fullAddr = `${address}, ${city}, ${stateField} ${pincode}`;
+    if (!address || !city) {
+      alert('Please fill out Address and City to search.');
+      return;
+    }
+    setGeocoding(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddr)}&limit=1`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setLatitude(data[0].lat);
+          setLongitude(data[0].lon);
+        } else {
+          // Fallback search with just City and State
+          const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(`${city}, ${stateField}`)}&limit=1`);
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData && fallbackData.length > 0) {
+            setLatitude(fallbackData[0].lat);
+            setLongitude(fallbackData[0].lon);
+            alert('Precise street address not found. Placed coordinates at City/State center.');
+          } else {
+            alert('Address could not be geocoded. Please enter coordinates manually.');
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Geocoding service unavailable. Please enter coordinates manually.');
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
   // Slot Management Form States
   const [newFloorName, setNewFloorName] = useState('');
   const [newSlotPrefix, setNewSlotPrefix] = useState('A');
@@ -371,6 +424,24 @@ const AdminParking = () => {
                   placeholder="Longitude (e.g. 77.48)" 
                   style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', color: '#000', outline: 'none' }} 
                 />
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <button 
+                  type="button" 
+                  onClick={handleAutoDetectLocation}
+                  style={{ flex: 1, padding: '8px', borderRadius: '6px', backgroundColor: 'var(--accent)', color: '#000', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
+                >
+                  📍 Use Current GPS
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleGeocodeAddress}
+                  disabled={geocoding}
+                  style={{ flex: 1, padding: '8px', borderRadius: '6px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold', opacity: geocoding ? 0.6 : 1 }}
+                >
+                  {geocoding ? '🔍 Fetching...' : '🗺️ Find from Address'}
+                </button>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '6px' }}>
