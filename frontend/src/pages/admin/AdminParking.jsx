@@ -26,10 +26,16 @@ const AdminParking = () => {
 
   const [geocoding, setGeocoding] = useState(false);
 
-  // Zomato-style Map Picker States and Refs
+  // Map Picker States and Refs
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [tempLat, setTempLat] = useState('');
+  const [tempLng, setTempLng] = useState('');
+
   const mapRef = React.useRef(null);
   const markerRef = React.useRef(null);
+  const modalMapRef = React.useRef(null);
+  const modalMarkerRef = React.useRef(null);
 
   useEffect(() => {
     // Inject Leaflet CSS
@@ -53,8 +59,9 @@ const AdminParking = () => {
     }
   }, []);
 
+  // Update Small Map Preview
   useEffect(() => {
-    if (!mapLoaded || !window.L) return;
+    if (!mapLoaded || !window.L || showMapModal) return;
 
     const lat = Number(latitude) || 28.4727;
     const lng = Number(longitude) || 77.4820;
@@ -63,7 +70,53 @@ const AdminParking = () => {
       const container = document.getElementById('admin-map');
       if (!container) return;
 
-      const map = window.L.map('admin-map').setView([lat, lng], 13);
+      const map = window.L.map('admin-map', {
+        zoomControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        touchZoom: false
+      }).setView([lat, lng], 13);
+
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OSM'
+      }).addTo(map);
+
+      const marker = window.L.marker([lat, lng]).addTo(map);
+
+      mapRef.current = map;
+      markerRef.current = marker;
+    } else {
+      const map = mapRef.current;
+      const marker = markerRef.current;
+      if (map && marker) {
+        marker.setLatLng([lat, lng]);
+        map.setView([lat, lng], 13);
+      }
+    }
+  }, [mapLoaded, latitude, longitude, showMapModal]);
+
+  // Initialize and update Modal Map
+  useEffect(() => {
+    if (!showMapModal || !mapLoaded || !window.L) return;
+
+    const lat = Number(latitude) || 28.4727;
+    const lng = Number(longitude) || 77.4820;
+
+    setTempLat(lat.toFixed(6));
+    setTempLng(lng.toFixed(6));
+
+    const timer = setTimeout(() => {
+      const container = document.getElementById('modal-map');
+      if (!container) return;
+
+      if (modalMapRef.current) {
+        modalMapRef.current.remove();
+        modalMapRef.current = null;
+        modalMarkerRef.current = null;
+      }
+
+      const map = window.L.map('modal-map').setView([lat, lng], 15);
       window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
@@ -72,30 +125,24 @@ const AdminParking = () => {
 
       marker.on('dragend', () => {
         const pos = marker.getLatLng();
-        setLatitude(pos.lat.toFixed(6));
-        setLongitude(pos.lng.toFixed(6));
+        setTempLat(pos.lat.toFixed(6));
+        setTempLng(pos.lng.toFixed(6));
       });
 
       map.on('click', (e) => {
         marker.setLatLng(e.latlng);
-        setLatitude(e.latlng.lat.toFixed(6));
-        setLongitude(e.latlng.lng.toFixed(6));
+        setTempLat(e.latlng.lat.toFixed(6));
+        setTempLng(e.latlng.lng.toFixed(6));
       });
 
-      mapRef.current = map;
-      markerRef.current = marker;
-    } else {
-      const map = mapRef.current;
-      const marker = markerRef.current;
-      if (map && marker) {
-        const currentLatLng = marker.getLatLng();
-        if (Math.abs(currentLatLng.lat - lat) > 0.0001 || Math.abs(currentLatLng.lng - lng) > 0.0001) {
-          marker.setLatLng([lat, lng]);
-          map.panTo([lat, lng]);
-        }
-      }
-    }
-  }, [mapLoaded, latitude, longitude]);
+      modalMapRef.current = map;
+      modalMarkerRef.current = marker;
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [showMapModal, mapLoaded]);
 
   useEffect(() => {
     return () => {
@@ -103,6 +150,11 @@ const AdminParking = () => {
         mapRef.current.remove();
         mapRef.current = null;
         markerRef.current = null;
+      }
+      if (modalMapRef.current) {
+        modalMapRef.current.remove();
+        modalMapRef.current = null;
+        modalMarkerRef.current = null;
       }
     };
   }, []);
@@ -527,8 +579,16 @@ const AdminParking = () => {
 
               {/* Interactive Map Picker */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginVertical: '6px' }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>📍 Click or drag pin to indicate exact entrance manually:</label>
-                <div id="admin-map" style={{ height: '180px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)', zIndex: 1 }} />
+                <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>📍 Click the map to pinpoint precise entrance manually:</label>
+                <div 
+                  onClick={() => setShowMapModal(true)}
+                  style={{ position: 'relative', height: '180px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)', cursor: 'pointer' }}
+                >
+                  <div id="admin-map" style={{ width: '100%', height: '100%' }} />
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.15)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10 }}>
+                    <span style={{ backgroundColor: 'rgba(0,0,0,0.75)', color: '#fff', fontSize: '0.75rem', padding: '6px 12px', borderRadius: '20px', fontWeight: 'bold' }}>🔍 Click to Enlarge Map</span>
+                  </div>
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '6px' }}>
@@ -713,6 +773,79 @@ const AdminParking = () => {
         </div>
 
       </div>
+
+      {/* Large Map Modal Picker */}
+      {showMapModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--glass-border)',
+            borderRadius: '16px',
+            width: '90%',
+            maxWidth: '700px',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', margin: 0 }}>🗺️ Pinpoint Exact Location</h3>
+              <button 
+                type="button"
+                onClick={() => setShowMapModal(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.4rem' }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
+              Drag the marker or click on the map to indicate the exact parking entrance.
+            </p>
+
+            <div id="modal-map" style={{ height: '380px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--glass-border)' }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-primary)', background: 'var(--bg-tertiary)', padding: '10px', borderRadius: '8px' }}>
+              <div>Lat: <span style={{ fontWeight: 'bold' }}>{tempLat}</span></div>
+              <div>Lng: <span style={{ fontWeight: 'bold' }}>{tempLng}</span></div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button 
+                type="button"
+                onClick={() => setShowMapModal(false)}
+                style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                onClick={() => {
+                  setLatitude(tempLat);
+                  setLongitude(tempLng);
+                  setShowMapModal(false);
+                }}
+                style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: '#3b82f6', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
