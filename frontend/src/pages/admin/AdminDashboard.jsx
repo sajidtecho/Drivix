@@ -10,7 +10,8 @@ import {
   Calendar,
   AlertCircle,
   DollarSign,
-  LogOut
+  LogOut,
+  Building
 } from 'lucide-react';
 import challanIcon from '../../assets/challan.png';
 
@@ -209,6 +210,13 @@ const AdminDashboard = () => {
               onClick={() => navigate('/admin/complaints')}
             >
               <img src={challanIcon} alt="challan" style={{ width: '18px', height: '18px', marginRight: '10px' }} /> Customer Complaints
+            </button>
+            <button 
+              className="btn btn-secondary" 
+              style={{ justifyContent: 'flex-start', width: '100%', padding: '1.2rem' }}
+              onClick={() => navigate('/admin/partners')}
+            >
+              <Building size={18} style={{ marginRight: '10px' }} /> Partner Applications
             </button>
           </div>
         </section>

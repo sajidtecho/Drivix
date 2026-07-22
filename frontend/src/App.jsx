@@ -22,6 +22,7 @@ import AdminParking from './pages/admin/AdminParking';
 import AdminPricing from './pages/admin/AdminPricing';
 import AdminRevenue from './pages/admin/AdminRevenue';
 import AdminBanners from './pages/admin/AdminBanners';
+import AdminPartners from './pages/admin/AdminPartners';
 import ErrorBoundary from './ErrorBoundary';
 import './index.css';
 import LoadingScreen from './components/common/LoadingScreen';
@@ -71,6 +72,7 @@ function App() {
                   <Route path="pricing" element={<AdminPricing />} />
                   <Route path="revenue" element={<AdminRevenue />} />
                   <Route path="banners" element={<AdminBanners />} />
+                  <Route path="partners" element={<AdminPartners />} />
                 </Route>
               </Route>
             </Routes>
