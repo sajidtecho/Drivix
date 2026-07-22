@@ -26,6 +26,61 @@ const ParkingList = () => {
   const [search, setSearch] = useState('');
   const [hoveredId, setHoveredId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userCoords, setUserCoords] = React.useState(null);
+
+  React.useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserCoords({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          });
+        },
+        (err) => {
+          console.warn("Unable to fetch user location for distance calculation:", err);
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+  }, []);
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+    
+    const R = 6371; // Earth radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+        
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in km
+    
+    return distance;
+  };
+
+  const getDistanceText = (loc) => {
+    if (!userCoords || !loc.latitude || !loc.longitude) {
+      return loc.distance || '1.1 km';
+    }
+    const km = calculateDistance(
+      userCoords.latitude,
+      userCoords.longitude,
+      Number(loc.latitude),
+      Number(loc.longitude)
+    );
+    if (km === null) return loc.distance || '1.1 km';
+    if (km < 1) {
+      return `${Math.round(km * 1000)} m`;
+    }
+    return `${km.toFixed(1)} km`;
+  };
 
   React.useEffect(() => {
     const fetchLocations = async () => {
@@ -264,7 +319,7 @@ const ParkingList = () => {
                       <MapPin size={14} />
                       <span>{loc.address}</span>
                       <span style={{ padding: '2px 8px', borderRadius: 'var(--radius-input)', background: 'var(--bg-secondary)', fontSize: '0.78rem', fontWeight: 600 }}>
-                        {loc.distance}
+                        {getDistanceText(loc)}
                       </span>
                     </div>
 
