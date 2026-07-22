@@ -10,7 +10,8 @@ import {
   LogOut,
   Menu,
   ChevronLeft,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Building
 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -23,6 +24,7 @@ const AdminLayout = () => {
     { name: 'Users', path: '/admin/users', icon: <Users size={20} /> },
     { name: 'Complaints', path: '/admin/complaints', icon: <AlertCircle size={20} /> },
     { name: 'Parking Management', path: '/admin/parking', icon: <MapPin size={20} /> },
+    { name: 'Partners', path: '/admin/partners', icon: <Building size={20} /> },
     { name: 'Banners', path: '/admin/banners', icon: <ImageIcon size={20} /> },
   ];
 

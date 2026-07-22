@@ -124,3 +124,36 @@ export const getPartnerStats = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Update partner application status (Admin only)
+// @route   PUT /api/v1/partners/:id/status
+// @access  Private/Admin
+export const updatePartnerApplicationStatus = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized as an admin' });
+    }
+
+    const { status } = req.body;
+    if (!status || !['approved', 'rejected', 'pending'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status value' });
+    }
+
+    const application = await Partner.findById(req.params.id);
+    if (!application) {
+      return res.status(404).json({ message: 'Partner application not found' });
+    }
+
+    application.status = status;
+    await application.save();
+
+    res.json({
+      success: true,
+      message: `Application status updated to ${status}`,
+      data: application
+    });
+  } catch (error) {
+    console.error('Error in updatePartnerApplicationStatus:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
