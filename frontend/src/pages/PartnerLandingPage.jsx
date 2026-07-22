@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp, DollarSign, ShieldCheck, CheckCircle2,
   ChevronDown, Upload, FileText, MapPin, Building,
-  Star, Zap, Clock, Users, ArrowRight, Shield, Award
+  Star, Zap, Clock, Users, ArrowRight, Shield, Award, Loader2
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
@@ -91,12 +91,43 @@ const PartnerLandingPage = () => {
     city: '',
     state: '',
     pin: '',
+    latitude: '',
+    longitude: '',
     facilityType: 'Commercial',
     slotsCount: '10',
     vehicles: [],
     operatingHours: '24/7',
     notes: '',
   });
+
+  const [isDetecting, setIsDetecting] = useState(false);
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setIsDetecting(true);
+    setError("");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData(prev => ({
+          ...prev,
+          latitude: position.coords.latitude.toFixed(6),
+          longitude: position.coords.longitude.toFixed(6)
+        }));
+        setIsDetecting(false);
+      },
+      (err) => {
+        console.error("Error detecting location:", err);
+        setError("Unable to retrieve location. Please type the coordinates manually.");
+        setIsDetecting(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+  };
 
   const [documentFile, setDocumentFile] = useState(null);
   const [submitStatus, setSubmitStatus] = useState('idle'); // idle, submitting, success
@@ -225,6 +256,8 @@ const PartnerLandingPage = () => {
         city: '',
         state: '',
         pin: '',
+        latitude: '',
+        longitude: '',
         facilityType: 'Commercial',
         slotsCount: '10',
         vehicles: [],
@@ -859,6 +892,63 @@ const PartnerLandingPage = () => {
                         onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
                         style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', color: '#fff', fontSize: '0.95rem' }}
                       />
+                    </div>
+                  </div>
+
+                  {/* Coordinates Info */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Geographic Coordinates *</label>
+                      <button
+                        type="button"
+                        onClick={detectLocation}
+                        disabled={isDetecting}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--accent-primary)',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        {isDetecting ? (
+                          <>
+                            <Loader2 size={12} className="animate-spin" /> Detecting...
+                          </>
+                        ) : (
+                          <>
+                            <MapPin size={12} /> Detect Current Location
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div>
+                        <input
+                          type="number"
+                          step="any"
+                          required
+                          placeholder="Latitude (e.g. 28.4727)"
+                          value={formData.latitude}
+                          onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                          style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', color: '#fff', fontSize: '0.95rem' }}
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="number"
+                          step="any"
+                          required
+                          placeholder="Longitude (e.g. 77.4912)"
+                          value={formData.longitude}
+                          onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                          style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', color: '#fff', fontSize: '0.95rem' }}
+                        />
+                      </div>
                     </div>
                   </div>
 

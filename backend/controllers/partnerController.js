@@ -17,6 +17,8 @@ export const createPartnerApplication = async (req, res) => {
       city,
       state,
       pin,
+      latitude,
+      longitude,
       facilityType,
       slotsCount,
       vehicles,
@@ -35,6 +37,8 @@ export const createPartnerApplication = async (req, res) => {
       !city ||
       !state ||
       !pin ||
+      latitude === undefined ||
+      longitude === undefined ||
       !facilityType ||
       !slotsCount ||
       !vehicles ||
@@ -53,6 +57,8 @@ export const createPartnerApplication = async (req, res) => {
       city,
       state,
       pin,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
       facilityType,
       slotsCount,
       vehicles,

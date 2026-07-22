@@ -42,6 +42,18 @@ const PartnerSchema = new mongoose.Schema(
       required: [true, 'PIN code is required'],
       trim: true
     },
+    latitude: {
+      type: Number,
+      required: [true, 'Latitude is required'],
+      min: -90,
+      max: 90
+    },
+    longitude: {
+      type: Number,
+      required: [true, 'Longitude is required'],
+      min: -180,
+      max: 180
+    },
     facilityType: {
       type: String,
       required: [true, 'Facility type is required'],

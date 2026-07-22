@@ -283,6 +283,24 @@ const AdminPartners = () => {
                       <MapPin size={16} color="var(--text-muted)" style={{ marginTop: '2px', flexShrink: 0 }} /> 
                       <span>{selectedApp.address}, {selectedApp.city}, {selectedApp.state} - {selectedApp.pin}</span>
                     </div>
+                    {selectedApp.latitude !== undefined && selectedApp.longitude !== undefined && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '6px', color: 'var(--text-secondary)' }}>
+                          Lat: {selectedApp.latitude}
+                        </span>
+                        <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '6px', color: 'var(--text-secondary)' }}>
+                          Lng: {selectedApp.longitude}
+                        </span>
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${selectedApp.latitude},${selectedApp.longitude}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ color: 'var(--accent-primary)', fontSize: '0.8rem', textDecoration: 'none', fontWeight: 700, marginLeft: '4px' }}
+                        >
+                          View Map ↗
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
