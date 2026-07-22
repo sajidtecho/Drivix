@@ -117,6 +117,68 @@ const PartnerLandingPage = () => {
     }
   };
 
+  const compressImage = (file, maxWidth = 1600, maxHeight = 1600, quality = 0.7) => {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith('image/')) {
+        if (file.size > 3.3 * 1024 * 1024) {
+          reject(new Error('Document is too large. Please upload a file smaller than 3MB.'));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Failed to read the file.'));
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(img.src);
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        const approxSizeBytes = compressedDataUrl.length * 0.75;
+        if (approxSizeBytes > 4 * 1024 * 1024) {
+          reject(new Error('The uploaded image is too large. Please upload a file smaller than 3MB.'));
+          return;
+        }
+
+        resolve(compressedDataUrl);
+      };
+      img.onerror = () => {
+        if (file.size > 3.3 * 1024 * 1024) {
+          reject(new Error('Document is too large. Please upload a file smaller than 3MB.'));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Failed to read the file.'));
+        reader.readAsDataURL(file);
+      };
+    });
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
@@ -134,61 +196,45 @@ const PartnerLandingPage = () => {
     setError('');
 
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Data = reader.result;
+      const base64Data = await compressImage(documentFile);
 
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/v1/partners/register`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              ...formData,
-              documentFile: base64Data
-            })
-          });
+      const response = await fetch(`${API_BASE_URL}/api/v1/partners/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...formData,
+          documentFile: base64Data
+        })
+      });
 
-          const data = await response.json();
+      const data = await response.json();
 
-          if (!response.ok) {
-            throw new Error(data.message || 'Registration failed');
-          }
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
 
-          setSubmitStatus('success');
-          setFormData({
-            fullName: '',
-            businessName: '',
-            phone: '',
-            email: '',
-            address: '',
-            city: '',
-            state: '',
-            pin: '',
-            facilityType: 'Commercial',
-            slotsCount: '10',
-            vehicles: [],
-            operatingHours: '24/7',
-            notes: '',
-          });
-          setDocumentFile(null);
-        } catch (err) {
-          console.error(err);
-          setError(err.message || 'Something went wrong. Please try again.');
-          setSubmitStatus('idle');
-        }
-      };
-
-      reader.onerror = () => {
-        setError('Error reading the uploaded file. Please choose another file.');
-        setSubmitStatus('idle');
-      };
-
-      reader.readAsDataURL(documentFile);
+      setSubmitStatus('success');
+      setFormData({
+        fullName: '',
+        businessName: '',
+        phone: '',
+        email: '',
+        address: '',
+        city: '',
+        state: '',
+        pin: '',
+        facilityType: 'Commercial',
+        slotsCount: '10',
+        vehicles: [],
+        operatingHours: '24/7',
+        notes: '',
+      });
+      setDocumentFile(null);
     } catch (err) {
       console.error(err);
-      setError('Failed to process submission. Please try again.');
+      setError(err.message || 'Something went wrong. Please try again.');
       setSubmitStatus('idle');
     }
   };
