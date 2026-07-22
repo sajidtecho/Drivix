@@ -578,7 +578,10 @@ const Profile = () => {
                                 const billRes = await fetch(`${API_BASE_URL}/api/v1/bookings/${b.id || b._id}/calculate-bill`, {
                                   headers: { 'Authorization': `Bearer ${token}` }
                                 });
-                                if (!billRes.ok) throw new Error('Failed to fetch bill');
+                                if (!billRes.ok) {
+                                  const errorData = await billRes.json();
+                                  throw new Error(errorData.message || 'Failed to fetch bill details');
+                                }
                                 const bill = await billRes.json();
 
                                 // 2. Determine payment method if balance is due
@@ -634,7 +637,7 @@ const Profile = () => {
                                 }
                               } catch (err) {
                                 console.error(err);
-                                alert('Error: Failed to process check out.');
+                                alert(`Error: ${err.message || 'Failed to process check out.'}`);
                               } finally {
                                 setIsSaving(false);
                               }

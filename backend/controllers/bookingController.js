@@ -200,7 +200,8 @@ export const calculateBill = async (req, res) => {
     const hourlyRate = location ? location.hourlyPrice : 30;
 
     // Calculate actual duration in hours (min 1 hour)
-    const msElapsed = Date.now() - booking.createdAt.getTime();
+    const startTime = booking.createdAt || booking.actualEntryTime || new Date();
+    const msElapsed = Date.now() - startTime.getTime();
     const hoursParked = Math.max(1, Math.ceil(msElapsed / (1000 * 60 * 60)));
 
     const finalCost = (hoursParked * hourlyRate) + (booking.servicesCost || 0);
@@ -255,7 +256,8 @@ export const vacateBooking = async (req, res) => {
     const location = await ParkingLocation.findById(booking.locationId);
     const hourlyRate = location ? location.hourlyPrice : 30;
 
-    const msElapsed = Date.now() - booking.createdAt.getTime();
+    const startTime = booking.createdAt || booking.actualEntryTime || new Date();
+    const msElapsed = Date.now() - startTime.getTime();
     const hoursParked = Math.max(1, Math.ceil(msElapsed / (1000 * 60 * 60)));
 
     const finalCost = (hoursParked * hourlyRate) + (booking.servicesCost || 0);
