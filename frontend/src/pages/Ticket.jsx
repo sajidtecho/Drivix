@@ -36,7 +36,11 @@ const Ticket = () => {
   });
 
   const handleOpenMaps = () => {
-    window.open(`https://www.google.com/maps/search/${encodeURIComponent(booking.locationName)}`, '_blank');
+    if (booking.latitude !== undefined && booking.longitude !== undefined) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${booking.latitude},${booking.longitude}`, '_blank');
+    } else {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(booking.locationName)}`, '_blank');
+    }
   };
 
   const handleShare = async () => {
