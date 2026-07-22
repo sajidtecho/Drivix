@@ -153,6 +153,42 @@ export const updatePartnerApplicationStatus = async (req, res) => {
     application.status = status;
     await application.save();
 
+    // Automatically create ParkingLocation when application is approved
+    if (status === 'approved') {
+      const existingLocation = await ParkingLocation.findOne({ parkingName: application.businessName });
+      if (!existingLocation) {
+        // Formulate a unique code for the parking facility
+        const cleanName = application.businessName.replace(/[^A-Za-z0-9]/g, '').slice(0, 3).toUpperCase();
+        const uniqueCode = `PRK-${cleanName}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+        // Clean PIN to make sure it matches 6-digit schema validation
+        let rawPin = application.pin.replace(/\D/g, '');
+        if (rawPin.length !== 6) {
+          rawPin = '201301'; // Default fallback PIN
+        }
+
+        await ParkingLocation.create({
+          parkingName: application.businessName,
+          parkingCode: uniqueCode,
+          address: application.address,
+          city: application.city,
+          state: application.state,
+          pincode: rawPin,
+          latitude: Number(application.latitude) || 28.4727,
+          longitude: Number(application.longitude) || 77.4912,
+          openingTime: '00:00',
+          closingTime: '23:59',
+          totalFloors: 1,
+          totalSlots: Number(application.slotsCount) || 10,
+          availableSlots: Number(application.slotsCount) || 10,
+          hourlyPrice: 30, // default rate per hour
+          amenities: ['CCTV', 'Covered', 'Security Guard'],
+          images: [],
+          status: 'Active'
+        });
+      }
+    }
+
     res.json({
       success: true,
       message: `Application status updated to ${status}`,
