@@ -12,11 +12,13 @@ const LANDING_LINKS = [
   { label: 'The Problem', scrollId: 'problem' },
   { label: 'How It Works', scrollId: 'how-it-works' },
   { label: 'App Features', scrollId: 'features' },
+  { label: 'Become a Partner', path: '/partner' },
 ];
 
 const APP_LINKS = [
   { label: 'Home', path: '/' },
   { label: 'Services', path: '/services' },
+  { label: 'Become a Partner', path: '/partner' },
 ];
 
 const Navbar = () => {
@@ -187,8 +189,8 @@ const Navbar = () => {
           {isLanding ?
             LANDING_LINKS.map((link) => (
               <button
-                key={link.scrollId}
-                onClick={() => scrollTo(link.scrollId)}
+                key={link.scrollId || link.path}
+                onClick={() => link.scrollId ? scrollTo(link.scrollId) : navigate(link.path)}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -386,8 +388,10 @@ const Navbar = () => {
           gap: '16px',
           overflowY: 'auto',
         }} className="mobile-only">
-          {(isLanding ? LANDING_LINKS : APP_LINKS).map((link) => (
-            <button
+          {(isLanding ? LANDING_LINKS : APP_LINKS)
+            .filter((link) => link.path !== '/partner')
+            .map((link) => (
+              <button
               key={link.scrollId || link.path}
               onClick={() => {
                 if (link.scrollId) scrollTo(link.scrollId);
