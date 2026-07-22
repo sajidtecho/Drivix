@@ -366,8 +366,6 @@ export const updateUserPlan = async (req, res) => {
 // @access  Public
 export const getPublicStats = async (req, res) => {
   try {
-    const userCount = await User.countDocuments({});
-    
     // Dynamically retrieve Booking model to count bookings as happy users
     const Booking = mongoose.model('Booking');
     const bookingCount = await Booking.countDocuments({});
@@ -377,7 +375,7 @@ export const getPublicStats = async (req, res) => {
     const facilityCount = await ParkingLocation.countDocuments({});
     
     res.json({
-      users: (userCount + bookingCount) || 0,
+      users: bookingCount || 0,
       facilities: facilityCount || 0
     });
   } catch (error) {
