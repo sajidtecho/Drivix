@@ -361,6 +361,8 @@ const SlotBookingForm = () => {
           name, mobile, vehicleNumber: vehicleNumber.toUpperCase().replace(/\s/g, ''),
           vehicleName, slotId: slot, floor, entryDate, entryTime, duration, totalCost,
           locationName: location?.name || location?.parkingName, paymentMode,
+          latitude: location?.latitude,
+          longitude: location?.longitude,
           additionalServices: selectedServices
         });
         setStep('done');
