@@ -175,39 +175,93 @@ export const estimateToll = async (req, res) => {
   }
 
   try {
-    const sClean = source.trim().toLowerCase();
-    const dClean = destination.trim().toLowerCase();
-
     let distance = 0;
     let toll = 0;
+    let details = [];
+    let apiSuccess = false;
 
-    // Check predefined routes
-    if (sClean.includes('sharda') && dClean.includes('airport')) {
-      distance = 45;
-      toll = 145;
-    } else if (sClean.includes('noida') && dClean.includes('gurgaon')) {
-      distance = 55;
-      toll = 80;
-    } else if (sClean.includes('connaught') && dClean.includes('noida')) {
-      distance = 22;
-      toll = 35;
-    } else if (sClean.includes('delhi') && dClean.includes('agra')) {
-      distance = 210;
-      toll = 415;
-    } else {
-      // Dynamic fallback estimation based on name lengths to ensure any custom route is responsive
-      const routeSeed = sClean.length + dClean.length;
-      distance = Math.max(12, routeSeed * 2);
-      toll = Math.max(25, Math.round(distance * 1.8));
+    if (process.env.GOOGLE_MAPS_API_KEY) {
+      try {
+        const response = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': process.env.GOOGLE_MAPS_API_KEY,
+            'X-Goog-FieldMask': 'routes.travelAdvisory.tollInfo,routes.distanceMeters'
+          },
+          body: JSON.stringify({
+            origin: { address: source },
+            destination: { address: destination },
+            travelMode: 'DRIVE',
+            extraComputations: ['TOLLS']
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.routes && data.routes.length > 0) {
+            const route = data.routes[0];
+            distance = route.distanceMeters ? Math.round(route.distanceMeters / 1000) : 0;
+            
+            const tollInfo = route.travelAdvisory?.tollInfo;
+            if (tollInfo && tollInfo.estimatedPrice && tollInfo.estimatedPrice.length > 0) {
+              let totalToll = 0;
+              for (const price of tollInfo.estimatedPrice) {
+                const units = price.units ? Number(price.units) : 0;
+                const nanos = price.nanos ? Number(price.nanos) / 1e9 : 0;
+                totalToll += units + nanos;
+              }
+              toll = Math.round(totalToll);
+              details = [
+                { tollName: 'Google Maps Route Toll', cost: toll }
+              ];
+            } else {
+              // No toll info or empty estimatedPrice means no tolls on the route
+              toll = 0;
+              details = [];
+            }
+            apiSuccess = true;
+          }
+        } else {
+          const errText = await response.text();
+          console.warn(`Google Maps Routes API returned status ${response.status}: ${errText}`);
+        }
+      } catch (err) {
+        console.error('Google Maps Routes API request failed:', err);
+      }
     }
 
-    // Include simulated toll booths
-    const details = [];
-    if (toll > 100) {
-      details.push({ tollName: 'Entry Plaza', cost: 45 });
-      details.push({ tollName: 'Express Tollbooth', cost: toll - 45 });
-    } else {
-      details.push({ tollName: 'Main Toll Plaza', cost: toll });
+    if (!apiSuccess) {
+      const sClean = source.trim().toLowerCase();
+      const dClean = destination.trim().toLowerCase();
+
+      // Check predefined routes
+      if (sClean.includes('sharda') && dClean.includes('airport')) {
+        distance = 45;
+        toll = 145;
+      } else if (sClean.includes('noida') && dClean.includes('gurgaon')) {
+        distance = 55;
+        toll = 80;
+      } else if (sClean.includes('connaught') && dClean.includes('noida')) {
+        distance = 22;
+        toll = 35;
+      } else if (sClean.includes('delhi') && dClean.includes('agra')) {
+        distance = 210;
+        toll = 415;
+      } else {
+        // Dynamic fallback estimation based on name lengths to ensure any custom route is responsive
+        const routeSeed = sClean.length + dClean.length;
+        distance = Math.max(12, routeSeed * 2);
+        toll = Math.max(25, Math.round(distance * 1.8));
+      }
+
+      // Include simulated toll booths
+      if (toll > 100) {
+        details.push({ tollName: 'Entry Plaza', cost: 45 });
+        details.push({ tollName: 'Express Tollbooth', cost: toll - 45 });
+      } else {
+        details.push({ tollName: 'Main Toll Plaza', cost: toll });
+      }
     }
 
     res.json({
@@ -221,3 +275,4 @@ export const estimateToll = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
