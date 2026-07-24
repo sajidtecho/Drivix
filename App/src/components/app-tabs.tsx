@@ -100,7 +100,7 @@ export default function AppTabs() {
     slideAnim.setValue(getTabIndex(activeTab) * TAB_WIDTH);
   }, []);
 
-  const showTabBar = activeTab !== 'home' || isHomeMapActive;
+  const showTabBar = (activeTab !== 'home' && activeTab !== 'profile') || (activeTab === 'home' && isHomeMapActive);
 
   return (
     <View style={styles.container}>
