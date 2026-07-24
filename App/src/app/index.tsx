@@ -824,27 +824,6 @@ export default function DashboardScreen() {
                   </View>
                 )}
 
-                {/* Quick Pins */}
-                <View style={styles.quickPinsRow}>
-                  {[
-                    { label: 'Work', query: 'Office' },
-                    { label: 'Home', query: 'Nexus' }, // Nexus is a central hub in their database
-                    { label: 'Airport', query: 'Airport' },
-                    { label: 'Cyber Hub', query: 'Cyber' },
-                  ].map((pin) => (
-                    <TouchableOpacity
-                      key={pin.label}
-                      style={[styles.quickPinBtn, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}
-                      onPress={() => {
-                        setSearchQuery(pin.query);
-                        setIsSearchFocused(true);
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[styles.quickPinText, { color: colors.text }]}>{pin.label}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
 
                 {/* ── My Garage compliance status ── */}
                 {isAuthenticated && primaryVehicle && isGarageCardVisible && (
