@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Edit2, ShieldAlert } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
+import { setThemeMode, getThemeMode } from '@/hooks/use-color-scheme';
 
 interface UserDetailsTabProps {
   user: any;
@@ -26,6 +27,12 @@ export default function UserDetailsTab({ user, onUpdate, loading }: UserDetailsT
   const [city, setCity] = useState(user.city || '');
   const [focusedField, setFocusedField] = useState<'name' | 'email' | 'city' | null>(null);
   const colors = useTheme();
+  const [currentMode, setCurrentMode] = useState(getThemeMode());
+
+  const handleThemeChange = (mode: 'light' | 'dark' | null) => {
+    setCurrentMode(mode);
+    setThemeMode(mode);
+  };
 
   const handleSave = async () => {
     if (!name.trim()) return;
