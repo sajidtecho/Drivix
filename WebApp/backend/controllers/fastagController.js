@@ -212,9 +212,13 @@ export const estimateToll = async (req, res) => {
                 totalToll += units + nanos;
               }
               toll = Math.round(totalToll);
-              details = [
-                { tollName: 'Google Maps Route Toll', cost: toll }
-              ];
+              if (toll > 0) {
+                details = [
+                  { tollName: 'Google Maps Route Toll', cost: toll }
+                ];
+              } else {
+                details = [];
+              }
             } else {
               // No toll info or empty estimatedPrice means no tolls on the route
               toll = 0;
