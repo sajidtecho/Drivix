@@ -8,6 +8,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { api } from '@/services/api';
 import { socketService } from '@/services/socket';
 import { useAuth } from '@/context/AuthContext';
+import { storage } from '@/services/storage';
 
 import RadarMap from '@/components/drivix/RadarMap';
 import AdCarousel from '@/components/drivix/AdCarousel';
@@ -79,6 +80,39 @@ export default function DashboardScreen() {
   const [activeBookingTimeLeft, setActiveBookingTimeLeft] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isGarageCardVisible, setIsGarageCardVisible] = useState(false);
+
+  useEffect(() => {
+    const checkGarageCardVisibility = async () => {
+      try {
+        const dismissedDate = await storage.getItem('garage_card_dismissed_date');
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (dismissedDate === todayStr) {
+          setIsGarageCardVisible(false);
+        } else {
+          setIsGarageCardVisible(true);
+        }
+      } catch (err) {
+        console.warn('Error checking garage card dismissed state:', err);
+        setIsGarageCardVisible(true);
+      }
+    };
+    if (isAuthenticated) {
+      checkGarageCardVisibility();
+    } else {
+      setIsGarageCardVisible(false);
+    }
+  }, [isAuthenticated]);
+
+  const handleDismissGarageCard = async () => {
+    setIsGarageCardVisible(false);
+    try {
+      const todayStr = new Date().toISOString().split('T')[0];
+      await storage.saveItem('garage_card_dismissed_date', todayStr);
+    } catch (err) {
+      console.warn('Error saving garage card dismissed state:', err);
+    }
+  };
 
   const fetchActiveBookings = async () => {
     if (!isAuthenticated) {
@@ -813,17 +847,22 @@ export default function DashboardScreen() {
                 </View>
 
                 {/* ── My Garage compliance status ── */}
-                {isAuthenticated && primaryVehicle && (
+                {isAuthenticated && primaryVehicle && isGarageCardVisible && (
                   <View style={[styles.garageContainer, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
                     <View style={styles.garageHeader}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
                         <Car size={16} color={colors.primary} />
-                        <Text style={[styles.garageTitle, { color: colors.text }]}>{primaryVehicle.model}</Text>
+                        <Text style={[styles.garageTitle, { color: colors.text }]} numberOfLines={1}>{primaryVehicle.model}</Text>
                         <Text style={[styles.garagePlate, { color: colors.textSecondary }]}>{primaryVehicle.plate}</Text>
                       </View>
-                      <TouchableOpacity onPress={() => handleNavigateToTab('/explore?tab=vehicles')}>
-                        <Text style={[styles.garageLink, { color: colors.primary }]}>Manage</Text>
-                      </TouchableOpacity>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                        <TouchableOpacity onPress={() => handleNavigateToTab('/explore?tab=vehicles')}>
+                          <Text style={[styles.garageLink, { color: colors.primary }]}>Manage</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={handleDismissGarageCard} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                          <X size={16} color={colors.textSecondary} />
+                        </TouchableOpacity>
+                      </View>
                     </View>
                     <View style={styles.complianceRow}>
                       {/* FASTag capsule */}
