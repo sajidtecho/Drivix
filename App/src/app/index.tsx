@@ -19,12 +19,13 @@ import QRPacketPass from '@/components/drivix/QRPacketPass';
 import LoginBottomSheet from '@/components/LoginBottomSheet';
 import ParkingHubsScreen from './parking-hubs';
 import DriverHubScreen from './driver-hub';
+import ChallanScreen from './challan';
 import * as Location from 'expo-location';
 import { setWebHeaderVisible } from '@/components/navigation-stubs';
 
 import { useTheme } from '@/hooks/use-theme';
 
-type WizardStep = 'MAP' | 'SLOTS' | 'CHECKOUT' | 'PASS' | 'PARKING_HUBS' | 'DRIVER_HUB';
+type WizardStep = 'MAP' | 'SLOTS' | 'CHECKOUT' | 'PASS' | 'PARKING_HUBS' | 'DRIVER_HUB' | 'CHALLAN';
 
 export default function DashboardScreen() {
   const { user, isAuthenticated, refreshProfile } = useAuth();
@@ -979,6 +980,8 @@ export default function DashboardScreen() {
                                  setStep('PARKING_HUBS');
                                } else if (svc.label === 'Driver Hub') {
                                  setStep('DRIVER_HUB');
+                               } else if (svc.label === 'Challan') {
+                                 setStep('CHALLAN');
                                } else {
                                  handleNavigateToTab(svc.route);
                                }
@@ -1103,6 +1106,13 @@ export default function DashboardScreen() {
           onBack={() => setStep('MAP')}
           selectedLocation={selectedLocation}
           locations={locations}
+        />
+      )}
+
+      {/* -------------------- STEP 6: CHALLAN SETTLEMENT EXPERIENCE -------------------- */}
+      {step === 'CHALLAN' && (
+        <ChallanScreen
+          onBack={() => setStep('MAP')}
         />
       )}
 
