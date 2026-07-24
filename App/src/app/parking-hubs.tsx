@@ -88,6 +88,16 @@ const ScalePressable = ({ children, onPress, style }: { children: any, onPress?:
     }).start();
   };
 
+  const flatStyle = StyleSheet.flatten(style) || {};
+  const animStyle = {
+    transform: [{ scale }],
+    flexDirection: flatStyle.flexDirection || 'column',
+    alignItems: flatStyle.alignItems || 'stretch',
+    justifyContent: flatStyle.justifyContent || 'flex-start',
+    ...(flatStyle.flex !== undefined ? { flex: flatStyle.flex } : {}),
+    ...(flatStyle.gap !== undefined ? { gap: flatStyle.gap } : {}),
+  };
+
   return (
     <Pressable
       onPressIn={handlePressIn}
@@ -95,7 +105,7 @@ const ScalePressable = ({ children, onPress, style }: { children: any, onPress?:
       onPress={onPress}
       style={style}
     >
-      <Animated.View style={{ transform: [{ scale }] }}>
+      <Animated.View style={animStyle}>
         {children}
       </Animated.View>
     </Pressable>
