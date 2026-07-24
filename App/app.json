@@ -41,7 +41,10 @@
           "image": "./assets/images/Logo.png",
           "imageWidth": 200
         }
-      ]
+      ],
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
