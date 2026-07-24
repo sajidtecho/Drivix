@@ -48,107 +48,149 @@ export default function UserDetailsTab({ user, onUpdate, loading }: UserDetailsT
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Personal Profile</Text>
-        {!isEditing ? (
-          <TouchableOpacity style={styles.editBtn} onPress={() => setIsEditing(true)}>
-            <Edit2 size={13} color="#ffce00" />
-            <Text style={styles.editBtnText}>Edit Info</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+    <>
+      <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: colors.text }]}>Personal Profile</Text>
+          {!isEditing ? (
+            <TouchableOpacity style={styles.editBtn} onPress={() => setIsEditing(true)}>
+              <Edit2 size={13} color="#ffce00" />
+              <Text style={styles.editBtnText}>Edit Info</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={loading}>
-              {loading ? (
-                <ActivityIndicator size="small" color="#0b0c10" />
-              ) : (
-                <Text style={styles.saveBtnText}>Save</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      {/* Full Name */}
-      <View style={styles.fieldBlock}>
-        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Full Name</Text>
-        {isEditing ? (
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass, color: colors.text }, focusedField === 'name' && styles.inputFocused]}
-            value={name}
-            onChangeText={setName}
-            onFocus={() => setFocusedField('name')}
-            onBlur={() => setFocusedField(null)}
-            placeholder="Name"
-            placeholderTextColor={colors.textSecondary}
-          />
-        ) : (
-          <Text style={[styles.fieldVal, { color: colors.text }]}>{getCleanedName(user.name) || 'Not Provided'}</Text>
-        )}
-      </View>
-
-      {/* Email Address */}
-      <View style={styles.fieldBlock}>
-        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Email Address</Text>
-        {isEditing ? (
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass, color: colors.text }, focusedField === 'email' && styles.inputFocused]}
-            value={email}
-            onChangeText={setEmail}
-            onFocus={() => setFocusedField('email')}
-            onBlur={() => setFocusedField(null)}
-            placeholder="Email Address"
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        ) : (
-          <Text style={[styles.fieldVal, { color: colors.text }]}>{getCleanedEmail(user.email) || 'Not Provided'}</Text>
-        )}
-      </View>
-
-      {/* Mobile Number */}
-      <View style={styles.fieldBlock}>
-        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Mobile Number</Text>
-        <View style={styles.row}>
-          <Text style={[styles.fieldValReadonly, { color: colors.textSecondary }]}>{user.mobile || 'Not Linked'}</Text>
-          {user.mobile && (
-            <View style={styles.verifiedBadge}>
-              <Text style={styles.verifiedText}>Verified</Text>
+          ) : (
+            <View style={styles.actionRow}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#0b0c10" />
+                ) : (
+                  <Text style={styles.saveBtnText}>Save</Text>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </View>
+
+        {/* Full Name */}
+        <View style={styles.fieldBlock}>
+          <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Full Name</Text>
+          {isEditing ? (
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass, color: colors.text }, focusedField === 'name' && styles.inputFocused]}
+              value={name}
+              onChangeText={setName}
+              onFocus={() => setFocusedField('name')}
+              onBlur={() => setFocusedField(null)}
+              placeholder="Name"
+              placeholderTextColor={colors.textSecondary}
+            />
+          ) : (
+            <Text style={[styles.fieldVal, { color: colors.text }]}>{getCleanedName(user.name) || 'Not Provided'}</Text>
+          )}
+        </View>
+
+        {/* Email Address */}
+        <View style={styles.fieldBlock}>
+          <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Email Address</Text>
+          {isEditing ? (
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass, color: colors.text }, focusedField === 'email' && styles.inputFocused]}
+              value={email}
+              onChangeText={setEmail}
+              onFocus={() => setFocusedField('email')}
+              onBlur={() => setFocusedField(null)}
+              placeholder="Email Address"
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          ) : (
+            <Text style={[styles.fieldVal, { color: colors.text }]}>{getCleanedEmail(user.email) || 'Not Provided'}</Text>
+          )}
+        </View>
+
+        {/* Mobile Number */}
+        <View style={styles.fieldBlock}>
+          <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Mobile Number</Text>
+          <View style={styles.row}>
+            <Text style={[styles.fieldValReadonly, { color: colors.textSecondary }]}>{user.mobile || 'Not Linked'}</Text>
+            {user.mobile && (
+              <View style={styles.verifiedBadge}>
+                <Text style={styles.verifiedText}>Verified</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* City / Location */}
+        <View style={styles.fieldBlock}>
+          <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>City / Location</Text>
+          {isEditing ? (
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass, color: colors.text }, focusedField === 'city' && styles.inputFocused]}
+              value={city}
+              onChangeText={setCity}
+              onFocus={() => setFocusedField('city')}
+              onBlur={() => setFocusedField('city')}
+              placeholder="City"
+              placeholderTextColor={colors.textSecondary}
+            />
+          ) : (
+            <Text style={[styles.fieldVal, { color: colors.text }]}>{user.city || 'Not Linked'}</Text>
+          )}
+        </View>
+
+        {/* ANPR Protection Info Banner */}
+        <View style={styles.protectionBanner}>
+          <ShieldAlert size={18} color="#ffce00" />
+          <Text style={[styles.protectionText, { color: colors.textSecondary }]}>
+            Your user credentials are encrypted and stored inside Drivix secure local databases.
+          </Text>
+        </View>
       </View>
 
-      {/* City / Location */}
-      <View style={styles.fieldBlock}>
-        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>City / Location</Text>
-        {isEditing ? (
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass, color: colors.text }, focusedField === 'city' && styles.inputFocused]}
-            value={city}
-            onChangeText={setCity}
-            onFocus={() => setFocusedField('city')}
-            onBlur={() => setFocusedField('city')}
-            placeholder="City"
-            placeholderTextColor={colors.textSecondary}
-          />
-        ) : (
-          <Text style={[styles.fieldVal, { color: colors.text }]}>{user.city || 'Not Linked'}</Text>
-        )}
-      </View>
-
-      {/* ANPR Protection Info Banner */}
-      <View style={styles.protectionBanner}>
-        <ShieldAlert size={18} color="#ffce00" />
-        <Text style={[styles.protectionText, { color: colors.textSecondary }]}>
-          Your user credentials are encrypted and stored inside Drivix secure local databases.
+      {/* ── App Theme settings ── */}
+      <View style={[styles.themeCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+        <Text style={[styles.title, { color: colors.text }]}>App Theme</Text>
+        <Text style={[styles.fieldLabel, { color: colors.textSecondary, marginTop: 4, textTransform: 'none' }]}>
+          Choose how Drivix looks on your device.
         </Text>
+        <View style={styles.themeRow}>
+          {[
+            { label: 'Light', value: 'light' },
+            { label: 'Dark', value: 'dark' },
+            { label: 'System', value: null }
+          ].map((item) => {
+            const isActive = currentMode === item.value;
+            return (
+              <TouchableOpacity
+                key={item.label}
+                style={[
+                  styles.themeToggleBtn,
+                  {
+                    backgroundColor: isActive ? colors.primary : colors.backgroundSelected,
+                    borderColor: colors.borderGlass
+                  }
+                ]}
+                onPress={() => handleThemeChange(item.value as any)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.themeToggleText,
+                    { color: isActive ? '#0b0c10' : colors.text }
+                  ]}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 
@@ -295,6 +337,30 @@ const styles = StyleSheet.create({
   backBtnText: {
     color: '#ffce00',
     fontSize: 13,
+    fontWeight: 'bold',
+  },
+  themeCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 20,
+    marginTop: 10,
+  },
+  themeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 16,
+  },
+  themeToggleBtn: {
+    flex: 1,
+    height: 38,
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  themeToggleText: {
+    fontSize: 12,
     fontWeight: 'bold',
   },
 });
