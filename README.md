@@ -1,4 +1,4 @@
-# 🌌 Drivix – AI-Powered Smart Parking Ecosystem
+# <img src="WebApp/frontend/public/Logo.png" width="32" align="center" style="vertical-align: middle; margin-right: 8px;" /> Drivix – AI-Powered Smart Parking Ecosystem
 
 [![React](https://img.shields.io/badge/Frontend-React%20%26%20Vite-blue?style=for-the-badge&logo=react)](https://react.dev)
 [![Node](https://img.shields.io/badge/Backend-Node.js%20%26%20Express-green?style=for-the-badge&logo=nodedotjs)](https://nodejs.org)
