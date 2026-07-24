@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, ArrowRight, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { auth } from "../firebase";
 import { sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { useUser } from '../hooks/useUser';
+import VehicleBackground from '../components/VehicleBackground';
 
 const Auth = () => {
   const navigate = useNavigate();
