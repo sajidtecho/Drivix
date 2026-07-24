@@ -24,11 +24,12 @@ import { useTheme } from '@/hooks/use-theme';
 
 interface ChallanScreenProps {
   onBack: () => void;
+  initialVehicleNumber?: string;
 }
 
-export default function ChallanScreen({ onBack }: ChallanScreenProps) {
+export default function ChallanScreen({ onBack, initialVehicleNumber = '' }: ChallanScreenProps) {
   const colors = useTheme();
-  const [vehicleNumber, setVehicleNumber] = useState('');
+  const [vehicleNumber, setVehicleNumber] = useState(initialVehicleNumber);
 
   const lawyers = [
     { id: '1', name: 'Manmeet Singh', settlements: '9,802', rating: '5.0', initial: 'MS' },
