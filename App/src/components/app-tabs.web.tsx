@@ -170,7 +170,7 @@ export function CustomTabList(props: TabListProps) {
           {/* Backdrop click to close */}
           <Pressable style={styles.backdrop} onPress={() => setIsDrawerOpen(false)} />
           
-          <View style={[styles.drawerContainer, { backgroundColor: colors.background === '#ffffff' ? '#f5f5f7' : '#15161e', borderLeftColor: colors.borderGlass }]}>
+          <View style={[styles.drawerContainer, { backgroundColor: colors.background === '#F8F9FA' ? '#f5f5f7' : '#15161e', borderLeftColor: colors.borderGlass }]}>
             <ScrollView style={styles.drawerHeaderSection} showsVerticalScrollIndicator={false}>
               <View style={[styles.drawerHeader, { borderBottomColor: colors.borderGlass }]}>
                 <Text style={[styles.drawerTitle, { color: colors.text }]}>DRIVIX MENU</Text>
@@ -221,7 +221,7 @@ export function CustomTabList(props: TabListProps) {
                             styles.capsuleBtn,
                             isActive 
                               ? { backgroundColor: colors.backgroundSelected, borderColor: colors.primary } 
-                              : { backgroundColor: colors.background === '#ffffff' ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)', borderColor: colors.borderGlass },
+                              : { backgroundColor: colors.background === '#F8F9FA' ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)', borderColor: colors.borderGlass },
                           ]}
                           onPress={() => {
                             if (item.id === 'faq') {
