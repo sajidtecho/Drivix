@@ -153,6 +153,14 @@ export const createBooking = async (req, res) => {
       $inc: { availableSlots: -1 }
     });
 
+    // 5. Send Email & SMS Notification
+    await sendBookingNotification({
+      userId: req.user._id,
+      title: 'Booking Confirmed',
+      message: `Your booking at ${resolvedLocationName}, Slot ${resolvedSlotId}, Floor ${resolvedFloor} is confirmed.`,
+      type: 'booking'
+    });
+
     res.status(201).json(booking);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -319,6 +327,14 @@ export const vacateBooking = async (req, res) => {
       $inc: { availableSlots: 1 }
     });
 
+    // 6. Send Email & SMS Notification
+    await sendBookingNotification({
+      userId: req.user._id,
+      title: 'Checkout Completed',
+      message: `Successfully checked out of ${location ? location.parkingName : 'parking hub'}, Slot ${booking.slotId}.`,
+      type: 'payment'
+    });
+
     res.json({ message: 'Checked out and slot vacated successfully', booking });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -399,6 +415,14 @@ export const deleteBookingAdmin = async (req, res) => {
       });
     }
 
+    // Send Email & SMS Notification
+    await sendBookingNotification({
+      userId: booking.userId,
+      title: 'Booking Cancelled',
+      message: `Your booking ${booking.bookingId} has been cancelled by the admin.`,
+      type: 'booking'
+    });
+
     res.json({ message: 'Booking removed successfully by Admin' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -440,16 +464,23 @@ export const deleteAllBookingsAdmin = async (req, res) => {
     // Delete all bookings from database
     await Booking.deleteMany({});
 
-    // Notify all affected users via Socket.IO
+    // Notify all affected users via Socket.IO and send Email/SMS notifications
     const io = req.app.get('socketio');
-    if (io) {
-      for (const booking of bookings) {
+    for (const booking of bookings) {
+      if (io) {
         io.emit('bookingRemoved', {
           userId: booking.userId.toString(),
           bookingId: booking.bookingId,
           message: 'Your booking has been removed by the admin.'
         });
       }
+
+      await sendBookingNotification({
+        userId: booking.userId,
+        title: 'Booking Cancelled',
+        message: `Your booking ${booking.bookingId} has been cancelled by the admin.`,
+        type: 'booking'
+      });
     }
 
     res.json({ message: 'All bookings removed successfully by Admin' });
