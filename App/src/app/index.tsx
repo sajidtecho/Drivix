@@ -988,14 +988,6 @@ export default function DashboardScreen() {
                     </View>
                  </View>
 
-                {/* Map View */}
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={() => setStep('PARKING_HUBS')}
-                  style={styles.mapContainer}
-                >
-                  <RadarMap locations={locations} onSelectLocation={handleSelectLocation} />
-                </TouchableOpacity>
 
                 {/* Nearby Facility Listings */}
                 <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 12 }]}>Nearby Parking Hubs</Text>
