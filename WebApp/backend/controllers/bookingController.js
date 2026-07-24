@@ -163,7 +163,7 @@ export const createBooking = async (req, res) => {
 // @access  Private
 export const getMyBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    const bookings = await Booking.find({ userId: req.user._id }).populate('locationId').sort({ createdAt: -1 });
     res.json(bookings);
   } catch (error) {
     res.status(500).json({ message: error.message });

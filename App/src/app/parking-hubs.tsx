@@ -847,7 +847,7 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
             MapView ? (
               <View style={{ flex: 1 }}>
                 <MapView
-                  style={StyleSheet.absoluteFillObject}
+                  style={StyleSheet.absoluteFill}
                   mapType={Platform.OS === 'android' ? 'none' : 'standard'}
                   initialRegion={{
                     latitude: tempCoords.latitude,

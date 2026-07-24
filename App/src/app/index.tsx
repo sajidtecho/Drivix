@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator, Alert, useWindowDimensions, TouchableOpacity, ScrollView, Platform, LayoutAnimation, PanResponder, DeviceEventEmitter, TextInput } from 'react-native';
+import { StyleSheet, View, Text, FlatList, ActivityIndicator, Alert, useWindowDimensions, TouchableOpacity, ScrollView, Platform, LayoutAnimation, PanResponder, DeviceEventEmitter, TextInput, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CreditCard, ShieldCheck, HelpCircle, Info, PhoneCall, Car, FileText, Zap, AlertTriangle, CarFront, Shield, Droplet, User, Truck, Mic, X, MapPin, AlertCircle } from 'lucide-react-native';
 import { Image } from 'expo-image';
@@ -662,13 +662,37 @@ export default function DashboardScreen() {
                         <Text style={[styles.sessionTimerVal, activeBookingTimeLeft === 'EXPIRED' && { color: '#ff4b4b' }]}>{activeBookingTimeLeft}</Text>
                       </View>
                     </View>
-                    <TouchableOpacity 
-                      style={[styles.sessionManageBtn, { backgroundColor: colors.primary }]}
-                      onPress={() => handleNavigateToTab('/explore?tab=bookings')}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.sessionManageBtnText}>Manage Booking</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                      <TouchableOpacity 
+                        style={[styles.sessionManageBtn, { flex: 1, backgroundColor: colors.primary }]}
+                        onPress={() => handleNavigateToTab('/explore?tab=bookings')}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.sessionManageBtnText}>Manage Booking</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.sessionManageBtn, { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderColor: colors.borderGlass, borderWidth: 1 }]}
+                        onPress={() => {
+                          const lat = activeBooking.locationId?.latitude;
+                          const lon = activeBooking.locationId?.longitude;
+                          if (lat !== undefined && lon !== undefined) {
+                            const url = Platform.select({
+                              ios: `maps://app?daddr=${lat},${lon}`,
+                              android: `google.navigation:q=${lat},${lon}`,
+                              default: `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
+                            });
+                            Linking.openURL(url).catch(() => {
+                              Alert.alert('Error', 'Unable to launch map application.');
+                            });
+                          } else {
+                            Alert.alert('Navigation Error', 'Location coordinates not available for this booking.');
+                          }
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.sessionManageBtnText, { color: colors.text }]}>Navigate</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 )}
 
