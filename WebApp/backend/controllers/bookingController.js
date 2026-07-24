@@ -3,6 +3,7 @@ import Slot from '../models/Slot.js';
 import ParkingLocation from '../models/ParkingLocation.js';
 import User from '../models/User.js';
 import { calculateDynamicPrice } from '../utils/pricingEngine.js';
+import { sendBookingNotification } from '../utils/notificationService.js';
 
 // @desc    Create a new booking ticket
 // @route   POST /api/v1/bookings
