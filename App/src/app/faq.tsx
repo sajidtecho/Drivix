@@ -40,7 +40,6 @@ function FAQItem({ question, answer }: FAQItemProps) {
 export default function FAQScreen() {
   const router = useRouter();
   const colors = useTheme();
-  const [activeView, setActiveView] = useState<'menu' | 'faqs'>('menu');
 
   const faqs = [
     {
@@ -73,33 +72,6 @@ export default function FAQScreen() {
     }
   ];
 
-  if (activeView === 'faqs') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        {/* Header pointing back to Menu */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={[styles.capsuleHeaderBtn, { borderColor: colors.primary, backgroundColor: colors.backgroundSelected }]} 
-            onPress={() => setActiveView('menu')}
-            activeOpacity={0.8}
-          >
-            <ChevronLeft size={18} color="#ffce00" />
-            <Text style={[styles.capsuleHeaderBtnText, { color: colors.primary }]}>Help and FAQ</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Frequently Asked Questions</Text>
-          <View style={styles.faqList}>
-            {faqs.map((faq, index) => (
-              <FAQItem key={index} question={faq.question} answer={faq.answer} />
-            ))}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header pointing back to Home */}
@@ -125,43 +97,11 @@ export default function FAQScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Help & FAQ Navigation Grid */}
-        <View style={styles.gridContainer}>
-          <TouchableOpacity 
-            style={[styles.gridButton, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}
-            onPress={() => router.push('/safety')}
-            activeOpacity={0.7}
-          >
-            <ShieldCheck size={20} color="#ffce00" />
-            <Text style={[styles.gridButtonText, { color: colors.text }]}>Safety</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.gridButton, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}
-            onPress={() => setActiveView('faqs')}
-            activeOpacity={0.7}
-          >
-            <HelpCircle size={20} color="#ffce00" />
-            <Text style={[styles.gridButtonText, { color: colors.text }]}>FAQs</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.gridButton, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}
-            onPress={() => router.push('/about')}
-            activeOpacity={0.7}
-          >
-            <Info size={20} color="#ffce00" />
-            <Text style={[styles.gridButtonText, { color: colors.text }]}>About</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.gridButton, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}
-            onPress={() => router.push('/contact')}
-            activeOpacity={0.7}
-          >
-            <PhoneCall size={20} color="#ffce00" />
-            <Text style={[styles.gridButtonText, { color: colors.text }]}>Contact</Text>
-          </TouchableOpacity>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Frequently Asked Questions</Text>
+        <View style={styles.faqList}>
+          {faqs.map((faq, index) => (
+            <FAQItem key={index} question={faq.question} answer={faq.answer} />
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>

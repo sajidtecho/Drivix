@@ -34,6 +34,8 @@ import {
   Shield,
   X,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   User,
   Car,
   HelpCircle,
@@ -204,6 +206,7 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
   const [loginVisible, setLoginVisible] = useState(false);
   const [bannerIndex, setBannerIndex] = useState(0);
   const [isPlacesExpanded, setIsPlacesExpanded] = useState(false);
+  const [isFaqExpanded, setIsFaqExpanded] = useState(false);
 
   // Map Picker Modal States
   const [mapModalVisible, setMapModalVisible] = useState(false);
@@ -799,12 +802,65 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
 
               {/* Help and FAQ */}
               <ScalePressable 
-                style={[styles.drawerLink, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]} 
-                onPress={() => handleDrawerNavigation('/faq')}
+                style={[
+                  styles.drawerLink, 
+                  { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass },
+                  isFaqExpanded ? { borderColor: colors.primary } : {}
+                ]} 
+                onPress={() => setIsFaqExpanded(!isFaqExpanded)}
               >
-                <HelpCircle size={16} color={colors.textSecondary} />
-                <Text style={[styles.drawerLinkLabel, { color: colors.text }]}>Help and FAQ</Text>
+                <HelpCircle size={16} color={isFaqExpanded ? colors.primary : colors.textSecondary} />
+                <Text style={[styles.drawerLinkLabel, { color: isFaqExpanded ? colors.primary : colors.text, flex: 1 }]}>Help and FAQ</Text>
+                {isFaqExpanded ? (
+                  <ChevronUp size={16} color={colors.primary} />
+                ) : (
+                  <ChevronDown size={16} color={colors.textSecondary} />
+                )}
               </ScalePressable>
+
+              {isFaqExpanded && (
+                <View style={styles.subGridContainer}>
+                  <View style={styles.subGridRow}>
+                    <TouchableOpacity
+                      style={[styles.subGridBtn, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}
+                      onPress={() => handleDrawerNavigation('/safety')}
+                      activeOpacity={0.7}
+                    >
+                      <Shield size={14} color="#ffce00" />
+                      <Text style={[styles.subGridText, { color: colors.text }]}>Safety</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[styles.subGridBtn, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}
+                      onPress={() => handleDrawerNavigation('/faq')}
+                      activeOpacity={0.7}
+                    >
+                      <HelpCircle size={14} color="#ffce00" />
+                      <Text style={[styles.subGridText, { color: colors.text }]}>FAQs</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.subGridRow}>
+                    <TouchableOpacity
+                      style={[styles.subGridBtn, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}
+                      onPress={() => handleDrawerNavigation('/about')}
+                      activeOpacity={0.7}
+                    >
+                      <Info size={14} color="#ffce00" />
+                      <Text style={[styles.subGridText, { color: colors.text }]}>About</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[styles.subGridBtn, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}
+                      onPress={() => handleDrawerNavigation('/contact')}
+                      activeOpacity={0.7}
+                    >
+                      <PhoneCall size={14} color="#ffce00" />
+                      <Text style={[styles.subGridText, { color: colors.text }]}>Contact</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </ScrollView>
 
             <View style={[styles.drawerFooter, { borderTopColor: colors.borderGlass }]}>
@@ -1337,5 +1393,28 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#a0aab2',
     marginTop: 2
+  },
+  subGridContainer: {
+    paddingHorizontal: 8,
+    gap: 8,
+    marginVertical: 8,
+  },
+  subGridRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  subGridBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  subGridText: {
+    fontSize: 12,
+    fontWeight: '600',
   }
 });
