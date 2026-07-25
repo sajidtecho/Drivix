@@ -8,6 +8,11 @@ import Constants from 'expo-constants';
 const getLocalBackendUrl = () => {
   const hostUri = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
   if (hostUri) {
+    if (hostUri.includes('ngrok')) {
+      // Tunnel mode: local backend on port 5000 is not automatically exposed,
+      // fallback to the live production API URL
+      return 'https://drivix-backend-0qvx.onrender.com/api/v1';
+    }
     const ip = hostUri.split(':')[0];
     if (ip) {
       return `http://${ip}:5000/api/v1`;
