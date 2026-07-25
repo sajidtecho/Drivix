@@ -15,7 +15,8 @@ import {
   Animated,
   Modal,
   Alert,
-  Pressable
+  Pressable,
+  DeviceEventEmitter
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -341,16 +342,51 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
   const handleDrawerNavigation = (route: string) => {
     closeDrawer();
     setTimeout(() => {
-      if (route === '/') {
-        if (onBack) {
-          onBack();
+      if (Platform.OS === 'web') {
+        if (route.startsWith('http')) {
+          Linking.openURL(route);
         } else {
-          router.push('/');
+          router.push(route as any);
         }
-      } else if (route.startsWith('http')) {
-        Linking.openURL(route);
       } else {
-        router.push(route as any);
+        // Mobile platform handling
+        if (route.startsWith('http')) {
+          Linking.openURL(route);
+        } else if (route === '/') {
+          if (onBack) {
+            onBack();
+          } else {
+            router.push('/');
+          }
+        } else if (route.includes('explore?tab=')) {
+          let nativeTab: 'bookings' | 'profile' = 'profile';
+          let nativeSubTab = 'profile';
+
+          if (route.includes('tab=bookings')) {
+            nativeTab = 'bookings';
+            nativeSubTab = 'bookings';
+          } else if (route.includes('tab=wallet')) {
+            nativeTab = 'profile';
+            nativeSubTab = 'wallet';
+          } else if (route.includes('tab=vehicles')) {
+            nativeTab = 'profile';
+            nativeSubTab = 'vehicles';
+          } else if (route.includes('tab=documents')) {
+            nativeTab = 'profile';
+            nativeSubTab = 'documents';
+          } else if (route.includes('tab=fastag')) {
+            nativeTab = 'profile';
+            nativeSubTab = 'fastag';
+          }
+
+          DeviceEventEmitter.emit('changeTab', nativeTab);
+          setTimeout(() => {
+            DeviceEventEmitter.emit('changeSubTab', nativeSubTab);
+          }, 100);
+        } else {
+          // Navigating to other pages (faq, safety, about, contact)
+          router.push(route as any);
+        }
       }
     }, 250);
   };
@@ -687,10 +723,7 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
               {isAuthenticated && user && (
                 <ScalePressable
                   style={[styles.profileCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass, marginBottom: 20 }]}
-                  onPress={() => {
-                    closeDrawer();
-                    router.push('/explore?tab=profile');
-                  }}
+                  onPress={() => handleDrawerNavigation('/explore?tab=profile')}
                 >
                   <View style={styles.profileAvatar}>
                     <Text style={styles.profileAvatarText}>
