@@ -40,7 +40,7 @@ export default function SafetyScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Intro */}
         <Text style={[styles.introText, { color: colors.textSecondary }]}>
-          At Drivix, the safety of your vehicle and your personal data is our top priority. We implement state-of-the-art security measures across all our parking hubs.
+          At Drivix, the safety of your vehicle and your personal data is our top priority. We implement state-of-the-art security protocols, AI surveillance, and physical safety guarantees across all our smart parking hubs.
         </Text>
 
         {/* Feature Cards */}
@@ -50,7 +50,7 @@ export default function SafetyScreen() {
             <Text style={[styles.cardTitle, { color: colors.text }]}>24/7 CCTV Surveillance</Text>
           </View>
           <Text style={[styles.cardBody, { color: colors.textSecondary }]}>
-            Every corner of our parking facilities is monitored by high-definition smart cameras with continuous recording and AI detection for anomalous activities.
+            Every corner of our parking facilities is monitored by high-definition smart cameras with continuous 4K recording. AI-based anomaly detection alerts operators to suspicious activity in real-time.
           </Text>
         </View>
 
@@ -60,17 +60,17 @@ export default function SafetyScreen() {
             <Text style={[styles.cardTitle, { color: colors.text }]}>Automated ANPR Gates</Text>
           </View>
           <Text style={[styles.cardBody, { color: colors.textSecondary }]}>
-            Our entry and exit barriers use Automatic Number Plate Recognition (ANPR) systems. Only vehicles with verified digital pre-bookings are granted entry.
+            Our entry and exit barriers use Automatic Number Plate Recognition (ANPR) systems. Only vehicles with verified digital pre-bookings or active passes are granted physical gate access.
           </Text>
         </View>
 
         <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
           <View style={styles.cardHeader}>
             <ShieldAlert size={24} color="#ffce00" />
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Manned Patrols & Emergency</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Emergency SOS & Assistance</Text>
           </View>
           <Text style={[styles.cardBody, { color: colors.textSecondary }]}>
-            Trained security staff perform regular patrols through all levels. Facilities are equipped with clear signage, emergency call boxes, and first-aid kits.
+            All facilities are equipped with clearly marked emergency call boxes, continuous manned patrols, and first-aid kits. A quick-dial emergency option is integrated directly into your digital gate pass.
           </Text>
         </View>
 
@@ -80,7 +80,7 @@ export default function SafetyScreen() {
             <Text style={[styles.cardTitle, { color: colors.text }]}>Secure Document Vault</Text>
           </View>
           <Text style={[styles.cardBody, { color: colors.textSecondary }]}>
-            All uploaded identity documents and vehicle registrations are secured using military-grade AES-256 encryption within our secure serverless cloud infrastructure.
+            Your uploaded identity documents, vehicle registration numbers, and digital tickets are secured using end-to-end military-grade AES-256 encryption. We never share your data.
           </Text>
         </View>
       </ScrollView>

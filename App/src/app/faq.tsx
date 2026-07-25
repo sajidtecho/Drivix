@@ -62,6 +62,14 @@ export default function FAQScreen() {
     {
       question: "How do I reload my wallet?",
       answer: "Go to the Explore tab, select 'Wallet', select or enter the amount you want to add, and confirm. In this version, funds are simulated instantly for premium dashboard previewing."
+    },
+    {
+      question: "How safe is my parked vehicle with Drivix?",
+      answer: "Extremely safe. All Drivix hubs feature 24/7 high-definition CCTV monitoring with AI anomaly alerts, regular physical patrols by security staff, and automated ANPR entry/exit barriers."
+    },
+    {
+      question: "Who founded Drivix Smart Parking?",
+      answer: "Drivix was founded by a passionate leadership team: Sajid Ahmad (Founder and CEO), Irfan Khan (Co-Founder and CMO), and Mohd. Bilal (Co-Founder and COO) to eradicate urban parking congestion."
     }
   ];
 

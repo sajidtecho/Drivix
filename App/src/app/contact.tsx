@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Alert, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Phone, Mail, MapPin, MessageSquare } from 'lucide-react-native';
@@ -15,7 +15,10 @@ export default function ContactScreen() {
   };
 
   const handleSupportEmail = () => {
-    Alert.alert('Email Support', 'Opening mail client to: support@drivix.com...');
+    Linking.openURL('mailto:drivixmobility@gmail.com').catch((err) => {
+      console.warn('Failed to open mail client:', err);
+      Alert.alert('Email Support', 'Please compose an email to: drivixmobility@gmail.com');
+    });
   };
 
   return (
@@ -77,7 +80,7 @@ export default function ContactScreen() {
           </View>
           <View style={styles.contactText}>
             <Text style={[styles.contactLabel, { color: colors.textSecondary }]}>EMAIL INQUIRIES</Text>
-            <Text style={[styles.contactValue, { color: colors.text }]}>support@drivix.com</Text>
+            <Text style={[styles.contactValue, { color: colors.text }]}>drivixmobility@gmail.com</Text>
             <Text style={[styles.contactNote, { color: colors.textSecondary }]}>Tap to compose (Response in 2 hours)</Text>
           </View>
         </TouchableOpacity>

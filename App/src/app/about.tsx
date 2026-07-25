@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Cpu, Zap, Globe } from 'lucide-react-native';
+import { ChevronLeft, Cpu, Zap, Globe, Users, Target, Lightbulb } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { useTheme } from '@/hooks/use-theme';
 import { openDrawer } from '@/components/navigation-stubs';
@@ -49,52 +49,92 @@ export default function AboutScreen() {
           <Text style={[styles.tagline, { color: colors.textSecondary }]}>Smart Parking. Automated Security. Zero Congestion.</Text>
         </View>
 
-        {/* Story */}
-        <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-          {"Drivix is India's first integrated smart parking ecosystem designed to eliminate urban congestion. Our platform solves the everyday headache of finding parking spots in crowded urban spaces."}
-        </Text>
+        {/* The Idea Behind Drivix */}
+        <View style={[styles.sectionCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+          <View style={styles.cardHeader}>
+            <Lightbulb size={22} color="#ffce00" />
+            <Text style={[styles.cardTitle, { color: colors.text }]}>The Idea Behind Drivix</Text>
+          </View>
+          <Text style={[styles.cardBodyText, { color: colors.textSecondary }]}>
+            Drivix was conceived as a solution to the growing urban crisis of parking congestion. In modern smart cities, searching for parking accounts for up to 30% of daily traffic congestion, wasting time and fuel while increasing stress. Drivix digitalizes physical parking spaces to let drivers book spots dynamically in seconds, converting a chaotic search into a structured digital flight.
+          </Text>
+        </View>
 
-        <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-          By combining AI-powered software, ANPR camera triggers, real-time IoT slot occupancy networks, and dynamic surge pricing engines, we turn the search for parking into a seamless digital flight.
-        </Text>
+        {/* Vision & Mission */}
+        <View style={[styles.sectionCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+          <View style={styles.cardHeader}>
+            <Target size={22} color="#ffce00" />
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Vision & Mission</Text>
+          </View>
+          <Text style={[styles.cardBodyText, { color: colors.textSecondary, marginBottom: 12 }]}>
+            <Text style={{ fontWeight: 'bold', color: colors.text }}>Vision: </Text>To pioneer a friction-free urban mobility future by transforming parking infrastructure into an automated, interconnected, and intelligent digital network.
+          </Text>
+          <Text style={[styles.cardBodyText, { color: colors.textSecondary }]}>
+            <Text style={{ fontWeight: 'bold', color: colors.text }}>Mission: </Text>To empower commuters and parking facility owners with AI-driven dynamic pricing, real-time IoT slot occupancy networks, and secure contactless ANPR entry/exit triggers.
+          </Text>
+        </View>
 
-        {/* Pillars Header */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Our Core Technology</Text>
-
-        {/* Pillar Rows */}
+        {/* Core Technology */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Core Pillars</Text>
         <View style={styles.pillarRow}>
           <View style={[styles.iconWrapper, { backgroundColor: 'rgba(255, 206, 0, 0.08)' }]}>
-            <Cpu size={20} color="#ffce00" />
+            <Cpu size={18} color="#ffce00" />
           </View>
           <View style={styles.pillarText}>
             <Text style={[styles.pillarTitle, { color: colors.text }]}>AI Dynamic Pricing</Text>
             <Text style={[styles.pillarBody, { color: colors.textSecondary }]}>
-              Analyzes occupancy, peak hours, and local demand to scale parking rates fairly and maximize utilization.
+              Optimizes space utility by evaluating real-time occupancy and local demand.
             </Text>
           </View>
         </View>
 
         <View style={styles.pillarRow}>
           <View style={[styles.iconWrapper, { backgroundColor: 'rgba(255, 206, 0, 0.08)' }]}>
-            <Zap size={20} color="#ffce00" />
+            <Zap size={18} color="#ffce00" />
           </View>
           <View style={styles.pillarText}>
-            <Text style={[styles.pillarTitle, { color: colors.text }]}>Atomic Concurrency locks</Text>
+            <Text style={[styles.pillarTitle, { color: colors.text }]}>Atomic Hold Locks</Text>
             <Text style={[styles.pillarBody, { color: colors.textSecondary }]}>
-              Prevents double-booking race conditions by atomic database locking on slots for 5-minute pre-booking holds.
+              Prevents double-booking race conditions through 5-minute database reservation holds.
             </Text>
           </View>
         </View>
 
-        <View style={styles.pillarRow}>
-          <View style={[styles.iconWrapper, { backgroundColor: 'rgba(255, 206, 0, 0.08)' }]}>
-            <Globe size={20} color="#ffce00" />
+        {/* Founding Team */}
+        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 12 }]}>Founding Team</Text>
+        <View style={[styles.teamContainer, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+          <View style={styles.teamMemberRow}>
+            <View style={[styles.avatarWrapper, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}>
+              <Text style={[styles.avatarText, { color: colors.primary }]}>SA</Text>
+            </View>
+            <View style={styles.teamMemberInfo}>
+              <Text style={[styles.teamMemberName, { color: colors.text }]}>Sajid Ahmad</Text>
+              <Text style={[styles.teamMemberRole, { color: colors.textSecondary }]}>Founder and CEO</Text>
+            </View>
           </View>
-          <View style={styles.pillarText}>
-            <Text style={[styles.pillarTitle, { color: colors.text }]}>Smart Connected Cities</Text>
-            <Text style={[styles.pillarBody, { color: colors.textSecondary }]}>
-              Connecting malls, metro stations, commercial hubs, and public spaces into one unified parking ecosystem.
-            </Text>
+
+          <View style={[styles.teamDivider, { backgroundColor: colors.borderGlass }]} />
+
+          <View style={styles.teamMemberRow}>
+            <View style={[styles.avatarWrapper, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}>
+              <Text style={[styles.avatarText, { color: colors.primary }]}>IK</Text>
+            </View>
+            <View style={styles.teamMemberInfo}>
+              <Text style={[styles.teamMemberName, { color: colors.text }]}>Irfan Khan</Text>
+              <Text style={[styles.teamMemberRole, { color: colors.textSecondary }]}>Co-Founder and CMO</Text>
+            </View>
+          </View>
+
+          <View style={[styles.teamDivider, { backgroundColor: colors.borderGlass }]} />
+
+          <View style={styles.teamMemberRow}>
+            <View style={[styles.avatarWrapper, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}>
+              <Text style={[styles.avatarText, { color: colors.primary }]}>MB</Text>
+            </View>
+            <View style={styles.teamMemberInfo}>
+              <Text style={[styles.teamMemberName, { color: colors.text }]}>Mohd. Bilal</Text>
+              <Text style={[styles.teamMemberRole, { color: colors.textSecondary }]}>Co-Founder and COO</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -183,5 +223,63 @@ const styles = StyleSheet.create({
   pillarBody: {
     fontSize: 12,
     lineHeight: 16,
+  },
+  sectionCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 10,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  cardBodyText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  teamContainer: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    gap: 12,
+  },
+  teamMemberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  avatarWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  teamMemberInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  teamMemberName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  teamMemberRole: {
+    fontSize: 12,
+  },
+  teamDivider: {
+    height: 1,
+    width: '100%',
+    opacity: 0.5,
   },
 });
