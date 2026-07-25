@@ -18,6 +18,11 @@ import { Home, Calendar, Car, User } from 'lucide-react-native';
 import DashboardScreen from '../app/index';
 import ExploreScreen from '../app/explore';
 import DriverHubScreen from '../app/driver-hub';
+import { usePathname } from 'expo-router';
+import FAQScreen from '../app/faq';
+import SafetyScreen from '../app/safety';
+import AboutScreen from '../app/about';
+import ContactScreen from '../app/contact';
 
 const { width } = Dimensions.get('window');
 const TAB_BAR_WIDTH = width - 32; // Spacing of 16px on left/right
@@ -100,16 +105,27 @@ export default function AppTabs() {
     slideAnim.setValue(getTabIndex(activeTab) * TAB_WIDTH);
   }, []);
 
-  const showTabBar = (activeTab !== 'home' && activeTab !== 'profile') || (activeTab === 'home' && isHomeMapActive);
+  const pathname = usePathname();
+  const isSubScreen = ['/faq', '/safety', '/about', '/contact'].includes(pathname);
+  const showTabBar = !isSubScreen && ((activeTab !== 'home' && activeTab !== 'profile') || (activeTab === 'home' && isHomeMapActive));
 
   return (
     <View style={styles.container}>
       {/* ─── Active Screen Area ─── */}
       <View style={styles.screenWrapper}>
-        {activeTab === 'home' && <DashboardScreen />}
-        {activeTab === 'bookings' && <ExploreScreen tab="bookings" isTabRender />}
-        {activeTab === 'hub' && <DriverHubScreen onBack={() => handleTabPress('home')} />}
-        {activeTab === 'profile' && <ExploreScreen tab="profile" isTabRender />}
+        {pathname === '/faq' && <FAQScreen />}
+        {pathname === '/safety' && <SafetyScreen />}
+        {pathname === '/about' && <AboutScreen />}
+        {pathname === '/contact' && <ContactScreen />}
+
+        {!isSubScreen && (
+          <>
+            {activeTab === 'home' && <DashboardScreen />}
+            {activeTab === 'bookings' && <ExploreScreen tab="bookings" isTabRender />}
+            {activeTab === 'hub' && <DriverHubScreen onBack={() => handleTabPress('home')} />}
+            {activeTab === 'profile' && <ExploreScreen tab="profile" isTabRender />}
+          </>
+        )}
       </View>
 
       {/* ─── Floating Tab Bar (One UI 7 Style) ─── */}
