@@ -3,6 +3,7 @@ import { storage } from './storage';
 
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import * as Device from 'expo-device';
 
 // Helper to determine the local backend URL dynamically
 const getLocalBackendUrl = () => {
@@ -13,12 +14,22 @@ const getLocalBackendUrl = () => {
       // fallback to the live production API URL
       return 'https://drivix-backend-0qvx.onrender.com/api/v1';
     }
-    const ip = hostUri.split(':')[0];
-    if (ip) {
+    
+    // Clean scheme prefix exp:// or http:// if present
+    const cleanedUri = hostUri.replace(/^exp:\/\//, '').replace(/^http:\/\//, '');
+    const ip = cleanedUri.split(':')[0];
+    if (ip && ip !== 'exp') {
       return `http://${ip}:5000/api/v1`;
     }
   }
-  // Fallback values if hostUri is not available
+  
+  // If it's a physical device and no host IP was successfully parsed,
+  // we fallback to the production API (since localhost / 10.0.2.2 will fail)
+  if (Device.isDevice) {
+    return 'https://drivix-backend-0qvx.onrender.com/api/v1';
+  }
+  
+  // Fallback values if hostUri is not available (for simulators/emulators)
   if (Platform.OS === 'android') {
     return 'http://10.0.2.2:5000/api/v1'; // standard emulator loopback
   }
