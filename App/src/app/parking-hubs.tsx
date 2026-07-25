@@ -811,10 +811,7 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
               {isAuthenticated && user ? (
                 <ScalePressable
                   style={[styles.btnDrawerAction, { borderColor: 'rgba(255, 75, 75, 0.4)', backgroundColor: colors.backgroundElement }]}
-                  onPress={() => {
-                    closeDrawer();
-                    router.push('/explore?tab=profile');
-                  }}
+                  onPress={() => handleDrawerNavigation('/explore?tab=profile')}
                 >
                   <User size={16} color="rgba(255, 75, 75, 0.8)" />
                   <Text style={[styles.btnDrawerActionText, { color: 'rgba(255, 75, 75, 0.8)' }]}>Log Out Account</Text>
