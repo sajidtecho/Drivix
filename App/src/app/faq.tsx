@@ -40,7 +40,7 @@ function FAQItem({ question, answer }: FAQItemProps) {
 export default function FAQScreen() {
   const router = useRouter();
   const colors = useTheme();
-  const [showFaqs, setShowFaqs] = useState(false);
+  const [activeView, setActiveView] = useState<'menu' | 'faqs'>('menu');
 
   const faqs = [
     {
@@ -73,9 +73,36 @@ export default function FAQScreen() {
     }
   ];
 
+  if (activeView === 'faqs') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        {/* Header pointing back to Menu */}
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={[styles.capsuleHeaderBtn, { borderColor: colors.primary, backgroundColor: colors.backgroundSelected }]} 
+            onPress={() => setActiveView('menu')}
+            activeOpacity={0.8}
+          >
+            <ChevronLeft size={18} color="#ffce00" />
+            <Text style={[styles.capsuleHeaderBtnText, { color: colors.primary }]}>Help and FAQ</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Frequently Asked Questions</Text>
+          <View style={styles.faqList}>
+            {faqs.map((faq, index) => (
+              <FAQItem key={index} question={faq.question} answer={faq.answer} />
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
+      {/* Header pointing back to Home */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={[styles.capsuleHeaderBtn, { borderColor: colors.primary, backgroundColor: colors.backgroundSelected }]} 
@@ -111,7 +138,7 @@ export default function FAQScreen() {
 
           <TouchableOpacity 
             style={[styles.gridButton, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}
-            onPress={() => setShowFaqs(!showFaqs)}
+            onPress={() => setActiveView('faqs')}
             activeOpacity={0.7}
           >
             <HelpCircle size={20} color="#ffce00" />
@@ -136,18 +163,6 @@ export default function FAQScreen() {
             <Text style={[styles.gridButtonText, { color: colors.text }]}>Contact</Text>
           </TouchableOpacity>
         </View>
-
-        {/* FAQs List Section */}
-        {showFaqs && (
-          <View style={styles.faqSection}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Frequently Asked Questions</Text>
-            <View style={styles.faqList}>
-              {faqs.map((faq, index) => (
-                <FAQItem key={index} question={faq.question} answer={faq.answer} />
-              ))}
-            </View>
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
