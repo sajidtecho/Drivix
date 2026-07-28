@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Car, AlertTriangle, CreditCard } from 'lucide-react';
 import parkingVideo from '../../assets/Parking_Web.m4v';
 import challanVideo from '../../assets/challan_video.mp4';
+import fastagVideo from '../../assets/fastag_video.mp4';
 
 const TABS = [
   {
@@ -29,7 +30,9 @@ const TABS = [
     title: 'FASTag',
     description: 'Recharge or buy a FASTag instantly and save more on your road trips.',
     icon: CreditCard,
-    isAvailable: false,
+    path: 'https://paytm.com/fastag-recharge',
+    btnText: 'Recharge FASTag',
+    isAvailable: true,
   },
   {
     id: 'testdrive',
@@ -420,6 +423,26 @@ const ShowcaseSection = () => {
                 >
                   <video
                     src={challanVideo}
+                    className="video-player"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                  <div className="video-overlay-glow" />
+                </motion.div>
+              )}
+              {activeTab === 'fastag' && (
+                <motion.div
+                  key="fastag-video"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="video-wrapper"
+                >
+                  <video
+                    src={fastagVideo}
                     className="video-player"
                     autoPlay
                     loop
