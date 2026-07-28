@@ -166,7 +166,9 @@ const ShowcaseSection = () => {
           position: relative;
           overflow: hidden;
           width: 100%;
-          aspect-ratio: 16/9;
+          max-width: 340px;
+          margin: 0 auto;
+          aspect-ratio: 9/16;
           display: flex;
           align-items: center;
           justifyContent: center;
@@ -203,7 +205,6 @@ const ShowcaseSection = () => {
             gap: 40px;
           }
           .media-panel-container {
-            max-width: 700px;
             margin: 0 auto;
           }
         }
