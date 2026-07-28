@@ -11,7 +11,9 @@ const DocumentSchema = new mongoose.Schema({
   name: { type: String, required: true },
   type: { type: String, required: true },
   fileUrl: { type: String, required: true },
-  uploadedAt: { type: Date, default: Date.now }
+  uploadedAt: { type: Date, default: Date.now },
+  expiryDate: { type: String },
+  remindersEnabled: { type: Boolean, default: true }
 });
 
 const PaymentMethodSchema = new mongoose.Schema({

@@ -30,6 +30,88 @@ type WizardStep = 'MAP' | 'SLOTS' | 'CHECKOUT' | 'PASS' | 'PARKING_HUBS' | 'DRIV
 export default function DashboardScreen() {
   const { user, isAuthenticated, refreshProfile } = useAuth();
   const colors = useTheme();
+
+  const getDocumentCompliance = (type: 'DL' | 'PUC') => {
+    if (!user || !user.documents) {
+      return { 
+        status: type === 'PUC' ? 'PUC Missing' : 'DL Missing', 
+        color: type === 'PUC' ? '#ff6b35' : '#ffce00', 
+        bgColor: type === 'PUC' ? 'rgba(255, 107, 53, 0.08)' : 'rgba(255, 206, 0, 0.08)',
+        borderColor: type === 'PUC' ? 'rgba(255, 107, 53, 0.15)' : 'rgba(255, 206, 0, 0.15)',
+        icon: FileText
+      };
+    }
+    
+    const doc = user.documents.find((d: any) => d.type === type);
+    if (!doc) {
+      return { 
+        status: type === 'PUC' ? 'PUC Missing' : 'DL Missing', 
+        color: type === 'PUC' ? '#ff6b35' : '#ffce00', 
+        bgColor: type === 'PUC' ? 'rgba(255, 107, 53, 0.08)' : 'rgba(255, 206, 0, 0.08)',
+        borderColor: type === 'PUC' ? 'rgba(255, 107, 53, 0.15)' : 'rgba(255, 206, 0, 0.15)',
+        icon: FileText
+      };
+    }
+
+    if (!doc.expiryDate) {
+      return { 
+        status: type === 'PUC' ? 'PUC Active' : 'DL Active', 
+        color: '#00cc6a', 
+        bgColor: 'rgba(0, 204, 106, 0.08)',
+        borderColor: 'rgba(0, 204, 106, 0.15)',
+        icon: type === 'PUC' ? ShieldCheck : FileText
+      };
+    }
+
+    const parts = doc.expiryDate.split('/');
+    if (parts.length !== 3) {
+      return { 
+        status: type === 'PUC' ? 'PUC Active' : 'DL Active', 
+        color: '#00cc6a', 
+        bgColor: 'rgba(0, 204, 106, 0.08)',
+        borderColor: 'rgba(0, 204, 106, 0.15)',
+        icon: type === 'PUC' ? ShieldCheck : FileText
+      };
+    }
+
+    const [d, m, y] = parts.map(Number);
+    const expiry = new Date(y, m - 1, d);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    expiry.setHours(0, 0, 0, 0);
+
+    const diffTime = expiry.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { 
+        status: type === 'PUC' ? 'PUC Expired' : 'DL Expired', 
+        color: '#ff4b4b', 
+        bgColor: 'rgba(255, 75, 75, 0.08)',
+        borderColor: 'rgba(255, 75, 75, 0.15)',
+        icon: AlertTriangle
+      };
+    }
+
+    const warningDays = type === 'DL' ? 30 : 5;
+    if (diffDays <= warningDays) {
+      return { 
+        status: type === 'PUC' ? `PUC Expiring soon` : `DL Expiring soon`, 
+        color: '#ffce00', 
+        bgColor: 'rgba(255, 206, 0, 0.08)',
+        borderColor: 'rgba(255, 206, 0, 0.15)',
+        icon: AlertTriangle
+      };
+    }
+
+    return { 
+      status: type === 'PUC' ? 'PUC Active' : 'DL Active', 
+      color: '#00cc6a', 
+      bgColor: 'rgba(0, 204, 106, 0.08)',
+      borderColor: 'rgba(0, 204, 106, 0.15)',
+      icon: type === 'PUC' ? ShieldCheck : FileText
+    };
+  };
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
@@ -891,22 +973,52 @@ export default function DashboardScreen() {
                       </TouchableOpacity>
 
                       {/* PUC capsule */}
-                      <TouchableOpacity 
-                        style={[
-                          styles.complianceBadge, 
-                          { 
-                            backgroundColor: (user?.documents?.length ?? 0) >= 2 ? 'rgba(0, 204, 106, 0.08)' : 'rgba(255, 107, 53, 0.08)',
-                            borderColor: (user?.documents?.length ?? 0) >= 2 ? 'rgba(0, 204, 106, 0.15)' : 'rgba(255, 107, 53, 0.15)'
-                          }
-                        ]}
-                        onPress={() => handleNavigateToTab('/explore?tab=documents')}
-                        activeOpacity={0.8}
-                      >
-                        <ShieldCheck size={11} color={(user?.documents?.length ?? 0) >= 2 ? '#00cc6a' : '#ff6b35'} />
-                        <Text style={[styles.complianceText, { color: (user?.documents?.length ?? 0) >= 2 ? '#00cc6a' : '#ff6b35' }]}>
-                          {(user?.documents?.length ?? 0) >= 2 ? 'PUC Active' : 'PUC Missing'}
-                        </Text>
-                      </TouchableOpacity>
+                      {(() => {
+                        const compliance = getDocumentCompliance('PUC');
+                        const Icon = compliance.icon;
+                        return (
+                          <TouchableOpacity 
+                            style={[
+                              styles.complianceBadge, 
+                              { 
+                                backgroundColor: compliance.bgColor,
+                                borderColor: compliance.borderColor
+                              }
+                            ]}
+                            onPress={() => handleNavigateToTab('/explore?tab=documents')}
+                            activeOpacity={0.8}
+                          >
+                            <Icon size={11} color={compliance.color} />
+                            <Text style={[styles.complianceText, { color: compliance.color }]}>
+                              {compliance.status}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })()}
+
+                      {/* Driving Licence (DL) capsule */}
+                      {(() => {
+                        const compliance = getDocumentCompliance('DL');
+                        const Icon = compliance.icon;
+                        return (
+                          <TouchableOpacity 
+                            style={[
+                              styles.complianceBadge, 
+                              { 
+                                backgroundColor: compliance.bgColor,
+                                borderColor: compliance.borderColor
+                              }
+                            ]}
+                            onPress={() => handleNavigateToTab('/explore?tab=documents')}
+                            activeOpacity={0.8}
+                          >
+                            <Icon size={11} color={compliance.color} />
+                            <Text style={[styles.complianceText, { color: compliance.color }]}>
+                              {compliance.status}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })()}
                     </View>
                   </View>
                 )}

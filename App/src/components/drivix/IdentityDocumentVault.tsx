@@ -1,21 +1,23 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Modal, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Modal, Image, Switch, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FileText, CheckCircle, Clock, Plus, Trash2, Eye, X } from 'lucide-react-native';
+import { FileText, CheckCircle, Clock, Plus, Trash2, Eye, X, AlertTriangle, ShieldCheck } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
-type DocType = 'DL' | 'RC' | 'INS';
+type DocType = 'DL' | 'RC' | 'INS' | 'PUC';
 
 interface IdentityDocumentVaultProps {
   user: any;
   onUploadDoc: (type: DocType, name: string) => Promise<void>;
   onDeleteDoc: (type: DocType) => Promise<void>;
+  onToggleReminders: (type: DocType, enabled: boolean) => Promise<void>;
 }
 
 export default function IdentityDocumentVault({
   user,
   onUploadDoc,
   onDeleteDoc,
+  onToggleReminders,
 }: IdentityDocumentVaultProps) {
   const colors = useTheme();
   const [viewerDocType, setViewerDocType] = React.useState<DocType | null>(null);
@@ -29,6 +31,45 @@ export default function IdentityDocumentVault({
   const getDoc = (type: DocType) => {
     if (!user || !user.documents) return null;
     return user.documents.find((d: any) => d.type === type);
+  };
+
+  const getExpiryStatus = (doc: any) => {
+    if (!doc || !doc.expiryDate) {
+      return { label: 'Verified', color: '#00cc6a', isExpiring: false, isExpired: false, daysLeft: 999 };
+    }
+    
+    // Parse DD/MM/YYYY
+    const parts = doc.expiryDate.split('/');
+    if (parts.length !== 3) {
+      return { label: 'Verified', color: '#00cc6a', isExpiring: false, isExpired: false, daysLeft: 999 };
+    }
+    const [d, m, y] = parts.map(Number);
+    const expiry = new Date(y, m - 1, d);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    expiry.setHours(0, 0, 0, 0);
+
+    const diffTime = expiry.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { label: 'Expired', color: '#ff4b4b', isExpiring: false, isExpired: true, daysLeft: diffDays };
+    }
+
+    const isDL = doc.type === 'DL';
+    const warningDays = isDL ? 30 : 5;
+
+    if (diffDays <= warningDays) {
+      return { 
+        label: `Expiring in ${diffDays} day${diffDays !== 1 ? 's' : ''}`, 
+        color: '#ffce00', 
+        isExpiring: true, 
+        isExpired: false, 
+        daysLeft: diffDays 
+      };
+    }
+
+    return { label: 'Valid', color: '#00cc6a', isExpiring: false, isExpired: false, daysLeft: diffDays };
   };
 
   return (
@@ -54,12 +95,28 @@ export default function IdentityDocumentVault({
                 {getDoc('DL').name}
               </Text>
             )}
+            {getDoc('DL') && getDoc('DL').expiryDate && (
+              <Text style={[styles.expiryText, { color: colors.textSecondary }]}>
+                Expires: {getDoc('DL').expiryDate}
+              </Text>
+            )}
             <View style={styles.vaultBadgeRow}>
               {getDocStatus('DL') === 'Uploaded' ? (
-                <View style={styles.uploadedBadge}>
-                  <CheckCircle size={10} color="#00cc6a" />
-                  <Text style={styles.uploadedBadgeText}>Verified</Text>
-                </View>
+                <>
+                  {(() => {
+                    const status = getExpiryStatus(getDoc('DL'));
+                    return (
+                      <View style={[styles.uploadedBadge, { borderColor: status.color + '40', backgroundColor: status.color + '10' }]}>
+                        {status.isExpired || status.isExpiring ? (
+                          <AlertTriangle size={10} color={status.color} />
+                        ) : (
+                          <CheckCircle size={10} color={status.color} />
+                        )}
+                        <Text style={[styles.uploadedBadgeText, { color: status.color }]}>{status.label}</Text>
+                      </View>
+                    );
+                  })()}
+                </>
               ) : (
                 <View style={[styles.missingBadge, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}>
                   <Clock size={10} color={colors.textSecondary} />
@@ -67,6 +124,30 @@ export default function IdentityDocumentVault({
                 </View>
               )}
             </View>
+            
+            {/* Reminder Toggle */}
+            {getDoc('DL') && (
+              <View style={styles.reminderRow}>
+                <Text style={[styles.reminderText, { color: colors.textSecondary }]}>Reminders</Text>
+                <Switch
+                  value={getDoc('DL').remindersEnabled !== false}
+                  onValueChange={(val) => onToggleReminders('DL', val)}
+                  trackColor={{ false: '#2c2d35', true: '#ffce00' }}
+                  thumbColor={getDoc('DL').remindersEnabled !== false ? '#ffce00' : '#8b8e96'}
+                  style={{ transform: [{ scaleX: 0.75 }, { scaleY: 0.75 }], height: 16, marginLeft: -4 }}
+                />
+              </View>
+            )}
+
+            {/* Official Renewal Redirection Button */}
+            {getDoc('DL') && (getExpiryStatus(getDoc('DL')).isExpired || getExpiryStatus(getDoc('DL')).isExpiring) && (
+              <TouchableOpacity
+                onPress={() => Linking.openURL('https://sarathi.parivahan.gov.in/')}
+                style={[styles.renewBadgeButton, { backgroundColor: 'rgba(0, 242, 255, 0.12)', borderColor: '#00f2ff' }]}
+              >
+                <Text style={[styles.renewBadgeText, { color: '#00f2ff' }]}>Renew DL ➔</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </TouchableOpacity>
         {getDocStatus('DL') === 'Uploaded' ? (
@@ -220,6 +301,109 @@ export default function IdentityDocumentVault({
         )}
       </View>
 
+      <View style={[styles.cardDivider, { backgroundColor: colors.borderGlass }]} />
+
+      {/* Pollution Certificate (PUC) */}
+      <View style={styles.vaultRow}>
+        <TouchableOpacity
+          activeOpacity={getDocStatus('PUC') === 'Uploaded' ? 0.7 : 1.0}
+          onPress={() => {
+            if (getDocStatus('PUC') === 'Uploaded') {
+              setViewerDocType('PUC');
+            }
+          }}
+          style={styles.vaultRowTouchable}
+        >
+          <View style={[styles.vaultIconContainer, { backgroundColor: 'rgba(52, 211, 153, 0.05)', borderColor: 'rgba(52, 211, 153, 0.15)' }]}>
+            <ShieldCheck size={20} color="#34d399" />
+          </View>
+          <View style={styles.vaultDetails}>
+            <Text style={[styles.vaultName, { color: colors.text }]}>Pollution Certificate (PUC)</Text>
+            {getDoc('PUC') && (
+              <Text style={[styles.customDocName, { color: colors.textSecondary }]}>
+                {getDoc('PUC').name}
+              </Text>
+            )}
+            {getDoc('PUC') && getDoc('PUC').expiryDate && (
+              <Text style={[styles.expiryText, { color: colors.textSecondary }]}>
+                Expires: {getDoc('PUC').expiryDate}
+              </Text>
+            )}
+            <View style={styles.vaultBadgeRow}>
+              {getDocStatus('PUC') === 'Uploaded' ? (
+                <>
+                  {(() => {
+                    const status = getExpiryStatus(getDoc('PUC'));
+                    return (
+                      <View style={[styles.uploadedBadge, { borderColor: status.color + '40', backgroundColor: status.color + '10' }]}>
+                        {status.isExpired || status.isExpiring ? (
+                          <AlertTriangle size={10} color={status.color} />
+                        ) : (
+                          <CheckCircle size={10} color={status.color} />
+                        )}
+                        <Text style={[styles.uploadedBadgeText, { color: status.color }]}>{status.label}</Text>
+                      </View>
+                    );
+                  })()}
+                </>
+              ) : (
+                <View style={[styles.missingBadge, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}>
+                  <Clock size={10} color={colors.textSecondary} />
+                  <Text style={[styles.missingBadgeText, { color: colors.textSecondary }]}>Not Uploaded</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Reminder Toggle */}
+            {getDoc('PUC') && (
+              <View style={styles.reminderRow}>
+                <Text style={[styles.reminderText, { color: colors.textSecondary }]}>Reminders</Text>
+                <Switch
+                  value={getDoc('PUC').remindersEnabled !== false}
+                  onValueChange={(val) => onToggleReminders('PUC', val)}
+                  trackColor={{ false: '#2c2d35', true: '#ffce00' }}
+                  thumbColor={getDoc('PUC').remindersEnabled !== false ? '#ffce00' : '#8b8e96'}
+                  style={{ transform: [{ scaleX: 0.75 }, { scaleY: 0.75 }], height: 16, marginLeft: -4 }}
+                />
+              </View>
+            )}
+
+            {/* Official Renewal Redirection Button */}
+            {getDoc('PUC') && (getExpiryStatus(getDoc('PUC')).isExpired || getExpiryStatus(getDoc('PUC')).isExpiring) && (
+              <TouchableOpacity
+                onPress={() => Linking.openURL('https://vahan.parivahan.gov.in/puc/')}
+                style={[styles.renewBadgeButton, { backgroundColor: 'rgba(52, 211, 153, 0.12)', borderColor: '#34d399' }]}
+              >
+                <Text style={[styles.renewBadgeText, { color: '#34d399' }]}>Renew PUC Now ➔</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
+        {getDocStatus('PUC') === 'Uploaded' ? (
+          <View style={styles.actionBtnRow}>
+            <TouchableOpacity
+              onPress={() => setViewerDocType('PUC')}
+              style={styles.viewVaultBtn}
+            >
+              <Eye size={16} color="#00f2ff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => onDeleteDoc('PUC')}
+              style={styles.deleteVaultBtn}
+            >
+              <Trash2 size={16} color="#ff4b4b" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={() => onUploadDoc('PUC', 'Pollution Certificate')}
+            style={styles.uploadVaultBtn}
+          >
+            <Plus size={16} color="#00f2ff" />
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* Full-Screen Document Image Viewer Modal */}
       <Modal
         visible={viewerDocType !== null}
@@ -318,7 +502,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 204, 106, 0.15)',
   },
   uploadedBadgeText: {
-    color: '#00cc6a',
     fontSize: 10,
     fontWeight: 'bold',
   },
@@ -427,5 +610,31 @@ const styles = StyleSheet.create({
     color: '#ffce00',
     textAlign: 'center',
     lineHeight: 18,
+  },
+  expiryText: {
+    fontSize: 11,
+    marginTop: 3,
+  },
+  reminderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  reminderText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  renewBadgeButton: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  renewBadgeText: {
+    fontSize: 11,
+    fontWeight: 'bold',
   },
 });

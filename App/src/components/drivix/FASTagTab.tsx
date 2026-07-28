@@ -10,6 +10,8 @@ import {
   Alert,
   Switch,
   Platform,
+  Modal,
+  Linking,
 } from 'react-native';
 import { 
   Zap, 
@@ -64,6 +66,11 @@ export default function FASTagTab() {
   const [autoThreshold, setAutoThreshold] = useState('200');
   const [autoAmount, setAutoAmount] = useState('500');
   const [savingSettings, setSavingSettings] = useState(false);
+
+  // official Bank portal recharge states
+  const [isRechargeModalVisible, setIsRechargeModalVisible] = useState(false);
+  const [chosenBank, setChosenBank] = useState('ICICI');
+  const [rechargeAmount, setRechargeAmount] = useState(0);
 
   const bankOptions = ['ICICI', 'HDFC', 'Axis', 'SBI', 'Paytm', 'Airtel'];
 
@@ -164,7 +171,7 @@ export default function FASTagTab() {
     }
   };
 
-  const handleRecharge = async () => {
+  const handleRecharge = () => {
     if (!selectedTag) return;
     const amount = Number(rechargePreset || rechargeCustom);
 
@@ -173,23 +180,58 @@ export default function FASTagTab() {
       return;
     }
 
-    setActionLoading(true);
-    try {
-      const res = await api.post(`/fastags/${selectedTag._id}/recharge`, { amount });
-      if (res.data) {
-        Alert.alert('Recharge Successful!', `Rs. ${amount} added to FASTag ${selectedTag.vehicleNumber}.`);
-        setRechargePreset('');
-        setRechargeCustom('');
-        await refreshProfile(); // Refresh Drivix wallet balance
-        await fetchData(false); // Silent reload tag balance
-      }
-    } catch (err: any) {
-      console.error('Recharge failed:', err);
-      const msg = err.response?.data?.message || 'Failed to complete recharge.';
-      Alert.alert('Recharge Failed', msg);
-    } finally {
-      setActionLoading(false);
-    }
+    setRechargeAmount(amount);
+    setChosenBank(selectedTag.bank || 'ICICI');
+    setIsRechargeModalVisible(true);
+  };
+
+  const handleProceedToPortal = async () => {
+    setIsRechargeModalVisible(false);
+
+    const bankUrls: Record<string, string> = {
+      'ICICI': 'https://fastag.icicibank.com/',
+      'HDFC': 'https://www.hdfcbank.com/personal/pay/cards/prepaid-cards/fastag/fastag-recharge',
+      'Axis': 'https://www.axisbank.com/retail/cards/prepaid-cards/fastag/recharge',
+      'SBI': 'https://fastag.sbi/',
+      'Paytm': 'https://paytm.com/fastag-recharge',
+      'Airtel': 'https://www.airtel.in/bank/fastag',
+      'Kotak': 'https://www.kotak.com/en/personal-banking/cards/prepaid-card/fastag.html',
+      'IDFC': 'https://www.idfcfirstbank.com/personal-banking/ad-hoc-pages/fastag-recharge'
+    };
+
+    const targetUrl = bankUrls[chosenBank] || 'https://fastag.sbi/';
+
+    Alert.alert(
+      'Redirecting to Portal',
+      `You are being redirected to the official ${chosenBank} FASTag portal to complete your recharge of ₹${rechargeAmount}.`,
+      [
+        {
+          text: 'Proceed',
+          onPress: async () => {
+            try {
+              await Linking.openURL(targetUrl);
+              
+              // Simulate tag balance update in our local test DB
+              setActionLoading(true);
+              try {
+                await api.post(`/fastags/${selectedTag._id}/recharge`, { amount: rechargeAmount });
+                await fetchData(false);
+              } catch (e) {
+                console.warn('Silent local recharge update failed', e);
+              } finally {
+                setActionLoading(false);
+              }
+
+              setRechargePreset('');
+              setRechargeCustom('');
+            } catch (err) {
+              Alert.alert('Error', 'Failed to open the bank portal.');
+            }
+          }
+        },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
   };
 
   const handleEstimateToll = async () => {
@@ -631,6 +673,57 @@ export default function FASTagTab() {
           <Text style={[styles.emptyHistory, { color: colors.textSecondary }]}>No toll payments found on this tag yet.</Text>
         )}
       </View>
+
+      {/* Choose Bank Modal */}
+      <Modal
+        visible={isRechargeModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsRechargeModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Choose Issuing Bank</Text>
+            <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+              Drivix will redirect you to the official bank portal to recharge ₹{rechargeAmount} on FASTag {selectedTag?.vehicleNumber}.
+            </Text>
+
+            {/* Bank grid */}
+            <View style={[styles.bankGrid, { marginTop: 8 }]}>
+              {['ICICI', 'HDFC', 'SBI', 'Paytm', 'Axis', 'Airtel', 'Kotak', 'IDFC'].map((bank) => (
+                <TouchableOpacity
+                  key={bank}
+                  style={[
+                    styles.bankBtn,
+                    { borderColor: colors.borderGlass, backgroundColor: colors.backgroundSelected },
+                    chosenBank === bank && { borderColor: getBankColor(bank), borderWidth: 2 }
+                  ]}
+                  onPress={() => setChosenBank(bank)}
+                >
+                  <View style={[styles.bankMarker, { backgroundColor: getBankColor(bank) }]} />
+                  <Text style={[styles.bankBtnText, { color: colors.text }]}>{bank}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={[styles.modalBtnRow, { marginTop: 20 }]}>
+              <TouchableOpacity
+                style={[styles.modalCancelBtn, { borderColor: colors.borderGlass }]}
+                onPress={() => setIsRechargeModalVisible(false)}
+              >
+                <Text style={[styles.modalCancelBtnText, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalSaveBtn, { backgroundColor: colors.primary }]}
+                onPress={handleProceedToPortal}
+              >
+                <Text style={styles.modalSaveBtnText}>Proceed to Portal</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
     </ScrollView>
   );
@@ -1092,5 +1185,64 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     paddingVertical: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 340,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 20,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  modalCancelBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCancelBtnText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  modalSaveBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalSaveBtnText: {
+    color: '#0b0c10',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

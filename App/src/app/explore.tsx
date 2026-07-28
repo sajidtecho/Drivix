@@ -30,10 +30,37 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
 
   // Naming & Real Image Upload States
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
-  const [pendingDocType, setPendingDocType] = useState<'DL' | 'RC' | 'INS' | null>(null);
+  const [pendingDocType, setPendingDocType] = useState<'DL' | 'RC' | 'INS' | 'PUC' | null>(null);
   const [pendingDocUri, setPendingDocUri] = useState<string | null>(null);
   const [pendingDocBase64, setPendingDocBase64] = useState<string | null>(null);
   const [documentName, setDocumentName] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+
+  const validateDate = (dateStr: string) => {
+    if (!dateStr) return true;
+    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!regex.test(dateStr)) return false;
+    const parts = dateStr.match(regex);
+    if (!parts) return false;
+    const [, d, m, y] = parts.map(Number);
+    if (m < 1 || m > 12) return false;
+    const daysInMonth = new Date(y, m, 0).getDate();
+    if (d < 1 || d > daysInMonth) return false;
+    return true;
+  };
+
+  const handleExpiryDateChange = (text: string) => {
+    let clean = text.replace(/\D/g, '');
+    if (clean.length > 8) clean = clean.slice(0, 8);
+    
+    let formatted = clean;
+    if (clean.length > 4) {
+      formatted = `${clean.slice(0, 2)}/${clean.slice(2, 4)}/${clean.slice(4)}`;
+    } else if (clean.length > 2) {
+      formatted = `${clean.slice(0, 2)}/${clean.slice(2)}`;
+    }
+    setExpiryDate(formatted);
+  };
 
   useEffect(() => {
     const resolvedTab = tab || tabProp;
@@ -90,7 +117,7 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
     }
   };
 
-  const handleRealDocUpload = async (type: 'DL' | 'RC' | 'INS', defaultName: string) => {
+  const handleRealDocUpload = async (type: 'DL' | 'RC' | 'INS' | 'PUC', defaultName: string) => {
     // 1. Request Permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -132,6 +159,13 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
       return;
     }
 
+    if (pendingDocType === 'DL' || pendingDocType === 'PUC') {
+      if (expiryDate && !validateDate(expiryDate)) {
+        Alert.alert('Invalid Date', 'Please enter a valid expiry date in DD/MM/YYYY format.');
+        return;
+      }
+    }
+
     setLoading(true);
     setIsUploadModalVisible(false);
 
@@ -143,6 +177,8 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
         name: docName,
         type: pendingDocType,
         fileUrl: `data:image/jpeg;base64,${pendingDocBase64}`,
+        expiryDate: expiryDate || undefined,
+        remindersEnabled: true
       };
 
       const response = await api.put('/auth/profile', {
@@ -165,7 +201,7 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
     }
   };
 
-  const handleDeleteDoc = async (type: 'DL' | 'RC' | 'INS') => {
+  const handleDeleteDoc = async (type: 'DL' | 'RC' | 'INS' | 'PUC') => {
     if (!user || !user.documents) return;
     setLoading(true);
     try {
@@ -184,6 +220,29 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
       Alert.alert('Delete Failed', 'Failed to remove document.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleReminders = async (type: 'DL' | 'RC' | 'INS' | 'PUC', enabled: boolean) => {
+    if (!user || !user.documents) return;
+    try {
+      const updatedDocs = user.documents.map((d: any) => {
+        if (d.type === type) {
+          return { ...d, remindersEnabled: enabled };
+        }
+        return d;
+      });
+
+      const response = await api.put('/auth/profile', {
+        documents: updatedDocs,
+      });
+
+      if (response.data) {
+        await refreshProfile();
+      }
+    } catch (err: any) {
+      console.error('Error toggling reminders:', err);
+      Alert.alert('Error', 'Failed to update reminder settings.');
     }
   };
 
@@ -287,6 +346,7 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
             user={user}
             onUploadDoc={handleRealDocUpload}
             onDeleteDoc={handleDeleteDoc}
+            onToggleReminders={handleToggleReminders}
           />
         )}
 
@@ -314,6 +374,7 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
           setPendingDocUri(null);
           setPendingDocBase64(null);
           setDocumentName('');
+          setExpiryDate('');
         }}
       >
         <View style={styles.modalOverlay}>
@@ -335,6 +396,22 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
               placeholderTextColor={colors.textSecondary}
             />
 
+            {(pendingDocType === 'DL' || pendingDocType === 'PUC') && (
+              <View style={{ width: '100%', marginBottom: 16 }}>
+                <Text style={{ alignSelf: 'flex-start', fontSize: 11, fontWeight: 'bold', color: colors.textSecondary, marginBottom: 6 }}>
+                  Expiry Date (DD/MM/YYYY)
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text, borderColor: colors.borderGlass, backgroundColor: colors.backgroundSelected, marginBottom: 0 }]}
+                  value={expiryDate}
+                  onChangeText={handleExpiryDateChange}
+                  placeholder="DD/MM/YYYY"
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="numeric"
+                />
+              </View>
+            )}
+
             <View style={styles.modalBtnRow}>
               <TouchableOpacity
                 style={[styles.modalCancelBtn, { borderColor: colors.borderGlass }]}
@@ -344,6 +421,7 @@ function ExploreScreenContent({ tabProp, isTabRender }: { tabProp?: string; isTa
                   setPendingDocUri(null);
                   setPendingDocBase64(null);
                   setDocumentName('');
+                  setExpiryDate('');
                 }}
               >
                 <Text style={[styles.modalCancelBtnText, { color: colors.text }]}>Cancel</Text>
