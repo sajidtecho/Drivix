@@ -121,9 +121,26 @@ const ParkingList = () => {
 
 
 
+  const matchesSearch = (text, query) => {
+    if (!text) return false;
+    const lowerText = text.toLowerCase();
+    const lowerQuery = query.trim().toLowerCase();
+    
+    if (!lowerQuery) return true;
+    
+    // Noida vs Greater Noida logic:
+    // If the search query contains 'noida' but does NOT contain 'greater',
+    // we filter out 'greater noida' from the match text so we don't return false positives.
+    if (lowerQuery.includes('noida') && !lowerQuery.includes('greater')) {
+      const withoutGreaterNoida = lowerText.replace(/greater\s+noida/g, '');
+      return withoutGreaterNoida.includes(lowerQuery);
+    }
+    
+    return lowerText.includes(lowerQuery);
+  };
+
   const filtered = locations.filter((p) =>
-    (p.name?.toLowerCase() || '').includes(search.toLowerCase()) ||
-    (p.address?.toLowerCase() || '').includes(search.toLowerCase())
+    matchesSearch(p.name, search) || matchesSearch(p.address, search)
   );
 
   const availabilityColor = (avail, total) => {
@@ -384,11 +401,61 @@ const ParkingList = () => {
         </div>
 
         {filtered.length === 0 && !loading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-card)', border: '1px solid var(--glass-border)' }}>
-            <MapPin size={48} color="var(--accent-primary)" style={{ margin: '0 auto 16px', opacity: 0.5 }} />
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>No Facilities Found</h3>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto' }}>
-              We couldn't find any parking facilities in your system. Please log in as an administrator to configure new locations.
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            transition={{ type: 'spring', stiffness: 100 }}
+            className="glass-panel"
+            style={{ 
+              textAlign: 'center', 
+              padding: '60px 30px', 
+              borderRadius: 'var(--radius-card)', 
+              border: '1px solid var(--glass-border)',
+              background: 'rgba(255, 255, 255, 0.01)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+              maxWidth: '600px',
+              margin: '40px auto 0',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              top: '-50px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '100px',
+              height: '100px',
+              background: 'var(--accent-glow)',
+              filter: 'blur(30px)',
+              borderRadius: '50%'
+            }} />
+
+            <motion.div
+              animate={{ 
+                y: [0, -12, 0],
+                rotate: [0, 2, -2, 0]
+              }}
+              transition={{ 
+                repeat: Infinity, 
+                duration: 2, 
+                ease: "easeInOut" 
+              }}
+              style={{ 
+                fontSize: '4rem', 
+                marginBottom: '20px',
+                display: 'inline-block',
+                filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.2))'
+              }}
+            >
+              🚗💨
+            </motion.div>
+            
+            <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '12px', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+              No Facilities Available 🔎
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto 24px', lineHeight: 1.5, fontSize: '0.95rem' }}>
+              Oops! We couldn't find any parking hubs matching "{search}" in our database. Try searching for <strong style={{ color: 'var(--accent-secondary)' }}>"Greater Noida"</strong> to explore our active smart hubs!
             </p>
           </motion.div>
         )}
