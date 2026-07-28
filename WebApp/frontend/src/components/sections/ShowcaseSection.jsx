@@ -166,9 +166,7 @@ const ShowcaseSection = () => {
           position: relative;
           overflow: hidden;
           width: 100%;
-          max-width: 340px;
-          margin: 0 auto;
-          aspect-ratio: 9/16;
+          aspect-ratio: 16/9;
           display: flex;
           align-items: center;
           justifyContent: center;
