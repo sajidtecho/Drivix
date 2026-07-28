@@ -16,7 +16,6 @@ const LandingPage = () => {
     <div style={{ width: '100%', overflowX: 'hidden' }}>
       <HeroSection />
       <PartnersSection />
-      <ServicesHubSection />
       <ShowcaseSection />
       <CaseStudiesSection />
       <ProblemSection />
