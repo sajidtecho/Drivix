@@ -180,7 +180,8 @@ const ShowcaseSection = () => {
           border-radius: 20px;
           overflow: hidden;
           position: relative;
-          background: transparent;
+          background: #000;
+          box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
         }
 
         .video-player {
@@ -381,9 +382,10 @@ const ShowcaseSection = () => {
           <div 
             className="media-panel-container"
             style={{
-              aspectRatio: '4/3',
-              maxWidth: '100%',
+              aspectRatio: activeTab === 'parking' ? '4/3' : '16/9',
+              maxWidth: activeTab === 'parking' ? '100%' : '700px',
               margin: '0 auto',
+              transition: 'aspect-ratio 0.3s ease, max-width 0.3s ease'
             }}
           >
             <AnimatePresence mode="wait">
@@ -419,7 +421,6 @@ const ShowcaseSection = () => {
                   <video
                     src={challanVideo}
                     className="video-player"
-                    style={{ objectFit: 'contain' }}
                     autoPlay
                     loop
                     muted
