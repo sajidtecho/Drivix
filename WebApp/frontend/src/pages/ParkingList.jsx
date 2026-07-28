@@ -451,7 +451,7 @@ const ParkingList = () => {
               No Facilities Available 🔎
             </h3>
             <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto 24px', lineHeight: 1.5, fontSize: '0.95rem' }}>
-              Oops! We couldn't find any parking hubs matching "{search}" in our database. Try searching for <strong style={{ color: 'var(--accent-secondary)' }}>"Greater Noida"</strong> to explore our active smart hubs!
+              Oops! We couldn't find any parking hubs matching "{search}".
             </p>
           </motion.div>
         )}
