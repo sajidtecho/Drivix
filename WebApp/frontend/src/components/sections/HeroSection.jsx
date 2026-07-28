@@ -83,7 +83,7 @@ const HeroSection = () => {
     setIsSearching(false);
 
     if (activeTab === 'parking') {
-      navigate('/find');
+      navigate('/find', { state: { searchQuery: vehicleNumber } });
     } else if (activeTab === 'challan') {
       setSearchResult({
         type: 'challan',

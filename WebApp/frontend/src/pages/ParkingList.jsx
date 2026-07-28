@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AdCarousel from '../components/AdCarousel';
 import {
   MapPin, Car, Users, Star, ChevronRight, Search,
@@ -22,8 +22,9 @@ const itemVariants = {
 
 const ParkingList = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [locations, setLocations] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(location.state?.searchQuery || '');
   const [hoveredId, setHoveredId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userCoords, setUserCoords] = React.useState(null);
