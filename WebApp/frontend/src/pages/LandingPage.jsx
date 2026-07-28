@@ -9,6 +9,7 @@ import FooterSection from '../components/sections/FooterSection';
 import PartnersSection from '../components/sections/PartnersSection';
 import ServicesHubSection from '../components/sections/ServicesHubSection';
 import CaseStudiesSection from '../components/sections/CaseStudiesSection';
+import ShowcaseSection from '../components/sections/ShowcaseSection';
 
 const LandingPage = () => {
   return (
@@ -16,6 +17,7 @@ const LandingPage = () => {
       <HeroSection />
       <PartnersSection />
       <ServicesHubSection />
+      <ShowcaseSection />
       <CaseStudiesSection />
       <ProblemSection />
       <HowItWorksSection />
