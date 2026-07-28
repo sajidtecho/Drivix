@@ -26,46 +26,6 @@ const CASE_STUDIES = [
         { label: 'Daily Users', value: '2k+', icon: Users }
       ]
     }
-  },
-  {
-    id: 'phoenix',
-    title: 'Optimizing capacity at Phoenix Mall',
-    shortDesc: 'Scaling weekend throughput by 30% through dynamic routing.',
-    image: phoenixImg,
-    fullStory: {
-      problem: "Weekend surges caused 1km long queues outside the mall, discouraging shoppers and affecting surrounding city traffic.",
-      solution: "We deployed dynamic digital signage and real-time floor-level guidance to distribute load across 4 parking levels.",
-      results: [
-        "30% increase in weekend parking turnaround.",
-        "Eliminated street queues during festive seasons.",
-        "Direct UPI-based exit reduced payment desk friction."
-      ],
-      stats: [
-        { label: 'Turnaround', value: '+30%', icon: TrendingUp },
-        { label: 'Exit Speed', value: '2x', icon: CheckCircle2 },
-        { label: 'NPS', value: '4.8', icon: Users }
-      ]
-    }
-  },
-  {
-    id: 'emaar',
-    title: 'Premium security for Emaar Palm Drive',
-    shortDesc: 'Transitioning to a keyless, automated residential experience.',
-    image: emaarImg,
-    fullStory: {
-      problem: "Managing guest vehicles and preventing unauthorized residential entry was a manual, error-prone task for security guards.",
-      solution: "Biometric tag integration for residents and 'Invite-link' based pre-registration for guests.",
-      results: [
-        "Zero unauthorized entries reported since launch.",
-        "Residents can track family car arrivals in real-time.",
-        "Automated log maintenance for facility management."
-      ],
-      stats: [
-        { label: 'Security', value: '100%', icon: CheckCircle2 },
-        { label: 'Guests', value: 'Purely Digital', icon: Users },
-        { label: 'Efficiency', value: 'Saved 2 Guards', icon: TrendingUp }
-      ]
-    }
   }
 ];
 
