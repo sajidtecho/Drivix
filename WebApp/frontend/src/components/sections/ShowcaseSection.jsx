@@ -61,6 +61,15 @@ const ShowcaseSection = () => {
   const navigate = useNavigate();
   // 'parking' is active, others are placeholders for the future
   const [activeTab, setActiveTab] = useState('parking');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleTabClick = (tab) => {
     if (tab.isAvailable) {
@@ -260,7 +269,7 @@ const ShowcaseSection = () => {
             <AnimatePresence initial={false}>
               {TABS.map((tab, index) => {
                 const activeIndex = TABS.findIndex(t => t.id === activeTab);
-                if (index > activeIndex + 1) return null;
+                if (isMobile && index > activeIndex + 1) return null;
 
                 const TabIcon = tab.icon;
                 const isActive = activeTab === tab.id;
