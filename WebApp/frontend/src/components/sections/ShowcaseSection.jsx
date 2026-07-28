@@ -257,16 +257,25 @@ const ShowcaseSection = () => {
           
           {/* Left Column: Tab switcher list */}
           <div className="tab-list">
-            {TABS.map((tab) => {
-              const TabIcon = tab.icon;
-              const isActive = activeTab === tab.id;
+            <AnimatePresence initial={false}>
+              {TABS.map((tab, index) => {
+                const activeIndex = TABS.findIndex(t => t.id === activeTab);
+                if (index > activeIndex + 1) return null;
 
-              return (
-                <div
-                  key={tab.id}
-                  onClick={() => handleTabClick(tab)}
-                  className={`tab-item ${isActive ? 'active' : 'inactive'} ${!tab.isAvailable ? 'disabled' : ''}`}
-                >
+                const TabIcon = tab.icon;
+                const isActive = activeTab === tab.id;
+
+                return (
+                  <motion.div
+                    key={tab.id}
+                    initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                    onClick={() => handleTabClick(tab)}
+                    className={`tab-item ${isActive ? 'active' : 'inactive'} ${!tab.isAvailable ? 'disabled' : ''}`}
+                    style={{ overflow: 'hidden' }}
+                  >
                   {isActive ? (
                     <motion.div
                       layoutId="activeTabDetails"
@@ -376,9 +385,10 @@ const ShowcaseSection = () => {
                       )}
                     </div>
                   )}
-                </div>
+                </motion.div>
               );
             })}
+            </AnimatePresence>
           </div>
 
           {/* Right Column: Visual Player */}
