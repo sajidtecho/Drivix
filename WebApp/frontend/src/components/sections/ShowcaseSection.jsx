@@ -203,6 +203,7 @@ const ShowcaseSection = () => {
             gap: 40px;
           }
           .media-panel-container {
+            max-width: 700px;
             margin: 0 auto;
           }
         }
