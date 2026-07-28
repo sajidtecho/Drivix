@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Car, AlertTriangle, CreditCard } from 'lucide-react';
 import parkingVideo from '../../assets/Parking_Web.m4v';
+import challanVideo from '../../assets/challan_video.mp4';
 
 const TABS = [
   {
@@ -19,7 +20,9 @@ const TABS = [
     title: 'Traffic Challan',
     description: 'Check the status of your traffic police challan online - quickly and easily.',
     icon: AlertTriangle,
-    isAvailable: false,
+    path: 'https://echallan.parivahan.gov.in/index/accused-challan',
+    btnText: 'Check Challan Status',
+    isAvailable: true,
   },
   {
     id: 'fastag',
@@ -312,7 +315,13 @@ const ShowcaseSection = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (tab.path) navigate(tab.path);
+                          if (tab.path) {
+                            if (tab.path.startsWith('http')) {
+                              window.open(tab.path, '_blank', 'noopener,noreferrer');
+                            } else {
+                              navigate(tab.path);
+                            }
+                          }
                         }}
                         style={{
                           alignSelf: 'flex-start',
@@ -384,6 +393,26 @@ const ShowcaseSection = () => {
                 >
                   <video
                     src={parkingVideo}
+                    className="video-player"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                  <div className="video-overlay-glow" />
+                </motion.div>
+              )}
+              {activeTab === 'challan' && (
+                <motion.div
+                  key="challan-video"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="video-wrapper"
+                >
+                  <video
+                    src={challanVideo}
                     className="video-player"
                     autoPlay
                     loop
