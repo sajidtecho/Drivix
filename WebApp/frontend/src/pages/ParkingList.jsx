@@ -396,11 +396,6 @@ const ParkingList = () => {
           })}
         </div>
 
-        {/* Dynamic Advertisement Carousel */}
-        <div style={{ marginTop: '32px', width: '100%' }}>
-          <AdCarousel />
-        </div>
-
         {filtered.length === 0 && !loading && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }} 
@@ -460,6 +455,11 @@ const ParkingList = () => {
             </p>
           </motion.div>
         )}
+
+        {/* Dynamic Advertisement Carousel */}
+        <div style={{ marginTop: '32px', width: '100%' }}>
+          <AdCarousel />
+        </div>
 
         {loading && (
            <div style={{ textAlign: 'center', padding: '60px 0' }}>
