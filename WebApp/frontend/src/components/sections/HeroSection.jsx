@@ -25,15 +25,7 @@ const HeroSection = () => {
   const [isFocused, setIsFocused] = React.useState(false);
   const [ripples, setRipples] = React.useState([]);
 
-  // Auto-populate vehicle number from user profile
-  React.useEffect(() => {
-    if (user && user.vehicles && user.vehicles.length > 0) {
-      const primary = user.vehicles.find(v => v.isPrimary) || user.vehicles[0];
-      if (primary && primary.plate) {
-        setVehicleNumber(primary.plate.toUpperCase());
-      }
-    }
-  }, [user]);
+
 
   // Card hover tilt states
   const cardRef = React.useRef(null);
