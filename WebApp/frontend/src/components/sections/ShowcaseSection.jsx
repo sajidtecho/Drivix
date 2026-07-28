@@ -169,7 +169,6 @@ const ShowcaseSection = () => {
           position: relative;
           overflow: hidden;
           width: 100%;
-          aspect-ratio: 4/3;
           display: flex;
           align-items: center;
           justifyContent: center;
@@ -380,7 +379,15 @@ const ShowcaseSection = () => {
           </div>
 
           {/* Right Column: Visual Player */}
-          <div className="media-panel-container">
+          <div 
+            className="media-panel-container"
+            style={{
+              aspectRatio: activeTab === 'parking' ? '9/16' : '16/9',
+              maxWidth: activeTab === 'parking' ? '340px' : '700px',
+              margin: '0 auto',
+              transition: 'aspect-ratio 0.3s ease, max-width 0.3s ease'
+            }}
+          >
             <AnimatePresence mode="wait">
               {activeTab === 'parking' && (
                 <motion.div
