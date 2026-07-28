@@ -382,8 +382,8 @@ const ShowcaseSection = () => {
           <div 
             className="media-panel-container"
             style={{
-              aspectRatio: activeTab === 'parking' ? '9/16' : '16/9',
-              maxWidth: activeTab === 'parking' ? '340px' : '700px',
+              aspectRatio: activeTab === 'parking' ? '4/3' : '16/9',
+              maxWidth: activeTab === 'parking' ? '100%' : '700px',
               margin: '0 auto',
               transition: 'aspect-ratio 0.3s ease, max-width 0.3s ease'
             }}
