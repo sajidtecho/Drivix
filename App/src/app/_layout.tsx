@@ -1,17 +1,27 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffect } from 'react';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import LoginBottomSheet from '@/components/LoginBottomSheet';
+import { socketService } from '@/services/socket';
 
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, isLoading, isLoginVisible, setLoginVisible } = useAuth();
+
+  // Initialize Socket.IO real-time connection on app startup
+  useEffect(() => {
+    socketService.setupAppStateLifecycle();
+    return () => {
+      socketService.cleanup();
+    };
+  }, []);
 
   if (isLoading) {
     return <AnimatedSplashOverlay />;

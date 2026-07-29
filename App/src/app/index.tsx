@@ -696,9 +696,7 @@ export default function DashboardScreen() {
     }
 
     return () => {
-      if (step !== 'SLOTS') {
-        socketService.off('slotStatusUpdated');
-      }
+      socketService.off('slotStatusUpdated');
     };
   }, [step, selectedLocation]);
 
