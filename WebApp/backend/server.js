@@ -16,6 +16,7 @@ import bannerRoutes from './routes/bannerRoutes.js';
 import placeRoutes from './routes/placeRoutes.js';
 import partnerRoutes from './routes/partnerRoutes.js';
 import fastagRoutes from './routes/fastagRoutes.js';
+import gateRoutes from './routes/gateRoutes.js';
 import { seedBanners } from './utils/seedBanners.js';
 import { seedPlaces } from './controllers/placeController.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -72,6 +73,7 @@ app.use('/api/v1/banners', bannerRoutes);
 app.use('/api/v1/places', placeRoutes);
 app.use('/api/v1/partners', partnerRoutes);
 app.use('/api/v1/fastags', fastagRoutes);
+app.use('/api/v1/gate', gateRoutes);
 
 // Centralized Error Handling Middlewares
 app.use(notFound);
