@@ -44,7 +44,8 @@ const Ticket = () => {
   };
 
   const handleShare = async () => {
-    const text = `🎟️ Drivix Parking Ticket\nBooking ID: ${booking.bookingId}\nSlot: ${booking.slotId} (${booking.floor})\nDate: ${booking.entryDate} at ${booking.entryTime}\nVehicle: ${booking.vehicleNumber}`;
+    const slotStr = booking.slotId ? booking.slotId : 'Assigned on arrival';
+    const text = `🎟️ Drivix Parking Ticket\nBooking ID: ${booking.bookingId}\nSlot: ${slotStr} (${booking.floor})\nDate: ${booking.entryDate} at ${booking.entryTime}\nVehicle: ${booking.vehicleNumber}`;
     if (navigator.share) {
       try { await navigator.share({ title: 'My Parking Ticket', text }); } catch (err) { console.error('Share failed', err); }
     } else {
@@ -54,7 +55,8 @@ const Ticket = () => {
   };
 
   const handleWhatsAppShare = () => {
-    const text = `*Drivix Parking Ticket* 🚗\n\n*Booking ID:* ${booking.bookingId}\n*Slot:* ${booking.slotId} (${booking.floor})\n*Vehicle:* ${booking.vehicleNumber} (${booking.vehicleName})\n*Entry:* ${booking.entryTime} on ${booking.entryDate}\n\n✅ Your reservation at ${booking.locationName} is confirmed.\n_Please show this at the entry gate._`;
+    const slotStr = booking.slotId ? booking.slotId : 'Assigned on arrival';
+    const text = `*Drivix Parking Ticket* 🚗\n\n*Booking ID:* ${booking.bookingId}\n*Slot:* ${slotStr} (${booking.floor})\n*Vehicle:* ${booking.vehicleNumber} (${booking.vehicleName})\n*Entry:* ${booking.entryTime} on ${booking.entryDate}\n\n✅ Your reservation at ${booking.locationName} is confirmed.\n_Please show this at the entry gate._`;
     const encodedText = encodeURIComponent(text);
     const whatsappUrl = `https://wa.me/${booking.mobile.startsWith('91') ? booking.mobile : '91' + booking.mobile}?text=${encodedText}`;
     window.open(whatsappUrl, '_blank');
@@ -83,7 +85,7 @@ const Ticket = () => {
         await navigator.share({
           files: [file],
           title: 'Drivix Parking Ticket',
-          text: `Here is my parking ticket for Slot ${booking.slotId} at ${booking.locationName}.`
+          text: `Here is my parking ticket for ${booking.slotId ? `Slot ${booking.slotId}` : `${booking.floor} reservation`} at ${booking.locationName}.`
         });
       } else {
         // Fallback: Just download the image if sharing isn't supported
@@ -159,7 +161,7 @@ const Ticket = () => {
                   </span>
                 </div>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '4px' }}>
-                  Slot {booking.slotId}
+                  {booking.slotId ? `Slot ${booking.slotId}` : `${booking.floor} Reserved`}
                 </h2>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.88rem' }}>{booking.floor} · {booking.locationName}</p>
               </div>
@@ -186,6 +188,17 @@ const Ticket = () => {
 
           {/* Ticket body */}
           <div style={{ padding: '28px' }}>
+            {!booking.slotId && (
+              <div className="glass-panel" style={{ padding: '16px', borderRadius: 'var(--radius-input)', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', marginBottom: '24px', textAlign: 'center' }}>
+                <p style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--accent-primary)', marginBottom: '4px' }}>
+                  Slot will be assigned before arrival
+                </p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  Estimated Walk Time: Will be shown later
+                </p>
+              </div>
+            )}
+            
             {/* QR Code */}
             <div style={{
               display: 'flex', justifyContent: 'center', marginBottom: '24px',
