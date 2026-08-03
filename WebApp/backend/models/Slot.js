@@ -38,7 +38,7 @@ SlotSchema.index({ facilityId: 1, id: 1 }, { unique: true });
 SlotSchema.index({ floorId: 1, slotNumber: 1 }, { unique: true });
 
 // Pre-validate hook to synchronize status, slotId, and slotNumber before validation
-SlotSchema.pre('validate', function(next) {
+SlotSchema.pre('validate', function() {
   // Keep slotId and id synchronized
   if (this.id && !this.slotId) {
     this.slotId = this.id;
@@ -67,7 +67,6 @@ SlotSchema.pre('validate', function(next) {
   }
 
   this.updatedAt = Date.now();
-  next();
 });
 
 const Slot = mongoose.model('Slot', SlotSchema);

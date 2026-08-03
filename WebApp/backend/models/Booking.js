@@ -54,7 +54,7 @@ const BookingSchema = new mongoose.Schema({
 });
 
 // Pre-save hook to synchronize new and legacy field values
-BookingSchema.pre('validate', function(next) {
+BookingSchema.pre('validate', function() {
   // Sync locationId and parkingHubId
   if (this.parkingHubId && !this.locationId) {
     this.locationId = this.parkingHubId;
@@ -89,8 +89,6 @@ BookingSchema.pre('validate', function(next) {
       this.endTime = this.startTime;
     }
   }
-
-  next();
 });
 
 const Booking = mongoose.model('Booking', BookingSchema);

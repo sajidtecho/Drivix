@@ -60,6 +60,29 @@ async function runTests() {
 
     console.log(`📍 Created test parking location: ${testLocation.parkingName} (Capacity: 2)`);
 
+    // Create mock slot documents so capacity is counted correctly
+    await Slot.create([
+      {
+        facilityId: testLocation._id,
+        id: 'T1-A1',
+        floor: 'T1',
+        row: 'A',
+        number: 1,
+        status: 'available',
+        floorId: new mongoose.Types.ObjectId() // temporary placeholder, will be updated by migration
+      },
+      {
+        facilityId: testLocation._id,
+        id: 'T1-A2',
+        floor: 'T1',
+        row: 'A',
+        number: 2,
+        status: 'available',
+        floorId: new mongoose.Types.ObjectId()
+      }
+    ]);
+    console.log('✅ Created mock slots T1-A1 and T1-A2 for test location.');
+
     // Run database migration to initialize floor for our test location
     await runDatabaseMigration();
 
