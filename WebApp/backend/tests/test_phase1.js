@@ -242,7 +242,7 @@ async function runTests() {
     if (res6.statusCode && res6.statusCode >= 400) {
       throw new Error(`Test Case 6 failed: ${res6.data.message}`);
     }
-    console.log(`✅ Booking 3 extended successfully. New duration: ${res6.data.duration} hours.`);
+    console.log(`✅ Booking 3 extended successfully. New duration: ${res6.data.booking.duration} hours.`);
 
   } catch (error) {
     console.error('❌ Integration test error:', error);
