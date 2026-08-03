@@ -86,6 +86,7 @@ const io = new Server(server, {
   }
 });
 app.set('socketio', io);
+global.io = io;
 
 io.on('connection', (socket) => {
   console.log(`🔌 Client connected: ${socket.id}`);

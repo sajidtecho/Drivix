@@ -6,6 +6,7 @@ import User from '../models/User.js';
 import mongoose from 'mongoose';
 import { calculateDynamicPrice } from '../utils/pricingEngine.js';
 import { sendBookingNotification } from '../utils/notificationService.js';
+import { SlotAllocationService } from '../services/SlotAllocationService.js';
 
 // Helper to keep floor capacity and parking location available counters synchronized
 export const updateFloorCounters = async (parkingHubId, floorId) => {
@@ -604,52 +605,130 @@ export const deleteAllBookingsAdmin = async (req, res) => {
   }
 };
 
-// @desc    Assign slot shortly before arrival (Phase 2 stub)
+// @desc    Assign slot shortly before arrival
 // @route   POST /api/v1/bookings/:id/assign-slot
 // @access  Private
 export const assignSlot = async (req, res) => {
+  const targetId = req.params.id || req.body.bookingId || req.body.id;
   try {
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-    // Return mock success for Phase 1
-    res.json({ 
-      message: 'Slot assignment requested successfully (Phase 2 feature)', 
-      booking 
+    const result = await SlotAllocationService.allocateSlot(targetId);
+    res.json({
+      message: 'Slot assigned successfully',
+      ...result
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Confirm user arrival 30 mins before booking (Phase 2 stub)
+// @desc    Confirm user arrival 30 mins before booking
 // @route   POST /api/v1/bookings/:id/arrival-confirmation
 // @access  Private
 export const confirmArrival = async (req, res) => {
+  const targetId = req.params.id || req.body.bookingId || req.body.id;
+  const { action } = req.body; // 'yes', 'delay', 'cancel'
+
   try {
-    const { action } = req.body; // 'yes', 'delay', 'cancel'
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findById(targetId);
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
-    
+
     if (action === 'cancel') {
       booking.status = 'Cancelled';
+      if (booking.slotId) {
+        const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
+        if (slot) {
+          slot.status = 'available';
+          slot.reservedBy = null;
+          await slot.save();
+        }
+      }
+      booking.slotId = null;
+      booking.slotRefId = null;
       await booking.save();
       await updateFloorCounters(booking.parkingHubId, booking.floorId);
-      return res.json({ message: 'Booking cancelled successfully', booking });
+      
+      return res.json({ message: 'Booking cancelled and capacity released successfully', booking });
     }
 
-    booking.arrivalConfirmed = true;
-    await booking.save();
+    if (action === 'delay') {
+      // Delay booking start time by 30 minutes
+      const [hours, minutes] = booking.startTime.split(':').map(Number);
+      let newMinutes = minutes + 30;
+      let newHours = hours;
+      if (newMinutes >= 60) {
+        newMinutes -= 60;
+        newHours += 1;
+      }
+      if (newHours >= 24) {
+        newHours -= 24; // wraps around midnight
+      }
+      const newStartTimeStr = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
 
-    res.json({ 
-      message: `Arrival confirmation processed: ${action}`, 
-      booking 
-    });
+      // Check if there is floor capacity for the new time window
+      const floorDoc = await ParkingFloor.findById(booking.floorId);
+      if (!floorDoc) {
+        return res.status(404).json({ message: 'Floor not found' });
+      }
+
+      const reqStart = new Date(`${booking.bookingDate}T${newStartTimeStr}:00`);
+      const reqEnd = new Date(reqStart.getTime() + booking.duration * 60 * 60 * 1000);
+
+      // Overlapping bookings (excluding ourselves)
+      const activeBookings = await Booking.find({
+        _id: { $ne: booking._id },
+        parkingHubId: booking.parkingHubId,
+        floorId: booking.floorId,
+        bookingDate: booking.bookingDate,
+        status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
+      });
+
+      let overlappingCount = 0;
+      for (const b of activeBookings) {
+        const bStart = new Date(`${b.bookingDate}T${b.startTime}:00`);
+        const bEnd = new Date(bStart.getTime() + b.duration * 60 * 60 * 1000);
+        if (bStart < reqEnd && bEnd > reqStart) {
+          overlappingCount++;
+        }
+      }
+
+      if (overlappingCount >= floorDoc.totalSlots) {
+        return res.status(400).json({
+          message: 'Cannot delay booking: Floor capacity is full for the delayed duration.'
+        });
+      }
+
+      booking.startTime = newStartTimeStr;
+      
+      // Recalculate endTime string
+      const endHours = String(reqEnd.getHours()).padStart(2, '0');
+      const endMinutes = String(reqEnd.getMinutes()).padStart(2, '0');
+      booking.endTime = `${endHours}:${endMinutes}`;
+
+      booking.arrivalConfirmed = false; // Prompt again later
+      await booking.save();
+      await updateFloorCounters(booking.parkingHubId, booking.floorId);
+
+      return res.json({ message: 'Booking time postponed successfully by 30 minutes', booking });
+    }
+
+    if (action === 'yes') {
+      booking.arrivalConfirmed = true;
+      await booking.save();
+
+      // Allocate slot immediately
+      const result = await SlotAllocationService.allocateSlot(booking._id);
+      return res.json({
+        message: 'Arrival confirmed and slot allocated successfully',
+        ...result
+      });
+    }
+
+    res.status(400).json({ message: 'Invalid action parameter' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
