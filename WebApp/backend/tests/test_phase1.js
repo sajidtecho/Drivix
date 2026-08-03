@@ -34,7 +34,7 @@ async function runTests() {
         fullName: 'Test User',
         email: 'test_user@drivix.com',
         mobile: '9999999999',
-        role: 'driver',
+        role: 'user',
         password: 'password123'
       });
     }

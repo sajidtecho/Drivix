@@ -71,7 +71,6 @@ export const runDatabaseMigration = async () => {
           {
             $set: {
               floorId: floorDoc._id,
-              slotId: mongoose => mongoose.id || '', // Handled by pre-save but lets set it
               CurrentStatus: 'Available'
             }
           }

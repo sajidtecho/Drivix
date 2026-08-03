@@ -37,8 +37,20 @@ const SlotSchema = new mongoose.Schema({
 SlotSchema.index({ facilityId: 1, id: 1 }, { unique: true });
 SlotSchema.index({ floorId: 1, slotNumber: 1 }, { unique: true });
 
-// Pre-save hook to synchronize status and CurrentStatus
-SlotSchema.pre('save', function(next) {
+// Pre-validate hook to synchronize status, slotId, and slotNumber before validation
+SlotSchema.pre('validate', function(next) {
+  // Keep slotId and id synchronized
+  if (this.id && !this.slotId) {
+    this.slotId = this.id;
+  } else if (this.slotId && !this.id) {
+    this.id = this.slotId;
+  }
+
+  // Ensure slotNumber has a fallback
+  if (!this.slotNumber) {
+    this.slotNumber = this.id || this.slotId || 'A1';
+  }
+
   // Sync CurrentStatus to status
   if (this.isModified('CurrentStatus')) {
     if (this.CurrentStatus === 'Available') this.status = 'available';
@@ -52,13 +64,6 @@ SlotSchema.pre('save', function(next) {
     else if (this.status === 'booked' || this.status === 'temporarily_reserved') this.CurrentStatus = 'Reserved';
     else if (this.status === 'occupied') this.CurrentStatus = 'Occupied';
     else if (this.status === 'maintenance') this.CurrentStatus = 'Maintenance';
-  }
-  
-  // Keep slotId and id synchronized
-  if (this.isModified('id')) {
-    this.slotId = this.id;
-  } else if (this.isModified('slotId')) {
-    this.id = this.slotId;
   }
 
   this.updatedAt = Date.now();
