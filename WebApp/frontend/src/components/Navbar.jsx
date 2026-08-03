@@ -18,6 +18,7 @@ const LANDING_LINKS = [
 const APP_LINKS = [
   { label: 'Home', path: '/' },
   { label: 'Services', path: '/services' },
+  { label: 'Gate Simulator', path: '/anpr' },
   { label: 'Become a Partner', path: '/partner' },
 ];
 
