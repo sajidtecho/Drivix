@@ -10,7 +10,8 @@ import {
   toggleSlot,
   reserveSlot,
   releaseSlot,
-  getPricingRecommendation
+  getPricingRecommendation,
+  getFloorLiveCapacity
 } from '../controllers/parkingController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -19,6 +20,9 @@ const router = express.Router();
 router.route('/')
   .get(getLocations)
   .post(protect, createLocation);
+
+router.route('/floor/live-capacity')
+  .get(getFloorLiveCapacity);
 
 router.route('/:id')
   .delete(protect, deleteLocation)

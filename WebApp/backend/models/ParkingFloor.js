@@ -1,15 +1,15 @@
 import mongoose from 'mongoose';
 
 const ParkingFloorSchema = new mongoose.Schema({
-  parkingId: {
+  parkingHubId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ParkingLocation',
-    required: [true, 'Parking location reference (parkingId) is required'],
+    required: [true, 'Parking location reference (parkingHubId) is required'],
     index: true
   },
-  floorNumber: {
+  floorName: {
     type: String,
-    required: [true, 'Floor number/label is required'],
+    required: [true, 'Floor name is required'],
     trim: true
   },
   totalSlots: {
@@ -21,6 +21,16 @@ const ParkingFloorSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: [0, 'Available slots cannot be negative']
+  },
+  occupiedSlots: {
+    type: Number,
+    default: 0,
+    min: [0, 'Occupied slots cannot be negative']
+  },
+  reservedCapacity: {
+    type: Number,
+    default: 0,
+    min: [0, 'Reserved capacity cannot be negative']
   }
 }, {
   timestamps: true,
@@ -28,15 +38,13 @@ const ParkingFloorSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// ParkingFloor → Slots (One to Many Virtual)
-ParkingFloorSchema.virtual('slotsList', {
-  ref: 'ParkingSlot',
-  localField: '_id',
-  foreignField: 'floorId'
+// Virtual for floorId mapping to _id
+ParkingFloorSchema.virtual('floorId').get(function() {
+  return this._id.toString();
 });
 
-// Ensure a floor number is unique within a specific parking location
-ParkingFloorSchema.index({ parkingId: 1, floorNumber: 1 }, { unique: true });
+// Ensure floor name is unique within a specific parking hub
+ParkingFloorSchema.index({ parkingHubId: 1, floorName: 1 }, { unique: true });
 
 const ParkingFloor = mongoose.model('ParkingFloor', ParkingFloorSchema);
 export default ParkingFloor;

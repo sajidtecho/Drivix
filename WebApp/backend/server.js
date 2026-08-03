@@ -19,6 +19,7 @@ import fastagRoutes from './routes/fastagRoutes.js';
 import { seedBanners } from './utils/seedBanners.js';
 import { seedPlaces } from './controllers/placeController.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import { runDatabaseMigration } from './utils/migration.js';
 
 import mongoose from 'mongoose';
 // Load environment variables
@@ -28,6 +29,7 @@ dotenv.config();
 connectDB().then(() => {
   seedBanners();
   seedPlaces();
+  runDatabaseMigration();
 }).catch(err => console.error('Database connection error during seeding:', err));
 
 const app = express();
@@ -127,28 +129,50 @@ setInterval(async () => {
     // Auto-vacate active bookings that are past their duration
     const Booking = mongoose.model('Booking');
     const expiredBookings = await Booking.find({
-      status: 'booked'
+      status: { $in: ['booked', 'Confirmed', 'Slot Assigned', 'Checked In'] }
     });
 
     for (const booking of expiredBookings) {
-      const endTime = new Date(booking.createdAt.getTime() + booking.duration * 60 * 60 * 1000);
-      if (endTime < now) {
-        console.log(`🧹 Auto-vacating expired booking: ${booking.bookingId}`);
-        booking.status = 'completed';
+      let endDateTime;
+      if (booking.bookingDate && booking.endTime) {
+        endDateTime = new Date(`${booking.bookingDate}T${booking.endTime}:00`);
+      } else {
+        endDateTime = new Date(booking.createdAt.getTime() + booking.duration * 60 * 60 * 1000);
+      }
+
+      if (endDateTime < now) {
+        console.log(`🧹 Auto-vacating/expiring booking: ${booking.bookingId}`);
+        const oldStatus = booking.status;
+        
+        if (oldStatus === 'Checked In') {
+          booking.status = 'Checked Out';
+        } else {
+          booking.status = 'Expired';
+        }
         await booking.save();
 
-        const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
-        if (slot) {
-          slot.status = 'available';
-          await slot.save();
+        if (booking.slotId) {
+          const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
+          if (slot) {
+            slot.status = 'available';
+            await slot.save();
 
-          io.emit('slotStatusUpdated', {
-            facilityId: booking.locationId.toString(),
-            id: booking.slotId,
-            status: 'available',
-            reservationExpiresAt: null,
-            reservedBy: null
-          });
+            io.emit('slotStatusUpdated', {
+              facilityId: booking.locationId.toString(),
+              id: booking.slotId,
+              status: 'available',
+              reservationExpiresAt: null,
+              reservedBy: null
+            });
+          }
+        }
+
+        // Update floor capacity counters
+        try {
+          const { updateFloorCounters } = await import('./controllers/bookingController.js');
+          await updateFloorCounters(booking.parkingHubId, booking.floorId);
+        } catch (err) {
+          console.warn('Error dynamically importing updateFloorCounters in background task:', err.message);
         }
       }
     }

@@ -1,6 +1,10 @@
 import ParkingLocation from '../models/ParkingLocation.js';
 import Slot from '../models/Slot.js';
+import ParkingFloor from '../models/ParkingFloor.js';
+import Booking from '../models/Booking.js';
+import mongoose from 'mongoose';
 import { calculateDynamicPrice } from '../utils/pricingEngine.js';
+
 
 // ==========================================
 // PARKING LOCATION CONTROLLERS
@@ -425,3 +429,64 @@ export const getPricingRecommendation = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Get floor live capacity
+// @route   GET /api/v1/parking/floor/live-capacity
+// @access  Private
+export const getFloorLiveCapacity = async (req, res) => {
+  const { parkingHubId, floorId, floorName } = req.query;
+
+  const hubId = parkingHubId || req.query.locationId || req.query.facilityId;
+
+  if (!hubId) {
+    return res.status(400).json({ message: 'parkingHubId is required' });
+  }
+
+  try {
+    let query = { parkingHubId: hubId };
+    
+    if (floorId && mongoose.Types.ObjectId.isValid(floorId)) {
+      query._id = floorId;
+    } else if (floorName) {
+      query.floorName = floorName;
+    } else if (floorId) {
+      // Treat floorId as name if not a valid ObjectId
+      query.floorName = floorId;
+    } else {
+      const firstFloor = await ParkingFloor.findOne({ parkingHubId: hubId });
+      if (!firstFloor) {
+        return res.status(404).json({ message: 'No floors found for this parking location' });
+      }
+      query._id = firstFloor._id;
+    }
+
+    const floorDoc = await ParkingFloor.findOne(query);
+    if (!floorDoc) {
+      return res.status(404).json({ message: 'Floor not found' });
+    }
+
+    // Dynamic verification of capacities to ensure real-time consistency
+    const activeBookings = await Booking.find({
+      parkingHubId: hubId,
+      floorId: floorDoc._id,
+      status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
+    });
+
+    const occupied = activeBookings.filter(b => b.status === 'Checked In' || b.status === 'occupied').length;
+    const reserved = activeBookings.filter(b => b.status === 'Confirmed' || b.status === 'booked' || b.status === 'Slot Assigned').length;
+    const totalCapacity = floorDoc.totalSlots;
+    const available = Math.max(0, totalCapacity - occupied - reserved);
+
+    res.json({
+      totalCapacity,
+      occupied,
+      reserved,
+      available,
+      floorName: floorDoc.floorName,
+      floorId: floorDoc._id
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

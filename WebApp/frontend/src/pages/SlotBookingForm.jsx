@@ -181,7 +181,7 @@ const SlotBookingForm = () => {
   const navigate = useNavigate();
   const { user } = useUser();
   const locState = useLocation().state;
-  const { location, slot, floor, reservationExpiresAt } = locState || {};
+  const { location, slot, floor, reservationExpiresAt, bookingDate, startTime, duration: stateDuration } = locState || {};
 
   const [step, setStep] = useState('form'); // 'form' | 'payment' | 'otp' | 'done'
   const [paymentMode, setPaymentMode] = useState('PAY_AFTER_CHECKOUT');
@@ -276,9 +276,9 @@ const SlotBookingForm = () => {
   const [mobile, setMobile] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [vehicleName, setVehicleName] = useState('');
-  const [entryDate, setEntryDate] = useState(new Date().toISOString().split('T')[0]);
-  const [entryTime, setEntryTime] = useState('');
-  const [duration, setDuration] = useState(2);
+  const [entryDate, setEntryDate] = useState(bookingDate || new Date().toISOString().split('T')[0]);
+  const [entryTime, setEntryTime] = useState(startTime || '');
+  const [duration, setDuration] = useState(stateDuration || 2);
   const [errors, setErrors] = useState({});
   const [selectedServices, setSelectedServices] = useState([]);
 
@@ -378,7 +378,7 @@ const SlotBookingForm = () => {
     }
   };
 
-  if (!location || !slot) {
+  if (!location) {
     return (
       <div style={{ paddingTop: '120px', textAlign: 'center', padding: '120px 20px' }}>
         <p style={{ color: 'var(--text-secondary)' }}>No booking data found.</p>

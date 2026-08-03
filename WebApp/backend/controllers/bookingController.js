@@ -1,9 +1,49 @@
 import Booking from '../models/Booking.js';
 import Slot from '../models/Slot.js';
 import ParkingLocation from '../models/ParkingLocation.js';
+import ParkingFloor from '../models/ParkingFloor.js';
 import User from '../models/User.js';
+import mongoose from 'mongoose';
 import { calculateDynamicPrice } from '../utils/pricingEngine.js';
 import { sendBookingNotification } from '../utils/notificationService.js';
+
+// Helper to keep floor capacity and parking location available counters synchronized
+export const updateFloorCounters = async (parkingHubId, floorId) => {
+  try {
+    const floor = await ParkingFloor.findById(floorId);
+    if (!floor) return;
+
+    // Count all active bookings on this floor
+    const activeBookings = await Booking.find({
+      parkingHubId,
+      floorId,
+      status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
+    });
+
+    const occupiedSlots = activeBookings.filter(b => b.status === 'Checked In' || b.status === 'occupied').length;
+    const reservedCapacity = activeBookings.filter(b => b.status === 'Confirmed' || b.status === 'booked' || b.status === 'Slot Assigned').length;
+    const availableSlots = Math.max(0, floor.totalSlots - occupiedSlots - reservedCapacity);
+
+    floor.occupiedSlots = occupiedSlots;
+    floor.reservedCapacity = reservedCapacity;
+    floor.availableSlots = availableSlots;
+    await floor.save();
+
+    // Also update parent ParkingLocation available slots count for backward compatibility
+    const location = await ParkingLocation.findById(parkingHubId);
+    if (location) {
+      const totalActiveBookings = await Booking.find({
+        locationId: parkingHubId,
+        status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
+      });
+      location.availableSlots = Math.max(0, location.totalSlots - totalActiveBookings.length);
+      await location.save();
+    }
+  } catch (error) {
+    console.error(`Error updating floor counters for floor ${floorId}:`, error);
+  }
+};
+
 
 // @desc    Create a new booking ticket
 // @route   POST /api/v1/bookings
@@ -35,7 +75,6 @@ export const createBooking = async (req, res) => {
 
   try {
     const resolvedLocationId = locationId || facilityId;
-    const resolvedSlotId = slotId;
     const resolvedDuration = duration !== undefined ? duration : durationHours;
     const resolvedVehicleNumber = vehicleNumber;
     const resolvedVehicleName = vehicleName || vehicleModel;
@@ -59,24 +98,6 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    // 1. Verify Slot is available (or reserved by the current user)
-    const slot = await Slot.findOne({ facilityId: resolvedLocationId, id: resolvedSlotId });
-    if (!slot) {
-      return res.status(404).json({ message: 'Slot not found' });
-    }
-    
-    const now = new Date();
-    const isReservedByMe = slot.status === 'temporarily_reserved' &&
-                           slot.reservedBy &&
-                           slot.reservedBy.toString() === req.user._id.toString() &&
-                           slot.reservationExpiresAt > now;
-
-    if (slot.status !== 'available' && !isReservedByMe) {
-      return res.status(400).json({ message: 'This slot is currently occupied or reserved by another user.' });
-    }
-
-    // Resolve details from Slot and Location if missing (common in mobile app requests)
-    const resolvedFloor = floor || slot.floor;
     const location = await ParkingLocation.findById(resolvedLocationId);
     if (!location) {
       return res.status(404).json({ message: 'Parking location not found' });
@@ -88,8 +109,64 @@ export const createBooking = async (req, res) => {
     const resolvedMobile = mobile || req.user.mobile || '0000000000';
 
     // Resolve date and time
+    const now = new Date();
     const resolvedEntryDate = entryDate || now.toISOString().split('T')[0];
     const resolvedEntryTime = entryTime || `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    // 1. Resolve and Verify Floor Capacity
+    let floorDoc = null;
+    const searchFloor = floor || 'L1';
+    
+    // Find the floor document
+    floorDoc = await ParkingFloor.findOne({
+      parkingHubId: resolvedLocationId,
+      $or: [
+        { floorName: searchFloor },
+        { _id: mongoose.Types.ObjectId.isValid(searchFloor) ? searchFloor : undefined }
+      ]
+    });
+
+    if (!floorDoc) {
+      // Fallback to first floor or create one
+      floorDoc = await ParkingFloor.findOne({ parkingHubId: resolvedLocationId });
+      if (!floorDoc) {
+        floorDoc = await ParkingFloor.create({
+          parkingHubId: resolvedLocationId,
+          floorName: searchFloor,
+          totalSlots: location.totalSlots || 50,
+          availableSlots: location.availableSlots || 50
+        });
+      }
+    }
+
+    const resolvedFloor = floorDoc.floorName;
+    const resolvedFloorId = floorDoc._id;
+
+    // Capacity Validation Logic: Overlapping active bookings
+    const reqStart = new Date(`${resolvedEntryDate}T${resolvedEntryTime}:00`);
+    const reqEnd = new Date(reqStart.getTime() + Number(resolvedDuration) * 60 * 60 * 1000);
+
+    const activeBookingsOnFloor = await Booking.find({
+      parkingHubId: resolvedLocationId,
+      floorId: resolvedFloorId,
+      bookingDate: resolvedEntryDate,
+      status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
+    });
+
+    let overlappingCount = 0;
+    for (const b of activeBookingsOnFloor) {
+      const bStart = new Date(`${b.bookingDate}T${b.startTime}:00`);
+      const bEnd = new Date(bStart.getTime() + b.duration * 60 * 60 * 1000);
+      if (bStart < reqEnd && bEnd > reqStart) {
+        overlappingCount++;
+      }
+    }
+
+    if (overlappingCount >= floorDoc.totalSlots) {
+      return res.status(400).json({
+        message: `Reservation rejected: Floor capacity is full for ${resolvedFloor} on ${resolvedEntryDate} at ${resolvedEntryTime}. (Total: ${floorDoc.totalSlots}, Reserved: ${overlappingCount})`
+      });
+    }
 
     // Resolve total cost
     let resolvedTotalCost = totalCost;
@@ -113,9 +190,15 @@ export const createBooking = async (req, res) => {
       mobile: resolvedMobile,
       vehicleNumber: resolvedVehicleNumber,
       vehicleName: resolvedVehicleName,
+      parkingHubId: resolvedLocationId,
+      floorId: resolvedFloorId,
+      bookingDate: resolvedEntryDate,
+      startTime: resolvedEntryTime,
+      vehicleId: req.body.vehicleId || null,
+
       locationId: resolvedLocationId,
       locationName: resolvedLocationName,
-      slotId: resolvedSlotId,
+      slotId: null, // Slot remains null until arrival/assignment
       floor: resolvedFloor,
       entryDate: resolvedEntryDate,
       entryTime: resolvedEntryTime,
@@ -125,39 +208,29 @@ export const createBooking = async (req, res) => {
       paymentStatus: isPayNow ? 'paid' : 'pending',
       prepaidAmount: isPayNow ? Number(resolvedTotalCost) : 0,
       finalCost: isPayNow ? Number(resolvedTotalCost) : 0,
-      status: 'booked',
+      status: 'Confirmed',
       additionalServices: resolvedServices,
       servicesCost: resolvedServicesCost
     });
 
-    // 3. Mark the slot as booked and clear reservation details
-    slot.status = 'booked';
-    slot.reservedBy = null;
-    slot.reservationExpiresAt = null;
-    await slot.save();
+    // 3. Update floor and location capacities
+    await updateFloorCounters(resolvedLocationId, resolvedFloorId);
 
-    // Emit Socket.io update to all connected clients!
+    // Emit Socket.io update to all connected clients
     const io = req.app.get('socketio');
     if (io) {
-      io.emit('slotStatusUpdated', {
-        facilityId: resolvedLocationId.toString(),
-        id: resolvedSlotId,
-        status: 'booked',
-        reservationExpiresAt: null,
-        reservedBy: null
+      io.emit('floorCapacityUpdated', {
+        parkingHubId: resolvedLocationId.toString(),
+        floorId: resolvedFloorId.toString(),
+        floorName: resolvedFloor
       });
     }
 
-    // 4. Decrement available slots on the parent location
-    await ParkingLocation.findByIdAndUpdate(resolvedLocationId, {
-      $inc: { availableSlots: -1 }
-    });
-
-    // 5. Send Email & SMS Notification
+    // 4. Send Email & SMS Notification
     await sendBookingNotification({
       userId: req.user._id,
       title: 'Booking Confirmed',
-      message: `Your booking at ${resolvedLocationName}, Slot ${resolvedSlotId}, Floor ${resolvedFloor} is confirmed.`,
+      message: `Your floor reservation at ${resolvedLocationName}, Floor ${resolvedFloor} is confirmed. A slot will be assigned shortly before arrival.`,
       type: 'booking'
     });
 
@@ -257,7 +330,7 @@ export const vacateBooking = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    if (booking.status === 'completed') {
+    if (booking.status === 'Checked Out' || booking.status === 'completed') {
       return res.status(400).json({ message: 'Booking is already completed' });
     }
 
@@ -301,37 +374,37 @@ export const vacateBooking = async (req, res) => {
     booking.finalCost = finalCost;
     booking.actualExitTime = new Date();
     booking.paymentStatus = 'paid';
-    booking.status = 'completed';
+    booking.status = 'Checked Out';
     await booking.save();
 
-    // 4. Mark the slot as available again
-    const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
-    if (slot) {
-      slot.status = 'available';
-      await slot.save();
+    // 4. Mark the slot as available again if slot was assigned
+    if (booking.slotId) {
+      const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
+      if (slot) {
+        slot.status = 'available';
+        await slot.save();
 
-      // Emit Socket.io update to all connected clients!
-      const io = req.app.get('socketio');
-      if (io) {
-        io.emit('slotStatusUpdated', {
-          facilityId: booking.locationId.toString(),
-          id: booking.slotId,
-          status: 'available',
-          reservationExpiresAt: null
-        });
+        // Emit Socket.io update to all connected clients!
+        const io = req.app.get('socketio');
+        if (io) {
+          io.emit('slotStatusUpdated', {
+            facilityId: booking.locationId.toString(),
+            id: booking.slotId,
+            status: 'available',
+            reservationExpiresAt: null
+          });
+        }
       }
     }
 
-    // 5. Increment available slots on the parent location
-    await ParkingLocation.findByIdAndUpdate(booking.locationId, {
-      $inc: { availableSlots: 1 }
-    });
+    // 5. Update floor counters (which automatically updates parent availableSlots)
+    await updateFloorCounters(booking.parkingHubId, booking.floorId);
 
     // 6. Send Email & SMS Notification
     await sendBookingNotification({
       userId: req.user._id,
       title: 'Checkout Completed',
-      message: `Successfully checked out of ${location ? location.parkingName : 'parking hub'}, Slot ${booking.slotId}.`,
+      message: `Successfully checked out of ${location ? location.parkingName : 'parking hub'}.${booking.slotId ? ` Slot ${booking.slotId} is now vacated.` : ''}`,
       type: 'payment'
     });
 
@@ -358,9 +431,51 @@ export const extendBooking = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    booking.duration += Number(additionalHours);
-    booking.totalCost += Number(additionalCost);
+    // 1. Check floor capacity for extended duration
+    const floorDoc = await ParkingFloor.findById(booking.floorId);
+    if (!floorDoc) {
+      return res.status(404).json({ message: 'Floor not found' });
+    }
+
+    const startDateTime = new Date(`${booking.bookingDate}T${booking.startTime}:00`);
+    const newDuration = booking.duration + Number(additionalHours);
+    const newEndDateTime = new Date(startDateTime.getTime() + newDuration * 60 * 60 * 1000);
+
+    // Query active bookings (excluding the current booking itself!)
+    const activeBookings = await Booking.find({
+      _id: { $ne: booking._id },
+      parkingHubId: booking.parkingHubId,
+      floorId: booking.floorId,
+      bookingDate: booking.bookingDate,
+      status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
+    });
+
+    let overlappingCount = 0;
+    for (const b of activeBookings) {
+      const bStart = new Date(`${b.bookingDate}T${b.startTime}:00`);
+      const bEnd = new Date(bStart.getTime() + b.duration * 60 * 60 * 1000);
+      if (bStart < newEndDateTime && bEnd > startDateTime) {
+        overlappingCount++;
+      }
+    }
+
+    if (overlappingCount >= floorDoc.totalSlots) {
+      return res.status(400).json({
+        message: 'Cannot extend booking: Floor capacity is full for the extended duration.'
+      });
+    }
+
+    // 2. Update booking details
+    booking.duration = newDuration;
+    booking.totalCost += Number(additionalCost || 0);
+
+    // Recalculate endTime string
+    const hours = String(newEndDateTime.getHours()).padStart(2, '0');
+    const minutes = String(newEndDateTime.getMinutes()).padStart(2, '0');
+    booking.endTime = `${hours}:${minutes}`;
+
     await booking.save();
+    await updateFloorCounters(booking.parkingHubId, booking.floorId);
 
     res.json({ message: 'Booking extended successfully', booking });
   } catch (error) {
@@ -488,3 +603,53 @@ export const deleteAllBookingsAdmin = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Assign slot shortly before arrival (Phase 2 stub)
+// @route   POST /api/v1/bookings/:id/assign-slot
+// @access  Private
+export const assignSlot = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    // Return mock success for Phase 1
+    res.json({ 
+      message: 'Slot assignment requested successfully (Phase 2 feature)', 
+      booking 
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Confirm user arrival 30 mins before booking (Phase 2 stub)
+// @route   POST /api/v1/bookings/:id/arrival-confirmation
+// @access  Private
+export const confirmArrival = async (req, res) => {
+  try {
+    const { action } = req.body; // 'yes', 'delay', 'cancel'
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    
+    if (action === 'cancel') {
+      booking.status = 'Cancelled';
+      await booking.save();
+      await updateFloorCounters(booking.parkingHubId, booking.floorId);
+      return res.json({ message: 'Booking cancelled successfully', booking });
+    }
+
+    booking.arrivalConfirmed = true;
+    await booking.save();
+
+    res.json({ 
+      message: `Arrival confirmation processed: ${action}`, 
+      booking 
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
