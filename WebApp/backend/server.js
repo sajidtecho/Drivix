@@ -177,6 +177,50 @@ setInterval(async () => {
         }
       }
     }
+
+    // Prompt arrival confirmation for bookings starting in <= 30 mins
+    const upcomingBookings = await Booking.find({
+      status: 'Confirmed',
+      arrivalConfirmed: false
+    });
+
+    for (const booking of upcomingBookings) {
+      if (booking.bookingDate && booking.startTime) {
+        const startDateTime = new Date(`${booking.bookingDate}T${booking.startTime}:00`);
+        const timeDiffMs = startDateTime.getTime() - now.getTime();
+        const timeDiffMins = timeDiffMs / (1000 * 60);
+
+        // If booking starts in <= 30 minutes, and we haven't prompted them yet
+        if (timeDiffMins <= 30 && timeDiffMins > 0) {
+          console.log(`[Arrival Check] Prompting arrival check for: ${booking.bookingId} (starts in ${Math.round(timeDiffMins)} mins)`);
+          
+          io.emit('arrivalConfirmationPrompt', {
+            bookingId: booking._id.toString(),
+            customId: booking.bookingId,
+            message: 'Are you still coming? Your reservation starts in 30 minutes.',
+            options: ['yes', 'delay', 'cancel']
+          });
+
+          // Store temporary ETA prompt tracking to avoid spamming
+          booking.ETA = Math.round(timeDiffMins);
+          await booking.save();
+        }
+        
+        // Auto-expire unconfirmed bookings if they are 15 minutes past their start time
+        if (timeDiffMins < -15) {
+          console.log(`🧹 Auto-cancelling unconfirmed booking: ${booking.bookingId}`);
+          booking.status = 'Expired';
+          await booking.save();
+          
+          try {
+            const { updateFloorCounters } = await import('./controllers/bookingController.js');
+            await updateFloorCounters(booking.parkingHubId, booking.floorId);
+          } catch (err) {
+            console.warn('Error dynamically importing updateFloorCounters in background task:', err.message);
+          }
+        }
+      }
+    }
   } catch (err) {
     if (err.name === 'MongoServerSelectionError' || err.name === 'MongoNetworkError' || err.name === 'MongoNetworkTimeoutError') {
       console.warn(`⚠️ Database connection issues during cleanup: ${err.message}`);
