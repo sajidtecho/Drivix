@@ -1,19 +1,51 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import * as htmlToImage from 'html-to-image';
 import challanIcon from '../assets/challan.png';
+import { API_BASE_URL } from '../config';
+import { useToast } from '../context/ToastContext';
 import {
   CheckCircle2, MapPin, Navigation, Car, Clock,
-  Calendar, Download, Home, Share2, Shield
+  Calendar, Download, Home, Share2, Shield, Loader2
 } from 'lucide-react';
 
 const Ticket = () => {
   const navigate = useNavigate();
   const locState = useLocation().state;
-  const booking = locState?.booking;
+  const initialBooking = locState?.booking;
   const ticketRef = useRef(null);
+  const { showToast } = useToast();
+
+  const [booking, setBooking] = useState(initialBooking);
+  const [qrToken, setQrToken] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (booking && booking.slotId && !qrToken) {
+      // Generate a client-side placeholder token or fetch the token
+      const token = localStorage.getItem('drivix_auth_token');
+      // If we don't have a token, we request a slot details update to retrieve the encrypted pass
+      const fetchBookingDetails = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/v1/bookings/my`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const current = data.find(b => b.bookingId === booking.bookingId || b._id === booking.docId || b._id === booking._id);
+            if (current && current.slotId) {
+              setBooking(current);
+            }
+          }
+        } catch (err) {
+          console.error("Error retrieving booking token:", err);
+        }
+      };
+      fetchBookingDetails();
+    }
+  }, [booking, qrToken]);
 
   if (!booking) {
     return (
@@ -33,7 +65,88 @@ const Ticket = () => {
     vehicle: booking.vehicleNumber,
     date: booking.entryDate,
     time: booking.entryTime,
+    token: qrToken || 'DRIVIX-PASS-TOKEN-AUTO-VERIFIED'
   });
+
+  const handleStartNavigation = async () => {
+    setSubmitting(true);
+    const token = localStorage.getItem('drivix_auth_token');
+    const bookingDocId = booking.docId || booking._id;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/bookings/${bookingDocId}/assign-slot`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setBooking(data.booking);
+        setQrToken(data.qrToken);
+        showToast(`Dynamic Slot Assigned: ${data.booking.slotId} on ${data.booking.floor}!`, "success");
+
+        // Delay navigation slightly to let user see confirmation
+        setTimeout(() => {
+          if (data.booking.latitude !== undefined && data.booking.longitude !== undefined) {
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${data.booking.latitude},${data.booking.longitude}`, '_blank');
+          } else {
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(data.booking.locationName)}`, '_blank');
+          }
+        }, 1500);
+      } else {
+        const err = await res.json();
+        showToast(err.message || "Failed to assign slot. Please check floor capacity.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Network error executing slot allocation.", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleArrivalCheck = async (action) => {
+    setSubmitting(true);
+    const token = localStorage.getItem('drivix_auth_token');
+    const bookingDocId = booking.docId || booking._id;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/bookings/${bookingDocId}/arrival-confirmation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ action })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (action === 'cancel') {
+          showToast("Reservation cancelled and capacity released.", "success");
+          navigate('/parking');
+        } else if (action === 'delay') {
+          setBooking(data.booking);
+          showToast("Arrival time delayed by 30 minutes successfully.", "success");
+        } else if (action === 'yes') {
+          setBooking(data.booking);
+          setQrToken(data.qrToken);
+          showToast(`Welcome! Slot assigned: ${data.booking.slotId} (${data.booking.floor})`, "success");
+        }
+      } else {
+        const err = await res.json();
+        showToast(err.message || `Failed to process action ${action}`, "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Network error sending confirmation.", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleOpenMaps = () => {
     if (booking.latitude !== undefined && booking.longitude !== undefined) {
@@ -66,21 +179,18 @@ const Ticket = () => {
     if (ticketRef.current === null) return;
     
     try {
-      // 1. Capture the Ticket UI as a PNG
       const dataUrl = await htmlToImage.toPng(ticketRef.current, { 
         quality: 1.0,
-        pixelRatio: 2, // Retinal quality
+        pixelRatio: 2,
         backgroundColor: '#0a0a14',
         cacheBust: true,
       });
 
-      // 2. Conver the Data URL to a real File object for WhatsApp
       const res = await fetch(dataUrl);
       const blob = await res.blob();
       const filename = `Drivix-Ticket-${booking.bookingId}.png`;
       const file = new File([blob], filename, { type: 'image/png' });
 
-      // 3. Try Web Share API (Mobile WhatsApp/Social)
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -88,7 +198,6 @@ const Ticket = () => {
           text: `Here is my parking ticket for ${booking.slotId ? `Slot ${booking.slotId}` : `${booking.floor} reservation`} at ${booking.locationName}.`
         });
       } else {
-        // Fallback: Just download the image if sharing isn't supported
         const link = document.createElement('a');
         link.download = filename;
         link.href = dataUrl;
@@ -124,7 +233,7 @@ const Ticket = () => {
             Booking <span style={{ background: 'linear-gradient(135deg, #00cc6a, #00a855)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Confirmed!</span>
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Your digital ticket is ready. Show it at entry.
+            {booking.slotId ? 'Your digital ticket is ready. Show it at entry.' : 'Your floor reservation is secured.'}
           </p>
         </motion.div>
 
@@ -148,7 +257,6 @@ const Ticket = () => {
             padding: '28px 28px 24px',
             position: 'relative', overflow: 'hidden',
           }}>
-            {/* Decorative rings */}
             <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '120px', height: '120px', borderRadius: '50%', border: '2px solid rgba(255,206,0,0.15)' }} />
             <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '80px', height: '80px', borderRadius: '50%', border: '2px solid rgba(255,206,0,0.1)' }} />
 
@@ -167,10 +275,11 @@ const Ticket = () => {
               </div>
               <div style={{
                 padding: '6px 14px', borderRadius: 'var(--radius-pill)',
-                background: 'rgba(0,204,106,0.2)', border: '1px solid rgba(0,204,106,0.4)',
-                fontSize: '0.75rem', fontWeight: 800, color: '#00cc6a', letterSpacing: '1px',
+                background: booking.slotId ? 'rgba(0,204,106,0.2)' : 'rgba(255,206,0,0.15)', 
+                border: booking.slotId ? '1px solid rgba(0,204,106,0.4)' : '1px solid rgba(255,206,0,0.3)',
+                fontSize: '0.75rem', fontWeight: 800, color: booking.slotId ? '#00cc6a' : '#FFCE00', letterSpacing: '1px',
               }}>
-                CONFIRMED
+                {booking.slotId ? 'SLOT ASSIGNED' : 'CONFIRMED'}
               </div>
             </div>
           </div>
@@ -188,38 +297,82 @@ const Ticket = () => {
 
           {/* Ticket body */}
           <div style={{ padding: '28px' }}>
-            {!booking.slotId && (
-              <div className="glass-panel" style={{ padding: '16px', borderRadius: 'var(--radius-input)', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', marginBottom: '24px', textAlign: 'center' }}>
-                <p style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--accent-primary)', marginBottom: '4px' }}>
-                  Slot will be assigned before arrival
-                </p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  Estimated Walk Time: Will be shown later
-                </p>
-              </div>
-            )}
-            
-            {/* QR Code */}
-            <div style={{
-              display: 'flex', justifyContent: 'center', marginBottom: '24px',
-            }}>
-              <div style={{
-                padding: '16px', borderRadius: '16px', background: '#fff',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-              }}>
-                <QRCodeSVG
-                  value={qrPayload}
-                  size={160}
-                  bgColor="#ffffff"
-                  fgColor="#0a0a14"
-                  level="M"
-                />
-              </div>
-            </div>
+            {!booking.slotId ? (
+              /* Slot will be assigned screen layout */
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', margin: '10px 0 20px' }}>
+                <div className="glass-panel" style={{ width: '100%', padding: '20px', borderRadius: 'var(--radius-input)', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
+                  <p style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--accent-primary)', marginBottom: '6px' }}>
+                    Slot will be assigned before arrival
+                  </p>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.4', marginBottom: '16px' }}>
+                    Estimated Walk Time: Will be shown later. Start navigation or confirm check-in below to allocate your slot immediately.
+                  </p>
 
-            <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '24px', letterSpacing: '1px', fontWeight: 600 }}>
-              SCAN AT ENTRY · BOOKING ID: {booking.bookingId}
-            </p>
+                  {submitting ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                      <Loader2 className="animate-spin" size={18} color="var(--accent-primary)" />
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Allocating Best Slot...</span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <button 
+                        onClick={handleStartNavigation}
+                        className="btn btn-primary"
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', fontSize: '0.9rem', fontWeight: 800 }}
+                      >
+                        <Navigation size={15} /> Start Navigation & Assign Slot
+                      </button>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '4px' }}>
+                        <button 
+                          onClick={() => handleArrivalCheck('yes')}
+                          style={{ padding: '11px', background: 'rgba(0,204,106,0.12)', color: '#00cc6a', border: '1px solid rgba(0,204,106,0.25)', borderRadius: 'var(--radius-button)', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}
+                        >
+                          Confirm Arrival
+                        </button>
+                        <button 
+                          onClick={() => handleArrivalCheck('delay')}
+                          style={{ padding: '11px', background: 'rgba(255,206,0,0.12)', color: '#FFCE00', border: '1px solid rgba(255,206,0,0.25)', borderRadius: 'var(--radius-button)', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}
+                        >
+                          Delay 30 mins
+                        </button>
+                      </div>
+
+                      <button 
+                        onClick={() => handleArrivalCheck('cancel')}
+                        style={{ padding: '8px', background: 'transparent', color: '#ff4b4b', border: 'none', textDecoration: 'underline', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600, marginTop: '8px' }}
+                      >
+                        Cancel Reservation
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Assigned QR Pass layout */
+              <>
+                <div style={{
+                  display: 'flex', justifyContent: 'center', marginBottom: '24px',
+                }}>
+                  <div style={{
+                    padding: '16px', borderRadius: '16px', background: '#fff',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  }}>
+                    <QRCodeSVG
+                      value={qrPayload}
+                      size={160}
+                      bgColor="#ffffff"
+                      fgColor="#0a0a14"
+                      level="M"
+                    />
+                  </div>
+                </div>
+
+                <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '24px', letterSpacing: '1px', fontWeight: 600 }}>
+                  SCAN AT ENTRY · BOOKING ID: {booking.bookingId}
+                </p>
+              </>
+            )}
 
             {/* Details grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -235,7 +388,6 @@ const Ticket = () => {
                   border: '1px solid var(--glass-border)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-
                     <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       {label}
                     </span>
@@ -310,13 +462,15 @@ const Ticket = () => {
           transition={{ delay: 0.4 }}
           style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
         >
-          <button
-            onClick={handleOpenMaps}
-            className="btn btn-primary"
-            style={{ width: '100%', padding: '16px', fontSize: '1rem', fontWeight: 800 }}
-          >
-            <Navigation size={20} /> Navigate to Parking
-          </button>
+          {booking.slotId && (
+            <button
+              onClick={handleOpenMaps}
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '16px', fontSize: '1rem', fontWeight: 800 }}
+            >
+              <Navigation size={20} /> Navigate to Parking
+            </button>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
              <button
