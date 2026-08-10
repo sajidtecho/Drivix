@@ -22,7 +22,7 @@ const AdminRevenue = () => {
           const list = [];
           
           bookings.forEach(b => {
-            if (b.status === 'completed' || b.status === 'booked') {
+            if (['completed', 'booked', 'Confirmed', 'Slot Assigned', 'Checked In', 'Checked Out'].includes(b.status)) {
               const amount = Number(b.totalCost) || 0;
               total += amount;
               list.push({

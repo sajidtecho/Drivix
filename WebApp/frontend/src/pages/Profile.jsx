@@ -22,7 +22,8 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
 
   useEffect(() => {
     const calculateTime = () => {
-      if (booking.status === 'completed') return;
+      const isCompleted = ['completed', 'Checked Out', 'Cancelled', 'cancelled', 'Expired'].includes(booking.status);
+      if (isCompleted) return;
 
       const [year, month, day] = booking.entryDate.split('-').map(Number);
       const [hour, minute] = booking.entryTime.split(':').map(Number);
@@ -52,7 +53,8 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
     return () => clearInterval(interval);
   }, [booking]);
 
-  const isActive = booking.status === 'booked';
+  const isActive = ['booked', 'Pending', 'Confirmed', 'Slot Assigned', 'Checked In'].includes(booking.status);
+  const isCompleted = ['completed', 'Checked Out', 'Cancelled', 'cancelled', 'Expired'].includes(booking.status);
 
   return (
     <motion.div
@@ -69,11 +71,11 @@ const BookingCard = ({ booking, onVacate, onExtend }) => {
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-secondary)' }}>#{booking.bookingId}</span>
             <span style={{
               fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--radius-pill)',
-              background: booking.status === 'completed' ? 'rgba(255,255,255,0.05)' : (isOverdue ? 'rgba(255, 75, 75, 0.1)' : 'rgba(0, 204, 106, 0.1)'),
-              color: booking.status === 'completed' ? 'var(--text-muted)' : (isOverdue ? '#ff4b4b' : '#00cc6a'),
+              background: isCompleted ? 'rgba(255,255,255,0.05)' : (isOverdue ? 'rgba(255, 75, 75, 0.1)' : 'rgba(0, 204, 106, 0.1)'),
+              color: isCompleted ? 'var(--text-muted)' : (isOverdue ? '#ff4b4b' : '#00cc6a'),
               border: '1px solid rgba(255,255,255,0.1)', fontWeight: 700
             }}>
-              {booking.status === 'completed' ? 'COMPLETED' : (isOverdue ? 'OVERDUE / FINE' : 'ACTIVE')}
+              {isCompleted ? (['completed', 'Checked Out'].includes(booking.status) ? 'COMPLETED' : booking.status.toUpperCase()) : (isOverdue ? 'OVERDUE / FINE' : 'ACTIVE')}
             </span>
           </div>
 
@@ -205,8 +207,8 @@ const Profile = () => {
     }
   }, [location.state]);
 
-  const activeBookings = bookings.filter(b => b.status === 'booked');
-  const historyBookings = bookings.filter(b => b.status === 'completed');
+  const activeBookings = bookings.filter(b => ['booked', 'Pending', 'Confirmed', 'Slot Assigned', 'Checked In'].includes(b.status));
+  const historyBookings = bookings.filter(b => ['completed', 'Checked Out', 'Cancelled', 'cancelled', 'Expired'].includes(b.status));
   const displayedBookings = bookingSubTab === 'active' ? activeBookings : historyBookings;
 
   if (loading) {

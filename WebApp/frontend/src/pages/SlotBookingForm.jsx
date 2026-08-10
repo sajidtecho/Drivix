@@ -10,6 +10,17 @@ import { API_BASE_URL } from '../config';
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8];
 
+const cleanMobileNumber = (val) => {
+  if (!val) return '';
+  let clean = val.replace(/\D/g, '');
+  if (clean.startsWith('91') && clean.length > 10) {
+    clean = clean.substring(2);
+  } else if (clean.startsWith('0') && clean.length > 10) {
+    clean = clean.substring(1);
+  }
+  return clean.substring(0, 10);
+};
+
 /* ─── Styled Input ───────────────────────────────── */
 const FormField = ({ label, icon: FieldIcon, iconColor = 'var(--accent-primary)', error, children }) => (
   <div style={{ marginBottom: '20px' }}>
@@ -260,7 +271,7 @@ const SlotBookingForm = () => {
   React.useEffect(() => {
     if (user && !vehicleNumber && !name && !mobile) {
       setName(user.fullName || user.name || '');
-      setMobile(user.mobile || '');
+      setMobile(cleanMobileNumber(user.mobile || ''));
       if (user.vehicles && user.vehicles.length > 0) {
         const primary = user.vehicles.find(v => v.isPrimary) || user.vehicles[0];
         if (primary) {
@@ -465,7 +476,14 @@ const SlotBookingForm = () => {
 
               <FormField label="Mobile Number" icon={Phone} iconColor="var(--accent-secondary)" error={errors.mobile}>
                 <span style={{ color: 'var(--text-secondary)', fontWeight: 700, fontSize: '0.95rem' }}>+91</span>
-                <input style={inputStyle} type="tel" placeholder="Mobile Number" maxLength={10} value={mobile} onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))} />
+                <input 
+                  style={inputStyle} 
+                  type="tel" 
+                  placeholder="Mobile Number" 
+                  maxLength={13} 
+                  value={mobile} 
+                  onChange={(e) => setMobile(cleanMobileNumber(e.target.value))} 
+                />
               </FormField>
 
               {/* Vehicle Details */}
@@ -533,44 +551,88 @@ const SlotBookingForm = () => {
                 <input style={inputStyle} type="text" placeholder="Maruti Swift, Honda City..." value={vehicleName} onChange={(e) => setVehicleName(e.target.value)} />
               </FormField>
 
-              {/* Time & Duration */}
+              {/* Time & Duration (Read-only Summary) */}
               <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '16px', marginTop: '8px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Time & Duration
               </h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
-                <FormField label="Date" icon={Calendar} error={errors.entryDate}>
-                  <input type="date" style={inputStyle} value={entryDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => setEntryDate(e.target.value)} />
-                </FormField>
-                <FormField label="Entry Time" icon={Clock} iconColor="var(--accent-secondary)" error={errors.entryTime}>
-                  <input type="time" style={inputStyle} value={entryTime} onChange={(e) => setEntryTime(e.target.value)} />
-                </FormField>
-              </div>
+              <div 
+                className="glass-panel" 
+                style={{ 
+                  padding: '18px 20px', 
+                  borderRadius: 'var(--radius-card)', 
+                  background: 'var(--bg-tertiary)', 
+                  border: '1.5px solid var(--glass-border)',
+                  marginBottom: '24px' 
+                }}
+              >
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255, 206, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Calendar size={18} color="var(--accent-primary)" />
+                      </div>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date</p>
+                        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                          {(() => {
+                            if (!entryDate) return 'N/A';
+                            const parts = entryDate.split('-');
+                            if (parts.length === 3) {
+                              return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                            }
+                            return entryDate;
+                          })()}
+                        </p>
+                      </div>
+                    </div>
 
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                  Duration
-                </label>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {DURATION_OPTIONS.map((h) => (
-                    <button
-                      key={h}
-                      onClick={() => setDuration(h)}
-                      style={{
-                        padding: '10px 18px', borderRadius: 'var(--radius-button)', fontFamily: 'inherit',
-                        fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-                        background: duration === h ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' : 'var(--glass-bg)',
-                        color: duration === h ? '#000' : 'var(--text-primary)',
-                        border: duration === h ? 'none' : '1px solid var(--glass-border)',
-                        boxShadow: duration === h ? '0 4px 12px var(--accent-glow)' : 'none',
-                        transition: 'all 0.18s',
-                      }}
-                    >
-                      {h}h
-                    </button>
-                  ))}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255, 126, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Clock size={18} color="var(--accent-secondary)" />
+                      </div>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Entry Time</p>
+                        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                          {(() => {
+                            if (!entryTime) return 'N/A';
+                            if (entryTime.toUpperCase().includes('AM') || entryTime.toUpperCase().includes('PM')) {
+                              return entryTime;
+                            }
+                            const parts = entryTime.split(':');
+                            if (parts.length >= 2) {
+                              let hours = parseInt(parts[0], 10);
+                              const minutes = parts[1].substring(0, 2);
+                              const ampm = hours >= 12 ? 'PM' : 'AM';
+                              hours = hours % 12;
+                              hours = hours ? hours : 12;
+                              return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+                            }
+                            return entryTime;
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0, 210, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Clock size={18} color="#00D2FF" />
+                      </div>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Duration</p>
+                        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                          {duration} {duration === 1 ? 'Hour' : 'Hours'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style={{ padding: '6px 12px', borderRadius: '20px', background: 'rgba(0, 204, 106, 0.1)', border: '1px solid rgba(0, 204, 106, 0.25)', fontSize: '0.78rem', color: '#00cc6a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>✓ Already Chosen</span>
+                  </div>
                 </div>
               </div>
+
 
               {/* Optional Services */}
               <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '16px', marginTop: '16px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>

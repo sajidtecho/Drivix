@@ -472,30 +472,18 @@ const Ticket = () => {
             </button>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-             <button
-              onClick={handleShareAsImage}
-              className="btn btn-primary"
-              style={{ 
-                padding: '16px', fontSize: '0.9rem', fontWeight: 800,
-                background: '#FFCE00', color: '#000', border: 'none',
-                boxShadow: '0 4px 20px rgba(255, 206, 0, 0.2)'
-              }}
-            >
-              <Download size={18} /> Download Image
-            </button>
-            <button
-              onClick={handleWhatsAppShare}
-              className="btn btn-primary"
-              style={{ 
-                padding: '16px', fontSize: '0.9rem', fontWeight: 800,
-                background: '#25D366', color: '#fff', border: 'none',
-                boxShadow: '0 4px 20px rgba(37, 211, 102, 0.2)'
-              }}
-            >
-              <Share2 size={18} /> Share Info
-            </button>
-          </div>
+          <button
+            onClick={handleShareAsImage}
+            className="btn btn-primary"
+            style={{ 
+              width: '100%',
+              padding: '16px', fontSize: '1rem', fontWeight: 800,
+              background: '#FFCE00', color: '#000', border: 'none',
+              boxShadow: '0 4px 20px rgba(255, 206, 0, 0.2)'
+            }}
+          >
+            <Download size={18} /> Download Image
+          </button>
 
           <div style={{ display: 'flex', gap: '12px' }}>
             <button

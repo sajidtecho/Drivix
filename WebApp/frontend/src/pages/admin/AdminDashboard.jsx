@@ -51,7 +51,7 @@ const AdminDashboard = () => {
             const bookings = await bookRes.json();
             totalBookings = bookings.length;
             bookings.forEach(b => {
-              if (b.status === 'completed' || b.status === 'booked') {
+              if (['completed', 'booked', 'Confirmed', 'Slot Assigned', 'Checked In', 'Checked Out'].includes(b.status)) {
                 totalRev += (Number(b.totalCost) || 0);
               }
             });
