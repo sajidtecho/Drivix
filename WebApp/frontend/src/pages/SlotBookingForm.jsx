@@ -628,6 +628,18 @@ const SlotBookingForm = () => {
                         </p>
                       </div>
                     </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(168, 85, 247, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Car size={18} color="#A855F7" style={{ flexShrink: 0 }} />
+                      </div>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Vehicle Type</p>
+                        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', textTransform: 'capitalize' }}>
+                          {usageType}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                   
                   <div style={{ padding: '6px 12px', borderRadius: '20px', background: 'rgba(0, 204, 106, 0.1)', border: '1px solid rgba(0, 204, 106, 0.25)', fontSize: '0.78rem', color: '#00cc6a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
