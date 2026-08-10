@@ -292,6 +292,38 @@ const SlotBookingForm = () => {
   const [duration, setDuration] = useState(stateDuration || 2);
   const [errors, setErrors] = useState({});
   const [selectedServices, setSelectedServices] = useState([]);
+  const [usageType, setUsageType] = useState('personal'); // 'personal' | 'commercial'
+
+  // Document verification helper
+  const hasDoc = (nameToFind) => {
+    if (!user || !user.documents) return false;
+    return user.documents.some(doc => {
+      const docName = (doc.name || doc.title || '').toLowerCase().trim();
+      return docName.includes(nameToFind.toLowerCase().trim());
+    });
+  };
+
+  const hasOwnerVerification = hasDoc('Owner Verification') || hasDoc('Owner');
+  const hasDriverVerification = hasDoc('Driver Verification') || hasDoc('Driver') || hasDoc('DL') || hasDoc('Licence') || hasDoc('License');
+
+  // Determine dynamic enforcement block and message
+  let isBlocked = false;
+  let blockMessage = '';
+
+  if (usageType === 'personal') {
+    if (duration > 6 && !hasOwnerVerification) {
+      isBlocked = true;
+      blockMessage = '⚠️ Booking duration exceeds 6 hours for a personal vehicle. Please upload your Owner Verification document to proceed.';
+    }
+  } else if (usageType === 'commercial') {
+    if (duration > 12) {
+      isBlocked = true;
+      blockMessage = '⚠️ Commercial vehicle bookings cannot exceed 12 hours. Please adjust your duration in the previous step.';
+    } else if (!hasOwnerVerification || !hasDriverVerification) {
+      isBlocked = true;
+      blockMessage = '⚠️ Commercial vehicle bookings require both Owner and Driver Verification. Please upload the missing document(s) to proceed.';
+    }
+  }
 
   const SERVICE_PRICES = {
     'Rest Area': 150,
@@ -315,6 +347,7 @@ const SlotBookingForm = () => {
   };
 
   const handleFormSubmit = async () => {
+    if (isBlocked) return;
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length > 0) return;
@@ -551,6 +584,41 @@ const SlotBookingForm = () => {
                 <input style={inputStyle} type="text" placeholder="Maruti Swift, Honda City..." value={vehicleName} onChange={(e) => setVehicleName(e.target.value)} />
               </FormField>
 
+              {/* Vehicle Usage Type */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                  Vehicle Usage Type
+                </label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {[
+                    { value: 'personal', label: '🚗 Personal / Family' },
+                    { value: 'commercial', label: '🚛 Commercial' }
+                  ].map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setUsageType(t.value)}
+                      style={{
+                        flex: 1,
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-button)',
+                        fontFamily: 'inherit',
+                        fontWeight: 700,
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        background: usageType === t.value ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' : 'var(--glass-bg)',
+                        color: usageType === t.value ? '#000' : 'var(--text-primary)',
+                        border: usageType === t.value ? 'none' : '1px solid var(--glass-border)',
+                        boxShadow: usageType === t.value ? '0 4px 12px var(--accent-glow)' : 'none',
+                        transition: 'all 0.18s',
+                      }}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Time & Duration (Read-only Summary) */}
               <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '16px', marginTop: '8px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Time & Duration
@@ -670,6 +738,51 @@ const SlotBookingForm = () => {
                 </div>
               </div>
 
+              {/* Dynamic Verification Block Alert */}
+              {isBlocked && (
+                <div 
+                  className="glass-panel"
+                  style={{
+                    padding: '16px 20px',
+                    borderRadius: 'var(--radius-card)',
+                    background: 'rgba(255, 75, 75, 0.08)',
+                    border: '1.5px solid #ff4b4b',
+                    boxShadow: '0 0 15px rgba(255, 75, 75, 0.1)',
+                    marginBottom: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700, color: '#ff4b4b', lineHeight: '1.4' }}>
+                    {blockMessage}
+                  </p>
+                  {/* Show redirect button unless it is a commercial vehicle > 12 hr block */}
+                  {!(usageType === 'commercial' && duration > 12) && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/profile', { state: { activeTab: 'documents' } })}
+                      className="btn btn-secondary"
+                      style={{
+                        padding: '10px 16px',
+                        fontSize: '0.82rem',
+                        fontWeight: 700,
+                        border: '1px solid #ff4b4b',
+                        color: '#ff4b4b',
+                        background: 'rgba(255, 75, 75, 0.05)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <User size={14} /> Go to Identity & Docs
+                    </button>
+                  )}
+                </div>
+              )}
+
 
               {/* Optional Services */}
               <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '16px', marginTop: '16px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -749,7 +862,23 @@ const SlotBookingForm = () => {
                 </div>
               </div>
 
-              <button onClick={handleFormSubmit} className="btn btn-primary" style={{ width: '100%', padding: '16px', fontSize: '1.05rem', fontWeight: 800 }}>
+              <button 
+                onClick={handleFormSubmit} 
+                disabled={isBlocked}
+                className="btn btn-primary" 
+                style={{ 
+                  width: '100%', 
+                  padding: '16px', 
+                  fontSize: '1.05rem', 
+                  fontWeight: 800,
+                  opacity: isBlocked ? 0.5 : 1,
+                  cursor: isBlocked ? 'not-allowed' : 'pointer',
+                  background: isBlocked ? 'var(--bg-secondary)' : undefined,
+                  border: isBlocked ? '1px solid var(--glass-border)' : undefined,
+                  color: isBlocked ? 'var(--text-muted)' : undefined,
+                  boxShadow: isBlocked ? 'none' : undefined
+                }}
+              >
                 Continue to Payment Options <ChevronRight size={18} />
               </button>
             </motion.div>
