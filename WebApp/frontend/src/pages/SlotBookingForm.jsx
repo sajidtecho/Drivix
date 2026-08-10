@@ -145,9 +145,9 @@ const OTPVerification = ({ mobile, confirmationResult, onVerified, onBack }) => 
             onChange={(e) => handleInput(e.target.value, i)}
             onKeyDown={(e) => handleKeyDown(e, i)}
             style={{
-              width: 'clamp(40px, 12vw, 56px)',
-              height: 'clamp(48px, 13vw, 64px)',
-              borderRadius: 'var(--radius-input)', textAlign: 'center',
+              width: 'clamp(48px, 12vw, 56px)',
+              height: 'clamp(48px, 12vw, 56px)',
+              borderRadius: '50%', textAlign: 'center',
               fontSize: '1.6rem', fontWeight: 900,
               fontFamily: 'inherit',
               background: digit ? 'rgba(255,206,0,0.1)' : 'var(--bg-tertiary)',
