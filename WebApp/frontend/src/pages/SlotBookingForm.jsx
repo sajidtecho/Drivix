@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  ArrowLeft, User, Phone, Car, Clock, Calendar, ChevronRight, CheckCircle2, Loader2, Shield, CreditCard
+  ArrowLeft, User, Phone, Car, Clock, Calendar, ChevronRight, CheckCircle2, Loader2, Shield, CreditCard, AlertTriangle
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import loadingCar from '../assets/Loading_car.webm';
@@ -629,6 +629,43 @@ const SlotBookingForm = () => {
                   
                   <div style={{ padding: '6px 12px', borderRadius: '20px', background: 'rgba(0, 204, 106, 0.1)', border: '1px solid rgba(0, 204, 106, 0.25)', fontSize: '0.78rem', color: '#00cc6a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>✓ Already Chosen</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Duration Policy Warning Card */}
+              <div 
+                className="glass-panel"
+                style={{
+                  padding: '16px 20px',
+                  borderRadius: 'var(--radius-card)',
+                  background: 'linear-gradient(135deg, rgba(255, 206, 0, 0.03), rgba(255, 126, 0, 0.05))',
+                  border: '1.5px solid rgba(255, 206, 0, 0.25)',
+                  boxShadow: '0 4px 20px rgba(255, 206, 0, 0.05)',
+                  marginBottom: '24px',
+                  display: 'flex',
+                  gap: '14px',
+                  alignItems: 'flex-start'
+                }}
+              >
+                <AlertTriangle size={22} color="var(--accent-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Security Policy: Booking Durations
+                  </h4>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <span style={{ color: 'var(--accent-primary)', fontWeight: 800 }}>•</span>
+                      <span>
+                        <strong>Personal / Family Vehicles:</strong> Max <strong>6 hours</strong>. Bookings longer than 6 hours require mandatory owner verification.
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <span style={{ color: 'var(--accent-primary)', fontWeight: 800 }}>•</span>
+                      <span>
+                        <strong>Commercial Vehicles:</strong> Max <strong>12 hours</strong>. Mandatory owner and driver verification are required simultaneously.
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
