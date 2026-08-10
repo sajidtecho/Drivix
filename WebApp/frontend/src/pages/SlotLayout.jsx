@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Layers, Calendar, Clock, Loader2, ArrowRight } from 'lucide-react';
+import { Layers, Calendar, Clock, Loader2, ArrowRight, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import loadingCar from '../assets/Loading_car.webm';
 import { API_BASE_URL } from '../config';
@@ -31,6 +31,7 @@ const SlotLayout = () => {
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   });
   const [duration, setDuration] = useState(2);
+  const [usageType, setUsageType] = useState('personal'); // 'personal' | 'commercial'
 
   // Fetch locations list to set default location if not passed in state
   useEffect(() => {
@@ -139,7 +140,8 @@ const SlotLayout = () => {
         floor: selectedFloor,
         bookingDate,
         startTime,
-        duration
+        duration,
+        usageType
       }
     });
   };
@@ -213,6 +215,97 @@ const SlotLayout = () => {
               </select>
             </div>
           </div>
+
+          {/* Vehicle Usage Type */}
+          <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              Vehicle Usage Type
+            </label>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {[
+                { value: 'personal', label: '🚗 Personal / Family' },
+                { value: 'commercial', label: '🚛 Commercial' }
+              ].map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setUsageType(t.value)}
+                  style={{
+                    flex: 1,
+                    padding: '12px 14px',
+                    borderRadius: 'var(--radius-button)',
+                    fontFamily: 'inherit',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    background: usageType === t.value ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' : 'var(--bg-tertiary)',
+                    color: usageType === t.value ? '#000' : 'var(--text-primary)',
+                    border: usageType === t.value ? 'none' : '1px solid var(--glass-border)',
+                    boxShadow: usageType === t.value ? '0 4px 12px var(--accent-glow)' : 'none',
+                    transition: 'all 0.18s',
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Dynamic Warning Message Card */}
+          {usageType === 'personal' && duration > 6 && (
+            <div 
+              className="glass-panel"
+              style={{
+                padding: '14px 18px',
+                borderRadius: 'var(--radius-card)',
+                background: 'rgba(255, 206, 0, 0.03)',
+                border: '1.2px solid rgba(255, 206, 0, 0.25)',
+                marginBottom: '16px',
+                display: 'flex',
+                gap: '10px',
+                alignItems: 'flex-start'
+              }}
+            >
+              <AlertTriangle size={18} color="var(--accent-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Verification Notice
+                </h4>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                  For security purposes, personal or family used vehicles booked for more than <strong>6 hours</strong> require owner verification at the parking facility before parking your vehicle.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {usageType === 'commercial' && (
+            <div 
+              className="glass-panel"
+              style={{
+                padding: '14px 18px',
+                borderRadius: 'var(--radius-card)',
+                background: duration > 12 ? 'rgba(255, 75, 75, 0.05)' : 'rgba(255, 206, 0, 0.03)',
+                border: duration > 12 ? '1.2px solid #ff4b4b' : '1.2px solid rgba(255, 206, 0, 0.25)',
+                marginBottom: '16px',
+                display: 'flex',
+                gap: '10px',
+                alignItems: 'flex-start'
+              }}
+            >
+              <AlertTriangle size={18} color={duration > 12 ? '#ff4b4b' : 'var(--accent-primary)'} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.82rem', fontWeight: 800, color: duration > 12 ? '#ff4b4b' : 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {duration > 12 ? 'Limit Exceeded' : 'Verification Required'}
+                </h4>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                  {duration > 12 
+                    ? 'Commercial vehicle bookings cannot exceed 12 hours. Please reduce your duration to 12 hours or less.' 
+                    : 'For commercial vehicles, it is mandatory to complete owner and driver verification at the parking facilities before parking your vehicle.'
+                  }
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Floor Capacity Cards list */}
@@ -316,13 +409,20 @@ const SlotLayout = () => {
 
         {/* Proceed Button */}
         <motion.button
-          whileHover={{ y: -2 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={!(usageType === 'commercial' && duration > 12) ? { y: -2 } : {}}
+          whileTap={!(usageType === 'commercial' && duration > 12) ? { scale: 0.98 } : {}}
           onClick={handleProceed}
+          disabled={usageType === 'commercial' && duration > 12}
           className="btn btn-primary"
           style={{
             width: '100%', padding: '18px', fontSize: '1.05rem', fontWeight: 800,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            opacity: (usageType === 'commercial' && duration > 12) ? 0.5 : 1,
+            cursor: (usageType === 'commercial' && duration > 12) ? 'not-allowed' : 'pointer',
+            background: (usageType === 'commercial' && duration > 12) ? 'var(--bg-secondary)' : undefined,
+            color: (usageType === 'commercial' && duration > 12) ? 'var(--text-muted)' : undefined,
+            border: (usageType === 'commercial' && duration > 12) ? '1px solid var(--glass-border)' : undefined,
+            boxShadow: (usageType === 'commercial' && duration > 12) ? 'none' : undefined
           }}
         >
           Proceed to Booking Form <ArrowRight size={18} />
