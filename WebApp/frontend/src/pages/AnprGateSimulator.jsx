@@ -77,6 +77,7 @@ const AnprGateSimulator = () => {
 
   useEffect(() => {
     if (selectedHubId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchHubBookings(selectedHubId);
     }
   }, [selectedHubId]);
@@ -90,7 +91,6 @@ const AnprGateSimulator = () => {
     });
 
     socketRef.current.on('gateStateChanged', (data) => {
-      const time = new Date().toLocaleTimeString();
       const typeStr = data.gateType === 'entry' ? 'ENTRY GATE' : 'EXIT GATE';
       
       addLog(`[${typeStr}] ${data.message}`, data.status === 'Open' ? 'success' : 'warn');

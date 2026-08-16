@@ -34,15 +34,15 @@ export default function AppTabs() {
   const [isHomeMapActive, setIsHomeMapActive] = useState(true);
 
   // Animated offset for capsule sliding
-  const slideAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useMemo(() => new Animated.Value(0), []);
 
   // Icon bounce animations (scale values) for each tab
-  const scaleAnims = {
-    home: useRef(new Animated.Value(1)).current,
-    bookings: useRef(new Animated.Value(1)).current,
-    hub: useRef(new Animated.Value(1)).current,
-    profile: useRef(new Animated.Value(1)).current,
-  };
+  const scaleAnims = React.useMemo(() => ({
+    home: new Animated.Value(1),
+    bookings: new Animated.Value(1),
+    hub: new Animated.Value(1),
+    profile: new Animated.Value(1),
+  }), []);
 
   const getTabIndex = (tab: string) => {
     switch (tab) {

@@ -29,8 +29,8 @@ export default function RadarMap({ locations, onSelectLocation }: RadarMapProps)
   const mapRef = React.useRef<any>(null);
 
   // Animation values for the radar sweep and pulsing target pins
-  const sweepAnim = React.useRef(new Animated.Value(0)).current;
-  const pulseAnim = React.useRef(new Animated.Value(0.5)).current;
+  const sweepAnim = React.useMemo(() => new Animated.Value(0), []);
+  const pulseAnim = React.useMemo(() => new Animated.Value(0.5), []);
 
   React.useEffect(() => {
     // Infinite radar sweep rotation (4 seconds per loop)
