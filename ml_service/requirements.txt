@@ -1,0 +1,9 @@
+numpy>=1.22.0
+pandas>=1.4.0
+scikit-learn>=1.0.0
+xgboost>=1.5.0
+joblib>=1.1.0
+onnx>=1.12.0
+skl2onnx>=1.11.0
+fastapi>=0.75.0
+uvicorn>=0.17.0
