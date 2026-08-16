@@ -15,6 +15,18 @@
 
 ---
 
+## 📂 Repository Structure
+
+The Drivix ecosystem is composed of three main subsystems organized in a monorepo structure:
+
+*   **[WebApp/](file:///d:/DrivixApps/WebApp)**: The primary web interface and backend API server.
+    *   **[frontend/](file:///d:/DrivixApps/WebApp/frontend)**: A high-fidelity, premium React web app built with Vite and styled using custom Vanilla CSS (featuring glassmorphism and modern HUD indicators).
+    *   **[backend/](file:///d:/DrivixApps/WebApp/backend)**: An Express.js REST API server handling user authentication, atomic slot soft-locking, real-time Socket.IO broadcasts, and gate entry/exit simulator logic.
+*   **[App/](file:///d:/DrivixApps/App)**: A cross-platform mobile application built using Expo and React Native, featuring a premium sci-fi radar map component, real-time location tracking, and an animated HUD overlay.
+*   **[ml_service/](file:///d:/DrivixApps/ml_service)**: A Python-based machine learning subsystem designed to preprocess transaction data, train predictive models (like Random Forest), and evaluate pricing demand estimations.
+
+---
+
 ## 🛠️ System Architecture
 
 Drivix uses a decoupled, hybrid-polling micro-architecture designed to maintain real-time sync across modern cloud hosting boundaries.
@@ -161,14 +173,58 @@ To circumvent the 50-second "cold start" delay associated with Render's Free tie
 * **Periodic Ping**: Configured via [cron-job.org](https://cron-job.org/) to trigger an HTTP GET request to `https://drivix-backend-0qvx.onrender.com/` every 10 minutes.
 * **Warm Containers**: This persistent ping maintains the active state of the Node container, guaranteeing sub-second response times for end-users visiting the application.
 
+### 🎯 5. Multi-Criteria Automated Slot Allocation Engine
+
+To assign the most optimal slot for an incoming vehicle, the backend features a robust scoring engine implemented in [SlotAllocationService.js](file:///d:/DrivixApps/WebApp/backend/services/SlotAllocationService.js):
+
+*   **Configurable Strategy Weights**: The scoring algorithm ranks available slots based on a configurable weight matrix (`SLOT_ALLOCATION_WEIGHTS`):
+    *   *Same Floor Match (30%)* – Prioritizes the floor requested in the booking.
+    *   *Walking Distance (25%)* – Evaluates slot distance to the facility center.
+    *   *Zone Compatibility (15%)* – Matches row/zone preferences (e.g. Row A is ranked higher than B or C).
+    *   *Vehicle Size/Type Compatibility (10%)* – Enforces slot/vehicle type matching (e.g., Bike vs. Car).
+    *   *EV Charging Requirement (10%)* – Strict filtering; assigns EV-charging-enabled slots to EV vehicles.
+    *   *Accessibility (5%)* – Enforces accessibility compliance for designated disabled slots.
+    *   *Exit/Elevator Proximity (5%)* – Evaluates proximity metrics to exits/elevators.
+*   **Optimistic Concurrency Protection**: High-throughput parking hubs can experience concurrent booking attempts. The allocation engine wraps the assignment in an optimistic database locking loop, retrying up to 5 times if a conflict/race condition occurs.
+
+### 🚗 6. Reactive ANPR Gate Workflows (Entry/Exit Simulation)
+
+The ecosystem integrates Automatic Number Plate Recognition (ANPR) simulator handlers inside [gateController.js](file:///d:/DrivixApps/WebApp/backend/controllers/gateController.js) (with tests in [test_phase3.js](file:///d:/DrivixApps/WebApp/backend/tests/test_phase3.js)):
+
+```mermaid
+sequenceDiagram
+    participant Vehicle as ANPR Camera
+    participant Gate as Gate Controller
+    participant Alloc as Slot Allocation Service
+    participant DB as MongoDB Atlas
+    participant WS as Socket.IO Hub
+
+    Vehicle->>Gate: POST /simulate-entry (Plate: DL03GATE)
+    Gate->>DB: Find Confirmed Booking
+    alt Slot Already Assigned
+        Gate-->>Vehicle: Gate Opens (Access Granted)
+    else Slot Not Assigned Yet
+        Gate->>Alloc: Allocate Optimal Slot Reactively
+        Alloc->>DB: Atomic Update Slot Status ('Reserved')
+        Alloc-->>Gate: Slot Assigned (e.g. T3-A1)
+    end
+    Gate->>DB: Update Booking Status to 'Checked In' & Slot to 'Occupied'
+    Gate->>WS: Broadcast Live Status & Booking updates
+    Gate-->>Vehicle: Gate Opens & Assigns Slot
+```
+
+*   **Gate Entry**: Verifies number plate, reactively allocates the best slot if not assigned yet, changes booking status to `Checked In`, and sets the slot's DB state to `Occupied`.
+*   **Gate Exit**: Detects vehicle exiting, updates booking status to `Checked Out`, and frees the slot (`Available`) back to the pool.
+
 ---
 
 ## ⚙️ Technology Stack
 
 * **Frontend**: React + Vite
 * **Styling**: Vanilla CSS (Pill Navigation, Glassmorphism, Responsive Viewports)
-* **Animations**: Framer Motion & Lucide Icons
+* **Mobile App**: Expo + React Native (Sci-Fi Radar Map, Location Tracking, Lucide Icons)
 * **Backend**: Node.js + Express.js + Socket.IO
+* **Machine Learning**: Python + Scikit-Learn (Random Forest Regression), ONNX Runtime
 * **Database**: MongoDB Atlas (configured with Virtual Populates to keep documents O(1) in size)
 * **Hosting**: Vercel (Frontend) & Render (Backend)
 
@@ -187,7 +243,7 @@ cd Drivix
 
 ### 2. Configure Backend Variables
 
-Create a `.env` file in the `/backend` folder:
+Create a `.env` file in the `WebApp/backend` folder:
 
 ```env
 PORT=5000
@@ -198,14 +254,14 @@ JWT_SECRET=your_jwt_secret_key
 ### 3. Run Backend Server
 
 ```bash
-cd backend
+cd WebApp/backend
 npm install
 npm run dev
 ```
 
 ### 4. Configure Frontend URL
 
-In `frontend/src/config.js`, set your backend API path:
+In `WebApp/frontend/src/config.js`, set your backend API path:
 
 ```javascript
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -217,6 +273,30 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:50
 cd ../frontend
 npm install
 npm run dev
+```
+
+### 6. Run Mobile App (Expo)
+
+To run the mobile app locally:
+
+```bash
+cd ../../App
+npm install
+npm start
+```
+
+### 7. Run Machine Learning Subsystem (Python)
+
+To set up the machine learning subsystem and explore the Jupyter Notebooks or run the scripts:
+
+```bash
+cd ../ml_service
+# Set up a python virtual environment and install requirements
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# Install dependencies
+pip install -r requirements.txt
 ```
 
 ---
