@@ -15,7 +15,13 @@ export default function LocationCard({ location, onSelect, isNearest }: Location
   const colors = useTheme();
 
   return (
-    <View style={[styles.locationCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+    <View style={[
+      styles.locationCard,
+      {
+        backgroundColor: 'rgba(21, 22, 30, 0.65)',
+        borderColor: isNearest ? 'rgba(255, 206, 0, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+      }
+    ]}>
       <View style={styles.locationInfo}>
         <Text style={[styles.locationName, { color: colors.text }]}>{location.parkingName}</Text>
         <Text style={[styles.locationAddress, { color: colors.textSecondary }]}>{location.address}</Text>
@@ -39,7 +45,7 @@ export default function LocationCard({ location, onSelect, isNearest }: Location
       </View>
       <View style={styles.locationAction}>
         <Text style={styles.priceText}>Rs. {location.hourlyPrice}/hr</Text>
-        <TouchableOpacity style={styles.selectBtn} onPress={() => onSelect(location)}>
+        <TouchableOpacity style={styles.selectBtn} onPress={() => onSelect(location)} activeOpacity={0.85}>
           <Text style={styles.selectBtnText}>Book Now</Text>
         </TouchableOpacity>
       </View>
@@ -51,12 +57,15 @@ const styles = StyleSheet.create({
   locationCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(21, 22, 30, 0.75)',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1.5,
+    shadowColor: '#ffce00',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   locationInfo: {
     flex: 1,
@@ -66,21 +75,22 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
+    letterSpacing: 0.3,
   },
   locationAddress: {
     color: '#a0aab2',
     fontSize: 12,
-    marginTop: 4,
+    marginTop: 5,
   },
   badgeRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 10,
+    marginTop: 12,
   },
   pillBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 206, 0, 0.05)',
+    backgroundColor: 'rgba(255, 206, 0, 0.06)',
     borderColor: 'rgba(255, 206, 0, 0.15)',
     borderWidth: 1,
     paddingHorizontal: 8,
@@ -100,7 +110,8 @@ const styles = StyleSheet.create({
   priceText: {
     color: '#ffce00',
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 16,
+    letterSpacing: 0.3,
   },
   selectBtn: {
     backgroundColor: '#ffce00',
@@ -108,9 +119,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     shadowColor: '#ffce00',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
     elevation: 3,
   },
   selectBtnText: {

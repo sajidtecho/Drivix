@@ -741,6 +741,9 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* ── Ambient Glow Background Layers ── */}
+      <View style={styles.ambientGlowTopLeft} pointerEvents="none" />
+      <View style={styles.ambientGlowTopRight} pointerEvents="none" />
 
       {loading && step !== 'CHECKOUT' && step !== 'PASS' && (
         <View style={styles.loadingOverlay}>
@@ -757,21 +760,34 @@ export default function DashboardScreen() {
             renderItem={null}
             ListHeaderComponent={
               <View>
-                {/* Header */}
+                {/* Redesigned Dashboard Header */}
                 <View style={styles.dashboardHeader}>
-                  <View>
-                    <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>Hi, {user?.name || 'Driver'}</Text>
-                    <Text style={[styles.titleText, { color: colors.text }]}>Find Parking Space</Text>
+                  <View style={styles.welcomeWrapper}>
+                    {/* Glowing Circular Avatar block */}
+                    <View style={[styles.avatarCircle, { backgroundColor: 'rgba(255, 206, 0, 0.08)', borderColor: 'rgba(255, 206, 0, 0.25)' }]}>
+                      <Text style={styles.avatarText}>
+                        {user?.name ? user.name.substring(0, 2).toUpperCase() : 'SA'}
+                      </Text>
+                      <View style={styles.avatarActiveDot} />
+                    </View>
+                    <View>
+                      <Text style={[styles.welcomeText, { color: colors.textSecondary }]}>Welcome back,</Text>
+                      <Text style={[styles.titleText, { color: colors.text }]}>{user?.name || 'Sajid Ahmad'}</Text>
+                    </View>
                   </View>
-                  <View style={[styles.walletBadge, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}>
-                    <CreditCard size={16} color={colors.primary} />
+                  <TouchableOpacity
+                    style={[styles.walletBadge, { backgroundColor: 'rgba(21, 22, 30, 0.65)', borderColor: 'rgba(255, 206, 0, 0.25)' }]}
+                    onPress={() => handleNavigateToTab('/explore?tab=wallet')}
+                    activeOpacity={0.8}
+                  >
+                    <CreditCard size={15} color={colors.primary} />
                     <Text style={[styles.walletText, { color: colors.text }]}>Rs. {user?.walletBalance ?? 0}</Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
 
                 {/* ── Active Session / Reservation Widget ── */}
                 {activeBooking && (
-                  <View style={[styles.activeSessionCard, { backgroundColor: colors.backgroundElement, borderColor: colors.primary, borderWidth: 1 }]}>
+                  <View style={[styles.activeSessionCard, { backgroundColor: 'rgba(21, 22, 30, 0.65)', borderColor: colors.primary, borderWidth: 1.5 }]}>
                     <View style={styles.sessionHeader}>
                       <Text style={[styles.sessionTitle, { color: colors.text }]}>Active Parking Session</Text>
                       <View style={styles.sessionPulse} />
@@ -795,7 +811,7 @@ export default function DashboardScreen() {
                         <Text style={styles.sessionManageBtnText}>Manage Booking</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
-                        style={[styles.sessionManageBtn, { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderColor: colors.borderGlass, borderWidth: 1 }]}
+                        style={[styles.sessionManageBtn, { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', borderColor: colors.borderGlass, borderWidth: 1 }]}
                         onPress={() => {
                           const lat = activeBooking.locationId?.latitude;
                           const lon = activeBooking.locationId?.longitude;
@@ -1436,9 +1452,59 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  ambientGlowTopLeft: {
+    position: 'absolute',
+    top: -100,
+    left: -80,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(255, 206, 0, 0.035)',
+    zIndex: -1,
+  },
+  ambientGlowTopRight: {
+    position: 'absolute',
+    top: 120,
+    right: -80,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(0, 242, 255, 0.025)',
+    zIndex: -1,
+  },
+  welcomeWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatarCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+  },
+  avatarText: {
+    color: '#ffce00',
+    fontSize: 13,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  avatarActiveDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#00cc6a',
+    borderWidth: 1.5,
+    borderColor: '#07080c',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#0b0c10',
+    backgroundColor: '#07080c',
   },
   viewContainer: {
     flex: 1,
@@ -1451,18 +1517,20 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   welcomeText: {
-    color: '#a0aab2',
-    fontSize: 14,
+    color: '#8a959e',
+    fontSize: 12,
+    fontWeight: '600',
   },
   titleText: {
     color: '#ffffff',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
+    marginTop: 2,
   },
   walletBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(21, 22, 30, 0.75)',
+    backgroundColor: 'rgba(21, 22, 30, 0.65)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -1477,11 +1545,17 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     height: 180,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 206, 0, 0.15)',
     marginBottom: 20,
+    backgroundColor: '#07080c',
+    shadowColor: '#ffce00',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 4,
   },
   sectionTitle: {
     color: '#ffffff',
@@ -1501,10 +1575,17 @@ const styles = StyleSheet.create({
     zIndex: 99,
   },
   heroCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 206, 0, 0.12)',
+    backgroundColor: 'rgba(21, 22, 30, 0.6)',
+    padding: 18,
     marginBottom: 20,
+    shadowColor: '#ffce00',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 3,
   },
   heroTabsContainer: {
     flexDirection: 'row',
@@ -1515,7 +1596,7 @@ const styles = StyleSheet.create({
   heroTabButton: {
     flex: 1,
     height: 76,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1577,11 +1658,11 @@ const styles = StyleSheet.create({
   heroInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
+    borderWidth: 1.5,
     paddingHorizontal: 12,
-    height: 48,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    height: 50,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
     marginBottom: 16,
     gap: 8,
   },
@@ -1592,8 +1673,8 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   heroActionButton: {
-    height: 44,
-    borderRadius: 22,
+    height: 46,
+    borderRadius: 23,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1660,10 +1741,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 24,
-    borderWidth: 1,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    borderWidth: 1.5,
   },
   serviceIconCircle: {
     width: 34,
