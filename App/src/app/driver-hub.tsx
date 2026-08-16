@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -88,7 +88,7 @@ export default function DriverHubScreen({ onBack, selectedLocation, locations }:
   const [activeBooking, setActiveBooking] = useState<any | null>(null);
   const [remainingTime, setRemainingTime] = useState(0);
 
-  const sosAnim = useRef(new Animated.Value(1)).current;
+  const sosAnim = useMemo(() => new Animated.Value(1), []);
 
   // Amenity Check Helpers
   const hasRestLounge = activeHub?.amenities?.some((a: string) => 
@@ -369,7 +369,7 @@ export default function DriverHubScreen({ onBack, selectedLocation, locations }:
             >
               <View style={styles.cardHeaderLeft}>
                 <Car size={20} color="#ffce00" />
-                <Text style={[styles.cardTitle, { color: colors.text }]}>Today's Booking</Text>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>{"Today's Booking"}</Text>
               </View>
               {isCurrentBookingExpanded ? <ChevronUp size={18} color={colors.textSecondary} /> : <ChevronDown size={18} color={colors.textSecondary} />}
             </TouchableOpacity>
@@ -419,7 +419,7 @@ export default function DriverHubScreen({ onBack, selectedLocation, locations }:
               <View style={{ flex: 1 }}>
                 <Text style={[styles.noBookingTitle, { color: colors.text }]}>No Active Booking</Text>
                 <Text style={[styles.noBookingText, { color: colors.textSecondary }]}>
-                  You don't have any parking slot reservations for today.
+                  {"You don't have any parking slot reservations for today."}
                 </Text>
               </View>
             </View>

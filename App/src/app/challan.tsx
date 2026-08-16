@@ -241,7 +241,7 @@ export default function ChallanScreen({ onBack, initialVehicleNumber = '' }: Cha
                   </View>
                 </View>
                 <Text style={[styles.reviewText, { color: colors.textSecondary }]} numberOfLines={4}>
-                  "{rev.review}"
+                  {"\""}{rev.review}{"\""}
                 </Text>
               </View>
             ))}

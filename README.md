@@ -299,6 +299,35 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+### 8. Run Integration Tests (Backend)
+
+The backend includes a step-by-step test suite covering the three main phases of development:
+```bash
+cd ../WebApp/backend
+# Test Phase 1: Models & Core API Endpoints
+node tests/test_phase1.js
+
+# Test Phase 2: Live Socket.IO updates and Real-time connections
+node tests/test_phase2.js
+
+# Test Phase 3: ANPR Gate Simulator & reactive slot allocation
+node tests/test_phase3.js
+```
+
+### 9. Code Quality & Linting
+
+Both the mobile application and WebApp frontend have configured ESLint setups. To run linter checks:
+* **Mobile App (`App/`)**:
+  ```bash
+  cd App
+  npm run lint
+  ```
+* **WebApp Frontend (`WebApp/frontend/`)**:
+  ```bash
+  cd WebApp/frontend
+  npm run lint
+  ```
+
 ---
 
 *Designed with ❤️ for the Smart Cities of tomorrow.*

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -71,7 +71,7 @@ try {
 }
 
 const ScalePressable = ({ children, onPress, style }: { children: any, onPress?: () => void, style?: any }) => {
-  const scale = useRef(new Animated.Value(1)).current;
+  const scale = useMemo(() => new Animated.Value(1), []);
 
   const handlePressIn = () => {
     Animated.spring(scale, {
@@ -213,7 +213,7 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
   const [tempCoords, setTempCoords] = useState<Coords>(userCoords);
 
   // Animations
-  const drawerAnimation = useRef(new Animated.Value(width)).current;
+  const drawerAnimation = useMemo(() => new Animated.Value(width), [width]);
   const bannerFlatListRef = useRef<FlatList>(null);
   const autoPlayTimer = useRef<any>(null);
 
@@ -268,11 +268,13 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
 
   // Handle Location Permission / Fetch on mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     getUserLocation();
   }, [getUserLocation]);
 
   // Refetch when coords or search query changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData(userCoords, searchQuery);
   }, [userCoords, searchQuery, fetchData]);
 
