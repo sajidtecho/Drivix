@@ -249,7 +249,11 @@ setInterval(async () => {
 }, 10000);
 
 // Start Server
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+}
+
+export default app;
 // Trigger nodemon reload
