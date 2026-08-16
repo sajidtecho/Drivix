@@ -109,15 +109,15 @@ async function runTests() {
     const day = String(now.getDate()).padStart(2, '0');
     const todayLocalDate = `${year}-${month}-${day}`;
 
-    // Set startTime to 10 minutes ago to make sure it's inside the entry window
-    let testMin = now.getMinutes() - 10;
+    // Set startTime to 5 minutes in the future to avoid validation errors, while remaining within entry window
+    let testMin = now.getMinutes() + 5;
     let testHour = now.getHours();
-    if (testMin < 0) {
-      testMin += 60;
-      testHour -= 1;
+    if (testMin >= 60) {
+      testMin -= 60;
+      testHour += 1;
     }
-    if (testHour < 0) {
-      testHour += 24;
+    if (testHour >= 24) {
+      testHour -= 24;
     }
     const startTimeStr = `${String(testHour).padStart(2, '0')}:${String(testMin).padStart(2, '0')}`;
 
