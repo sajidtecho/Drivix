@@ -19,6 +19,11 @@ const AnprGateSimulator = () => {
   const [bookings, setBookings] = useState([]);
   const [logs, setLogs] = useState([]);
 
+  const addLog = (text, type = 'info') => {
+    const timestamp = new Date().toLocaleTimeString();
+    setLogs(prev => [...prev, { timestamp, text, type }]);
+  };
+
   // Entry Gate State
   const [entryPlate, setEntryPlate] = useState('');
   const [entryGateStatus, setEntryGateStatus] = useState('Closed'); // Closed, Scanning, Open, Denied
@@ -138,11 +143,6 @@ const AnprGateSimulator = () => {
   useEffect(() => {
     consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
-
-  const addLog = (text, type = 'info') => {
-    const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [...prev, { timestamp, text, type }]);
-  };
 
   const handleSimulateEntry = async () => {
     if (!entryPlate) {
