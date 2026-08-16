@@ -7,7 +7,7 @@ import Vehicle from '../models/Vehicle.js';
 import mongoose from 'mongoose';
 import { calculateDynamicPrice } from '../utils/pricingEngine.js';
 import { sendBookingNotification } from '../utils/notificationService.js';
-import { SlotAllocationService } from '../services/SlotAllocationService.js';
+import { SlotAllocationService, checkIfEVRequired, checkIfAccessibilityRequired, getSlotDistance, RuleBasedSlotScoringStrategy, mapVehicleType } from '../services/SlotAllocationService.js';
 
 // Helper to keep floor capacity and parking location available counters synchronized
 export const updateFloorCounters = async (parkingHubId, floorId) => {
@@ -515,6 +515,7 @@ export const vacateBooking = async (req, res) => {
       const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
       if (slot) {
         slot.status = 'available';
+        slot.CurrentStatus = 'Available';
         await slot.save();
 
         // Emit Socket.io update to all connected clients!
@@ -614,6 +615,7 @@ export const deleteBookingAdmin = async (req, res) => {
     const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
     if (slot) {
       slot.status = 'available';
+      slot.CurrentStatus = 'Available';
       await slot.save();
 
       // Emit Socket.io update to all connected clients!
@@ -673,6 +675,7 @@ export const deleteAllBookingsAdmin = async (req, res) => {
       const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
       if (slot) {
         slot.status = 'available';
+        slot.CurrentStatus = 'Available';
         await slot.save();
 
         const io = req.app.get('socketio');
@@ -729,9 +732,87 @@ export const assignSlot = async (req, res) => {
   try {
     const result = await SlotAllocationService.allocateSlot(targetId);
     res.json({
-      message: 'Slot assigned successfully',
-      ...result
+      success: true,
+      bookingId: result.booking.bookingId,
+      slotId: result.booking.slotRefId,
+      slotNumber: result.booking.slotId,
+      floorName: result.booking.floor,
+      status: 'SLOT_ASSIGNED',
+      assignedAt: result.booking.assignedAt,
+      booking: result.booking,
+      qrToken: result.qrToken
     });
+  } catch (error) {
+    if (error.message.includes('No suitable') || error.message.includes('No compatible')) {
+      return res.json({
+        success: false,
+        message: error.message
+      });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get slot recommendations (admin/preview debug API)
+// @route   GET /api/v1/bookings/:bookingId/slot-recommendations
+// @access  Private
+export const getSlotRecommendations = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.bookingId).populate('userId');
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    const location = await ParkingLocation.findById(booking.locationId);
+    if (!location) {
+      return res.status(404).json({ message: 'Parking location not found' });
+    }
+
+    const user = booking.userId;
+    let vehicle = null;
+    if (booking.vehicleId) {
+      vehicle = await Vehicle.findById(booking.vehicleId);
+    }
+
+    const allSlotsOnFloor = await Slot.find({
+      facilityId: booking.locationId,
+      floorId: booking.floorId
+    });
+
+    const eligibleSlots = allSlotsOnFloor.filter(slot => {
+      if (slot.CurrentStatus !== 'Available' || slot.status !== 'available') return false;
+      
+      const bookingVehicleType = vehicle ? (vehicle.type || vehicle.vehicleType || 'Car') : 'Car';
+      const targetType = mapVehicleType(bookingVehicleType || booking.vehicleName);
+      const slotType = slot.vehicleType || 'Car';
+      if (slotType.toLowerCase() !== targetType.toLowerCase()) return false;
+
+      const requiresEV = checkIfEVRequired(booking, user, vehicle);
+      if (requiresEV && !slot.EVSupported) return false;
+
+      const requiresAccessibility = checkIfAccessibilityRequired(booking, user);
+      if (requiresAccessibility && !slot.Accessibility) return false;
+
+      return true;
+    });
+
+    const strategy = new RuleBasedSlotScoringStrategy();
+    const recommendations = eligibleSlots.map(slot => {
+      const result = strategy.scoreSlot(slot, booking, location, user, vehicle);
+      const distance = getSlotDistance(slot, location);
+      return {
+        slotNumber: slot.id || slot.slotNumber,
+        score: result.score,
+        walkingDistance: Math.round(distance),
+        sameZone: result.sameZone,
+        vehicleCompatible: result.vehicleCompatible,
+        evCompatible: result.evCompatible
+      };
+    });
+
+    recommendations.sort((a, b) => b.score - a.score);
+
+    res.json(recommendations);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -756,6 +837,7 @@ export const confirmArrival = async (req, res) => {
         const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
         if (slot) {
           slot.status = 'available';
+          slot.CurrentStatus = 'Available';
           slot.reservedBy = null;
           await slot.save();
         }

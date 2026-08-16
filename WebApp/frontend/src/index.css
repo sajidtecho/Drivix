@@ -2,9 +2,9 @@
 
 :root {
   /* Light Mode */
-  --bg-primary: #F8F9FA;
-  --bg-secondary: #f0f2f5;
-  --bg-tertiary: #ffffff;
+  --bg-primary: #EBECEF;
+  --bg-secondary: #DFE2E6;
+  --bg-tertiary: #F5F7F8;
 
   --accent-primary: #FFCE00; /* Gold */
   --accent-secondary: #FFAE0E; /* Deep Gold */

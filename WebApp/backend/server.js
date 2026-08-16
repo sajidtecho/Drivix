@@ -22,6 +22,8 @@ import { seedPlaces } from './controllers/placeController.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import { runDatabaseMigration } from './utils/migration.js';
 import { getFloorAvailability } from './controllers/parkingController.js';
+import { getSlotRecommendations } from './controllers/bookingController.js';
+import { ASSIGNMENT_THRESHOLD_MINUTES } from './services/SlotAllocationService.js';
 
 import mongoose from 'mongoose';
 // Load environment variables
@@ -70,6 +72,7 @@ app.use('/api/v1/vehicles', vehicleRoutes);
 app.use('/api/v1/parking', parkingRoutes);
 app.get('/api/parking/floors/:floorId/availability', getFloorAvailability);
 app.use('/api/v1/bookings', bookingRoutes);
+app.get('/api/bookings/:bookingId/slot-recommendations', getSlotRecommendations);
 app.use('/api/v1/complaints', complaintRoutes);
 app.use('/api/v1/banners', bannerRoutes);
 app.use('/api/v1/places', placeRoutes);
@@ -193,6 +196,17 @@ setInterval(async () => {
         const startDateTime = new Date(`${booking.bookingDate}T${booking.startTime}:00`);
         const timeDiffMs = startDateTime.getTime() - now.getTime();
         const timeDiffMins = timeDiffMs / (1000 * 60);
+
+        // Auto-allocate slot if time is within threshold and slot is not yet assigned
+        if (timeDiffMins <= ASSIGNMENT_THRESHOLD_MINUTES && timeDiffMins > 0 && !booking.slotId) {
+          console.log(`[Auto-Allocation] Triggering slot allocation for booking: ${booking.bookingId} starting in ${Math.round(timeDiffMins)} mins`);
+          try {
+            const { SlotAllocationService } = await import('./services/SlotAllocationService.js');
+            await SlotAllocationService.allocateSlot(booking._id);
+          } catch (err) {
+            console.error(`[Auto-Allocation] Failed for booking ${booking.bookingId}:`, err.message);
+          }
+        }
 
         // If booking starts in <= 30 minutes, and we haven't prompted them yet
         if (timeDiffMins <= 30 && timeDiffMins > 0) {

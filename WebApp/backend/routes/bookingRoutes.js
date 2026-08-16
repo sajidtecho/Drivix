@@ -9,7 +9,8 @@ import {
   deleteBookingAdmin,
   deleteAllBookingsAdmin,
   assignSlot,
-  confirmArrival
+  confirmArrival,
+  getSlotRecommendations
 } from '../controllers/bookingController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
@@ -31,6 +32,7 @@ router.post('/assign-slot', assignSlot);
 router.post('/:id/assign-slot', assignSlot);
 router.post('/arrival-confirmation', confirmArrival);
 router.post('/:id/arrival-confirmation', confirmArrival);
+router.get('/:bookingId/slot-recommendations', getSlotRecommendations);
 
 // Admin-only management endpoints
 router.delete('/admin/all', adminOnly, deleteAllBookingsAdmin);

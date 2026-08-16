@@ -399,6 +399,17 @@ const Ticket = () => {
                 { icon: Calendar, label: 'Date', value: new Date(booking.entryDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) },
                 { icon: Clock, label: 'Time', value: (booking.endTime || booking.entryTime) ? `${formatTime12h(booking.startTime || booking.entryTime)}${booking.endTime ? ` – ${formatTime12h(booking.endTime)}` : ''}` : 'N/A', sub: `${booking.duration}h duration` },
                 { icon: Shield, label: 'Parking Slot', value: booking.slotId ? booking.slotId : 'Will be assigned before arrival', sub: !booking.slotId ? 'Your exact slot will be assigned before arrival' : undefined },
+                ...(booking.slotId ? [
+                  { 
+                    icon: Navigation, 
+                    label: 'Walking Distance', 
+                    value: booking.walkingDistance ? `${booking.walkingDistance} meters` : `${Math.max(5, parseInt(booking.slotId.replace(/\D/g, ''), 10) * 5 || 15)} meters`, 
+                    sub: 'To nearest elevator' 
+                  },
+                  ...((booking.additionalServices?.includes('EV Charging') || booking.EVSupported) ? [
+                    { icon: Shield, label: 'EV Charger', value: 'EV Charging Enabled', sub: 'Reserved charging point' }
+                  ] : [])
+                ] : [])
               ].map(({ label, value, sub }) => (
                 <div key={label} style={{
                   padding: '14px 16px', borderRadius: 'var(--radius-input)',
@@ -486,7 +497,7 @@ const Ticket = () => {
               className="btn btn-primary"
               style={{ width: '100%', padding: '16px', fontSize: '1rem', fontWeight: 800 }}
             >
-              <Navigation size={20} /> Navigate to Parking
+              <Navigation size={20} /> Navigate to Slot
             </button>
           )}
 
