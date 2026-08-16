@@ -11,6 +11,23 @@ import {
   Calendar, Download, Home, Share2, Shield, Loader2
 } from 'lucide-react';
 
+const formatTime12h = (timeStr) => {
+  if (!timeStr) return '';
+  if (timeStr.toUpperCase().includes('AM') || timeStr.toUpperCase().includes('PM')) {
+    return timeStr;
+  }
+  const parts = timeStr.split(':');
+  if (parts.length >= 2) {
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1].substring(0, 2);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+  }
+  return timeStr;
+};
+
 const Ticket = () => {
   const navigate = useNavigate();
   const locState = useLocation().state;
@@ -380,7 +397,8 @@ const Ticket = () => {
                 { icon: Car, label: 'Vehicle', value: booking.vehicleNumber, sub: booking.vehicleName },
                 { icon: MapPin, label: 'Location', value: booking.locationName, sub: booking.floor },
                 { icon: Calendar, label: 'Date', value: new Date(booking.entryDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) },
-                { icon: Clock, label: 'Entry', value: booking.entryTime, sub: `${booking.duration}h duration` },
+                { icon: Clock, label: 'Time', value: (booking.endTime || booking.entryTime) ? `${formatTime12h(booking.startTime || booking.entryTime)}${booking.endTime ? ` – ${formatTime12h(booking.endTime)}` : ''}` : 'N/A', sub: `${booking.duration}h duration` },
+                { icon: Shield, label: 'Parking Slot', value: booking.slotId ? booking.slotId : 'Will be assigned before arrival', sub: !booking.slotId ? 'Your exact slot will be assigned before arrival' : undefined },
               ].map(({ label, value, sub }) => (
                 <div key={label} style={{
                   padding: '14px 16px', borderRadius: 'var(--radius-input)',

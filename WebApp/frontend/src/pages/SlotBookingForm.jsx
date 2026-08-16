@@ -451,14 +451,14 @@ const SlotBookingForm = () => {
                 Booking <span className="text-gradient">Details</span>
               </h1>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '28px' }}>
-                Complete your details to reserve slot <strong style={{ color: 'var(--text-primary)' }}>{slot}</strong> on {floor}
+                Complete your details to reserve capacity on <strong style={{ color: 'var(--text-primary)' }}>{floor}</strong>
               </p>
 
               {/* Summary card */}
               <div className="glass-panel booking-summary-card" style={{ padding: '18px 22px', marginBottom: '28px', borderRadius: 'var(--radius-card)', background: 'var(--bg-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '3px' }}>{location.name}</p>
-                  <p style={{ fontWeight: 800, fontSize: '1.1rem' }}>Slot {slot} · {floor}</p>
+                  <p style={{ fontWeight: 800, fontSize: '1.1rem' }}>{floor}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Rate</p>

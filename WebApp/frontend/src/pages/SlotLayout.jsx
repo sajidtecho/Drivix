@@ -77,11 +77,19 @@ const SlotLayout = () => {
       const floorList = loc.floors || ['L1'];
       
       for (const floorName of floorList) {
-        const res = await fetch(`${API_BASE_URL}/api/v1/parking/floor/live-capacity?parkingHubId=${loc.id}&floorId=${floorName}`, {
+        const res = await fetch(`${API_BASE_URL}/api/v1/parking/floors/${floorName}/availability?parkingHubId=${loc.id}&date=${bookingDate}&startTime=${startTime}&duration=${duration}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
-          capacities[floorName] = await res.json();
+          const data = await res.json();
+          capacities[floorName] = {
+            totalCapacity: data.totalCapacity,
+            occupied: 0,
+            reserved: data.reservedCapacity,
+            available: data.availableCapacity,
+            floorName: data.floorName,
+            floorId: data.floorId
+          };
         } else {
           // Fallback if floor document doesn't exist yet
           capacities[floorName] = {
@@ -105,7 +113,7 @@ const SlotLayout = () => {
     if (loc) {
       fetchLiveCapacities(true);
     }
-  }, [loc]);
+  }, [loc, bookingDate, startTime, duration]);
 
   // Real-time capacity synchronization
   useEffect(() => {
@@ -129,7 +137,7 @@ const SlotLayout = () => {
   const handleProceed = () => {
     const selectedCap = floorCapacities[selectedFloor];
     if (selectedCap && selectedCap.available <= 0) {
-      showToast(`Selected floor ${selectedFloor} has no capacity available. Please pick another floor.`, "error");
+      showToast("Sorry, this floor is fully reserved for the selected time.", "error");
       return;
     }
 
@@ -355,16 +363,13 @@ const SlotLayout = () => {
                       <Layers size={18} color={isActive ? "var(--accent-primary)" : "var(--text-secondary)"} />
                       <span style={{ fontSize: '1.2rem', fontWeight: 800 }}>{floorName}</span>
                     </div>
-                    <div>
-                      {isFull ? (
-                        <span style={{ padding: '4px 10px', borderRadius: 'var(--radius-pill)', background: 'rgba(255,75,75,0.15)', color: '#ff4b4b', fontSize: '0.78rem', fontWeight: 700 }}>
-                          FULL
-                        </span>
-                      ) : (
-                        <span style={{ padding: '4px 10px', borderRadius: 'var(--radius-pill)', background: 'rgba(0,204,106,0.15)', color: '#00cc6a', fontSize: '0.78rem', fontWeight: 700 }}>
-                          {cap.available} / {cap.totalCapacity} Slots Left
-                        </span>
-                      )}
+                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {isFull ? 'Currently Full' : 'Available Capacity'}
+                      </span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 850, color: isFull ? '#ff4b4b' : '#00cc6a' }}>
+                        {isFull ? '[Unavailable]' : `${cap.available} / ${cap.totalCapacity}`}
+                      </span>
                     </div>
                   </div>
 

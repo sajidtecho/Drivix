@@ -21,6 +21,7 @@ import { seedBanners } from './utils/seedBanners.js';
 import { seedPlaces } from './controllers/placeController.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import { runDatabaseMigration } from './utils/migration.js';
+import { getFloorAvailability } from './controllers/parkingController.js';
 
 import mongoose from 'mongoose';
 // Load environment variables
@@ -67,6 +68,7 @@ app.get('/api/v1/health', (req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/vehicles', vehicleRoutes);
 app.use('/api/v1/parking', parkingRoutes);
+app.get('/api/parking/floors/:floorId/availability', getFloorAvailability);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/complaints', complaintRoutes);
 app.use('/api/v1/banners', bannerRoutes);

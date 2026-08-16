@@ -31,6 +31,10 @@ const ParkingFloorSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: [0, 'Reserved capacity cannot be negative']
+  },
+  active: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true,
@@ -42,6 +46,15 @@ const ParkingFloorSchema = new mongoose.Schema({
 ParkingFloorSchema.virtual('floorId').get(function() {
   return this._id.toString();
 });
+
+// Virtual for totalCapacity mapping to totalSlots
+ParkingFloorSchema.virtual('totalCapacity')
+  .get(function() {
+    return this.totalSlots;
+  })
+  .set(function(val) {
+    this.totalSlots = val;
+  });
 
 // Ensure floor name is unique within a specific parking hub
 ParkingFloorSchema.index({ parkingHubId: 1, floorName: 1 }, { unique: true });

@@ -3,6 +3,7 @@ import Slot from '../models/Slot.js';
 import ParkingLocation from '../models/ParkingLocation.js';
 import ParkingFloor from '../models/ParkingFloor.js';
 import User from '../models/User.js';
+import Vehicle from '../models/Vehicle.js';
 import mongoose from 'mongoose';
 import { calculateDynamicPrice } from '../utils/pricingEngine.js';
 import { sendBookingNotification } from '../utils/notificationService.js';
@@ -43,6 +44,69 @@ export const updateFloorCounters = async (parkingHubId, floorId) => {
   } catch (error) {
     console.error(`Error updating floor counters for floor ${floorId}:`, error);
   }
+};
+
+
+class LocalLockManager {
+  constructor() {
+    this.locks = new Map();
+  }
+
+  async acquire(key) {
+    while (this.locks.get(key)) {
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+    this.locks.set(key, true);
+  }
+
+  release(key) {
+    this.locks.delete(key);
+  }
+}
+const localLockManager = new LocalLockManager();
+
+const getAdjacentDates = (dateStr) => {
+  const date = new Date(`${dateStr}T00:00:00`);
+  const prevDate = new Date(date.getTime() - 24 * 60 * 60 * 1000);
+  const nextDate = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+  return [
+    prevDate.toISOString().split('T')[0],
+    dateStr,
+    nextDate.toISOString().split('T')[0]
+  ];
+};
+
+export const getOverlappingCount = async (locationId, floorId, date, startTime, duration, excludeBookingId = null, session = null) => {
+  const reqStart = new Date(`${date}T${startTime}:00`);
+  const reqEnd = new Date(reqStart.getTime() + Number(duration) * 60 * 60 * 1000);
+
+  const datesToQuery = getAdjacentDates(date);
+  
+  const query = {
+    parkingHubId: locationId,
+    floorId: floorId,
+    bookingDate: { $in: datesToQuery },
+    status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
+  };
+
+  if (excludeBookingId) {
+    query._id = { $ne: excludeBookingId };
+  }
+
+  const activeBookings = session 
+    ? await Booking.find(query).session(session)
+    : await Booking.find(query);
+
+  let overlappingCount = 0;
+  for (const b of activeBookings) {
+    const bStart = new Date(`${b.bookingDate}T${b.startTime}:00`);
+    const bEnd = new Date(bStart.getTime() + b.duration * 60 * 60 * 1000);
+    if (bStart < reqEnd && bEnd > reqStart) {
+      overlappingCount++;
+    }
+  }
+
+  return overlappingCount;
 };
 
 
@@ -103,6 +167,9 @@ export const createBooking = async (req, res) => {
     if (!location) {
       return res.status(404).json({ message: 'Parking location not found' });
     }
+    if (location.status !== 'Active') {
+      return res.status(400).json({ message: 'Parking location is inactive' });
+    }
     const resolvedLocationName = locationName || location.parkingName;
 
     // Resolve user details if missing
@@ -114,11 +181,46 @@ export const createBooking = async (req, res) => {
     const resolvedEntryDate = entryDate || now.toISOString().split('T')[0];
     const resolvedEntryTime = entryTime || `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    // 1. Resolve and Verify Floor Capacity
+    // --- Validation Rules ---
+    // 1. Past booking date
+    const currentDateStr = now.toISOString().split('T')[0];
+    if (resolvedEntryDate < currentDateStr) {
+      return res.status(400).json({ message: 'Booking date cannot be in the past' });
+    }
+
+    // 2. Past start time
+    if (resolvedEntryDate === currentDateStr) {
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const [reqHours, reqMinutes] = resolvedEntryTime.split(':').map(Number);
+      if (reqHours < currentHours || (reqHours === currentHours && reqMinutes < currentMinutes)) {
+        return res.status(400).json({ message: 'Booking start time cannot be in the past' });
+      }
+    }
+
+    // 3. Invalid duration (duration > 0)
+    const durationNum = Number(resolvedDuration);
+    if (isNaN(durationNum) || durationNum <= 0) {
+      return res.status(400).json({ message: 'Duration must be greater than 0' });
+    }
+
+    // 4. Configured maximum duration validation
+    if (location.maxDuration && durationNum > location.maxDuration) {
+      return res.status(400).json({ message: `Duration exceeds maximum allowed duration of ${location.maxDuration} hours` });
+    }
+
+    // 5. Invalid Vehicle if vehicleId is passed
+    if (req.body.vehicleId) {
+      const vehicle = await Vehicle.findById(req.body.vehicleId);
+      if (!vehicle) {
+        return res.status(400).json({ message: 'Invalid vehicle' });
+      }
+    }
+
+    // 6. Invalid / Inactive floor
     let floorDoc = null;
     const searchFloor = floor || 'L1';
     
-    // Find the floor document
     floorDoc = await ParkingFloor.findOne({
       parkingHubId: resolvedLocationId,
       $or: [
@@ -128,46 +230,15 @@ export const createBooking = async (req, res) => {
     });
 
     if (!floorDoc) {
-      // Fallback to first floor or create one
-      floorDoc = await ParkingFloor.findOne({ parkingHubId: resolvedLocationId });
-      if (!floorDoc) {
-        floorDoc = await ParkingFloor.create({
-          parkingHubId: resolvedLocationId,
-          floorName: searchFloor,
-          totalSlots: location.totalSlots || 50,
-          availableSlots: location.availableSlots || 50
-        });
-      }
+      return res.status(400).json({ message: 'Invalid floor' });
+    }
+
+    if (floorDoc.active === false) {
+      return res.status(400).json({ message: 'Floor is inactive' });
     }
 
     const resolvedFloor = floorDoc.floorName;
     const resolvedFloorId = floorDoc._id;
-
-    // Capacity Validation Logic: Overlapping active bookings
-    const reqStart = new Date(`${resolvedEntryDate}T${resolvedEntryTime}:00`);
-    const reqEnd = new Date(reqStart.getTime() + Number(resolvedDuration) * 60 * 60 * 1000);
-
-    const activeBookingsOnFloor = await Booking.find({
-      parkingHubId: resolvedLocationId,
-      floorId: resolvedFloorId,
-      bookingDate: resolvedEntryDate,
-      status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
-    });
-
-    let overlappingCount = 0;
-    for (const b of activeBookingsOnFloor) {
-      const bStart = new Date(`${b.bookingDate}T${b.startTime}:00`);
-      const bEnd = new Date(bStart.getTime() + b.duration * 60 * 60 * 1000);
-      if (bStart < reqEnd && bEnd > reqStart) {
-        overlappingCount++;
-      }
-    }
-
-    if (overlappingCount >= floorDoc.totalSlots) {
-      return res.status(400).json({
-        message: `Reservation rejected: Floor capacity is full for ${resolvedFloor} on ${resolvedEntryDate} at ${resolvedEntryTime}. (Total: ${floorDoc.totalSlots}, Reserved: ${overlappingCount})`
-      });
-    }
 
     // Resolve total cost
     let resolvedTotalCost = totalCost;
@@ -177,44 +248,105 @@ export const createBooking = async (req, res) => {
         totalSlots: location.totalSlots,
         availableSlots: location.availableSlots
       });
-      resolvedTotalCost = (recommendation.recommendedPrice * Number(resolvedDuration || 1)) + resolvedServicesCost;
+      resolvedTotalCost = (recommendation.recommendedPrice * durationNum) + resolvedServicesCost;
     }
 
-    // 2. Create the booking document linked to logged-in user
     const finalPaymentMode = resolvedPaymentMode;
     const isPayNow = finalPaymentMode === 'PAY_NOW';
 
-    const booking = await Booking.create({
-      bookingId: bookingId || `DRX-${Date.now().toString(36).toUpperCase()}`,
-      userId: req.user._id,
-      name: resolvedName,
-      mobile: resolvedMobile,
-      vehicleNumber: resolvedVehicleNumber,
-      vehicleName: resolvedVehicleName,
-      parkingHubId: resolvedLocationId,
-      floorId: resolvedFloorId,
-      bookingDate: resolvedEntryDate,
-      startTime: resolvedEntryTime,
-      vehicleId: req.body.vehicleId || null,
+    // Helper to create the booking document inside lock / transaction
+    const executeBookingCreation = async (session = null) => {
+      const overlappingCount = await getOverlappingCount(
+        resolvedLocationId,
+        resolvedFloorId,
+        resolvedEntryDate,
+        resolvedEntryTime,
+        durationNum,
+        null,
+        session
+      );
 
-      locationId: resolvedLocationId,
-      locationName: resolvedLocationName,
-      slotId: null, // Slot remains null until arrival/assignment
-      floor: resolvedFloor,
-      entryDate: resolvedEntryDate,
-      entryTime: resolvedEntryTime,
-      duration: Number(resolvedDuration),
-      totalCost: Number(resolvedTotalCost),
-      paymentMode: finalPaymentMode,
-      paymentStatus: isPayNow ? 'paid' : 'pending',
-      prepaidAmount: isPayNow ? Number(resolvedTotalCost) : 0,
-      finalCost: isPayNow ? Number(resolvedTotalCost) : 0,
-      status: 'Confirmed',
-      additionalServices: resolvedServices,
-      servicesCost: resolvedServicesCost
-    });
+      if (overlappingCount >= floorDoc.totalSlots) {
+        throw new Error('CAPACITY_FULL');
+      }
 
-    // 3. Update floor and location capacities
+      const bookingData = {
+        bookingId: bookingId || `DRX-${Date.now().toString(36).toUpperCase()}`,
+        userId: req.user._id,
+        name: resolvedName,
+        mobile: resolvedMobile,
+        vehicleNumber: resolvedVehicleNumber,
+        vehicleName: resolvedVehicleName,
+        parkingHubId: resolvedLocationId,
+        floorId: resolvedFloorId,
+        bookingDate: resolvedEntryDate,
+        startTime: resolvedEntryTime,
+        vehicleId: req.body.vehicleId || null,
+
+        locationId: resolvedLocationId,
+        locationName: resolvedLocationName,
+        slotId: null, // Slot remains null until arrival/assignment
+        floor: resolvedFloor,
+        entryDate: resolvedEntryDate,
+        entryTime: resolvedEntryTime,
+        duration: durationNum,
+        totalCost: Number(resolvedTotalCost),
+        paymentMode: finalPaymentMode,
+        paymentStatus: isPayNow ? 'paid' : 'pending',
+        prepaidAmount: isPayNow ? Number(resolvedTotalCost) : 0,
+        finalCost: isPayNow ? Number(resolvedTotalCost) : 0,
+        status: 'Confirmed',
+        additionalServices: resolvedServices,
+        servicesCost: resolvedServicesCost
+      };
+
+      const [newBooking] = await Booking.create([bookingData], { session });
+      return newBooking;
+    };
+
+    let booking;
+    const lockKey = `${resolvedLocationId}_${resolvedFloorId}`;
+
+    // Attempt Mongoose Transaction
+    let session = null;
+    let transactionSuccess = false;
+    try {
+      session = await mongoose.startSession();
+      await session.withTransaction(async () => {
+        booking = await executeBookingCreation(session);
+      });
+      transactionSuccess = true;
+    } catch (err) {
+      if (err.message === 'CAPACITY_FULL') {
+        return res.status(400).json({
+          message: `Reservation rejected: Floor capacity is full for ${resolvedFloor} on ${resolvedEntryDate} at ${resolvedEntryTime}.`
+        });
+      }
+      console.warn('⚠️ Mongoose transaction failed, falling back to local queue lock:', err.message);
+    } finally {
+      if (session) {
+        session.endSession();
+      }
+    }
+
+    // Fallback: local lock if transaction failed or wasn't supported
+    if (!transactionSuccess && !booking) {
+      try {
+        await localLockManager.acquire(lockKey);
+        booking = await executeBookingCreation(null);
+      } catch (err) {
+        if (err.message === 'CAPACITY_FULL') {
+          return res.status(400).json({
+            message: `Reservation rejected: Floor capacity is full for ${resolvedFloor} on ${resolvedEntryDate} at ${resolvedEntryTime}.`
+          });
+        }
+        return res.status(500).json({ message: err.message });
+      } finally {
+        localLockManager.release(lockKey);
+      }
+    }
+
+    // Update floor and location capacities
     await updateFloorCounters(resolvedLocationId, resolvedFloorId);
 
     // Emit Socket.io update to all connected clients
@@ -227,7 +359,7 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    // 4. Send Email & SMS Notification
+    // Send Email & SMS Notification
     await sendBookingNotification({
       userId: req.user._id,
       title: 'Booking Confirmed',
@@ -438,33 +570,17 @@ export const extendBooking = async (req, res) => {
       return res.status(404).json({ message: 'Floor not found' });
     }
 
-    const startDateTime = new Date(`${booking.bookingDate}T${booking.startTime}:00`);
     const newDuration = booking.duration + Number(additionalHours);
-    const newEndDateTime = new Date(startDateTime.getTime() + newDuration * 60 * 60 * 1000);
-
-    // Query active bookings (excluding the current booking itself!)
-    const activeBookings = await Booking.find({
-      _id: { $ne: booking._id },
-      parkingHubId: booking.parkingHubId,
-      floorId: booking.floorId,
-      bookingDate: booking.bookingDate,
-      status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
-    });
-
-    let overlappingCount = 0;
-    for (const b of activeBookings) {
-      const bStart = new Date(`${b.bookingDate}T${b.startTime}:00`);
-      const bEnd = new Date(bStart.getTime() + b.duration * 60 * 60 * 1000);
-      if (bStart < newEndDateTime && bEnd > startDateTime) {
-        overlappingCount++;
-      }
-    }
+    const overlappingCount = await getOverlappingCount(booking.parkingHubId, booking.floorId, booking.bookingDate, booking.startTime, newDuration, booking._id);
 
     if (overlappingCount >= floorDoc.totalSlots) {
       return res.status(400).json({
         message: 'Cannot extend booking: Floor capacity is full for the extended duration.'
       });
     }
+
+    const startDateTime = new Date(`${booking.bookingDate}T${booking.startTime}:00`);
+    const newEndDateTime = new Date(startDateTime.getTime() + newDuration * 60 * 60 * 1000);
 
     // 2. Update booking details
     booking.duration = newDuration;
@@ -672,32 +788,16 @@ export const confirmArrival = async (req, res) => {
         return res.status(404).json({ message: 'Floor not found' });
       }
 
-      const reqStart = new Date(`${booking.bookingDate}T${newStartTimeStr}:00`);
-      const reqEnd = new Date(reqStart.getTime() + booking.duration * 60 * 60 * 1000);
-
-      // Overlapping bookings (excluding ourselves)
-      const activeBookings = await Booking.find({
-        _id: { $ne: booking._id },
-        parkingHubId: booking.parkingHubId,
-        floorId: booking.floorId,
-        bookingDate: booking.bookingDate,
-        status: { $in: ['Confirmed', 'Slot Assigned', 'Checked In', 'booked'] }
-      });
-
-      let overlappingCount = 0;
-      for (const b of activeBookings) {
-        const bStart = new Date(`${b.bookingDate}T${b.startTime}:00`);
-        const bEnd = new Date(bStart.getTime() + b.duration * 60 * 60 * 1000);
-        if (bStart < reqEnd && bEnd > reqStart) {
-          overlappingCount++;
-        }
-      }
+      const overlappingCount = await getOverlappingCount(booking.parkingHubId, booking.floorId, booking.bookingDate, newStartTimeStr, booking.duration, booking._id);
 
       if (overlappingCount >= floorDoc.totalSlots) {
         return res.status(400).json({
           message: 'Cannot delay booking: Floor capacity is full for the delayed duration.'
         });
       }
+
+      const reqStart = new Date(`${booking.bookingDate}T${newStartTimeStr}:00`);
+      const reqEnd = new Date(reqStart.getTime() + booking.duration * 60 * 60 * 1000);
 
       booking.startTime = newStartTimeStr;
       
