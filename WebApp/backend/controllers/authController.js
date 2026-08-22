@@ -2,6 +2,7 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
+import { sendOtpEmail } from '../services/emailService.js';
 
 // Generate Token
 const generateToken = (id) => {
@@ -26,6 +27,10 @@ export const registerUser = async (req, res) => {
     // Preserve original Drivix admin logic
     const role = email === 'drivixmobility@gmail.com' ? 'admin' : 'user';
 
+    // Generate random 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
     const user = await User.create({
       fullName: name || 'Drivix User',
       name: name || 'Drivix User',
@@ -33,26 +38,28 @@ export const registerUser = async (req, res) => {
       password,
       mobile,
       city,
-      role
+      role,
+      isVerified: false,
+      emailOtp: otp,
+      emailOtpExpires: otpExpires
     });
 
     if (user) {
+      try {
+        await sendOtpEmail(user.email, user.fullName, otp);
+      } catch (emailError) {
+        console.error('Error sending verification email during registration:', emailError.message);
+        return res.status(201).json({
+          requiresEmailVerification: true,
+          email: user.email,
+          message: 'User registered, but verification email failed to send. Please request a resend.'
+        });
+      }
+
       res.status(201).json({
-        _id: user._id,
-        fullName: user.fullName,
-        name: user.name,
+        requiresEmailVerification: true,
         email: user.email,
-        mobile: user.mobile,
-        city: user.city,
-        role: user.role,
-        walletBalance: user.walletBalance,
-        vehicles: user.vehicles,
-        documents: user.documents,
-        membershipType: user.membershipType,
-        isVerified: user.isVerified,
-        preferences: user.preferences,
-        notifications: user.notifications,
-        token: generateToken(user._id)
+        message: 'Verification OTP sent to your email.'
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -378,6 +385,107 @@ export const getPublicStats = async (req, res) => {
       users: bookingCount || 0,
       facilities: facilityCount || 0
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Verify email OTP
+// @route   POST /api/auth/verify-email-otp
+// @access  Public
+export const verifyEmailOtp = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP code are required.' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    if (user.isVerified) {
+      // Already verified, return login payload
+      return res.json({
+        _id: user._id,
+        fullName: user.fullName,
+        name: user.name,
+        email: user.email,
+        mobile: user.mobile,
+        city: user.city,
+        role: user.role,
+        walletBalance: user.walletBalance,
+        vehicles: user.vehicles,
+        documents: user.documents,
+        membershipType: user.membershipType,
+        isVerified: user.isVerified,
+        preferences: user.preferences,
+        notifications: user.notifications,
+        token: generateToken(user._id)
+      });
+    }
+
+    if (!user.emailOtp || user.emailOtp !== otp || !user.emailOtpExpires || user.emailOtpExpires < Date.now()) {
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    // Clear verification codes and mark as verified
+    user.emailOtp = undefined;
+    user.emailOtpExpires = undefined;
+    user.isVerified = true;
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      fullName: user.fullName,
+      name: user.name,
+      email: user.email,
+      mobile: user.mobile,
+      city: user.city,
+      role: user.role,
+      walletBalance: user.walletBalance,
+      vehicles: user.vehicles,
+      documents: user.documents,
+      membershipType: user.membershipType,
+      isVerified: user.isVerified,
+      preferences: user.preferences,
+      notifications: user.notifications,
+      token: generateToken(user._id)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Resend email OTP
+// @route   POST /api/auth/resend-email-otp
+// @access  Public
+export const resendEmailOtp = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required.' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Generate new 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.emailOtp = otp;
+    user.emailOtpExpires = otpExpires;
+    await user.save();
+
+    await sendOtpEmail(user.email, user.fullName, otp);
+
+    res.json({ message: 'Verification OTP sent to your email.' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

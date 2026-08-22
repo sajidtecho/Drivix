@@ -120,11 +120,51 @@ export const UserProvider = ({ children }) => {
       throw new Error(data.message || 'Registration failed');
     }
 
+    if (data.requiresEmailVerification) {
+      return data;
+    }
+
     localStorage.setItem('drivix_auth_token', data.token);
     localStorage.setItem('drivix_user_uid', data._id);
     setUser(mapUser(data));
     setIsAuthenticated(true);
     return mapUser(data);
+  };
+
+  const verifyEmailOtp = async (email, otp) => {
+    const response = await fetch(`${API_URL}/verify-email-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Verification failed');
+    }
+
+    localStorage.setItem('drivix_auth_token', data.token);
+    localStorage.setItem('drivix_user_uid', data._id);
+    setUser(mapUser(data));
+    setIsAuthenticated(true);
+    return mapUser(data);
+  };
+
+  const resendEmailOtp = async (email) => {
+    const response = await fetch(`${API_URL}/resend-email-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to resend verification OTP');
+    }
+
+    return data;
   };
 
   const loginWithGoogle = async (credential) => {
@@ -196,7 +236,7 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, isAuthenticated, loading, login, register, loginWithGoogle, loginWithPhone, logout, updateUser }}>
+    <UserContext.Provider value={{ user, isAuthenticated, loading, login, register, loginWithGoogle, loginWithPhone, logout, updateUser, verifyEmailOtp, resendEmailOtp }}>
       {children}
     </UserContext.Provider>
   );

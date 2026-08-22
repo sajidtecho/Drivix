@@ -45,6 +45,8 @@ const UserSchema = new mongoose.Schema({
   membershipType: { type: String, default: 'Free', enum: ['Free', 'Premium'] },
   membershipExpiry: { type: Date, default: null },
   isVerified: { type: Boolean, default: false },
+  emailOtp: { type: String },
+  emailOtpExpires: { type: Date },
   preferences: {
     parkingType: { type: String, default: 'Open Space' },
     evCharging: { type: Boolean, default: false }

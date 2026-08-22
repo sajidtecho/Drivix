@@ -8,7 +8,7 @@ import VehicleBackground from '../components/VehicleBackground';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { login, register, loginWithGoogle, loginWithPhone } = useUser();
+  const { login, register, loginWithGoogle, loginWithPhone, verifyEmailOtp, resendEmailOtp } = useUser();
   const [isLogin, setIsLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -27,6 +27,56 @@ const Auth = () => {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState('');
   const [confirmationResult, setConfirmationResult] = useState(null);
+
+  // Email OTP State
+  const [showEmailOtpInput, setShowEmailOtpInput] = useState(false);
+  const [emailOtp, setEmailOtp] = useState(['', '', '', '', '', '']);
+  const [emailOtpError, setEmailOtpError] = useState('');
+  const [emailResendCooldown, setEmailResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (emailResendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setEmailResendCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [emailResendCooldown]);
+
+  const handleVerifyEmailOtp = async (e) => {
+    e.preventDefault();
+    const otpString = emailOtp.join('');
+    if (otpString.length < 6) {
+      setEmailOtpError('Please enter all 6 digits of the OTP.');
+      return;
+    }
+    setIsLoading(true);
+    setEmailOtpError('');
+    try {
+      await verifyEmailOtp(formData.email, otpString);
+      navigate('/find');
+    } catch (err) {
+      console.error(err);
+      setEmailOtpError(err.message || 'Invalid OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendEmailOtp = async () => {
+    if (emailResendCooldown > 0) return;
+    setIsLoading(true);
+    setEmailOtpError('');
+    try {
+      await resendEmailOtp(formData.email);
+      setEmailResendCooldown(30);
+      alert('Verification OTP has been resent to your Gmail address.');
+    } catch (err) {
+      console.error(err);
+      setEmailOtpError(err.message || 'Failed to resend OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Terms state
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -169,8 +219,13 @@ const Auth = () => {
 
         navigate('/find');
       } else {
-        await register(formData.name, formData.email, formData.password, formData.mobile, formData.city);
-        navigate('/find');
+        const data = await register(formData.name, formData.email, formData.password, formData.mobile, formData.city);
+        if (data && data.requiresEmailVerification) {
+          setShowEmailOtpInput(true);
+          setEmailResendCooldown(30);
+        } else {
+          navigate('/find');
+        }
       }
     } catch (err) {
       console.error(err);
@@ -279,265 +334,379 @@ const Auth = () => {
       <VehicleBackground />
       <div className="glass-panel" style={{ width: '100%', maxWidth: '450px', padding: '40px', position: 'relative', overflow: 'hidden', zIndex: 1 }}>
 
-        {/* Toggle tabs */}
-        <div style={{ display: 'flex', marginBottom: '32px', background: 'var(--glass-border)', padding: '4px', borderRadius: 'var(--radius-input)' }}>
-          <button
-            onClick={() => setIsLogin(true)}
-            style={{
-              flex: 1, padding: '10px', borderRadius: 'var(--radius-button)', border: 'none',
-              background: isLogin ? 'var(--accent-primary)' : 'transparent',
-              color: isLogin ? '#000' : 'var(--text-secondary)',
-              fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s'
-            }}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setIsLogin(false)}
-            style={{
-              flex: 1, padding: '10px', borderRadius: 'var(--radius-button)', border: 'none',
-              background: !isLogin ? 'var(--accent-primary)' : 'transparent',
-              color: !isLogin ? '#000' : 'var(--text-secondary)',
-              fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s'
-            }}
-          >
-            Sign Up
-          </button>
-        </div>
+        {showEmailOtpInput ? (
+          <div>
+            <h2 style={{ fontSize: '2rem', marginBottom: '8px', fontWeight: 700 }}>
+              Verify your <span className="text-gradient">Email</span>
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
+              We sent a 6-digit OTP code to <strong style={{ color: '#fff' }}>{formData.email}</strong>. Please enter it below.
+            </p>
 
-        <h2 style={{ fontSize: '2rem', marginBottom: '8px', fontWeight: 700 }}>
-          {isLogin ? 'Your spot is waiting.' : 'Reserve yours.'}
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
-          {isLogin ? 'Log in to manage your bookings and wallet.' : 'Create an account to secure premium parking across the city.'}
-        </p>
+            {emailOtpError && (
+              <div style={{ padding: '12px', background: 'rgba(255, 75, 75, 0.1)', border: '1px solid rgba(255, 75, 75, 0.3)', borderRadius: 'var(--radius-input)', color: '#ff4b4b', fontSize: '0.9rem', marginBottom: '20px' }}>
+                {emailOtpError}
+              </div>
+            )}
 
-        {error && (
-          <div style={{ padding: '12px', background: 'rgba(255, 75, 75, 0.1)', border: '1px solid rgba(255, 75, 75, 0.3)', borderRadius: 'var(--radius-input)', color: '#ff4b4b', fontSize: '0.9rem', marginBottom: '20px' }}>
-            {error}
-          </div>
-        )}
+            <form onSubmit={handleVerifyEmailOtp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="input-group">
+                <label style={{ display: 'block', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Verification Code</label>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                  {emailOtp.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`email-otp-${index}`}
+                      type="text"
+                      maxLength="1"
+                      pattern="[0-9]*"
+                      inputMode="numeric"
+                      value={digit}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (!/^\d*$/.test(val)) return;
+                        
+                        const newOtp = [...emailOtp];
+                        newOtp[index] = val.slice(-1);
+                        setEmailOtp(newOtp);
+                        
+                        // Auto-focus next input
+                        if (val && index < 5) {
+                          const nextInput = document.getElementById(`email-otp-${index + 1}`);
+                          if (nextInput) nextInput.focus();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Backspace' && !emailOtp[index] && index > 0) {
+                          const prevInput = document.getElementById(`email-otp-${index - 1}`);
+                          if (prevInput) {
+                            prevInput.focus();
+                            const newOtp = [...emailOtp];
+                            newOtp[index - 1] = '';
+                            setEmailOtp(newOtp);
+                          }
+                        }
+                      }}
+                      style={{
+                        width: '45px',
+                        height: '45px',
+                        borderRadius: '8px',
+                        border: '1px solid var(--glass-border)',
+                        background: 'var(--glass-bg)',
+                        color: 'var(--text-primary)',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        textAlign: 'center',
+                        outline: 'none',
+                        transition: 'border-color 0.2s'
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
 
-        {isLogin && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              {isPhoneLogin ? "Prefer Email?" : "Prefer Mobile?"}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="btn btn-primary"
+                style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+              >
+                {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Verify Code'}
+                {!isLoading && <ArrowRight size={18} />}
+              </button>
+
+              <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                {emailResendCooldown > 0 ? (
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    Resend code in <strong style={{ color: 'var(--accent-primary)' }}>{emailResendCooldown}s</strong>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendEmailOtp}
+                    disabled={isLoading}
+                    style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}
+                  >
+                    Resend OTP to Email
+                  </button>
+                )}
+              </div>
+
               <button
                 type="button"
-                onClick={() => { setIsPhoneLogin(!isPhoneLogin); setShowOtpInput(false); setError(''); }}
-                style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontWeight: 600, marginLeft: '6px', cursor: 'pointer', padding: 0 }}
+                onClick={() => {
+                  setShowEmailOtpInput(false);
+                  setEmailOtp(['', '', '', '', '', '']);
+                  setEmailOtpError('');
+                }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '10px', cursor: 'pointer' }}
               >
-                {isPhoneLogin ? "Login with Email" : "Login with OTP"}
+                &larr; Back to Registration
               </button>
-            </span>
+            </form>
           </div>
-        )}
-
-        <div id="recaptcha-container"></div>
-
-        {isPhoneLogin && isLogin ? (
-          <form onSubmit={showOtpInput ? handleVerifyOtp : handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {!showOtpInput ? (
-              <div className="input-group">
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Mobile Number</label>
-                <div style={{ position: 'relative' }}>
-                  <Phone size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
-                  <input
-                    type="tel" name="mobile" placeholder="+91........." required
-                    value={formData.mobile} onChange={handleChange}
-                    style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="input-group">
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Enter OTP</label>
-                <div style={{ position: 'relative' }}>
-                  <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
-                  <input
-                    type="text" placeholder="123456" required
-                    value={otp} onChange={(e) => setOtp(e.target.value)}
-                    style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none', letterSpacing: '2px' }}
-                  />
-                </div>
-              </div>
-            )}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn btn-primary"
-              style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
-            >
-              {isLoading ? <Loader2 className="animate-spin" size={20} /> : (showOtpInput ? 'Verify OTP' : 'Send OTP')}
-              {!isLoading && <ArrowRight size={18} />}
-            </button>
-          </form>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <>
+            {/* Toggle tabs */}
+            <div style={{ display: 'flex', marginBottom: '32px', background: 'var(--glass-border)', padding: '4px', borderRadius: 'var(--radius-input)' }}>
+              <button
+                onClick={() => setIsLogin(true)}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 'var(--radius-button)', border: 'none',
+                  background: isLogin ? 'var(--accent-primary)' : 'transparent',
+                  color: isLogin ? '#000' : 'var(--text-secondary)',
+                  fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s'
+                }}
+              >
+                Login
+              </button>
+              <button
+                onClick={() => setIsLogin(false)}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 'var(--radius-button)', border: 'none',
+                  background: !isLogin ? 'var(--accent-primary)' : 'transparent',
+                  color: !isLogin ? '#000' : 'var(--text-secondary)',
+                  fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s'
+                }}
+              >
+                Sign Up
+              </button>
+            </div>
 
-            {!isLogin && (
-              <div className="input-group">
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Full Name</label>
-                <div style={{ position: 'relative' }}>
-                  <User size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
-                  <input
-                    type="text" name="name" placeholder="Full Name" required
-                    value={formData.name} onChange={handleChange}
-                    style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
-                  />
-                </div>
+            <h2 style={{ fontSize: '2rem', marginBottom: '8px', fontWeight: 700 }}>
+              {isLogin ? 'Your spot is waiting.' : 'Reserve yours.'}
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
+              {isLogin ? 'Log in to manage your bookings and wallet.' : 'Create an account to secure premium parking across the city.'}
+            </p>
+
+            {error && (
+              <div style={{ padding: '12px', background: 'rgba(255, 75, 75, 0.1)', border: '1px solid rgba(255, 75, 75, 0.3)', borderRadius: 'var(--radius-input)', color: '#ff4b4b', fontSize: '0.9rem', marginBottom: '20px' }}>
+                {error}
               </div>
             )}
 
-            <div className="input-group">
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Email Address</label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
-                <input
-                  type="email" name="email" placeholder="Email Address" required
-                  value={formData.email} onChange={handleChange}
-                  style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
-                />
-              </div>
-            </div>
-
-            {!isLogin && (
-              <div className="input-group">
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Mobile Number</label>
-                <div style={{ position: 'relative' }}>
-                  <Phone size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
-                  <input
-                    type="tel" name="mobile" placeholder="+91 " required
-                    value={formData.mobile} onChange={handleChange}
-                    style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="input-group">
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Password</label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
-                <input
-                  type={showPassword ? "text" : "password"} name="password" placeholder="Password" required
-                  value={formData.password} onChange={handleChange}
-                  style={{ width: '100%', padding: '14px 44px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            {!isLogin && (
-              <div className="input-group">
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>City / Location</label>
-                <div style={{ position: 'relative' }}>
-                  <MapPin size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
-                  <input
-                    type="text" name="city" placeholder="City/Location" required
-                    value={formData.city} onChange={handleChange}
-                    style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Remember Me Checkbox */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
-                <div
-                  onClick={() => setRememberMe(!rememberMe)}
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '6px',
-                    border: `2px solid ${rememberMe ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
-                    background: rememberMe ? 'var(--accent-primary)' : 'transparent',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    padding: '2px'
-                  }}
-                >
-                  {rememberMe && <CheckCircle size={14} color="#000" />}
-                </div>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: rememberMe ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Remember me</span>
-              </label>
-
-              {isLogin && (
-                <button type="button" onClick={handleForgotPassword} className="nav-link" style={{ fontSize: '0.85rem', padding: 0 }}>Forgot Password?</button>
-              )}
-            </div>
-
-            {/* Terms and Conditions Checkbox */}
-            {!isLogin && (
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginTop: '4px' }}>
-                <div
-                  onClick={() => setAcceptedTerms(!acceptedTerms)}
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    minWidth: '20px',
-                    borderRadius: '6px',
-                    border: `2px solid ${acceptedTerms ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
-                    background: acceptedTerms ? 'var(--accent-primary)' : 'transparent',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    marginTop: '2px'
-                  }}
-                >
-                  {acceptedTerms && <CheckCircle size={14} color="#000" />}
-                </div>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                  I agree to the <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', padding: 0, cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>Terms & Conditions</button> which include Indian Govt. parking laws and insurance liability clauses.
+            {isLogin && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                  {isPhoneLogin ? "Prefer Email?" : "Prefer Mobile?"}
+                  <button
+                    type="button"
+                    onClick={() => { setIsPhoneLogin(!isPhoneLogin); setShowOtpInput(false); setError(''); }}
+                    style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontWeight: 600, marginLeft: '6px', cursor: 'pointer', padding: 0 }}
+                  >
+                    {isPhoneLogin ? "Login with Email" : "Login with OTP"}
+                  </button>
                 </span>
               </div>
             )}
 
+            <div id="recaptcha-container"></div>
 
-            <button
-              type="submit"
-              disabled={isLoading || (!isLogin && !acceptedTerms)}
-              className="btn btn-primary"
-              style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: (!isLogin && !acceptedTerms) ? 0.6 : 1 }}
-            >
-              {isLoading ? <Loader2 className="animate-spin" size={20} /> : (isLogin ? 'Log In' : 'Create Account')}
-              {!isLoading && <ArrowRight size={18} />}
-            </button>
+            {isPhoneLogin && isLogin ? (
+              <form onSubmit={showOtpInput ? handleVerifyOtp : handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {!showOtpInput ? (
+                  <div className="input-group">
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Mobile Number</label>
+                    <div style={{ position: 'relative' }}>
+                      <Phone size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
+                      <input
+                        type="tel" name="mobile" placeholder="+91........." required
+                        value={formData.mobile} onChange={handleChange}
+                        style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="input-group">
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Enter OTP</label>
+                    <div style={{ position: 'relative' }}>
+                      <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
+                      <input
+                        type="text" placeholder="123456" required
+                        value={otp} onChange={(e) => setOtp(e.target.value)}
+                        style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none', letterSpacing: '2px' }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn btn-primary"
+                  style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+                >
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : (showOtpInput ? 'Verify OTP' : 'Send OTP')}
+                  {!isLoading && <ArrowRight size={18} />}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-            <p style={{ textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
-              By continuing, you agree to our Terms and Privacy Policy.
-            </p>
-          </form>
-        )}
+                {!isLogin && (
+                  <div className="input-group">
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Full Name</label>
+                    <div style={{ position: 'relative' }}>
+                      <User size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
+                      <input
+                        type="text" name="name" placeholder="Full Name" required
+                        value={formData.name} onChange={handleChange}
+                        style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                      />
+                    </div>
+                  </div>
+                )}
 
-        {isLogin && (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
-              <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }}></div>
-              <span style={{ padding: '0 10px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>or</span>
-              <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }}></div>
-            </div>
+                <div className="input-group">
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Email Address</label>
+                  <div style={{ position: 'relative' }}>
+                    <Mail size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
+                    <input
+                      type="email" name="email" placeholder="Email Address" required
+                      value={formData.email} onChange={handleChange}
+                      style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                    />
+                  </div>
+                </div>
 
-            <div 
-              id="google-button-container"
-              style={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                marginTop: '10px'
-              }}
-            ></div>
+                {!isLogin && (
+                  <div className="input-group">
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Mobile Number</label>
+                    <div style={{ position: 'relative' }}>
+                      <Phone size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
+                      <input
+                        type="tel" name="mobile" placeholder="+91 " required
+                        value={formData.mobile} onChange={handleChange}
+                        style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="input-group">
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Password</label>
+                  <div style={{ position: 'relative' }}>
+                    <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
+                    <input
+                      type={showPassword ? "text" : "password"} name="password" placeholder="Password" required
+                      value={formData.password} onChange={handleChange}
+                      style={{ width: '100%', padding: '14px 44px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                {!isLogin && (
+                  <div className="input-group">
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)' }}>City / Location</label>
+                    <div style={{ position: 'relative' }}>
+                      <MapPin size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }} />
+                      <input
+                        type="text" name="city" placeholder="City/Location" required
+                        value={formData.city} onChange={handleChange}
+                        style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Remember Me Checkbox */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
+                    <div
+                      onClick={() => setRememberMe(!rememberMe)}
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '6px',
+                        border: `2px solid ${rememberMe ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
+                        background: rememberMe ? 'var(--accent-primary)' : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        padding: '2px'
+                      }}
+                    >
+                      {rememberMe && <CheckCircle size={14} color="#000" />}
+                    </div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: rememberMe ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Remember me</span>
+                  </label>
+
+                  {isLogin && (
+                    <button type="button" onClick={handleForgotPassword} className="nav-link" style={{ fontSize: '0.85rem', padding: 0 }}>Forgot Password?</button>
+                  )}
+                </div>
+
+                {/* Terms and Conditions Checkbox */}
+                {!isLogin && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginTop: '4px' }}>
+                    <div
+                      onClick={() => setAcceptedTerms(!acceptedTerms)}
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        minWidth: '20px',
+                        borderRadius: '6px',
+                        border: `2px solid ${acceptedTerms ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
+                        background: acceptedTerms ? 'var(--accent-primary)' : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        marginTop: '2px'
+                      }}
+                    >
+                      {acceptedTerms && <CheckCircle size={14} color="#000" />}
+                    </div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                      I agree to the <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', padding: 0, cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>Terms & Conditions</button> which include Indian Govt. parking laws and insurance liability clauses.
+                    </span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isLoading || (!isLogin && !acceptedTerms)}
+                  className="btn btn-primary"
+                  style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: (!isLogin && !acceptedTerms) ? 0.6 : 1 }}
+                >
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : (isLogin ? 'Log In' : 'Create Account')}
+                  {!isLoading && <ArrowRight size={18} />}
+                </button>
+
+                <p style={{ textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                  By continuing, you agree to our Terms and Privacy Policy.
+                </p>
+              </form>
+            )}
+
+            {isLogin && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
+                  <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }}></div>
+                  <span style={{ padding: '0 10px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>or</span>
+                  <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }}></div>
+                </div>
+
+                <div 
+                  id="google-button-container"
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    marginTop: '10px'
+                  }}
+                ></div>
+              </>
+            )}
           </>
         )}
       </div>
