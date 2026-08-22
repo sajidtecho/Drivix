@@ -209,7 +209,12 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        await login(formData.email, formData.password);
+        const data = await login(formData.email, formData.password);
+        if (data && data.requiresEmailVerification) {
+          setShowEmailOtpInput(true);
+          setEmailResendCooldown(30);
+          return;
+        }
 
         if (rememberMe) {
           localStorage.setItem('drivix_remembered_email', formData.email);
@@ -458,7 +463,7 @@ const Auth = () => {
               </div>
             </div>
 
-            {showEmailOtpInput && !isLogin && (
+            {showEmailOtpInput && (
               <div className="input-group" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--glass-border)', padding: '15px', borderRadius: 'var(--radius-input)', marginTop: '4px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--accent-primary)' }}>Enter Email OTP</label>
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '10px' }}>
@@ -644,11 +649,11 @@ const Auth = () => {
               className="btn btn-primary"
               style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: (!isLogin && !acceptedTerms) ? 0.6 : 1 }}
             >
-              {isLoading ? <Loader2 className="animate-spin" size={20} /> : (isLogin ? 'Log In' : (showEmailOtpInput ? 'Verify & Create Account' : 'Create Account'))}
+              {isLoading ? <Loader2 className="animate-spin" size={20} /> : (showEmailOtpInput ? (isLogin ? 'Verify & Log In' : 'Verify & Create Account') : (isLogin ? 'Log In' : 'Create Account'))}
               {!isLoading && <ArrowRight size={18} />}
             </button>
 
-            {showEmailOtpInput && !isLogin && (
+            {showEmailOtpInput && (
               <button
                 type="button"
                 onClick={() => {

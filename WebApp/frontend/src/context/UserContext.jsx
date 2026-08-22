@@ -100,6 +100,10 @@ export const UserProvider = ({ children }) => {
       throw new Error(data.message || 'Login failed');
     }
 
+    if (data.requiresEmailVerification) {
+      return data;
+    }
+
     localStorage.setItem('drivix_auth_token', data.token);
     localStorage.setItem('drivix_user_uid', data._id);
     setUser(mapUser(data));

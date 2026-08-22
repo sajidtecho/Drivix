@@ -69,9 +69,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Auth user & get token
-// @route   POST /api/auth/login
-// @access  Public
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -79,6 +76,33 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ email }).select('+password');
 
     if (user && (await user.matchPassword(password))) {
+      // Check if email has been verified
+      if (!user.isVerified) {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        user.emailOtp = otp;
+        user.emailOtpExpires = otpExpires;
+        await user.save();
+
+        try {
+          await sendOtpEmail(user.email, user.fullName, otp);
+        } catch (emailError) {
+          console.error('Error sending verification email during login:', emailError.message);
+          return res.status(200).json({
+            requiresEmailVerification: true,
+            email: user.email,
+            message: 'Verification OTP failed to send. Please request a resend.'
+          });
+        }
+
+        return res.status(200).json({
+          requiresEmailVerification: true,
+          email: user.email,
+          message: 'Verification OTP sent to your email.'
+        });
+      }
+
       res.json({
         _id: user._id,
         fullName: user.fullName,
