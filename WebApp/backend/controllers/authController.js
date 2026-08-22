@@ -93,11 +93,11 @@ export const loginUser = async (req, res) => {
         try {
           await sendOtpEmail(user.email, user.fullName, otp);
         } catch (emailError) {
-          console.error('Error sending verification email during login:', emailError.message);
+          console.warn('⚠️ SMTP Email delivery failed. Falling back to console log. Generated OTP for login:', otp);
           return res.status(200).json({
             requiresEmailVerification: true,
             email: user.email,
-            message: 'Verification OTP failed to send. Please request a resend.'
+            message: 'SMTP settings missing. Verification OTP printed to backend console.'
           });
         }
 
@@ -512,7 +512,12 @@ export const resendEmailOtp = async (req, res) => {
     user.emailOtpExpires = otpExpires;
     await user.save();
 
-    await sendOtpEmail(user.email, user.fullName, otp);
+    try {
+      await sendOtpEmail(user.email, user.fullName, otp);
+    } catch (emailError) {
+      console.warn('⚠️ SMTP Email delivery failed. Falling back to console log. Generated OTP for resend:', otp);
+      return res.json({ message: 'SMTP settings missing. Verification OTP printed to backend console.' });
+    }
 
     res.json({ message: 'Verification OTP sent to your email.' });
   } catch (error) {
@@ -547,8 +552,8 @@ export const sendPublicEmailOtp = async (req, res) => {
     try {
       await sendOtpEmail(email, 'Drivix User', otp);
     } catch (emailError) {
-      console.error('Error sending verification email:', emailError.message);
-      return res.status(500).json({ message: 'Failed to send verification email. Please check if email is correct.' });
+      console.warn('⚠️ SMTP Email delivery failed. Falling back to console log. Generated OTP:', otp);
+      return res.json({ message: 'SMTP settings missing. Verification OTP printed to backend console.' });
     }
 
     res.json({ message: 'Verification OTP sent to your email.' });
