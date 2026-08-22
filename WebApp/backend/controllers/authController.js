@@ -2,6 +2,7 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
+import EmailOtp from '../models/EmailOtp.js';
 import { sendOtpEmail } from '../services/emailService.js';
 
 // Generate Token
@@ -24,12 +25,14 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Enforce email verification check from EmailOtp model
+    const verifiedEmailRecord = await EmailOtp.findOne({ email, isVerified: true });
+    if (!verifiedEmailRecord) {
+      return res.status(400).json({ message: 'Please verify your email address first using the OTP sent to your Gmail.' });
+    }
+
     // Preserve original Drivix admin logic
     const role = email === 'drivixmobility@gmail.com' ? 'admin' : 'user';
-
-    // Generate random 6-digit numeric OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
     const user = await User.create({
       fullName: name || 'Drivix User',
@@ -39,27 +42,29 @@ export const registerUser = async (req, res) => {
       mobile,
       city,
       role,
-      isVerified: false,
-      emailOtp: otp,
-      emailOtpExpires: otpExpires
+      isVerified: true // Set verified directly since it was checked inline
     });
 
     if (user) {
-      try {
-        await sendOtpEmail(user.email, user.fullName, otp);
-      } catch (emailError) {
-        console.error('Error sending verification email during registration:', emailError.message);
-        return res.status(201).json({
-          requiresEmailVerification: true,
-          email: user.email,
-          message: 'User registered, but verification email failed to send. Please request a resend.'
-        });
-      }
+      // Delete verification record now that user is registered
+      await EmailOtp.deleteOne({ email });
 
       res.status(201).json({
-        requiresEmailVerification: true,
+        _id: user._id,
+        fullName: user.fullName,
+        name: user.name,
         email: user.email,
-        message: 'Verification OTP sent to your email.'
+        mobile: user.mobile,
+        city: user.city,
+        role: user.role,
+        walletBalance: user.walletBalance,
+        vehicles: user.vehicles,
+        documents: user.documents,
+        membershipType: user.membershipType,
+        isVerified: user.isVerified,
+        preferences: user.preferences,
+        notifications: user.notifications,
+        token: generateToken(user._id)
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -510,6 +515,67 @@ export const resendEmailOtp = async (req, res) => {
     await sendOtpEmail(user.email, user.fullName, otp);
 
     res.json({ message: 'Verification OTP sent to your email.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Send email OTP before registration
+// @route   POST /api/auth/send-public-otp
+// @access  Public
+export const sendPublicEmailOtp = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: 'Email address is required' });
+  }
+
+  try {
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await EmailOtp.findOneAndUpdate(
+      { email },
+      { otp, expiresAt, isVerified: false },
+      { upsert: true, new: true }
+    );
+
+    try {
+      await sendOtpEmail(email, 'Drivix User', otp);
+    } catch (emailError) {
+      console.error('Error sending verification email:', emailError.message);
+      return res.status(500).json({ message: 'Failed to send verification email. Please check if email is correct.' });
+    }
+
+    res.json({ message: 'Verification OTP sent to your email.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Verify email OTP before registration
+// @route   POST /api/auth/verify-public-otp
+// @access  Public
+export const verifyPublicEmailOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) {
+    return res.status(400).json({ message: 'Email and OTP are required' });
+  }
+
+  try {
+    const record = await EmailOtp.findOne({ email });
+    if (!record || record.otp !== otp || record.expiresAt < new Date()) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    record.isVerified = true;
+    await record.save();
+
+    res.json({ message: 'Email verified successfully.' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

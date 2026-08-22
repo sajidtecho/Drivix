@@ -218,6 +218,32 @@ export const UserProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
+  const sendPublicEmailOtp = async (email) => {
+    const response = await fetch(`${API_URL}/send-public-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to send OTP');
+    }
+    return data;
+  };
+
+  const verifyPublicEmailOtp = async (email, otp) => {
+    const response = await fetch(`${API_URL}/verify-public-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Verification failed');
+    }
+    return data;
+  };
+
   const updateUser = async (updatedData) => {
     const token = localStorage.getItem('drivix_auth_token');
     if (!token) return;
@@ -240,7 +266,7 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, isAuthenticated, loading, login, register, loginWithGoogle, loginWithPhone, logout, updateUser, verifyEmailOtp, resendEmailOtp }}>
+    <UserContext.Provider value={{ user, isAuthenticated, loading, login, register, loginWithGoogle, loginWithPhone, logout, updateUser, verifyEmailOtp, resendEmailOtp, sendPublicEmailOtp, verifyPublicEmailOtp }}>
       {children}
     </UserContext.Provider>
   );

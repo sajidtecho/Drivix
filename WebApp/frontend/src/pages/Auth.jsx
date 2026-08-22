@@ -8,7 +8,7 @@ import VehicleBackground from '../components/VehicleBackground';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { login, register, loginWithGoogle, loginWithPhone, verifyEmailOtp, resendEmailOtp } = useUser();
+  const { login, register, loginWithGoogle, loginWithPhone, verifyEmailOtp, resendEmailOtp, sendPublicEmailOtp, verifyPublicEmailOtp } = useUser();
   const [isLogin, setIsLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -34,6 +34,9 @@ const Auth = () => {
   const [emailOtpError, setEmailOtpError] = useState('');
   const [emailResendCooldown, setEmailResendCooldown] = useState(0);
 
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isSendingEmailOtp, setIsSendingEmailOtp] = useState(false);
+
   useEffect(() => {
     if (emailResendCooldown <= 0) return;
     const timer = setInterval(() => {
@@ -41,6 +44,45 @@ const Auth = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, [emailResendCooldown]);
+
+  const handleSendEmailVerificationOtp = async () => {
+    if (!formData.email) {
+      setError('Please enter a valid email address first.');
+      return;
+    }
+    setIsSendingEmailOtp(true);
+    setError('');
+    setEmailOtpError('');
+    try {
+      await sendPublicEmailOtp(formData.email);
+      setShowEmailOtpInput(true);
+      setEmailResendCooldown(30);
+    } catch (err) {
+      setError(err.message || 'Failed to send verification OTP.');
+    } finally {
+      setIsSendingEmailOtp(false);
+    }
+  };
+
+  const handleVerifyEmailVerificationOtp = async () => {
+    const code = emailOtp.join('');
+    if (code.length < 6) {
+      setEmailOtpError('Please enter the full 6-digit code.');
+      return;
+    }
+    setIsLoading(true);
+    setEmailOtpError('');
+    try {
+      await verifyPublicEmailOtp(formData.email, code);
+      setIsEmailVerified(true);
+      setShowEmailOtpInput(false);
+      setEmailOtp(['', '', '', '', '', '']);
+    } catch (err) {
+      setEmailOtpError(err.message || 'Verification failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleVerifyEmailOtp = async (e) => {
     e.preventDefault();
@@ -457,16 +499,45 @@ const Auth = () => {
                 <input
                   type="email" name="email" placeholder="Email Address" required
                   value={formData.email} onChange={handleChange}
-                  disabled={showEmailOtpInput}
+                  disabled={showEmailOtpInput || isEmailVerified}
                   style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                 />
               </div>
             </div>
 
+            {!isLogin && isEmailVerified && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', color: '#4caf50', fontSize: '0.85rem', fontWeight: 600 }}>
+                <CheckCircle size={14} /> Email Verified
+              </div>
+            )}
+
+            {!isLogin && !isEmailVerified && !showEmailOtpInput && (
+              <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  disabled={isSendingEmailOtp || !formData.email}
+                  onClick={handleSendEmailVerificationOtp}
+                  style={{
+                    background: 'var(--accent-primary)',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: 'var(--radius-input)',
+                    padding: '8px 16px',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    opacity: (!formData.email || isSendingEmailOtp) ? 0.6 : 1
+                  }}
+                >
+                  {isSendingEmailOtp ? 'Sending OTP...' : 'Verify Email'}
+                </button>
+              </div>
+            )}
+
             {showEmailOtpInput && (
-              <div className="input-group" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--glass-border)', padding: '15px', borderRadius: 'var(--radius-input)', marginTop: '4px' }}>
+              <div className="input-group" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--glass-border)', padding: '15px', borderRadius: 'var(--radius-input)', marginTop: '8px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--accent-primary)' }}>Enter Email OTP</label>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '12px' }}>
                   {emailOtp.map((digit, index) => (
                     <input
                       key={index}
@@ -516,6 +587,49 @@ const Auth = () => {
                     />
                   ))}
                 </div>
+
+                {!isLogin ? (
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={handleVerifyEmailVerificationOtp}
+                      disabled={isLoading}
+                      style={{
+                        flex: 1,
+                        background: 'var(--accent-primary)',
+                        color: '#000',
+                        border: 'none',
+                        borderRadius: 'var(--radius-button)',
+                        padding: '10px',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isLoading ? 'Confirming...' : 'Confirm Code'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEmailOtpInput(false);
+                        setEmailOtp(['', '', '', '', '', '']);
+                        setEmailOtpError('');
+                      }}
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        color: 'var(--text-secondary)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: 'var(--radius-button)',
+                        padding: '10px',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : null}
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
                   {emailOtpError ? (
                     <span style={{ color: '#ff4b4b' }}>{emailOtpError}</span>
@@ -527,7 +641,7 @@ const Auth = () => {
                   ) : (
                     <button
                       type="button"
-                      onClick={handleResendEmailOtp}
+                      onClick={!isLogin ? handleSendEmailVerificationOtp : handleResendEmailOtp}
                       style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', padding: 0, fontSize: '0.8rem', fontWeight: 600 }}
                     >
                       Resend
@@ -645,15 +759,15 @@ const Auth = () => {
 
             <button
               type="submit"
-              disabled={isLoading || (!isLogin && !acceptedTerms)}
+              disabled={isLoading || (!isLogin && (!acceptedTerms || !isEmailVerified))}
               className="btn btn-primary"
-              style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: (!isLogin && !acceptedTerms) ? 0.6 : 1 }}
+              style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: (!isLogin && (!acceptedTerms || !isEmailVerified)) ? 0.6 : 1 }}
             >
               {isLoading ? <Loader2 className="animate-spin" size={20} /> : (showEmailOtpInput ? (isLogin ? 'Verify & Log In' : 'Verify & Create Account') : (isLogin ? 'Log In' : 'Create Account'))}
               {!isLoading && <ArrowRight size={18} />}
             </button>
 
-            {showEmailOtpInput && (
+            {showEmailOtpInput && isLogin && (
               <button
                 type="button"
                 onClick={() => {
