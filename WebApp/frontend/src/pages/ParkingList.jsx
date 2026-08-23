@@ -6,7 +6,7 @@ import {
   Shield, Zap, Clock, Navigation
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import loadingCar from '../assets/Loading_car.webm';
+import CarLoader from '../components/common/CarLoader';
 import { API_BASE_URL } from '../config';
 
 
@@ -462,15 +462,8 @@ const ParkingList = () => {
         </div>
 
         {loading && (
-           <div style={{ textAlign: 'center', padding: '60px 0' }}>
-              <video 
-                src={loadingCar} 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 16px' }} 
-              />
+           <div style={{ textAlign: 'center', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+              <CarLoader size={90} />
               <p style={{ color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '2px' }}>CONNECTING TO PARKING...</p>
            </div>
         )}

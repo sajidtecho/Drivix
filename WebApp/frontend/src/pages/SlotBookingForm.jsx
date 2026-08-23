@@ -5,7 +5,7 @@ import {
   ArrowLeft, User, Phone, Car, Clock, Calendar, ChevronRight, CheckCircle2, Loader2, Shield, CreditCard
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
-import loadingCar from '../assets/Loading_car.webm';
+import CarLoader from '../components/common/CarLoader';
 import { API_BASE_URL } from '../config';
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8];
@@ -855,15 +855,8 @@ const SlotBookingForm = () => {
           {step === 'otp' && (
             <motion.div key="otp" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}>
               {isSubmitting ? (
-                <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                  <video 
-                    src={loadingCar} 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline 
-                    style={{ width: '120px', height: '120px', margin: '0 auto 16px', borderRadius: '50%', objectFit: 'cover' }} 
-                  />
+                <div style={{ textAlign: 'center', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                  <CarLoader size={120} />
                   <p style={{ color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '1px' }}>CONFIRMING YOUR BOOKING...</p>
                 </div>
               ) : (
