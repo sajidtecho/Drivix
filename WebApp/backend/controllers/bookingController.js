@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import { calculateDynamicPrice } from '../utils/pricingEngine.js';
 import { sendBookingNotification } from '../utils/notificationService.js';
 import { SlotAllocationService, checkIfEVRequired, checkIfAccessibilityRequired, getSlotDistance, RuleBasedSlotScoringStrategy, mapVehicleType } from '../services/SlotAllocationService.js';
+import { invalidateFloorCache } from '../config/redis.js';
 
 // Helper to keep floor capacity and parking location available counters synchronized
 export const updateFloorCounters = async (parkingHubId, floorId) => {
@@ -30,6 +31,9 @@ export const updateFloorCounters = async (parkingHubId, floorId) => {
     floor.reservedCapacity = reservedCapacity;
     floor.availableSlots = availableSlots;
     await floor.save();
+
+    // Invalidate Redis cache for this floor's availability calculations
+    await invalidateFloorCache(floorId.toString());
 
     // Also update parent ParkingLocation available slots count for backward compatibility
     const location = await ParkingLocation.findById(parkingHubId);

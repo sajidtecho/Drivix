@@ -5,6 +5,7 @@ import Booking from '../models/Booking.js';
 import mongoose from 'mongoose';
 import { calculateDynamicPrice } from '../utils/pricingEngine.js';
 import { getOverlappingCount } from './bookingController.js';
+import { getCache, setCache } from '../config/redis.js';
 
 
 // ==========================================
@@ -503,12 +504,19 @@ export const getFloorAvailability = async (req, res) => {
     return res.status(400).json({ message: 'date, startTime, and duration are required parameters' });
   }
 
+  const hubId = req.query.parkingHubId || req.query.locationId || req.query.facilityId;
+  const cacheKey = `availability:${floorId}:${hubId || 'no-hub'}:${date}:${startTime}:${duration}`;
+
   try {
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
+
     let floorDoc = null;
     if (mongoose.Types.ObjectId.isValid(floorId)) {
       floorDoc = await ParkingFloor.findById(floorId);
     } else {
-      const hubId = req.query.parkingHubId || req.query.locationId || req.query.facilityId;
       if (!hubId) {
         return res.status(400).json({ message: 'parkingHubId is required when querying floor by name' });
       }
@@ -524,14 +532,18 @@ export const getFloorAvailability = async (req, res) => {
     const availableCapacity = Math.max(0, totalCapacity - reservedCapacity);
     const isAvailable = availableCapacity > 0;
 
-    res.json({
+    const responseData = {
       floorId: floorDoc._id,
       floorName: floorDoc.floorName,
       totalCapacity,
       reservedCapacity,
       availableCapacity,
       isAvailable
-    });
+    };
+
+    await setCache(cacheKey, responseData, 60);
+
+    res.json(responseData);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
