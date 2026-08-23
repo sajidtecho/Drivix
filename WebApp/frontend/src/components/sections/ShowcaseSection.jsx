@@ -6,6 +6,7 @@ import parkingVideo from '../../assets/Parking_Web.m4v';
 import challanVideo from '../../assets/challan_video.mp4';
 import fastagVideo from '../../assets/fastag_video.mp4';
 import billPaymentsVideo from '../../assets/Bill_payments.mp4';
+import testDriveVideo from '../../assets/test_drive.mp4';
 
 const TABS = [
   {
@@ -40,7 +41,9 @@ const TABS = [
     title: 'Test Drive',
     description: 'Book a free test drive for your favorite car model right from your phone.',
     icon: Car,
-    isAvailable: false,
+    path: 'https://www.carwale.com/book-test-drive/',
+    btnText: 'Book Test Drive',
+    isAvailable: true,
   },
   {
     id: 'payments',
@@ -485,6 +488,26 @@ const ShowcaseSection = () => {
                 >
                   <video
                     src={billPaymentsVideo}
+                    className="video-player"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                  <div className="video-overlay-glow" />
+                </motion.div>
+              )}
+              {activeTab === 'testdrive' && (
+                <motion.div
+                  key="testdrive-video"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="video-wrapper"
+                >
+                  <video
+                    src={testDriveVideo}
                     className="video-player"
                     autoPlay
                     loop
