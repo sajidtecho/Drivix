@@ -1,7 +1,21 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const FadeIn = ({ children, delay = 0, y = 20, className = '', style = {} }) => (
+interface FadeInProps {
+  children: React.ReactNode;
+  delay?: number;
+  y?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const FadeIn: React.FC<FadeInProps> = ({
+  children,
+  delay = 0,
+  y = 20,
+  className = '',
+  style = {}
+}) => (
   <motion.div
     className={className}
     style={style}

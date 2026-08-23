@@ -1,7 +1,7 @@
 import React from 'react';
 import loadingVideo from '../../assets/Loading_car.mp4';
 
-const LoadingScreen = () => {
+const LoadingScreen: React.FC = () => {
   return (
     <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
       <div style={{ width: '300px', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
