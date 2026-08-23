@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 import connectDB from './config/db.js';
+import { connectRedis } from './config/redis.js';
 import authRoutes from './routes/authRoutes.js';
 import vehicleRoutes from './routes/vehicleRoutes.js';
 import parkingRoutes from './routes/parkingRoutes.js';
@@ -30,7 +31,8 @@ import mongoose from 'mongoose';
 dotenv.config();
 
 // Connect to Database
-connectDB().then(() => {
+connectDB().then(async () => {
+  await connectRedis();
   seedBanners();
   seedPlaces();
   runDatabaseMigration();
