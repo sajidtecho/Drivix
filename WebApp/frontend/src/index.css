@@ -304,3 +304,12 @@ h3 { font-size: clamp(1.5rem, 4vw, 2.2rem); }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--accent-primary);
 }
+
+/* Video Loader Background Blending Fix */
+.loader-video {
+  mix-blend-mode: screen;
+}
+html:not([data-theme="dark"]) .loader-video {
+  filter: invert(1) hue-rotate(180deg);
+  mix-blend-mode: multiply;
+}

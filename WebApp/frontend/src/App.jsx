@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
@@ -29,9 +29,16 @@ import './index.css';
 import LoadingScreen from './components/common/LoadingScreen';
 
 function App() {
-  const { loading } = useUser();
+  const [showInitialLoader, setShowInitialLoader] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInitialLoader(false);
+    }, 1500); // Less than 2 seconds duration
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showInitialLoader) {
     return <LoadingScreen />;
   }
 
