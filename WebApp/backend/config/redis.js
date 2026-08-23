@@ -4,6 +4,10 @@ let redisClient = null;
 let isRedisConnected = false;
 
 export const connectRedis = async () => {
+  if (process.env.NODE_ENV === 'test') {
+    isRedisConnected = false;
+    return;
+  }
   try {
     redisClient = createClient({
       url: process.env.REDIS_URL || 'redis://127.0.0.1:6379'
