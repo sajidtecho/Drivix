@@ -6,11 +6,15 @@ import loadingCar from '../assets/Loading_car.mp4';
 import { API_BASE_URL } from '../config';
 import { io } from 'socket.io-client';
 import { useToast } from '../context/ToastContext';
+import { useBookingStore } from '../store/bookingStore';
 
 const SlotLayout = () => {
   const navigate = useNavigate();
   const { state: locationState } = useLocation();
   const { showToast } = useToast();
+  
+  const updateBookingDetails = useBookingStore((state) => state.updateBookingDetails);
+  const setSelectedSlot = useBookingStore((state) => state.setSelectedSlot);
   
   const [loc, setLoc] = useState(locationState?.location ? {
     id: locationState.location._id || locationState.location.id,
@@ -141,17 +145,17 @@ const SlotLayout = () => {
       return;
     }
 
-    navigate('/slot-booking', {
-      state: {
-        location: loc,
-        slot: null,
-        floor: selectedFloor,
-        bookingDate,
-        startTime,
-        duration,
-        usageType
-      }
+    updateBookingDetails({
+      location: loc,
+      floor: selectedFloor,
+      bookingDate,
+      startTime,
+      duration,
+      usageType
     });
+    setSelectedSlot(null);
+
+    navigate('/slot-booking');
   };
 
   const floors = loc?.floors || ['L1'];

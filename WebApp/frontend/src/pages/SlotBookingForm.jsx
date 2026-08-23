@@ -7,6 +7,7 @@ import {
 import { useUser } from '../hooks/useUser';
 import loadingCar from '../assets/Loading_car.mp4';
 import { API_BASE_URL } from '../config';
+import { useBookingStore } from '../store/bookingStore';
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8];
 
@@ -191,8 +192,9 @@ const OTPVerification = ({ mobile, confirmationResult, onVerified, onBack }) => 
 const SlotBookingForm = () => {
   const navigate = useNavigate();
   const { user } = useUser();
-  const locState = useLocation().state;
-  const { location, slot, floor, reservationExpiresAt, bookingDate, startTime, duration: stateDuration, usageType: stateUsageType } = locState || {};
+  const { bookingDetails, selectedSlot } = useBookingStore();
+  const { location, floor, bookingDate, startTime, duration: stateDuration, usageType: stateUsageType } = bookingDetails;
+  const slot = selectedSlot;
 
   const [step, setStep] = useState('form'); // 'form' | 'payment' | 'otp' | 'done'
   const [paymentMode, setPaymentMode] = useState('PAY_AFTER_CHECKOUT');
