@@ -5,6 +5,7 @@ import { Car, AlertTriangle, CreditCard } from 'lucide-react';
 import parkingVideo from '../../assets/Parking_Web.m4v';
 import challanVideo from '../../assets/challan_video.mp4';
 import fastagVideo from '../../assets/fastag_video.mp4';
+import billPaymentsVideo from '../../assets/Bill_payments.mp4';
 
 const TABS = [
   {
@@ -46,7 +47,9 @@ const TABS = [
     title: 'Bill Payments',
     description: 'Secure utility bill payments with absolute convenience and extra savings.',
     icon: CreditCard,
-    isAvailable: false,
+    path: 'https://paytm.com/rent-payment',
+    btnText: 'Pay Utility Bills',
+    isAvailable: true,
   },
   {
     id: 'valet',
@@ -462,6 +465,26 @@ const ShowcaseSection = () => {
                 >
                   <video
                     src={fastagVideo}
+                    className="video-player"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                  <div className="video-overlay-glow" />
+                </motion.div>
+              )}
+              {activeTab === 'payments' && (
+                <motion.div
+                  key="payments-video"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="video-wrapper"
+                >
+                  <video
+                    src={billPaymentsVideo}
                     className="video-player"
                     autoPlay
                     loop
