@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Layers, Calendar, Clock, Loader2, ArrowRight, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import loadingCarWebm from '../assets/Loading_car.webm';
-import loadingCarMp4 from '../assets/Loading_car.mp4';
+import VideoLoader from '../components/common/VideoLoader';
 import { API_BASE_URL } from '../config';
 import { io } from 'socket.io-client';
 import { useToast } from '../context/ToastContext';
@@ -324,16 +323,7 @@ const SlotLayout = () => {
 
         {loading ? (
           <div className="glass-panel" style={{ padding: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', borderRadius: 'var(--radius-card)' }}>
-            <video 
-              autoPlay 
-              loop 
-              muted 
-              playsInline 
-              style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }}
-            >
-              <source src={loadingCarWebm} type="video/webm" />
-              <source src={loadingCarMp4} type="video/mp4" />
-            </video>
+            <VideoLoader size={80} />
             <p style={{ color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.5px' }}>RETRIEVING CAPACITIES...</p>
           </div>
         ) : (
