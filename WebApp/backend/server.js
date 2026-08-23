@@ -251,7 +251,7 @@ setInterval(async () => {
 }, 10000);
 
 // Start Server
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
   server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
