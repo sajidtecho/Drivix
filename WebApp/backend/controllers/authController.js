@@ -25,12 +25,6 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Enforce email verification check from EmailOtp model
-    const verifiedEmailRecord = await EmailOtp.findOne({ email, isVerified: true });
-    if (!verifiedEmailRecord) {
-      return res.status(400).json({ message: 'Please verify your email address first using the OTP sent to your Gmail.' });
-    }
-
     // Preserve original Drivix admin logic
     const role = email === 'drivixmobility@gmail.com' ? 'admin' : 'user';
 
@@ -81,31 +75,10 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ email }).select('+password');
 
     if (user && (await user.matchPassword(password))) {
-      // Check if email has been verified
+      // Auto-verify user if they are not verified for any reason
       if (!user.isVerified) {
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-        user.emailOtp = otp;
-        user.emailOtpExpires = otpExpires;
+        user.isVerified = true;
         await user.save();
-
-        try {
-          await sendOtpEmail(user.email, user.fullName, otp);
-        } catch (emailError) {
-          console.warn('⚠️ SMTP Email delivery failed. Falling back to console log. Generated OTP for login:', otp);
-          return res.status(200).json({
-            requiresEmailVerification: true,
-            email: user.email,
-            message: 'SMTP settings missing. Verification OTP printed to backend console.'
-          });
-        }
-
-        return res.status(200).json({
-          requiresEmailVerification: true,
-          email: user.email,
-          message: 'Verification OTP sent to your email.'
-        });
       }
 
       res.json({

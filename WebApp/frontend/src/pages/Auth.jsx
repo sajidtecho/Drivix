@@ -34,7 +34,7 @@ const Auth = () => {
   const [emailOtpError, setEmailOtpError] = useState('');
   const [emailResendCooldown, setEmailResendCooldown] = useState(0);
 
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(true);
   const [isSendingEmailOtp, setIsSendingEmailOtp] = useState(false);
 
   useEffect(() => {
@@ -499,40 +499,11 @@ const Auth = () => {
                 <input
                   type="email" name="email" placeholder="Email Address" required
                   value={formData.email} onChange={handleChange}
-                  disabled={showEmailOtpInput || isEmailVerified}
+                  disabled={showEmailOtpInput}
                   style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 'var(--radius-input)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                 />
               </div>
             </div>
-
-            {!isLogin && isEmailVerified && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', color: '#4caf50', fontSize: '0.85rem', fontWeight: 600 }}>
-                <CheckCircle size={14} /> Email Verified
-              </div>
-            )}
-
-            {!isLogin && !isEmailVerified && !showEmailOtpInput && (
-              <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  disabled={isSendingEmailOtp || !formData.email}
-                  onClick={handleSendEmailVerificationOtp}
-                  style={{
-                    background: 'var(--accent-primary)',
-                    color: '#000',
-                    border: 'none',
-                    borderRadius: 'var(--radius-input)',
-                    padding: '8px 16px',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    opacity: (!formData.email || isSendingEmailOtp) ? 0.6 : 1
-                  }}
-                >
-                  {isSendingEmailOtp ? 'Sending OTP...' : 'Verify Email'}
-                </button>
-              </div>
-            )}
 
             {showEmailOtpInput && (
               <div className="input-group" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--glass-border)', padding: '15px', borderRadius: 'var(--radius-input)', marginTop: '8px' }}>
@@ -759,9 +730,9 @@ const Auth = () => {
 
             <button
               type="submit"
-              disabled={isLoading || (!isLogin && (!acceptedTerms || !isEmailVerified))}
+              disabled={isLoading || (!isLogin && !acceptedTerms)}
               className="btn btn-primary"
-              style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: (!isLogin && (!acceptedTerms || !isEmailVerified)) ? 0.6 : 1 }}
+              style={{ marginTop: '12px', width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: (!isLogin && !acceptedTerms) ? 0.6 : 1 }}
             >
               {isLoading ? <Loader2 className="animate-spin" size={20} /> : (showEmailOtpInput ? (isLogin ? 'Verify & Log In' : 'Verify & Create Account') : (isLogin ? 'Log In' : 'Create Account'))}
               {!isLoading && <ArrowRight size={18} />}
