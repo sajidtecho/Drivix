@@ -14,6 +14,7 @@ export interface BookingDetails {
   startTime?: string;
   duration?: number;
   usageType?: string;
+  reservationExpiresAt?: string | null;
 }
 
 interface BookingStoreState {

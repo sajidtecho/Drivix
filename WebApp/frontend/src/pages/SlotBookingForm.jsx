@@ -193,7 +193,7 @@ const SlotBookingForm = () => {
   const navigate = useNavigate();
   const { user } = useUser();
   const { bookingDetails, selectedSlot } = useBookingStore();
-  const { location, floor, bookingDate, startTime, duration: stateDuration, usageType: stateUsageType } = bookingDetails;
+  const { location, floor, bookingDate, startTime, duration: stateDuration, usageType: stateUsageType, reservationExpiresAt } = bookingDetails;
   const slot = selectedSlot;
 
   const [step, setStep] = useState('form'); // 'form' | 'payment' | 'otp' | 'done'
