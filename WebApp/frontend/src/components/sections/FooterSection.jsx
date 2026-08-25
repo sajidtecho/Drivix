@@ -84,6 +84,45 @@ const AboutUsModal = ({ onClose }) => {
             Drivix is a leading-edge smart mobility and parking automation platform built in India. By bridging the gap between hardware IoT sensors, real-time WebSocket state management, and user-facing scheduling portals, Drivix enables drivers to eliminate parking stress entirely.
           </p>
 
+          {/* Vision & Mission */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+            <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.015)', border: '1px solid var(--glass-border)' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '8px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0 }}>
+                👁️ Our Vision
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                To shape a world where urban transit flows seamlessly, making smart cities completely stress-free, sustainable, and accessible by transforming physical parking spaces into intelligent digital assets.
+              </p>
+            </div>
+            <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.015)', border: '1px solid var(--glass-border)' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '8px', color: 'var(--accent-secondary)', display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0 }}>
+                🚀 Our Mission
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                To engineer the ultimate IoT-enabled smart mobility ecosystem that empowers drivers to find, book, and navigate to parking spaces effortlessly, reducing city congestion and environmental footprints.
+              </p>
+            </div>
+          </div>
+
+          {/* Core Values */}
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Core Values
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '28px' }}>
+            {[
+              { icon: '💡', title: 'Innovation', desc: 'Leading with IoT, real-time sync, and ANPR automation.' },
+              { icon: '⚡', title: 'Efficiency', desc: 'Eradicating wasted time and parking stress for commuters.' },
+              { icon: '🌱', title: 'Sustainability', desc: 'Lowering emissions through optimized traffic and space usage.' },
+              { icon: '🛡️', title: 'Security', desc: 'Ensuring safe hubs, encrypted payments, and real-time trust.' }
+            ].map((val) => (
+              <div key={val.title} className="glass-panel" style={{ padding: '14px', borderRadius: '12px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ fontSize: '1.4rem' }}>{val.icon}</div>
+                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800 }}>{val.title}</h4>
+                <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>{val.desc}</p>
+              </div>
+            ))}
+          </div>
+
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Meet the Co-Founders
           </h3>
