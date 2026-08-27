@@ -1072,9 +1072,7 @@ webrtc_ctx = webrtc_streamer(
             state
         ),
 
-    async_processing=True,
-
-    media_toggle_controls=False
+    async_processing=True
 )
 
 
