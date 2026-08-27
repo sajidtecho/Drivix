@@ -481,6 +481,7 @@ export default function DriverHubScreen({ onBack, selectedLocation, locations }:
           {[
             { label: 'Parking',     sub: `${activeHub.availableSlots} / ${activeHub.totalSlots} Avail`, icon: '🅿️', color: '#ffce00', action: () => toggleSection('parking') },
             { label: 'EV Charging', sub: hasEvCharging ? `${evAvailable} / 8 Stations` : 'Unavailable', icon: '⚡', color: '#10b981', action: () => toggleSection('ev') },
+            { label: 'Active Co-Pilot', sub: 'AI Safety System', icon: '👁️', color: '#00f2ff', action: () => router.push('/copilot') },
             { label: 'Rest Lounge', sub: hasRestLounge ? `${30 - restCapacity} / 30 Pods` : 'Unavailable', icon: '🛏️', color: '#60a5fa', action: () => toggleSection('rest') },
             { label: 'Food Court',  sub: hasFoodCourt ? 'Executive Cafe' : 'Unavailable', icon: '☕', color: '#fbbf24', action: () => toggleSection('food') },
             { label: 'Washrooms',   sub: hasWashrooms ? 'Fully Functional' : 'Unavailable', icon: '🚿', color: '#34d399', action: () => Alert.alert('Washrooms', 'A1 Standard Washrooms are located on Level 1 (Near Section B) & Rest Area.') },
@@ -488,7 +489,7 @@ export default function DriverHubScreen({ onBack, selectedLocation, locations }:
             { label: 'Tyre Air',    sub: 'Nitrogen Station', icon: '🛞', color: '#a78bfa', action: () => Alert.alert('Tyre Air Station', 'Free automated nitrogen/air dispensers are placed near exit gates.') },
             { label: 'Service Center', sub: 'Bay 1 Mechanic', icon: '🔧', color: '#f87171', action: () => Alert.alert('Service Center', 'Minor quick service mechanic available from 9 AM to 9 PM at Bay 1.') },
           ]
-            .slice(0, isHubServicesExpanded ? 8 : 4)
+            .slice(0, isHubServicesExpanded ? 9 : 4)
             .map((svc) => {
               const capsuleWidth = (width - 50) / 2;
               return (
