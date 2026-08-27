@@ -1,0 +1,61 @@
+# 🚀 How to Run
+
+Get the project running in just a few steps! 👇
+
+---
+
+## 📦 Option 1 — Download ZIP
+
+**1.** Click **Code → Download ZIP** on GitHub.
+
+**2.** Extract the ZIP file and open the folder in **VS Code**.
+
+**3.** Open the VS Code terminal and run:
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
+
+---
+
+## 💻 Option 2 — Git Clone
+
+Open the VS Code terminal and run:
+
+```bash
+git clone https://github.com/ajeetkr2005/YOUR-REPOSITORY-NAME.git
+cd YOUR-REPOSITORY-NAME
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
+
+---
+
+## ⚙️ Requirements
+
+🐍 **Python 3.12+**
+📷 **Working Webcam**
+💻 **VS Code**
+
+---
+
+## 🎮 Exit
+
+Press **`Q`** to stop the application.
+
+---
+
+<div align="center">
+
+### 👁️📱 Stay Alert. Stay Focused. Let AI Watch.
+
+**Developed with ❤️ by Ajeet Kumar**
+
+⭐ If you like this project, don't forget to **Star the Repository!**
+
+</div>
