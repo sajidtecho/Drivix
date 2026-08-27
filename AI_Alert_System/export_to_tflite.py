@@ -18,9 +18,8 @@ def main():
     model = YOLO(model_path)
     
     print("🔄 Exporting to TensorFlow Lite (TFLite) format...")
-    # Export with 320x320 resolution (balanced speed & accuracy for mobile)
-    # Using float16 precision for mobile GPU acceleration
-    export_path = model.export(format="tflite", imgsz=320, half=True)
+    # Export with 320x320 resolution, static shapes, and clean opset version
+    export_path = model.export(format="tflite", imgsz=320, dynamic=False, opset=12)
     
     print("\n✅ Export Complete!")
     print(f"Exported model: {export_path}")
