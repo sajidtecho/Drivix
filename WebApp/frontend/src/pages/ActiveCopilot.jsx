@@ -327,11 +327,16 @@ export default function ActiveCopilot() {
       mediaStreamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        try {
+          await videoRef.current.play();
+        } catch (playErr) {
+          console.warn("Autoplay block detected:", playErr);
+        }
       }
 
       setIsActive(true);
       faceMeshActiveRef.current = true;
-      addLog('Camera streaming started.');
+      addLog('Camera streaming started. Note: If the screen is black, close any other camera apps (like Python app.py).');
 
       // Setup COCO-SSD phone loop
       let processing = false;
