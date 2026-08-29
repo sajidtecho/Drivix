@@ -12,7 +12,7 @@ const SafetyLogSchema = new mongoose.Schema({
   },
   alertType: {
     type: String,
-    enum: ['PHONE', 'EYE', 'NONE'],
+    enum: ['PHONE', 'EYE', 'LOOK_LEFT', 'LOOK_RIGHT', 'LOOK_DOWN', 'NONE'],
     required: true
   },
   duration: {
