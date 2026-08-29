@@ -89,6 +89,23 @@ export default function ActiveCopilot() {
     }
   };
 
+  const resetDiagnostics = () => {
+    setDrowsyAlert(false);
+    setPhoneDetected(false);
+    setDistractedAlert(false);
+    setDriverGaze('Looking Straight');
+    setAvgEyeOpenness(100);
+    
+    drowsyAlertRef.current = false;
+    distractedAlertRef.current = false;
+    driverGazeRef.current = 'Looking Straight';
+    
+    eyesClosedStartRef.current = null;
+    lookLeftStartRef.current = null;
+    lookRightStartRef.current = null;
+    lookDownStartRef.current = null;
+  };
+
   // MediaPipe / TFJS Instances
   const faceMeshRef = useRef(null);
   const cocoSsdRef = useRef(null);
@@ -587,9 +604,7 @@ export default function ActiveCopilot() {
     }
 
     setIsActive(false);
-    setDrowsyAlert(false);
-    setPhoneDetected(false);
-    setAvgEyeOpenness(100);
+    resetDiagnostics();
     addLog('Scanner disabled. Standby.');
   };
 
@@ -649,9 +664,7 @@ export default function ActiveCopilot() {
       socketRef.current = null;
     }
     setIsActive(false);
-    setDrowsyAlert(false);
-    setPhoneDetected(false);
-    setAvgEyeOpenness(100);
+    resetDiagnostics();
     addLog('Telemetry stream stopped. Standby.');
   };
 
@@ -666,9 +679,7 @@ export default function ActiveCopilot() {
   const stopDemo = () => {
     setDemoMode(false);
     setIsActive(false);
-    setDrowsyAlert(false);
-    setPhoneDetected(false);
-    setAvgEyeOpenness(100);
+    resetDiagnostics();
     addLog('Demo mode deactivated.');
   };
 
@@ -787,8 +798,12 @@ export default function ActiveCopilot() {
             )}
 
             {/* Alert Banner HUD */}
-            {isActive && (drowsyAlert || phoneDetected) && (
-              <div style={{ ...styles.alertBanner, backgroundColor: drowsyAlert ? 'rgba(255, 75, 75, 0.95)' : 'rgba(255, 206, 0, 0.95)', color: drowsyAlert ? '#fff' : '#000' }}>
+            {isActive && (drowsyAlert || phoneDetected || distractedAlert) && (
+              <div style={{
+                ...styles.alertBanner,
+                backgroundColor: drowsyAlert ? 'rgba(255, 75, 75, 0.95)' : 'rgba(255, 206, 0, 0.95)',
+                color: drowsyAlert ? '#fff' : '#000'
+              }}>
                 <ShieldAlert size={20} />
                 <span style={{ fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.05em' }}>
                   {drowsyAlert ? 'DROWSINESS WARNING: WAKE UP!' : 'DISTRACTION WARNING: EYES ON ROAD!'}
@@ -911,6 +926,31 @@ export default function ActiveCopilot() {
                   width: phoneDetected ? `${phoneConf}%` : '0%',
                   backgroundColor: '#ff4b4b',
                   boxShadow: '0 0 10px #ff4b4b',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Head Pose Gaze indicator */}
+          <div style={styles.statRow}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Driver Gaze / Head Pose</span>
+              <span style={{
+                color: distractedAlert ? '#ff4b4b' : driverGaze === 'Looking Straight' ? '#00cc6a' : '#ffce00',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                textTransform: 'uppercase'
+              }}>
+                {driverGaze}
+              </span>
+            </div>
+            <div style={styles.barBg}>
+              <div
+                style={{
+                  ...styles.barFg,
+                  width: '100%',
+                  backgroundColor: distractedAlert ? '#ff4b4b' : driverGaze === 'Looking Straight' ? '#00cc6a' : '#ffce00',
+                  boxShadow: distractedAlert ? '0 0 10px #ff4b4b' : driverGaze === 'Looking Straight' ? '0 0 10px #00cc6a' : '0 0 10px #ffce00',
                 }}
               />
             </div>
