@@ -45,6 +45,8 @@ export default function ActiveCopilot() {
   const [phoneDetected, setPhoneDetected] = useState(false);
   const [phoneConf, setPhoneConf] = useState(0);
   const [drowsyAlert, setDrowsyAlert] = useState(false);
+  const [distractedAlert, setDistractedAlert] = useState(false);
+  const [driverGaze, setDriverGaze] = useState('Looking Straight');
   const [systemLogs, setSystemLogs] = useState([]);
 
   // DOM / Audio Refs
@@ -54,6 +56,38 @@ export default function ActiveCopilot() {
   const audioCtxRef = useRef(null);
   const alarmIntervalRef = useRef(null);
   const logsContainerRef = useRef(null);
+
+  // Look Away / Pitch Yaw timers
+  const lookLeftStartRef = useRef(null);
+  const lookRightStartRef = useRef(null);
+  const lookDownStartRef = useRef(null);
+
+  const drowsyAlertRef = useRef(false);
+  const distractedAlertRef = useRef(false);
+  const driverGazeRef = useRef('Looking Straight');
+
+  const updateDrowsyAlert = (value, message) => {
+    if (drowsyAlertRef.current !== value) {
+      drowsyAlertRef.current = value;
+      setDrowsyAlert(value);
+      if (message) addLog(message);
+    }
+  };
+
+  const updateDistractedAlert = (value, message) => {
+    if (distractedAlertRef.current !== value) {
+      distractedAlertRef.current = value;
+      setDistractedAlert(value);
+      if (message) addLog(message);
+    }
+  };
+
+  const updateDriverGaze = (value) => {
+    if (driverGazeRef.current !== value) {
+      driverGazeRef.current = value;
+      setDriverGaze(value);
+    }
+  };
 
   // MediaPipe / TFJS Instances
   const faceMeshRef = useRef(null);
@@ -197,12 +231,12 @@ export default function ActiveCopilot() {
 
   // Start the alarm interval when alerts are active
   useEffect(() => {
-    if (soundEnabled && (drowsyAlert || phoneDetected)) {
+    if (soundEnabled && (drowsyAlert || phoneDetected || distractedAlert)) {
       if (!alarmIntervalRef.current) {
         alarmIntervalRef.current = setInterval(() => {
           if (drowsyAlert) {
             playAlertSound('drowsy');
-          } else if (phoneDetected) {
+          } else if (phoneDetected || distractedAlert) {
             playAlertSound('phone');
           }
         }, 300);
@@ -220,7 +254,7 @@ export default function ActiveCopilot() {
         alarmIntervalRef.current = null;
       }
     };
-  }, [drowsyAlert, phoneDetected, soundEnabled]);
+  }, [drowsyAlert, phoneDetected, distractedAlert, soundEnabled]);
 
   // Connect video element to stream when it mounts and is active
   useEffect(() => {
@@ -259,25 +293,106 @@ export default function ActiveCopilot() {
       openness = Math.max(0, Math.min(100, openness));
       setAvgEyeOpenness(Math.round(openness));
 
-      // Drowsiness tracking logic
-      if (openness < 25) {
+      // 1. Drowsiness tracking (Condition 1: openness <= 40% for 0.5s)
+      if (openness <= 40) {
         if (!eyesClosedStartRef.current) {
           eyesClosedStartRef.current = Date.now();
         } else {
           const duration = (Date.now() - eyesClosedStartRef.current) / 1000;
-          if (duration >= 1.5) {
-            if (!drowsyAlert) {
-              setDrowsyAlert(true);
-              addLog('DROWSINESS WARNING: WAKE UP!');
-            }
+          if (duration >= 0.5) {
+            updateDrowsyAlert(true, 'DROWSINESS WARNING: WAKE UP!');
           }
         }
       } else {
         eyesClosedStartRef.current = null;
-        if (drowsyAlert) {
-          setDrowsyAlert(false);
-          addLog('Drowsiness warning cleared.');
+        updateDrowsyAlert(false, 'Drowsiness warning cleared.');
+      }
+
+      // 2. Calculate Head Gaze / Pose Detection
+      // Horizontal (Yaw) tracking
+      const x_nose = landmarks[4].x;
+      const x_left = landmarks[234].x;
+      const x_right = landmarks[454].x;
+      const horizontalWidth = Math.abs(x_right - x_left);
+      
+      let yawRatio = 0.5;
+      if (horizontalWidth > 0) {
+        yawRatio = Math.abs(x_nose - x_left) / horizontalWidth;
+      }
+
+      // Vertical (Pitch) tracking
+      const y_nose = landmarks[4].y;
+      const y_forehead = landmarks[8].y;
+      const y_chin = landmarks[152].y;
+      const verticalHeight = Math.abs(y_chin - y_forehead);
+      
+      let pitchRatio = 0.4;
+      if (verticalHeight > 0) {
+        pitchRatio = Math.abs(y_nose - y_forehead) / verticalHeight;
+      }
+
+      let currentGaze = 'Looking Straight';
+      
+      // Determine gaze state based on thresholds
+      if (pitchRatio > 0.52) {
+        currentGaze = 'Looking Down';
+      } else if (yawRatio < 0.33) {
+        currentGaze = 'Looking Left';
+      } else if (yawRatio > 0.67) {
+        currentGaze = 'Looking Right';
+      }
+
+      updateDriverGaze(currentGaze);
+
+      // 3. Looking Left tracking (Condition 2: Looking Left for 5s)
+      if (currentGaze === 'Looking Left') {
+        if (!lookLeftStartRef.current) {
+          lookLeftStartRef.current = Date.now();
+        } else {
+          const duration = (Date.now() - lookLeftStartRef.current) / 1000;
+          if (duration >= 5.0) {
+            updateDistractedAlert(true, 'DISTRACTION WARNING: LOOKING LEFT!');
+          }
         }
+      } else {
+        lookLeftStartRef.current = null;
+      }
+
+      // 4. Looking Right tracking (Condition 2: Looking Right for 5s)
+      if (currentGaze === 'Looking Right') {
+        if (!lookRightStartRef.current) {
+          lookRightStartRef.current = Date.now();
+        } else {
+          const duration = (Date.now() - lookRightStartRef.current) / 1000;
+          if (duration >= 5.0) {
+            updateDistractedAlert(true, 'DISTRACTION WARNING: LOOKING RIGHT!');
+          }
+        }
+      } else {
+        lookRightStartRef.current = null;
+      }
+
+      // 5. Looking Down tracking (Condition 3: Looking Down for 3s)
+      if (currentGaze === 'Looking Down') {
+        if (!lookDownStartRef.current) {
+          lookDownStartRef.current = Date.now();
+        } else {
+          const duration = (Date.now() - lookDownStartRef.current) / 1000;
+          if (duration >= 3.0) {
+            updateDistractedAlert(true, 'DISTRACTION WARNING: LOOKING DOWN!');
+          }
+        }
+      } else {
+        lookDownStartRef.current = null;
+      }
+
+      // Clear distraction alert if none of the distraction conditions are active
+      const isLookingLeftDistracted = currentGaze === 'Looking Left' && lookLeftStartRef.current && ((Date.now() - lookLeftStartRef.current) / 1000 >= 5.0);
+      const isLookingRightDistracted = currentGaze === 'Looking Right' && lookRightStartRef.current && ((Date.now() - lookRightStartRef.current) / 1000 >= 5.0);
+      const isLookingDownDistracted = currentGaze === 'Looking Down' && lookDownStartRef.current && ((Date.now() - lookDownStartRef.current) / 1000 >= 3.0);
+
+      if (!isLookingLeftDistracted && !isLookingRightDistracted && !isLookingDownDistracted) {
+        updateDistractedAlert(false, 'Distraction warning cleared.');
       }
 
       // Draw Face Wireframe overlay
@@ -311,6 +426,27 @@ export default function ActiveCopilot() {
           ctx.fill();
         }
       });
+
+      // Draw Gaze / Head Pose canvas indicators
+      if (currentGaze !== 'Looking Straight') {
+        ctx.fillStyle = currentGaze === 'Looking Down' ? 'rgba(255, 75, 75, 0.15)' : 'rgba(255, 206, 0, 0.15)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = currentGaze === 'Looking Down' ? '#ff4b4b' : '#ffce00';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.textAlign = 'center';
+        
+        let warningText = '';
+        if (currentGaze === 'Looking Left') {
+          warningText = '⚠️ WARNING: LOOKING LEFT';
+        } else if (currentGaze === 'Looking Right') {
+          warningText = '⚠️ WARNING: LOOKING RIGHT';
+        } else if (currentGaze === 'Looking Down') {
+          warningText = '⚠️ WARNING: LOOKING DOWN';
+        }
+
+        ctx.fillText(warningText, canvas.width / 2, 40);
+      }
 
     } else {
       // No face detected
