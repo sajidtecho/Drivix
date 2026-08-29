@@ -37,6 +37,7 @@ export default function ActiveCopilot() {
   const [demoMode, setDemoMode] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [usePythonLink, setUsePythonLink] = useState(false);
+  const [permissionError, setPermissionError] = useState(false);
   const socketRef = useRef(null);
 
   // AI & Detection States
@@ -311,6 +312,7 @@ export default function ActiveCopilot() {
 
   // Start Scanner webcam & processing loops
   const startScanner = async () => {
+    setPermissionError(false);
     if (demoMode) {
       stopDemo();
     }
@@ -403,6 +405,7 @@ export default function ActiveCopilot() {
     } catch (e) {
       console.error('Camera access denied:', e);
       addLog('Error: Camera permissions denied.');
+      setPermissionError(true);
       setIsActive(false);
     }
   };
@@ -610,11 +613,23 @@ export default function ActiveCopilot() {
               </div>
             ) : (
               <div style={styles.standbyWrapper}>
-                <Video size={48} color="rgba(255,255,255,0.3)" />
-                <h3 style={{ color: '#fff', margin: '15px 0 5px', fontSize: '1.1rem' }}>Drivix Assistant In Standby</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', padding: '0 40px' }}>
-                  Mount your laptop or webcam pointing at your face, then click Start Scanner.
-                </p>
+                {permissionError ? (
+                  <>
+                    <ShieldAlert size={48} color="#ff4b4b" />
+                    <h3 style={{ color: '#ff4b4b', margin: '15px 0 5px', fontSize: '1.1rem' }}>Camera Permission Blocked</h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', padding: '0 40px', lineHeight: 1.5 }}>
+                      Drivix Assistant is blocked from using your camera. Please click the **Camera Settings / Lock Icon** in your browser's address bar (URL bar) and select **Allow**, then refresh the page.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Video size={48} color="rgba(255,255,255,0.3)" />
+                    <h3 style={{ color: '#fff', margin: '15px 0 5px', fontSize: '1.1rem' }}>Drivix Assistant In Standby</h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', padding: '0 40px' }}>
+                      Mount your laptop or webcam pointing at your face, then click Start Scanner.
+                    </p>
+                  </>
+                )}
               </div>
             )}
 
