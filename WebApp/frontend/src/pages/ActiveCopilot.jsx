@@ -361,13 +361,13 @@ export default function ActiveCopilot() {
 
       updateDriverGaze(currentGaze);
 
-      // 3. Looking Left tracking (Condition 2: Looking Left for 5s)
+      // 3. Looking Left tracking (Condition 2: Looking Left for 2s)
       if (currentGaze === 'Looking Left') {
         if (!lookLeftStartRef.current) {
           lookLeftStartRef.current = Date.now();
         } else {
           const duration = (Date.now() - lookLeftStartRef.current) / 1000;
-          if (duration >= 5.0) {
+          if (duration >= 2.0) {
             updateDistractedAlert(true, 'DISTRACTION WARNING: LOOKING LEFT!');
           }
         }
@@ -375,13 +375,13 @@ export default function ActiveCopilot() {
         lookLeftStartRef.current = null;
       }
 
-      // 4. Looking Right tracking (Condition 2: Looking Right for 5s)
+      // 4. Looking Right tracking (Condition 2: Looking Right for 2s)
       if (currentGaze === 'Looking Right') {
         if (!lookRightStartRef.current) {
           lookRightStartRef.current = Date.now();
         } else {
           const duration = (Date.now() - lookRightStartRef.current) / 1000;
-          if (duration >= 5.0) {
+          if (duration >= 2.0) {
             updateDistractedAlert(true, 'DISTRACTION WARNING: LOOKING RIGHT!');
           }
         }
@@ -404,8 +404,8 @@ export default function ActiveCopilot() {
       }
 
       // Clear distraction alert if none of the distraction conditions are active
-      const isLookingLeftDistracted = currentGaze === 'Looking Left' && lookLeftStartRef.current && ((Date.now() - lookLeftStartRef.current) / 1000 >= 5.0);
-      const isLookingRightDistracted = currentGaze === 'Looking Right' && lookRightStartRef.current && ((Date.now() - lookRightStartRef.current) / 1000 >= 5.0);
+      const isLookingLeftDistracted = currentGaze === 'Looking Left' && lookLeftStartRef.current && ((Date.now() - lookLeftStartRef.current) / 1000 >= 2.0);
+      const isLookingRightDistracted = currentGaze === 'Looking Right' && lookRightStartRef.current && ((Date.now() - lookRightStartRef.current) / 1000 >= 2.0);
       const isLookingDownDistracted = currentGaze === 'Looking Down' && lookDownStartRef.current && ((Date.now() - lookDownStartRef.current) / 1000 >= 3.0);
 
       if (!isLookingLeftDistracted && !isLookingRightDistracted && !isLookingDownDistracted) {
