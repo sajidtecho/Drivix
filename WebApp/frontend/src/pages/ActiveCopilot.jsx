@@ -685,6 +685,23 @@ export default function ActiveCopilot() {
                       🔗 Onboard Python AI
                     </button>
                   </div>
+                  <div style={{ 
+                    marginTop: '6px', 
+                    fontSize: '0.75rem', 
+                    color: 'rgba(255,255,255,0.4)', 
+                    textAlign: 'center',
+                    lineHeight: '1.4',
+                    background: 'rgba(255,255,255,0.02)',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255,255,255,0.03)'
+                  }}>
+                    {usePythonLink ? (
+                      <span>⚙️ <strong>Onboard Python Link</strong>: Wirelessly stream real-time safety metrics from your car's local camera hardware directly to this dashboard.</span>
+                    ) : (
+                      <span>🌐 <strong>Browser Webcam Mode</strong>: Zero setup! Track distraction & drowsiness using your laptop/webcam. Perfect for instant safety monitoring.</span>
+                    )}
+                  </div>
                 </div>
                 
                 <button style={styles.startBtn} onClick={usePythonLink ? startPythonLink : startScanner}>
