@@ -791,27 +791,7 @@ export default function ActiveCopilot() {
       </header>
 
       {/* Grid Dashboard */}
-      {/* Hidden camera wrappers for mobile webcam loops to ensure camera stays alive in background */}
-      {isMobile && isActive && !demoMode && !usePythonLink && (
-        <div style={styles.hiddenCameraWrapper}>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            width="640"
-            height="480"
-            style={styles.hiddenCameraElement}
-          />
-          <canvas
-            ref={canvasRef}
-            width="640"
-            height="480"
-            style={styles.hiddenCameraElement}
-          />
-        </div>
-      )}
-
+      {/* Grid Dashboard */}
       {isMobile ? (
         // Mobile Layout
         <div style={styles.mobileLayoutContainer}>
@@ -834,20 +814,68 @@ export default function ActiveCopilot() {
               </button>
             </div>
           ) : (
-            // 4. Mobile Active: only show CO-Pilot Diagnostics and a stop button
+            // 4. Mobile Active: Show Camera Frame (webcam feed), CO-Pilot Diagnostics, and a stop button
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
               
-              {/* Alert Banner HUD */}
-              {(drowsyAlert || phoneDetected || distractedAlert) && (
-                <div style={{
-                  ...styles.alertBannerMobile,
-                  backgroundColor: drowsyAlert ? 'rgba(255, 75, 75, 0.95)' : 'rgba(255, 206, 0, 0.95)',
-                  color: drowsyAlert ? '#fff' : '#000'
-                }}>
-                  <ShieldAlert size={24} />
-                  <span style={{ fontWeight: 900, fontSize: '1rem', letterSpacing: '0.05em' }}>
-                    {drowsyAlert ? 'DROWSINESS WARNING: WAKE UP!' : 'DISTRACTION WARNING: EYES ON ROAD!'}
-                  </span>
+              {/* Camera Frame Container for Mobile */}
+              {!demoMode && !usePythonLink && (
+                <div style={styles.mobileCamContainer}>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    width="640"
+                    height="480"
+                    style={styles.mobileCamFeed}
+                  />
+                  <canvas
+                    ref={canvasRef}
+                    width="640"
+                    height="480"
+                    style={styles.mobileCamCanvas}
+                  />
+                  <div className="hud-overlay" />
+                  
+                  {/* Alert Banner HUD */}
+                  {(drowsyAlert || phoneDetected || distractedAlert) && (
+                    <div style={{
+                      ...styles.alertBannerMobile,
+                      backgroundColor: drowsyAlert ? 'rgba(255, 75, 75, 0.95)' : 'rgba(255, 206, 0, 0.95)',
+                      color: drowsyAlert ? '#fff' : '#000'
+                    }}>
+                      <ShieldAlert size={20} />
+                      <span style={{ fontWeight: 900, fontSize: '0.85rem', letterSpacing: '0.05em' }}>
+                        {drowsyAlert ? 'DROWSINESS WARNING: WAKE UP!' : 'DISTRACTION WARNING: EYES ON ROAD!'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Demo Mode / Python Link Placeholders on Mobile */}
+              {demoMode && (
+                <div style={styles.mobileCamContainer}>
+                  <div style={styles.demoWrapper}>
+                    <div style={styles.hudOverlayGrid} />
+                    <div style={{ ...styles.demoRadarPulse, border: drowsyAlert || phoneDetected ? '2px solid #ff4b4b' : '2px solid #00f2ff' }} />
+                    <ShieldAlert size={48} color={drowsyAlert || phoneDetected ? '#ff4b4b' : '#00f2ff'} />
+                    <h4 style={{ color: '#fff', margin: '15px 0 5px', fontSize: '1rem' }}>
+                      {drowsyAlert ? '⚠️ DROWSINESS ALERT ⚠️' : phoneDetected ? '📱 PHONE DETECTED 📱' : 'DEMO MODE RUNNING'}
+                    </h4>
+                  </div>
+                </div>
+              )}
+
+              {usePythonLink && (
+                <div style={styles.mobileCamContainer}>
+                  <div style={styles.pythonLinkWrapper}>
+                    <div style={styles.hudOverlayGrid} />
+                    <ShieldAlert size={48} color={drowsyAlert ? '#ff4b4b' : phoneDetected ? '#ffce00' : '#00cc6a'} />
+                    <h4 style={{ color: '#fff', margin: '10px 0', fontSize: '0.95rem' }}>
+                      {drowsyAlert ? '⚠️ DROWSINESS ALERT ⚠️' : phoneDetected ? '📱 PHONE DETECTED 📱' : 'ONBOARD TELEMETRY ACTIVE'}
+                    </h4>
+                  </div>
                 </div>
               )}
 
@@ -1633,6 +1661,30 @@ const styles = {
     width: '100%',
     boxSizing: 'border-box',
     gap: '20px',
+  },
+  mobileCamContainer: {
+    position: 'relative',
+    width: '100%',
+    aspectRatio: '4/3',
+    background: '#070708',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    border: '1.5px solid rgba(255, 255, 255, 0.05)',
+  },
+  mobileCamFeed: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    transform: 'scaleX(-1)',
+  },
+  mobileCamCanvas: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
+    transform: 'scaleX(-1)',
   },
   mobileStandbyCard: {
     background: 'rgba(255,255,255,0.02)',
