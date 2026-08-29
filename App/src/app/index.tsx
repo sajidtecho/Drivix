@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator, Alert, useWindowDimensions, TouchableOpacity, ScrollView, Platform, LayoutAnimation, PanResponder, DeviceEventEmitter, TextInput, Linking } from 'react-native';
+import { StyleSheet, View, Text, FlatList, ActivityIndicator, Alert, useWindowDimensions, TouchableOpacity, ScrollView, Platform, LayoutAnimation, PanResponder, DeviceEventEmitter, TextInput, Linking, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CreditCard, ShieldCheck, HelpCircle, Info, PhoneCall, Car, FileText, Zap, AlertTriangle, CarFront, Shield, Droplet, User, Truck, Mic, X, MapPin, AlertCircle, Search, ArrowRight } from 'lucide-react-native';
 import { Image } from 'expo-image';
