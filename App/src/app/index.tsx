@@ -25,6 +25,42 @@ import { setWebHeaderVisible } from '@/components/navigation-stubs';
 
 import { useTheme } from '@/hooks/use-theme';
 
+const CAR_DEALS = [
+  {
+    id: 'altroz',
+    title: 'Tata Altroz',
+    type: 'Hatchback',
+    price: '₹6.30 - ₹10.77 Lakhs',
+    variants: '27+ Variants',
+    rating: '4.6',
+    reviews: '346',
+    image: require('../../assets/images/altroz.png'),
+    badge: 'Popular',
+  },
+  {
+    id: 'xuv700',
+    title: 'Mahindra XUV700',
+    type: 'SUV',
+    price: '₹13.99 - ₹26.99 Lakhs',
+    variants: '30+ Variants',
+    rating: '4.8',
+    reviews: '512',
+    image: require('../../assets/images/xuv700.png'),
+    badge: 'Top Rated',
+  },
+  {
+    id: 'creta',
+    title: 'Hyundai Creta',
+    type: 'Crossover SUV',
+    price: '₹10.99 - ₹20.15 Lakhs',
+    variants: '24+ Variants',
+    rating: '4.7',
+    reviews: '428',
+    image: require('../../assets/images/creta.png'),
+    badge: 'Best Seller',
+  },
+];
+
 type WizardStep = 'MAP' | 'SLOTS' | 'CHECKOUT' | 'PASS' | 'PARKING_HUBS' | 'DRIVER_HUB' | 'CHALLAN';
 
 export default function DashboardScreen() {
@@ -170,6 +206,7 @@ export default function DashboardScreen() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isGarageCardVisible, setIsGarageCardVisible] = useState(false);
   const [activeHeroTab, setActiveHeroTab] = useState<'parking' | 'challan' | 'fastag'>('parking');
+  const [activeCarTab, setActiveCarTab] = useState<'popular' | 'testdrive'>('popular');
   const [heroVehicleNumber, setHeroVehicleNumber] = useState('');
   const [isHeroInputFocused, setIsHeroInputFocused] = useState(false);
 
@@ -1370,6 +1407,109 @@ export default function DashboardScreen() {
                     </View>
                  </View>
 
+                {/* ── Buy Your Dream Car Section (Matching Reference Design) ── */}
+                <View style={styles.dreamCarSection}>
+                  {/* Header Subtitle Accent */}
+                  <View style={styles.dreamCarHeaderAccents}>
+                    <Text style={styles.dreamCarSparkle}>✦</Text>
+                    <Text style={styles.dreamCarSubtitle}>BUY YOUR DREAM CAR</Text>
+                    <Text style={styles.dreamCarSparkle}>✦</Text>
+                  </View>
+
+                  {/* Header Main Title */}
+                  <Text style={styles.dreamCarTitle}>
+                    Drive home with <Text style={styles.dreamCarBrand}>Drivix+</Text>
+                  </Text>
+
+                  {/* Navigation Tabs */}
+                  <View style={styles.dreamCarTabsRow}>
+                    <TouchableOpacity
+                      style={styles.dreamCarTabItem}
+                      onPress={() => setActiveCarTab('popular')}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[
+                        styles.dreamCarTabText,
+                        { color: activeCarTab === 'popular' ? '#ffffff' : 'rgba(255, 255, 255, 0.5)' }
+                      ]}>
+                        Popular Cars
+                      </Text>
+                      {activeCarTab === 'popular' && (
+                        <View style={styles.dreamCarActiveIndicator} />
+                      )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.dreamCarTabItem}
+                      onPress={() => setActiveCarTab('testdrive')}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[
+                        styles.dreamCarTabText,
+                        { color: activeCarTab === 'testdrive' ? '#ffffff' : 'rgba(255, 255, 255, 0.5)' }
+                      ]}>
+                        Test Drive
+                      </Text>
+                      {activeCarTab === 'testdrive' && (
+                        <View style={styles.dreamCarActiveIndicator} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Horizontal Interactive Sliding Carousel */}
+                  <FlatList
+                    horizontal
+                    data={CAR_DEALS}
+                    keyExtractor={(item) => item.id}
+                    showsHorizontalScrollIndicator={false}
+                    snapToInterval={width - 54}
+                    decelerationRate="fast"
+                    contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
+                    renderItem={({ item }) => (
+                      <View style={[styles.carCardContainer, { width: width - 72 }]}>
+                        {/* Car Image Backdrop Container */}
+                        <View style={styles.carImageContainer}>
+                          <Image
+                            source={item.image}
+                            style={styles.carCardImage}
+                            contentFit="contain"
+                          />
+                          {/* Rating Badge at Bottom Edge */}
+                          <View style={styles.carRatingBadge}>
+                            <Text style={styles.carRatingStar}>★</Text>
+                            <Text style={styles.carRatingText}>{item.rating} ({item.reviews} reviews)</Text>
+                          </View>
+                        </View>
+
+                        {/* Car Specs Information */}
+                        <View style={styles.carInfoContainer}>
+                          <Text style={styles.carModelTitle}>{item.title}</Text>
+                          <Text style={styles.carModelSpecs}>
+                            {item.type} • {item.price} • {item.variants}
+                          </Text>
+
+                          {/* Action Button */}
+                          <TouchableOpacity
+                            style={styles.bookTestDriveBtn}
+                            onPress={() => Alert.alert('Book Test Drive', `Test drive request submitted for ${item.title}. Our Drivix concierge will contact you shortly!`)}
+                            activeOpacity={0.85}
+                          >
+                            <Text style={styles.bookTestDriveBtnText}>Book Test Drive</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  />
+
+                  {/* Bottom Link */}
+                  <TouchableOpacity
+                    style={styles.viewMoreCarsLink}
+                    onPress={() => Alert.alert('Explore Models', 'Opening Drivix Car Marketplace with 200+ certified models...')}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.viewMoreCarsLinkText}>View 200+ Models</Text>
+                  </TouchableOpacity>
+                </View>
 
                 <AdCarousel />
               </View>
@@ -1969,6 +2109,169 @@ const styles = StyleSheet.create({
   complianceText: {
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  dreamCarSection: {
+    backgroundColor: '#110b29',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(120, 80, 245, 0.3)',
+    paddingVertical: 20,
+    marginVertical: 16,
+    shadowColor: '#6344e7',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 6,
+  },
+  dreamCarHeaderAccents: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  dreamCarSparkle: {
+    color: '#a78bfa',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  dreamCarSubtitle: {
+    color: '#a78bfa',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  dreamCarTitle: {
+    color: '#ffffff',
+    fontSize: 22,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  dreamCarBrand: {
+    color: '#a78bfa',
+    fontStyle: 'italic',
+    fontWeight: '900',
+  },
+  dreamCarTabsRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 12,
+    paddingHorizontal: 16,
+  },
+  dreamCarTabItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    position: 'relative',
+  },
+  dreamCarTabText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  dreamCarActiveIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    width: '80%',
+    height: 3,
+    backgroundColor: '#ffffff',
+    borderRadius: 1.5,
+  },
+  carCardContainer: {
+    backgroundColor: '#181236',
+    borderRadius: 22,
+    padding: 16,
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+  },
+  carImageContainer: {
+    width: '100%',
+    height: 180,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  carCardImage: {
+    width: '92%',
+    height: '92%',
+  },
+  carRatingBadge: {
+    position: 'absolute',
+    bottom: 10,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  carRatingStar: {
+    color: '#059669',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  carRatingText: {
+    color: '#1e293b',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  carInfoContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  carModelTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  carModelSpecs: {
+    color: '#a6a0c5',
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  bookTestDriveBtn: {
+    backgroundColor: '#6344e7',
+    width: '100%',
+    height: 48,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#6344e7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  bookTestDriveBtnText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  viewMoreCarsLink: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  viewMoreCarsLinkText: {
+    color: '#a78bfa',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 
