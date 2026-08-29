@@ -10,7 +10,16 @@ export const connectRedis = async () => {
   }
   try {
     redisClient = createClient({
-      url: process.env.REDIS_URL || 'redis://127.0.0.1:6379'
+      url: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
+      socket: {
+        reconnectStrategy: (retries) => {
+          // Limit reconnection attempts to 3 times to prevent console flooding
+          if (retries > 3) {
+            return false; // Stop retrying
+          }
+          return 1000; // Retry after 1 second
+        }
+      }
     });
 
     redisClient.on('error', (err) => {
