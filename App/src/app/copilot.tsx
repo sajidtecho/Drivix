@@ -4,34 +4,64 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ShieldAlert, Video, Info, Zap, AlertTriangle, Play, Square, Volume2, VolumeX } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { Camera, useCameraDevice, useFrameProcessor } from 'react-native-vision-camera';
-import { detectFaces } from 'vision-camera-face-detector';
-import { useTensorflowModel } from 'react-native-fast-tflite';
 import { Audio } from 'expo-av';
-import { Worklets } from 'react-native-worklets-core';
 import socketService from '@/services/socket';
+
+// Safe Dynamic Imports for Native C++ TurboModules (prevents NitroModules crash in Expo Go)
+let Camera: any = null;
+let useCameraDevice: any = () => null;
+let useFrameProcessor: any = () => null;
+let detectFaces: any = () => [];
+let useTensorflowModel: any = () => ({ state: 'unloaded', model: null });
+let Worklets: any = { createRunOnJS: (fn: any) => fn };
+let isVisionCameraSupported = false;
+
+try {
+  const visionCamera = require('react-native-vision-camera');
+  Camera = visionCamera.Camera;
+  useCameraDevice = visionCamera.useCameraDevice;
+  useFrameProcessor = visionCamera.useFrameProcessor;
+  isVisionCameraSupported = true;
+} catch (err) {
+  console.warn('VisionCamera TurboModule is not linked in current binary (e.g. Expo Go). Falling back to Socket.IO Stream mode.');
+}
+
+try {
+  const faceDetector = require('vision-camera-face-detector');
+  detectFaces = faceDetector.detectFaces;
+} catch (err) {}
+
+try {
+  const fastTflite = require('react-native-fast-tflite');
+  useTensorflowModel = fastTflite.useTensorflowModel;
+} catch (err) {}
+
+try {
+  const workletsCore = require('react-native-worklets-core');
+  Worklets = workletsCore.Worklets;
+} catch (err) {}
 
 const { width } = Dimensions.get('window');
 
 export default function DriverCopilotScreen() {
   const router = useRouter();
   const colors = useTheme();
-  const device = useCameraDevice('front'); // Use front-facing camera for driver monitoring
+  const device = useCameraDevice ? useCameraDevice('front') : null;
 
   // Component UI State
   const [isActive, setIsActive] = useState(false);
-  const [cameraPermission, setCameraPermission] = useState<string>('undetermined');
+  const [cameraPermission, setCameraPermission] = useState<string>('granted');
   const [leftEyeProb, setLeftEyeProb] = useState(1.0);
   const [rightEyeProb, setRightEyeProb] = useState(1.0);
   const [phoneDetected, setPhoneDetected] = useState(false);
   const [drowsyAlert, setDrowsyAlert] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [usePythonLink, setUsePythonLink] = useState(false);
+  const [usePythonLink, setUsePythonLink] = useState(!isVisionCameraSupported);
 
   // Audio Ref
   const soundRef = useRef<Audio.Sound | null>(null);
 
-  // Load YOLO TFLite Phone Detector Model (COCO dataset containing phone, or specialized)
+  // Load YOLO TFLite Phone Detector Model if available
   const yoloModel = useTensorflowModel(
     require('../../assets/models/yolo11n.tflite')
   );
@@ -39,8 +69,16 @@ export default function DriverCopilotScreen() {
   // Request camera permission on mount
   useEffect(() => {
     (async () => {
-      const status = await Camera.requestCameraPermission();
-      setCameraPermission(status);
+      if (isVisionCameraSupported && Camera?.requestCameraPermission) {
+        try {
+          const status = await Camera.requestCameraPermission();
+          setCameraPermission(status);
+        } catch (err) {
+          setCameraPermission('denied');
+        }
+      } else {
+        setCameraPermission('granted');
+      }
     })();
   }, []);
 
