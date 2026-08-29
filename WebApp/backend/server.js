@@ -101,6 +101,44 @@ global.io = io;
 
 io.on('connection', (socket) => {
   console.log(`🔌 Client connected: ${socket.id}`);
+
+  // Join cross-platform copilot room for real-time telemetry sync between Web and Mobile
+  socket.on('joinCopilotRoom', (data) => {
+    const roomId = data?.userId ? `copilot:${data.userId}` : 'copilot:global';
+    socket.join(roomId);
+    console.log(`📡 Socket ${socket.id} joined copilot room: ${roomId}`);
+    socket.emit('copilotRoomJoined', { roomId, status: 'connected' });
+  });
+
+  // Relay live copilot telemetry (speed, location, eye openness, gaze, alerts)
+  socket.on('copilotTelemetryUpdate', (telemetry) => {
+    const roomId = telemetry?.userId ? `copilot:${telemetry.userId}` : 'copilot:global';
+    socket.to(roomId).emit('copilotLiveRadarSync', {
+      ...telemetry,
+      senderId: socket.id,
+      timestamp: new Date().toISOString()
+    });
+    // Also broadcast to global telemetry feed for admin and active copilot radar views
+    socket.broadcast.emit('copilotGlobalRadarUpdate', {
+      ...telemetry,
+      senderId: socket.id,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Relay high-priority driver safety alerts across platforms
+  socket.on('copilotSafetyAlert', (alertData) => {
+    const roomId = alertData?.userId ? `copilot:${alertData.userId}` : 'copilot:global';
+    io.to(roomId).emit('safetyAlertReceived', {
+      ...alertData,
+      timestamp: new Date().toISOString()
+    });
+    socket.broadcast.emit('safetyAlertReceived', {
+      ...alertData,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   socket.on('disconnect', () => {
     console.log(`🔌 Client disconnected: ${socket.id}`);
   });

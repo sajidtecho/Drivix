@@ -76,6 +76,17 @@ export default function DriverCopilotScreen() {
     setPhoneDetected(isPhone);
     setDrowsyAlert(isDrowsy);
 
+    // Broadcast live telemetry to socket stream for cross-platform radar sync
+    socketService.emitCopilotTelemetry({
+      source: 'mobile',
+      leftEyeOpen: leftProb,
+      rightEyeOpen: rightProb,
+      avgEyeOpenness: ((leftProb + rightProb) / 2) * 100,
+      phoneDetected: isPhone,
+      drowsyAlert: isDrowsy,
+      timestamp: new Date().toISOString()
+    });
+
     if (soundEnabled && (isDrowsy || isPhone)) {
       playAlarm();
     } else {
@@ -181,6 +192,7 @@ export default function DriverCopilotScreen() {
       setIsActive(targetActive);
       if (targetActive) {
         socketService.connect();
+        socketService.joinCopilotRoom();
         socketService.on('safetyAlertReceived', handleOnboardAlert);
       } else {
         socketService.off('safetyAlertReceived', handleOnboardAlert);
@@ -195,8 +207,12 @@ export default function DriverCopilotScreen() {
         Alert.alert('Permission Required', 'Camera permission is required to launch Drivix Assistant.');
         return;
       }
-      setIsActive(!isActive);
-      if (isActive) {
+      const targetActive = !isActive;
+      setIsActive(targetActive);
+      if (targetActive) {
+        socketService.connect();
+        socketService.joinCopilotRoom();
+      } else {
         cleanupSound();
         setDrowsyAlert(false);
         setPhoneDetected(false);

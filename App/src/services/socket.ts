@@ -69,6 +69,41 @@ class SocketService {
   }
 
   /**
+   * Join a shared telemetry room for cross-platform Web/Mobile copilot sync.
+   */
+  joinCopilotRoom(userId?: string) {
+    this.emit('joinCopilotRoom', { userId });
+  }
+
+  /**
+   * Emit real-time copilot radar telemetry to connected web/mobile apps.
+   */
+  emitCopilotTelemetry(telemetry: any) {
+    this.emit('copilotTelemetryUpdate', telemetry);
+  }
+
+  /**
+   * Emit driver safety alert (drowsiness / phone distraction) over Socket.IO.
+   */
+  emitSafetyAlert(alertData: any) {
+    this.emit('copilotSafetyAlert', alertData);
+  }
+
+  /**
+   * Listen to live copilot radar updates from other platform nodes.
+   */
+  onCopilotSync(callback: (data: any) => void) {
+    this.on('copilotLiveRadarSync', callback);
+  }
+
+  /**
+   * Stop listening to live copilot radar updates.
+   */
+  offCopilotSync(callback?: (data: any) => void) {
+    this.off('copilotLiveRadarSync', callback);
+  }
+
+  /**
    * Monitor background/foreground lifecycles to pause WebSocket resource consumption
    */
   setupAppStateLifecycle() {
