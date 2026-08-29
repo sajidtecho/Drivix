@@ -1,457 +1,78 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Platform, Alert, Dimensions } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Linking, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ShieldAlert, Video, Info, Zap, AlertTriangle, Play, Square, Volume2, VolumeX } from 'lucide-react-native';
+import { ChevronLeft, ShieldAlert, Globe, ExternalLink, Eye, Smartphone, Zap } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
-import socketService from '@/services/socket';
-
-// Safe Dynamic Imports for Native Modules (prevents ExponentAV and NitroModules crashes in Expo Go / Web)
-let Audio: any = null;
-try {
-  const expoAv = require('expo-av');
-  Audio = expoAv.Audio;
-} catch (err) {
-  console.warn('ExponentAV native module is unavailable in current client environment.');
-}
-
-// Safe Dynamic Imports for Native C++ TurboModules (prevents NitroModules crash in Expo Go)
-let Camera: any = null;
-let useCameraDevice: any = () => null;
-let useFrameProcessor: any = () => null;
-let detectFaces: any = () => [];
-let useTensorflowModel: any = () => ({ state: 'unloaded', model: null });
-let Worklets: any = { createRunOnJS: (fn: any) => fn };
-let isVisionCameraSupported = false;
-
-try {
-  const visionCamera = require('react-native-vision-camera');
-  Camera = visionCamera.Camera;
-  useCameraDevice = visionCamera.useCameraDevice;
-  useFrameProcessor = visionCamera.useFrameProcessor;
-  isVisionCameraSupported = true;
-} catch (err) {
-  console.warn('VisionCamera TurboModule is not linked in current binary (e.g. Expo Go). Falling back to Socket.IO Stream mode.');
-}
-
-try {
-  const faceDetector = require('vision-camera-face-detector');
-  detectFaces = faceDetector.detectFaces;
-} catch (err) {}
-
-try {
-  const fastTflite = require('react-native-fast-tflite');
-  useTensorflowModel = fastTflite.useTensorflowModel;
-} catch (err) {}
-
-try {
-  const workletsCore = require('react-native-worklets-core');
-  Worklets = workletsCore.Worklets;
-} catch (err) {}
+import * as WebBrowser from 'expo-web-browser';
 
 const { width } = Dimensions.get('window');
 
 export default function DriverCopilotScreen() {
   const router = useRouter();
   const colors = useTheme();
-  const device = useCameraDevice ? useCameraDevice('front') : null;
 
-  // Component UI State
-  const [isActive, setIsActive] = useState(false);
-  const [cameraPermission, setCameraPermission] = useState<string>('granted');
-  const [leftEyeProb, setLeftEyeProb] = useState(1.0);
-  const [rightEyeProb, setRightEyeProb] = useState(1.0);
-  const [phoneDetected, setPhoneDetected] = useState(false);
-  const [drowsyAlert, setDrowsyAlert] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [usePythonLink, setUsePythonLink] = useState(!isVisionCameraSupported);
-
-  // Audio Ref
-  const soundRef = useRef<Audio.Sound | null>(null);
-
-  // Load YOLO TFLite Phone Detector Model if available
-  const yoloModel = useTensorflowModel(
-    require('../../assets/models/yolo11n.tflite')
-  );
-
-  // Request camera permission on mount
-  useEffect(() => {
-    (async () => {
-      if (isVisionCameraSupported && Camera?.requestCameraPermission) {
-        try {
-          const status = await Camera.requestCameraPermission();
-          setCameraPermission(status);
-        } catch (err) {
-          setCameraPermission('denied');
-        }
-      } else {
-        setCameraPermission('granted');
-      }
-    })();
-  }, []);
-
-  // Cleanup sound on unmount
-  useEffect(() => {
-    return () => {
-      cleanupSound();
-      socketService.off('safetyAlertReceived');
-    };
-  }, []);
-
-  const cleanupSound = async () => {
-    if (soundRef.current) {
-      try {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-      } catch (err) {
-        // Ignore cleanup errors
-      }
-      soundRef.current = null;
-    }
-  };
-
-  // Run on JS Thread to update states & trigger alarms
-  const updateAlertStates = Worklets.createRunOnJS((
-    leftProb: number,
-    rightProb: number,
-    isPhone: boolean,
-    isDrowsy: boolean
-  ) => {
-    setLeftEyeProb(leftProb);
-    setRightEyeProb(rightProb);
-    setPhoneDetected(isPhone);
-    setDrowsyAlert(isDrowsy);
-
-    // Broadcast live telemetry to socket stream for cross-platform radar sync
-    socketService.emitCopilotTelemetry({
-      source: 'mobile',
-      leftEyeOpen: leftProb,
-      rightEyeOpen: rightProb,
-      avgEyeOpenness: ((leftProb + rightProb) / 2) * 100,
-      phoneDetected: isPhone,
-      drowsyAlert: isDrowsy,
-      timestamp: new Date().toISOString()
-    });
-
-    if (soundEnabled && (isDrowsy || isPhone)) {
-      playAlarm();
-    } else {
-      stopAlarm();
-    }
-  });
-
-  const playAlarm = async () => {
-    if (soundRef.current) return; // Already playing
-    if (!Audio || !Audio.Sound) return;
+  const openWebCopilot = async () => {
+    const webUrl = 'https://drivix-pearl.vercel.app/copilot';
     try {
-      const { sound } = await Audio.Sound.createAsync(
-        require('../../assets/audio/eye_alert.mp3'),
-        { shouldPlay: true, isLooping: true }
-      );
-      soundRef.current = sound;
-    } catch (error) {
-      console.warn('Sound alarm failed to load', error);
+      await WebBrowser.openBrowserAsync(webUrl);
+    } catch (err) {
+      Linking.openURL(webUrl);
     }
   };
-
-  const stopAlarm = async () => {
-    if (soundRef.current) {
-      try {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-      } catch (err) {}
-      soundRef.current = null;
-    }
-  };
-
-  // Real-Time Frame Processor running in C++ Worklet Thread
-  const frameProcessor = useFrameProcessor((frame) => {
-    'worklet';
-    
-    let leftProb = 1.0;
-    let rightProb = 1.0;
-    let isPhone = false;
-    let isDrowsy = false;
-
-    // 1. Run Drowsiness Detection using Google ML Kit Native Face Detector
-    const faces = detectFaces(frame);
-    if (faces.length > 0) {
-      const face = faces[0];
-      leftProb = face.leftEyeOpenProbability ?? 1.0;
-      rightProb = face.rightEyeOpenProbability ?? 1.0;
-
-      // Drowsiness logic: both eyes closed (< 15% open probability)
-      if (leftProb < 0.15 && rightProb < 0.15) {
-        isDrowsy = true;
-      }
-    }
-
-    // 2. Run Phone Detection using YOLOv11 TFLite
-    if (yoloModel.state === 'loaded') {
-      const tensor = frame.toArrayBuffer();
-      const output = yoloModel.model.run([tensor]);
-      
-      const classes = output[0]; // Output indexes
-      const confidences = output[1]; // Bounding box confidences
-      
-      // COCO Class Index 67 is 'cell phone'
-      for (let i = 0; i < classes.length; i++) {
-        if (classes[i] === 67 && confidences[i] > 0.50) {
-          isPhone = true;
-          break;
-        }
-      }
-    }
-
-    // Push calculations back to React Native JS UI thread
-    updateAlertStates(leftProb, rightProb, isPhone, isDrowsy);
-  }, [yoloModel, soundEnabled]);
-
-  const handleOnboardAlert = (data: { alertType: string; duration: number }) => {
-    if (data.alertType === 'PHONE') {
-      setPhoneDetected(true);
-      setDrowsyAlert(false);
-      setLeftEyeProb(1.0);
-      setRightEyeProb(1.0);
-      if (soundEnabled) {
-        playAlarm();
-      }
-    } else if (data.alertType === 'EYE') {
-      setDrowsyAlert(true);
-      setPhoneDetected(false);
-      setLeftEyeProb(0.05);
-      setRightEyeProb(0.05);
-      if (soundEnabled) {
-        playAlarm();
-      }
-    } else {
-      setPhoneDetected(false);
-      setDrowsyAlert(false);
-      setLeftEyeProb(1.0);
-      setRightEyeProb(1.0);
-      stopAlarm();
-    }
-  };
-
-  const toggleCopilot = () => {
-    if (usePythonLink) {
-      const targetActive = !isActive;
-      setIsActive(targetActive);
-      if (targetActive) {
-        socketService.connect();
-        socketService.joinCopilotRoom();
-        socketService.on('safetyAlertReceived', handleOnboardAlert);
-      } else {
-        socketService.off('safetyAlertReceived', handleOnboardAlert);
-        cleanupSound();
-        setDrowsyAlert(false);
-        setPhoneDetected(false);
-        setLeftEyeProb(1.0);
-        setRightEyeProb(1.0);
-      }
-    } else {
-      if (cameraPermission !== 'granted') {
-        Alert.alert('Permission Required', 'Camera permission is required to launch Drivix Assistant.');
-        return;
-      }
-      const targetActive = !isActive;
-      setIsActive(targetActive);
-      if (targetActive) {
-        socketService.connect();
-        socketService.joinCopilotRoom();
-      } else {
-        cleanupSound();
-        setDrowsyAlert(false);
-        setPhoneDetected(false);
-      }
-    }
-  };
-
-  // Calculate Average Eye Status Percentage
-  const avgEyeOpen = ((leftEyeProb + rightEyeProb) / 2) * 100;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.borderGlass }]}>
-        <TouchableOpacity 
-          style={[styles.backBtn, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]} 
-          onPress={() => {
-            cleanupSound();
-            router.back();
-          }}
+        <TouchableOpacity
+          style={[styles.backBtn, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}
+          onPress={() => router.back()}
           activeOpacity={0.8}
         >
           <ChevronLeft size={20} color="#ffce00" />
         </TouchableOpacity>
         <View style={styles.headerTitles}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Drivix Assistant</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>AI Drowsiness & Distraction Alert</Text>
-        </View>
-        <TouchableOpacity
-          style={[styles.volBtn, { borderColor: colors.borderGlass }]}
-          onPress={() => setSoundEnabled(!soundEnabled)}
-        >
-          {soundEnabled ? <Volume2 size={20} color="#ffce00" /> : <VolumeX size={20} color="#ff4b4b" />}
-        </TouchableOpacity>
-      </View>
-
-      {/* Main Preview / HUD Area */}
-      <View style={styles.previewContainer}>
-        {isActive ? (
-          usePythonLink ? (
-            <View style={[styles.placeholderWrapper, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
-              <View style={[
-                styles.hudRadarPulse, 
-                { borderColor: drowsyAlert || phoneDetected ? '#ff4b4b' : '#00cc6a' }
-              ]} />
-              <ShieldAlert size={48} color={drowsyAlert ? '#ff4b4b' : phoneDetected ? '#ffce00' : '#00cc6a'} style={{ marginBottom: 12 }} />
-              <Text style={[styles.placeholderTitle, { color: colors.text }]}>
-                {drowsyAlert ? '⚠️ DROWSINESS ALERT (ONBOARD) ⚠️' : phoneDetected ? '📱 PHONE DETECTED (ONBOARD) 📱' : 'ONBOARD TELEMETRY ACTIVE'}
-              </Text>
-              <Text style={[styles.placeholderDesc, { color: colors.textSecondary, marginTop: 4 }]}>
-                Streaming real-time driver alert logs from the Python onboard safety camera.
-              </Text>
-            </View>
-          ) : (
-            device && cameraPermission === 'granted' && (
-              <View style={styles.cameraWrapper}>
-                <Camera
-                  style={StyleSheet.absoluteFill}
-                  device={device}
-                  isActive={isActive}
-                  frameProcessor={frameProcessor}
-                  pixelFormat="yuv"
-                />
-                <View style={styles.hudOverlayGrid} />
-              </View>
-            )
-          )
-        ) : (
-          <View style={[styles.placeholderWrapper, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
-            <Video size={48} color={colors.textSecondary} style={{ marginBottom: 12 }} />
-            <Text style={[styles.placeholderTitle, { color: colors.text }]}>Drivix Assistant Standby</Text>
-            <Text style={[styles.placeholderDesc, { color: colors.textSecondary }]}>
-              Secure your phone on a dashboard mount pointing at your face, then press Start.
-            </Text>
-          </View>
-        )}
-
-        {/* Real-time Alerts HUD Overlay */}
-        {isActive && (
-          <View style={styles.hudOverlayContainer}>
-            {drowsyAlert && (
-              <View style={[styles.hudAlertCapsule, { backgroundColor: 'rgba(255, 75, 75, 0.95)' }]}>
-                <ShieldAlert size={20} color="#fff" />
-                <Text style={styles.hudAlertText}>⚠️ DROWSINESS ALARM: WAKE UP! ⚠️</Text>
-              </View>
-            )}
-
-            {phoneDetected && (
-              <View style={[styles.hudAlertCapsule, { backgroundColor: 'rgba(255, 174, 0, 0.95)' }]}>
-                <AlertTriangle size={20} color="#000" />
-                <Text style={[styles.hudAlertText, { color: '#000' }]}>📱 DISTRACTION: CELL PHONE USE 📱</Text>
-              </View>
-            )}
-
-            {!drowsyAlert && !phoneDetected && (
-              <View style={[styles.hudAlertCapsule, { backgroundColor: 'rgba(0, 204, 106, 0.9)' }]}>
-                <Zap size={20} color="#fff" />
-                <Text style={styles.hudAlertText}>🟢 ACTIVE MONITORING SAFE</Text>
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-
-      {/* Telemetry Dashboard Data */}
-      <View style={[styles.dashboardCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>👁️ Live Telemetry HUD</Text>
-        
-        <View style={styles.telemetryGrid}>
-          <View style={[styles.telemetryItem, { borderBottomColor: colors.borderGlass }]}>
-            <Text style={[styles.telemetryLabel, { color: colors.textSecondary }]}>Left Eye State</Text>
-            <Text style={[styles.telemetryValue, { color: leftEyeProb > 0.3 ? '#00cc6a' : '#ff4b4b' }]}>
-              {isActive ? `${(leftEyeProb * 100).toFixed(0)}% Open` : '--'}
-            </Text>
-          </View>
-          <View style={[styles.telemetryItem, { borderBottomColor: colors.borderGlass }]}>
-            <Text style={[styles.telemetryLabel, { color: colors.textSecondary }]}>Right Eye State</Text>
-            <Text style={[styles.telemetryValue, { color: rightEyeProb > 0.3 ? '#00cc6a' : '#ff4b4b' }]}>
-              {isActive ? `${(rightEyeProb * 100).toFixed(0)}% Open` : '--'}
-            </Text>
-          </View>
-          <View style={[styles.telemetryItem, { borderBottomColor: colors.borderGlass }]}>
-            <Text style={[styles.telemetryLabel, { color: colors.textSecondary }]}>Attention Index</Text>
-            <Text style={[styles.telemetryValue, { color: avgEyeOpen > 30 ? '#00cc6a' : '#ff4b4b' }]}>
-              {isActive ? `${avgEyeOpen.toFixed(0)}% Focused` : '--'}
-            </Text>
-          </View>
-          <View style={styles.telemetryItem}>
-            <Text style={[styles.telemetryLabel, { color: colors.textSecondary }]}>Distraction Status</Text>
-            <Text style={[styles.telemetryValue, { color: phoneDetected ? '#ff4b4b' : '#00cc6a' }]}>
-              {isActive ? (phoneDetected ? 'PHONE DETECTED' : 'CLEAR') : '--'}
-            </Text>
-          </View>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Drivix AI Assistant</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Web-Powered Driver Safety Hub</Text>
         </View>
       </View>
 
-      {/* Control Buttons */}
-      <View style={styles.footerActions}>
-        {!isActive && (
-          <View style={{ flexDirection: 'row', gap: 8, width: '100%', marginBottom: 16 }}>
-            <TouchableOpacity 
-              style={{
-                flex: 1,
-                height: 40,
-                borderRadius: 12,
-                borderWidth: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: !usePythonLink ? 'rgba(0, 242, 255, 0.1)' : 'transparent',
-                borderColor: !usePythonLink ? '#00f2ff' : colors.borderGlass,
-              }}
-              onPress={() => setUsePythonLink(false)}
-            >
-              <Text style={{ color: !usePythonLink ? '#00f2ff' : colors.textSecondary, fontSize: 12, fontWeight: 'bold' }}>
-                📷 Phone Camera
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={{
-                flex: 1,
-                height: 40,
-                borderRadius: 12,
-                borderWidth: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: usePythonLink ? 'rgba(0, 204, 106, 0.1)' : 'transparent',
-                borderColor: usePythonLink ? '#00cc6a' : colors.borderGlass,
-              }}
-              onPress={() => setUsePythonLink(true)}
-            >
-              <Text style={{ color: usePythonLink ? '#00cc6a' : colors.textSecondary, fontSize: 12, fontWeight: 'bold' }}>
-                🔗 Onboard Python AI
-              </Text>
-            </TouchableOpacity>
+      {/* Main Info Hero Container */}
+      <View style={styles.content}>
+        <View style={[styles.heroCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+          <View style={styles.iconCircle}>
+            <Globe size={36} color="#00f2ff" />
           </View>
-        )}
-
-        <TouchableOpacity
-          style={[
-            styles.controlBtn,
-            isActive 
-              ? { backgroundColor: '#ff4b4b', borderColor: '#ff4b4b' } 
-              : { backgroundColor: colors.primary, borderColor: colors.primary }
-          ]}
-          onPress={toggleCopilot}
-          activeOpacity={0.8}
-        >
-          {isActive ? <Square size={20} color="#fff" /> : <Play size={20} color="#000" />}
-          <Text style={[styles.controlBtnText, isActive ? { color: '#fff' } : { color: '#000' }]}>
-            {isActive ? 'Stop Co-Pilot' : 'Start Co-Pilot'}
+          <Text style={[styles.heroTitle, { color: colors.text }]}>Drivix Web AI Core</Text>
+          <Text style={[styles.heroDesc, { color: colors.textSecondary }]}>
+            The AI Drowsiness and Distraction Alert system is hosted directly on the Drivix Web Platform. Launch the Web Assistant on any desktop or phone web browser to experience real-time AI face tracking and alarm monitoring.
           </Text>
-        </TouchableOpacity>
+
+          <TouchableOpacity style={styles.launchBtn} onPress={openWebCopilot} activeOpacity={0.85}>
+            <ExternalLink size={18} color="#000" style={{ marginRight: 8 }} />
+            <Text style={styles.launchBtnText}>Launch Web AI Assistant</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Feature Capsules */}
+        <View style={styles.featureGrid}>
+          <View style={[styles.featureCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+            <Eye size={24} color="#ffce00" />
+            <Text style={[styles.featureTitle, { color: colors.text }]}>Eye Aspect Ratio</Text>
+            <Text style={[styles.featureDesc, { color: colors.textSecondary }]}>
+              Detects eyelid closure & micro-sleep patterns.
+            </Text>
+          </View>
+
+          <View style={[styles.featureCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+            <Smartphone size={24} color="#00cc6a" />
+            <Text style={[styles.featureTitle, { color: colors.text }]}>Phone Detection</Text>
+            <Text style={[styles.featureDesc, { color: colors.textSecondary }]}>
+              COCO-SSD computer vision flags cell phone usage.
+            </Text>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -465,143 +86,95 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
   },
   backBtn: {
-    padding: 8,
-    marginRight: 12,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 1,
-  },
-  volBtn: {
-    padding: 8,
-    borderRadius: 12,
-    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
   },
   headerTitles: {
     flex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
   headerSubtitle: {
     fontSize: 12,
     marginTop: 2,
   },
-  previewContainer: {
+  content: {
     flex: 1,
-    margin: 20,
-    borderRadius: 24,
-    overflow: 'hidden',
-    position: 'relative',
+    padding: 20,
+    justifyContent: 'center',
   },
-  cameraWrapper: {
-    ...StyleSheet.absoluteFillObject,
+  heroCard: {
+    padding: 24,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  hudOverlayGrid: {
-    ...StyleSheet.absoluteFillObject,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 206, 0, 0.15)',
-    borderStyle: 'dashed',
-    margin: 20,
-    borderRadius: 16,
-  },
-  placeholderWrapper: {
-    flex: 1,
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(0, 242, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 24,
-    padding: 30,
-  },
-  hudRadarPulse: {
-    position: 'absolute',
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 2,
-    opacity: 0.15,
-  },
-  placeholderTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  placeholderDesc: {
-    fontSize: 13,
-    lineHeight: 18,
-    textAlign: 'center',
-  },
-  hudOverlayContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    alignItems: 'center',
-  },
-  hudAlertCapsule: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  hudAlertText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
-  dashboardCard: {
-    marginHorizontal: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    padding: 20,
-  },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
     marginBottom: 16,
   },
-  telemetryGrid: {
+  heroTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  heroDesc: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  launchBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffce00',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 14,
+    width: '100%',
+    justifyContent: 'center',
+  },
+  launchBtnText: {
+    color: '#000',
+    fontWeight: '800',
+    fontSize: 15,
+  },
+  featureGrid: {
+    flexDirection: 'row',
     gap: 12,
   },
-  telemetryItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-  },
-  telemetryLabel: {
-    fontSize: 13,
-  },
-  telemetryValue: {
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  footerActions: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  controlBtn: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-    height: 52,
-    borderRadius: 26,
+  featureCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 16,
     borderWidth: 1,
   },
-  controlBtnText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  featureTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  featureDesc: {
+    fontSize: 12,
+    lineHeight: 16,
   },
 });
