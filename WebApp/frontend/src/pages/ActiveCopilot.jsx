@@ -36,7 +36,7 @@ export default function ActiveCopilot() {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768 || /Mobi|Android|iPhone/i.test(navigator.userAgent));
+      setIsMobile(window.innerWidth <= 1024 || /Mobi|Android|iPhone/i.test(navigator.userAgent));
     };
     handleResize();
     window.addEventListener('resize', handleResize);
