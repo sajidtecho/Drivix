@@ -128,6 +128,18 @@ class DetectionState:
 
         self.eyes_closed_start = None
 
+        self.integration_enabled = False
+
+        self.drivix_server_url = "http://localhost:5000"
+
+        self.drivix_booking_id = ""
+
+        self.drivix_user_id = ""
+
+        self.last_sent_alert = "NONE"
+
+        self.last_sent_time = 0.0
+
     def snapshot(self):
 
         with self.lock:
@@ -709,6 +721,50 @@ def process_frame(
             alert = "NONE"
 
         # ====================================================
+        # SEND REAL-TIME ALERTS TO DRIVIX BACKEND
+        # ====================================================
+
+        current_mono = time.monotonic()
+        should_send = False
+
+        with state.lock:
+            if state.integration_enabled:
+                if alert != state.last_sent_alert:
+                    should_send = True
+                elif alert != "NONE" and (current_mono - state.last_sent_time) >= 3.0:
+                    should_send = True
+
+                if should_send:
+                    state.last_sent_alert = alert
+                    state.last_sent_time = current_mono
+
+        if should_send:
+            def send_alert_bg(srv_url, u_id, b_id, a_type, dur):
+                try:
+                    import requests
+                    payload = {
+                        "userId": u_id if u_id else None,
+                        "bookingId": b_id if b_id else None,
+                        "alertType": a_type,
+                        "duration": float(dur)
+                    }
+                    requests.post(f"{srv_url}/api/v1/safety/alert", json=payload, timeout=2)
+                except Exception as e:
+                    print(f"Error sending safety alert to Drivix: {e}")
+
+            threading.Thread(
+                target=send_alert_bg,
+                args=(
+                    state.drivix_server_url,
+                    state.drivix_user_id,
+                    state.drivix_booking_id,
+                    alert,
+                    closed_duration if alert == "EYE" else 0.0
+                ),
+                daemon=True
+            ).start()
+
+        # ====================================================
         # DASHBOARD BACKGROUND
         # ====================================================
 
@@ -1006,6 +1062,40 @@ with st.sidebar:
         "📱 Phone alert has priority "
         "over eye alert."
     )
+
+    st.markdown(
+        "---"
+    )
+
+    st.header(
+        "🔗 Drivix Link"
+    )
+
+    integration_enabled = st.checkbox(
+        "Enable Drivix Integration",
+        value=False
+    )
+
+    drivix_server_url = st.text_input(
+        "Drivix Server URL",
+        value="http://localhost:5000"
+    )
+
+    drivix_booking_id = st.text_input(
+        "Booking ID (Optional)",
+        value=""
+    )
+
+    drivix_user_id = st.text_input(
+        "User ID (Optional)",
+        value=""
+    )
+
+    with state.lock:
+        state.integration_enabled = integration_enabled
+        state.drivix_server_url = drivix_server_url
+        state.drivix_booking_id = drivix_booking_id
+        state.drivix_user_id = drivix_user_id
 
     st.markdown(
         "---"
