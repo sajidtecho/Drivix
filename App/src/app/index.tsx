@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator, Alert, useWindowDimensions, TouchableOpacity, ScrollView, Platform, LayoutAnimation, PanResponder, DeviceEventEmitter, TextInput, Linking, ImageBackground } from 'react-native';
+import { StyleSheet, View, Text, FlatList, ActivityIndicator, Alert, useWindowDimensions, TouchableOpacity, ScrollView, Platform, LayoutAnimation, PanResponder, DeviceEventEmitter, TextInput, Linking, ImageBackground, Image as RNImage } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CreditCard, ShieldCheck, HelpCircle, Info, PhoneCall, Car, FileText, Zap, AlertTriangle, CarFront, Shield, Droplet, User, Truck, Mic, X, MapPin, AlertCircle, Search, ArrowRight } from 'lucide-react-native';
 import { Image } from 'expo-image';
@@ -1418,7 +1418,7 @@ export default function DashboardScreen() {
 
                   {/* Header Main Title */}
                   <Text style={styles.dreamCarTitle}>
-                    Drive home with <Text style={styles.dreamCarBrand}>Drivix+</Text>
+                    Drive home with <Text style={styles.dreamCarBrand}>Drivix</Text>
                   </Text>
 
                   {/* Navigation Tabs */}
@@ -1469,10 +1469,10 @@ export default function DashboardScreen() {
                       <View style={[styles.carCardContainer, { width: width - 72 }]}>
                         {/* Car Image Backdrop Container */}
                         <View style={styles.carImageContainer}>
-                          <Image
+                          <RNImage
                             source={item.image}
                             style={styles.carCardImage}
-                            contentFit="contain"
+                            resizeMode="contain"
                           />
                           {/* Rating Badge at Bottom Edge */}
                           <View style={styles.carRatingBadge}>
