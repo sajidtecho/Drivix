@@ -51,6 +51,8 @@ export default function ActiveCopilot() {
   const [usePythonLink, setUsePythonLink] = useState(false);
   const [permissionError, setPermissionError] = useState(false);
   const socketRef = useRef(null);
+  const [mobileSyncConnected, setMobileSyncConnected] = useState(false);
+  const [mobileTelemetryData, setMobileTelemetryData] = useState(null);
 
   // AI & Detection States
   const [avgEyeOpenness, setAvgEyeOpenness] = useState(100);
@@ -173,6 +175,40 @@ export default function ActiveCopilot() {
       }
     }
   }, [distractedAlert, driverGaze]);
+
+  // Real-time Socket.IO Cross-Platform Sync Effect
+  useEffect(() => {
+    const socketUrl = API_BASE_URL.replace('/api/v1', '');
+    const socket = io(socketUrl, {
+      transports: ['websocket', 'polling']
+    });
+
+    socket.on('connect', () => {
+      socket.emit('joinCopilotRoom', { userId: user ? user.uid || user._id : null });
+    });
+
+    socket.on('copilotLiveRadarSync', (data) => {
+      setMobileSyncConnected(true);
+      setMobileTelemetryData(data);
+      if (data.drowsyAlert) setDrowsyAlert(true);
+      if (data.phoneDetected) setPhoneDetected(true);
+      if (data.avgEyeOpenness !== undefined) setAvgEyeOpenness(Math.round(data.avgEyeOpenness));
+    });
+
+    socket.on('safetyAlertReceived', (data) => {
+      if (data.alertType === 'PHONE') {
+        setPhoneDetected(true);
+        setPhoneConf(100);
+      } else if (data.alertType === 'EYE') {
+        setDrowsyAlert(true);
+        setAvgEyeOpenness(15);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user]);
 
   // MediaPipe / TFJS Instances
   const faceMeshRef = useRef(null);
@@ -785,6 +821,24 @@ export default function ActiveCopilot() {
             Real-time Driver Drowsiness & Distraction Alert System
           </p>
         </div>
+        {mobileSyncConnected && (
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 12px',
+            borderRadius: '12px',
+            background: 'rgba(0, 242, 255, 0.1)',
+            border: '1px solid rgba(0, 242, 255, 0.4)',
+            color: '#00f2ff',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            marginRight: '12px'
+          }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00f2ff' }} />
+            📱 Mobile Sync Active
+          </div>
+        )}
         <button style={{ ...styles.volBtn, borderColor: soundEnabled ? 'rgba(255, 206, 0, 0.2)' : 'rgba(255,75,75,0.2)' }} onClick={() => setSoundEnabled(!soundEnabled)}>
           {soundEnabled ? <Volume2 size={18} color="#ffce00" /> : <VolumeX size={18} color="#ff4b4b" />}
         </button>
