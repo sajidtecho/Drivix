@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../hooks/useUser';
 import { ChevronLeft, Video, Volume2, VolumeX, ShieldAlert, AlertTriangle, Info, Play, Square } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { API_BASE_URL } from '../config';
@@ -30,6 +31,17 @@ const RIGHT_EYE_INDICES = [362, 385, 387, 263, 373, 380];
 
 export default function ActiveCopilot() {
   const navigate = useNavigate();
+  const { user } = useUser();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768 || /Mobi|Android|iPhone/i.test(navigator.userAgent));
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState('Loading Drivix AI Core...');
@@ -105,6 +117,62 @@ export default function ActiveCopilot() {
     lookRightStartRef.current = null;
     lookDownStartRef.current = null;
   };
+
+  const logAlertToDatabase = async (alertType, durationVal = 0) => {
+    try {
+      const token = localStorage.getItem('drivix_auth_token');
+      const response = await fetch(`${API_BASE_URL}/safety/alert`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          userId: user ? user.uid || user._id : null,
+          bookingId: null,
+          alertType,
+          duration: durationVal
+        })
+      });
+      const data = await response.json();
+      console.log('Safety alert logged to DB:', data);
+    } catch (err) {
+      console.error('Failed to log safety alert:', err);
+    }
+  };
+
+  // Telemetry Database Logging Effects
+  useEffect(() => {
+    if (drowsyAlert) {
+      logAlertToDatabase('EYE', 0.5);
+    }
+  }, [drowsyAlert]);
+
+  useEffect(() => {
+    if (phoneDetected) {
+      logAlertToDatabase('PHONE', 0);
+    }
+  }, [phoneDetected]);
+
+  useEffect(() => {
+    if (distractedAlert) {
+      let type = 'NONE';
+      let threshold = 0;
+      if (driverGaze === 'Looking Left') {
+        type = 'LOOK_LEFT';
+        threshold = 2.0;
+      } else if (driverGaze === 'Looking Right') {
+        type = 'LOOK_RIGHT';
+        threshold = 2.0;
+      } else if (driverGaze === 'Looking Down') {
+        type = 'LOOK_DOWN';
+        threshold = 3.0;
+      }
+      if (type !== 'NONE') {
+        logAlertToDatabase(type, threshold);
+      }
+    }
+  }, [distractedAlert, driverGaze]);
 
   // MediaPipe / TFJS Instances
   const faceMeshRef = useRef(null);
@@ -723,358 +791,527 @@ export default function ActiveCopilot() {
       </header>
 
       {/* Grid Dashboard */}
-      <div style={styles.gridContainer}>
-        {/* Left Side: Camera Preview HUD */}
-        <div style={styles.previewCard}>
-          <div style={styles.camContainer}>
-            {isActive && !demoMode ? (
-              usePythonLink ? (
-                <div style={styles.pythonLinkWrapper}>
-                  <div style={styles.hudOverlayGrid} />
-                  <div style={{ 
-                    ...styles.demoRadarPulse, 
-                    border: drowsyAlert || phoneDetected ? '2px solid #ff4b4b' : '2px solid #00cc6a',
-                  }} />
-                  <ShieldAlert size={48} color={drowsyAlert ? '#ff4b4b' : phoneDetected ? '#ffce00' : '#00cc6a'} />
-                  <h4 style={{ color: '#fff', margin: '15px 0 5px' }}>
-                    {drowsyAlert ? '⚠️ DROWSINESS ALERT (ONBOARD) ⚠️' : phoneDetected ? '📱 PHONE DETECTED (ONBOARD) 📱' : 'ONBOARD AI TELEMETRY CONNECTED'}
-                  </h4>
-                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', padding: '0 40px', textAlign: 'center' }}>
-                    Listening to real-time driver alert streams from the Python AI onboard camera.
-                  </p>
+      {/* Hidden camera wrappers for mobile webcam loops to ensure camera stays alive in background */}
+      {isMobile && isActive && !demoMode && !usePythonLink && (
+        <div style={styles.hiddenCameraWrapper}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            width="640"
+            height="480"
+            style={styles.hiddenCameraElement}
+          />
+          <canvas
+            ref={canvasRef}
+            width="640"
+            height="480"
+            style={styles.hiddenCameraElement}
+          />
+        </div>
+      )}
+
+      {isMobile ? (
+        // Mobile Layout
+        <div style={styles.mobileLayoutContainer}>
+          {!isActive ? (
+            // 2. Mobile Standby: Show him only button "Start journey"
+            <div style={styles.mobileStandbyCard}>
+              <div style={styles.mobileStandbyIcon}>🛡️</div>
+              <h3 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 800, margin: '15px 0 8px' }}>
+                AI Co-Pilot Assistant
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5, margin: '0 0 25px', padding: '0 20px' }}>
+                Secure your mobile phone on a dashboard mount pointing at your face, then start your journey. Drivix AI will monitor your eyes and head pose to prevent drowsiness and distraction.
+              </p>
+              
+              <button 
+                style={styles.mobileStartBtn} 
+                onClick={startScanner}
+              >
+                🚀 Start Journey
+              </button>
+            </div>
+          ) : (
+            // 4. Mobile Active: only show CO-Pilot Diagnostics and a stop button
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+              
+              {/* Alert Banner HUD */}
+              {(drowsyAlert || phoneDetected || distractedAlert) && (
+                <div style={{
+                  ...styles.alertBannerMobile,
+                  backgroundColor: drowsyAlert ? 'rgba(255, 75, 75, 0.95)' : 'rgba(255, 206, 0, 0.95)',
+                  color: drowsyAlert ? '#fff' : '#000'
+                }}>
+                  <ShieldAlert size={24} />
+                  <span style={{ fontWeight: 900, fontSize: '1rem', letterSpacing: '0.05em' }}>
+                    {drowsyAlert ? 'DROWSINESS WARNING: WAKE UP!' : 'DISTRACTION WARNING: EYES ON ROAD!'}
+                  </span>
                 </div>
-              ) : (
-                <>
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    width="640"
-                    height="480"
-                    style={styles.camFeed}
-                  />
-                  <canvas
-                    ref={canvasRef}
-                    width="640"
-                    height="480"
-                    style={styles.camCanvas}
-                  />
-                  <div className="hud-overlay" />
-                </>
-              )
-            ) : demoMode ? (
-              <div style={styles.demoWrapper}>
-                <div style={styles.hudOverlayGrid} />
-                <div style={{ ...styles.demoRadarPulse, border: drowsyAlert || phoneDetected ? '2px solid #ff4b4b' : '2px solid #00f2ff' }} />
-                <ShieldAlert size={48} color={drowsyAlert || phoneDetected ? '#ff4b4b' : '#00f2ff'} />
-                <h4 style={{ color: '#fff', margin: '15px 0 5px' }}>
-                  {drowsyAlert ? '⚠️ DROWSINESS ALERT ⚠️' : phoneDetected ? '📱 PHONE DETECTED 📱' : 'DEMO MODE RUNNING'}
-                </h4>
-                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', padding: '0 40px' }}>
-                  Use the control dashboard on the right to simulate driver alerts manually.
-                </p>
-              </div>
-            ) : (
-              <div style={styles.standbyWrapper}>
-                {permissionError ? (
-                  <>
-                    <ShieldAlert size={48} color="#ff4b4b" />
-                    <h3 style={{ color: '#ff4b4b', margin: '15px 0 5px', fontSize: '1.1rem' }}>Camera Permission Blocked</h3>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', padding: '0 40px', lineHeight: 1.5 }}>
-                      Drivix Assistant is blocked from using your camera. Please click the **Camera Settings / Lock Icon** in your browser's address bar (URL bar) and select **Allow**, then refresh the page.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <Video size={48} color="rgba(255,255,255,0.3)" />
-                    <h3 style={{ color: '#fff', margin: '15px 0 5px', fontSize: '1.1rem' }}>Drivix Assistant In Standby</h3>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', padding: '0 40px' }}>
-                      Mount your laptop or webcam pointing at your face, then click Start Scanner.
-                    </p>
-                  </>
-                )}
-              </div>
-            )}
+              )}
 
-            {/* Alert Banner HUD */}
-            {isActive && (drowsyAlert || phoneDetected || distractedAlert) && (
-              <div style={{
-                ...styles.alertBanner,
-                backgroundColor: drowsyAlert ? 'rgba(255, 75, 75, 0.95)' : 'rgba(255, 206, 0, 0.95)',
-                color: drowsyAlert ? '#fff' : '#000'
-              }}>
-                <ShieldAlert size={20} />
-                <span style={{ fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.05em' }}>
-                  {drowsyAlert ? 'DROWSINESS WARNING: WAKE UP!' : 'DISTRACTION WARNING: EYES ON ROAD!'}
-                </span>
-              </div>
-            )}
-          </div>
+              {/* Co-Pilot Diagnostics */}
+              <div style={styles.statsCard}>
+                <h3 style={styles.cardHeading}>Co-Pilot Diagnostics</h3>
 
-          {/* Scanner Control buttons */}
-          <div style={styles.controlBar}>
-            {!isActive ? (
-              <>
-                <div style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '10px', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                    <button 
-                      style={{ 
-                        flex: 1, 
-                        padding: '8px 12px', 
-                        borderRadius: '8px', 
-                        border: '1px solid',
-                        fontSize: '0.8rem',
-                        cursor: 'pointer',
-                        backgroundColor: !usePythonLink ? 'rgba(0, 242, 255, 0.15)' : 'rgba(255,255,255,0.02)',
-                        borderColor: !usePythonLink ? '#00f2ff' : 'rgba(255,255,255,0.1)',
-                        color: !usePythonLink ? '#00f2ff' : 'rgba(255,255,255,0.6)',
-                        fontWeight: 600
-                      }} 
-                      onClick={() => setUsePythonLink(false)}
-                    >
-                      📷 Browser WebCam
-                    </button>
-                    <button 
-                      style={{ 
-                        flex: 1, 
-                        padding: '8px 12px', 
-                        borderRadius: '8px', 
-                        border: '1px solid',
-                        fontSize: '0.8rem',
-                        cursor: 'pointer',
-                        backgroundColor: usePythonLink ? 'rgba(0, 204, 106, 0.15)' : 'rgba(255,255,255,0.02)',
-                        borderColor: usePythonLink ? '#00cc6a' : 'rgba(255,255,255,0.1)',
-                        color: usePythonLink ? '#00cc6a' : 'rgba(255,255,255,0.6)',
-                        fontWeight: 600
-                      }} 
-                      onClick={() => setUsePythonLink(true)}
-                    >
-                      🔗 Onboard Python AI
-                    </button>
+                {/* Eye Openness */}
+                <div style={styles.statRow}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Driver Alertness (Eye Openness)</span>
+                    <span style={{ color: avgEyeOpenness < 25 ? '#ff4b4b' : '#00f2ff', fontWeight: 800, fontSize: '0.85rem' }}>
+                      {avgEyeOpenness}%
+                    </span>
                   </div>
-                  <div style={{ 
-                    marginTop: '6px', 
-                    fontSize: '0.75rem', 
-                    color: 'rgba(255,255,255,0.4)', 
-                    textAlign: 'center',
-                    lineHeight: '1.4',
-                    background: 'rgba(255,255,255,0.02)',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(255,255,255,0.03)'
-                  }}>
-                    {usePythonLink ? (
-                      <span>⚙️ <strong>Onboard Python Link</strong>: Wirelessly stream real-time safety metrics from your car's local camera hardware directly to this dashboard.</span>
+                  <div style={styles.barBg}>
+                    <div
+                      style={{
+                        ...styles.barFg,
+                        width: `${avgEyeOpenness}%`,
+                        backgroundColor: avgEyeOpenness < 25 ? '#ff4b4b' : '#00f2ff',
+                        boxShadow: avgEyeOpenness < 25 ? '0 0 10px #ff4b4b' : '0 0 10px #00f2ff',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Distraction Level */}
+                <div style={styles.statRow}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Distraction Level (Phone)</span>
+                    <span style={{ color: phoneDetected ? '#ff4b4b' : 'var(--text-secondary)', fontWeight: 800, fontSize: '0.85rem' }}>
+                      {phoneDetected ? `DETECTED` : 'NONE'}
+                    </span>
+                  </div>
+                  <div style={styles.barBg}>
+                    <div
+                      style={{
+                        ...styles.barFg,
+                        width: phoneDetected ? `100%` : '0%',
+                        backgroundColor: '#ff4b4b',
+                        boxShadow: '0 0 10px #ff4b4b',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Gaze / Head Pose */}
+                <div style={styles.statRow}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Driver Gaze / Head Pose</span>
+                    <span style={{
+                      color: distractedAlert ? '#ff4b4b' : driverGaze === 'Looking Straight' ? '#00cc6a' : '#ffce00',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      textTransform: 'uppercase'
+                    }}>
+                      {driverGaze}
+                    </span>
+                  </div>
+                  <div style={styles.barBg}>
+                    <div
+                      style={{
+                        ...styles.barFg,
+                        width: '100%',
+                        backgroundColor: distractedAlert ? '#ff4b4b' : driverGaze === 'Looking Straight' ? '#00cc6a' : '#ffce00',
+                        boxShadow: distractedAlert ? '0 0 10px #ff4b4b' : driverGaze === 'Looking Straight' ? '0 0 10px #00cc6a' : '0 0 10px #ffce00',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* AI Security Stream Logs */}
+                <div style={{ display: 'flex', flexDirection: 'column', marginTop: '10px' }}>
+                  <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 10px', fontWeight: 700 }}>AI Security Stream</h4>
+                  <div style={styles.terminalBoxMobile}>
+                    {systemLogs.length === 0 ? (
+                      <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.75rem', fontStyle: 'italic' }}>
+                        Monitoring active...
+                      </div>
                     ) : (
-                      <span>🌐 <strong>Browser Webcam Mode</strong>: Zero setup! Track distraction & drowsiness using your laptop/webcam. Perfect for instant safety monitoring.</span>
+                      systemLogs.map((log, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            color: log.includes('WARNING') || log.includes('detected') ? '#ff4b4b' : 'rgba(255,255,255,0.7)',
+                            fontSize: '0.72rem',
+                            fontFamily: 'monospace',
+                            marginBottom: '3px',
+                          }}
+                        >
+                          {log}
+                        </div>
+                      ))
                     )}
                   </div>
                 </div>
-                
-                <button style={styles.startBtn} onClick={usePythonLink ? startPythonLink : startScanner}>
-                  <Play size={16} /> {usePythonLink ? 'Start Telemetry Link' : 'Start Scanner'}
-                </button>
-                <button style={styles.demoBtn} onClick={startDemo}>
-                  <Info size={16} /> Test Demo Mode
-                </button>
-              </>
-            ) : (
-              <button style={styles.stopBtn} onClick={demoMode ? stopDemo : usePythonLink ? stopPythonLink : stopScanner}>
-                <Square size={16} /> Disable {usePythonLink ? 'Telemetry Link' : 'Scanner'}
+              </div>
+
+              {/* 5. Stop Journey button */}
+              <button 
+                style={styles.mobileStopBtn} 
+                onClick={stopScanner}
+              >
+                🛑 Stop Journey
               </button>
-            )}
-          </div>
-        </div>
-
-        {/* Right Side: Indicators Panel */}
-        <div style={styles.statsCard}>
-          <h3 style={styles.cardHeading}>Co-Pilot Diagnostics</h3>
-
-          {/* Eye Openness indicator */}
-          <div style={styles.statRow}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Driver Alertness (Eye Openness)</span>
-              <span style={{ color: avgEyeOpenness < 25 ? '#ff4b4b' : '#00f2ff', fontWeight: 800, fontSize: '0.85rem' }}>
-                {avgEyeOpenness}%
-              </span>
-            </div>
-            <div style={styles.barBg}>
-              <div
-                style={{
-                  ...styles.barFg,
-                  width: `${avgEyeOpenness}%`,
-                  backgroundColor: avgEyeOpenness < 25 ? '#ff4b4b' : '#00f2ff',
-                  boxShadow: avgEyeOpenness < 25 ? '0 0 10px #ff4b4b' : '0 0 10px #00f2ff',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Distraction indicator */}
-          <div style={styles.statRow}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Distraction Level (Phone)</span>
-              <span style={{ color: phoneDetected ? '#ff4b4b' : 'var(--text-secondary)', fontWeight: 800, fontSize: '0.85rem' }}>
-                {phoneDetected ? `DETECTED (${phoneConf}%)` : 'NONE'}
-              </span>
-            </div>
-            <div style={styles.barBg}>
-              <div
-                style={{
-                  ...styles.barFg,
-                  width: phoneDetected ? `${phoneConf}%` : '0%',
-                  backgroundColor: '#ff4b4b',
-                  boxShadow: '0 0 10px #ff4b4b',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Head Pose Gaze indicator */}
-          <div style={styles.statRow}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Driver Gaze / Head Pose</span>
-              <span style={{
-                color: distractedAlert ? '#ff4b4b' : driverGaze === 'Looking Straight' ? '#00cc6a' : '#ffce00',
-                fontWeight: 800,
-                fontSize: '0.85rem',
-                textTransform: 'uppercase'
-              }}>
-                {driverGaze}
-              </span>
-            </div>
-            <div style={styles.barBg}>
-              <div
-                style={{
-                  ...styles.barFg,
-                  width: '100%',
-                  backgroundColor: distractedAlert ? '#ff4b4b' : driverGaze === 'Looking Straight' ? '#00cc6a' : '#ffce00',
-                  boxShadow: distractedAlert ? '0 0 10px #ff4b4b' : driverGaze === 'Looking Straight' ? '0 0 10px #00cc6a' : '0 0 10px #ffce00',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Demo Controllers Card */}
-          {demoMode && (
-            <div style={styles.demoControlsBox}>
-              <h4 style={{ color: '#ffce00', margin: '0 0 10px', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Manual Simulator Toggles
-              </h4>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                <button
-                  style={{ ...styles.simToggleBtn, backgroundColor: drowsyAlert ? 'rgba(255,75,75,0.2)' : 'rgba(255,255,255,0.03)', borderColor: drowsyAlert ? '#ff4b4b' : 'rgba(255,255,255,0.1)' }}
-                  onClick={() => {
-                    setDrowsyAlert(!drowsyAlert);
-                    if (!drowsyAlert) {
-                      setAvgEyeOpenness(10);
-                      addLog('[SIMULATOR] Eyes Closed triggered.');
-                    } else {
-                      setAvgEyeOpenness(100);
-                      addLog('[SIMULATOR] Eyes Open restored.');
-                    }
-                  }}
-                >
-                  💤 Simulate Sleep
-                </button>
-                <button
-                  style={{ ...styles.simToggleBtn, backgroundColor: phoneDetected ? 'rgba(255,75,75,0.2)' : 'rgba(255,255,255,0.03)', borderColor: phoneDetected ? '#ff4b4b' : 'rgba(255,255,255,0.1)' }}
-                  onClick={() => {
-                    setPhoneDetected(!phoneDetected);
-                    if (!phoneDetected) {
-                      setPhoneConf(88);
-                      addLog('[SIMULATOR] Cell Phone detection triggered.');
-                    } else {
-                      setPhoneConf(0);
-                      addLog('[SIMULATOR] Cell Phone cleared.');
-                    }
-                  }}
-                >
-                  📱 Simulate Phone
-                </button>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  style={{ ...styles.simToggleBtn, backgroundColor: driverGaze === 'Looking Left' ? 'rgba(255,206,0,0.2)' : 'rgba(255,255,255,0.03)', borderColor: driverGaze === 'Looking Left' ? '#ffce00' : 'rgba(255,255,255,0.1)' }}
-                  onClick={() => {
-                    if (driverGaze !== 'Looking Left') {
-                      setDriverGaze('Looking Left');
-                      setDistractedAlert(true);
-                      addLog('[SIMULATOR] Driver Looking Left triggered.');
-                    } else {
-                      setDriverGaze('Looking Straight');
-                      setDistractedAlert(false);
-                      addLog('[SIMULATOR] Driver Looking Straight restored.');
-                    }
-                  }}
-                >
-                  ⬅️ Look Left
-                </button>
-                <button
-                  style={{ ...styles.simToggleBtn, backgroundColor: driverGaze === 'Looking Right' ? 'rgba(255,206,0,0.2)' : 'rgba(255,255,255,0.03)', borderColor: driverGaze === 'Looking Right' ? '#ffce00' : 'rgba(255,255,255,0.1)' }}
-                  onClick={() => {
-                    if (driverGaze !== 'Looking Right') {
-                      setDriverGaze('Looking Right');
-                      setDistractedAlert(true);
-                      addLog('[SIMULATOR] Driver Looking Right triggered.');
-                    } else {
-                      setDriverGaze('Looking Straight');
-                      setDistractedAlert(false);
-                      addLog('[SIMULATOR] Driver Looking Straight restored.');
-                    }
-                  }}
-                >
-                  ➡️ Look Right
-                </button>
-                <button
-                  style={{ ...styles.simToggleBtn, backgroundColor: driverGaze === 'Looking Down' ? 'rgba(255,75,75,0.2)' : 'rgba(255,255,255,0.03)', borderColor: driverGaze === 'Looking Down' ? '#ff4b4b' : 'rgba(255,255,255,0.1)' }}
-                  onClick={() => {
-                    if (driverGaze !== 'Looking Down') {
-                      setDriverGaze('Looking Down');
-                      setDistractedAlert(true);
-                      addLog('[SIMULATOR] Driver Looking Down triggered.');
-                    } else {
-                      setDriverGaze('Looking Straight');
-                      setDistractedAlert(false);
-                      addLog('[SIMULATOR] Driver Looking Straight restored.');
-                    }
-                  }}
-                >
-                  ⬇️ Look Down
-                </button>
-              </div>
             </div>
           )}
-
-          {/* Logs Terminal */}
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, marginTop: '20px' }}>
-            <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 10px', fontWeight: 700 }}>AI Security Stream</h4>
-            <div style={styles.terminalBox} ref={logsContainerRef}>
-              {systemLogs.length === 0 ? (
-                <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.75rem', fontStyle: 'italic' }}>
-                  No diagnostic events logged. Start scanner.
+        </div>
+      ) : (
+        // Desktop Layout
+        <div style={styles.gridContainer}>
+          {/* Left Side: Camera Preview HUD */}
+          <div style={styles.previewCard}>
+            <div style={styles.camContainer}>
+              {isActive && !demoMode ? (
+                usePythonLink ? (
+                  <div style={styles.pythonLinkWrapper}>
+                    <div style={styles.hudOverlayGrid} />
+                    <div style={{ 
+                      ...styles.demoRadarPulse, 
+                      border: drowsyAlert || phoneDetected ? '2px solid #ff4b4b' : '2px solid #00cc6a',
+                    }} />
+                    <ShieldAlert size={48} color={drowsyAlert ? '#ff4b4b' : phoneDetected ? '#ffce00' : '#00cc6a'} />
+                    <h4 style={{ color: '#fff', margin: '15px 0 5px' }}>
+                      {drowsyAlert ? '⚠️ DROWSINESS ALERT (ONBOARD) ⚠️' : phoneDetected ? '📱 PHONE DETECTED (ONBOARD) 📱' : 'ONBOARD AI TELEMETRY CONNECTED'}
+                    </h4>
+                    <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', padding: '0 40px', textAlign: 'center' }}>
+                      Listening to real-time driver alert streams from the Python AI onboard camera.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      width="640"
+                      height="480"
+                      style={styles.camFeed}
+                    />
+                    <canvas
+                      ref={canvasRef}
+                      width="640"
+                      height="480"
+                      style={styles.camCanvas}
+                    />
+                    <div className="hud-overlay" />
+                  </>
+                )
+              ) : demoMode ? (
+                <div style={styles.demoWrapper}>
+                  <div style={styles.hudOverlayGrid} />
+                  <div style={{ ...styles.demoRadarPulse, border: drowsyAlert || phoneDetected ? '2px solid #ff4b4b' : '2px solid #00f2ff' }} />
+                  <ShieldAlert size={48} color={drowsyAlert || phoneDetected ? '#ff4b4b' : '#00f2ff'} />
+                  <h4 style={{ color: '#fff', margin: '15px 0 5px' }}>
+                    {drowsyAlert ? '⚠️ DROWSINESS ALERT ⚠️' : phoneDetected ? '📱 PHONE DETECTED 📱' : 'DEMO MODE RUNNING'}
+                  </h4>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', padding: '0 40px' }}>
+                    Use the control dashboard on the right to simulate driver alerts manually.
+                  </p>
                 </div>
               ) : (
-                systemLogs.map((log, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      color: log.includes('WARNING') || log.includes('detected') ? '#ff4b4b' : log.includes('SIMULATOR') ? '#ffce00' : 'rgba(255,255,255,0.7)',
-                      fontSize: '0.75rem',
-                      fontFamily: 'monospace',
-                      marginBottom: '4px',
-                      lineHeight: '1.25',
-                    }}
-                  >
-                    {log}
+                <div style={styles.standbyWrapper}>
+                  {permissionError ? (
+                    <>
+                      <ShieldAlert size={48} color="#ff4b4b" />
+                      <h3 style={{ color: '#ff4b4b', margin: '15px 0 5px', fontSize: '1.1rem' }}>Camera Permission Blocked</h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', padding: '0 40px', lineHeight: 1.5 }}>
+                        Drivix Assistant is blocked from using your camera. Please click the **Camera Settings / Lock Icon** in your browser's address bar (URL bar) and select **Allow**, then refresh the page.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Video size={48} color="rgba(255,255,255,0.3)" />
+                      <h3 style={{ color: '#fff', margin: '15px 0 5px', fontSize: '1.1rem' }}>Drivix Assistant In Standby</h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', padding: '0 40px' }}>
+                        Mount your laptop or webcam pointing at your face, then click Start Scanner.
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Alert Banner HUD */}
+              {isActive && (drowsyAlert || phoneDetected || distractedAlert) && (
+                <div style={{
+                  ...styles.alertBanner,
+                  backgroundColor: drowsyAlert ? 'rgba(255, 75, 75, 0.95)' : 'rgba(255, 206, 0, 0.95)',
+                  color: drowsyAlert ? '#fff' : '#000'
+                }}>
+                  <ShieldAlert size={20} />
+                  <span style={{ fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.05em' }}>
+                    {drowsyAlert ? 'DROWSINESS WARNING: WAKE UP!' : 'DISTRACTION WARNING: EYES ON ROAD!'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Scanner Control buttons */}
+            <div style={styles.controlBar}>
+              {!isActive ? (
+                <>
+                  <div style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '10px', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                      <button 
+                        style={{ 
+                          flex: 1, 
+                          padding: '8px 12px', 
+                          borderRadius: '8px', 
+                          border: '1px solid',
+                          fontSize: '0.8rem',
+                          cursor: 'pointer',
+                          backgroundColor: !usePythonLink ? 'rgba(0, 242, 255, 0.15)' : 'rgba(255,255,255,0.02)',
+                          borderColor: !usePythonLink ? '#00f2ff' : 'rgba(255,255,255,0.1)',
+                          color: !usePythonLink ? '#00f2ff' : 'rgba(255,255,255,0.6)',
+                          fontWeight: 600
+                        }} 
+                        onClick={() => setUsePythonLink(false)}
+                      >
+                        📷 Browser WebCam
+                      </button>
+                      <button 
+                        style={{ 
+                          flex: 1, 
+                          padding: '8px 12px', 
+                          borderRadius: '8px', 
+                          border: '1px solid',
+                          fontSize: '0.8rem',
+                          cursor: 'pointer',
+                          backgroundColor: usePythonLink ? 'rgba(0, 204, 106, 0.15)' : 'rgba(255,255,255,0.02)',
+                          borderColor: usePythonLink ? '#00cc6a' : 'rgba(255,255,255,0.1)',
+                          color: usePythonLink ? '#00cc6a' : 'rgba(255,255,255,0.6)',
+                          fontWeight: 600
+                        }} 
+                        onClick={() => setUsePythonLink(true)}
+                      >
+                        🔗 Onboard Python AI
+                      </button>
+                    </div>
+                    <div style={{ 
+                      marginTop: '6px', 
+                      fontSize: '0.75rem', 
+                      color: 'rgba(255,255,255,0.4)', 
+                      textAlign: 'center',
+                      lineHeight: '1.4',
+                      background: 'rgba(255,255,255,0.02)',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(255,255,255,0.03)'
+                    }}>
+                      {usePythonLink ? (
+                        <span>⚙️ <strong>Onboard Python Link</strong>: Wirelessly stream real-time safety metrics from your car's local camera hardware directly to this dashboard.</span>
+                      ) : (
+                        <span>🌐 <strong>Browser Webcam Mode</strong>: Zero setup! Track distraction & drowsiness using your laptop/webcam. Perfect for instant safety monitoring.</span>
+                      )}
+                    </div>
                   </div>
-                ))
+                  
+                  <button style={styles.startBtn} onClick={usePythonLink ? startPythonLink : startScanner}>
+                    <Play size={16} /> {usePythonLink ? 'Start Telemetry Link' : 'Start Scanner'}
+                  </button>
+                  <button style={styles.demoBtn} onClick={startDemo}>
+                    <Info size={16} /> Test Demo Mode
+                  </button>
+                </>
+              ) : (
+                <button style={styles.stopBtn} onClick={demoMode ? stopDemo : usePythonLink ? stopPythonLink : stopScanner}>
+                  <Square size={16} /> Disable {usePythonLink ? 'Telemetry Link' : 'Scanner'}
+                </button>
               )}
             </div>
           </div>
+
+          {/* Right Side: Indicators Panel */}
+          <div style={styles.statsCard}>
+            <h3 style={styles.cardHeading}>Co-Pilot Diagnostics</h3>
+
+            {/* Eye Openness indicator */}
+            <div style={styles.statRow}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Driver Alertness (Eye Openness)</span>
+                <span style={{ color: avgEyeOpenness < 25 ? '#ff4b4b' : '#00f2ff', fontWeight: 800, fontSize: '0.85rem' }}>
+                  {avgEyeOpenness}%
+                </span>
+              </div>
+              <div style={styles.barBg}>
+                <div
+                  style={{
+                    ...styles.barFg,
+                    width: `${avgEyeOpenness}%`,
+                    backgroundColor: avgEyeOpenness < 25 ? '#ff4b4b' : '#00f2ff',
+                    boxShadow: avgEyeOpenness < 25 ? '0 0 10px #ff4b4b' : '0 0 10px #00f2ff',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Distraction indicator */}
+            <div style={styles.statRow}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Distraction Level (Phone)</span>
+                <span style={{ color: phoneDetected ? '#ff4b4b' : 'var(--text-secondary)', fontWeight: 800, fontSize: '0.85rem' }}>
+                  {phoneDetected ? `DETECTED (${phoneConf}%)` : 'NONE'}
+                </span>
+              </div>
+              <div style={styles.barBg}>
+                <div
+                  style={{
+                    ...styles.barFg,
+                    width: phoneDetected ? `${phoneConf}%` : '0%',
+                    backgroundColor: '#ff4b4b',
+                    boxShadow: '0 0 10px #ff4b4b',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Head Pose Gaze indicator */}
+            <div style={styles.statRow}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Driver Gaze / Head Pose</span>
+                <span style={{
+                  color: distractedAlert ? '#ff4b4b' : driverGaze === 'Looking Straight' ? '#00cc6a' : '#ffce00',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase'
+                }}>
+                  {driverGaze}
+                </span>
+              </div>
+              <div style={styles.barBg}>
+                <div
+                  style={{
+                    ...styles.barFg,
+                    width: '100%',
+                    backgroundColor: distractedAlert ? '#ff4b4b' : driverGaze === 'Looking Straight' ? '#00cc6a' : '#ffce00',
+                    boxShadow: distractedAlert ? '0 0 10px #ff4b4b' : driverGaze === 'Looking Straight' ? '0 0 10px #00cc6a' : '0 0 10px #ffce00',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Demo Controllers Card */}
+            {demoMode && (
+              <div style={styles.demoControlsBox}>
+                <h4 style={{ color: '#ffce00', margin: '0 0 10px', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Manual Simulator Toggles
+                </h4>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <button
+                    style={{ ...styles.simToggleBtn, backgroundColor: drowsyAlert ? 'rgba(255,75,75,0.2)' : 'rgba(255,255,255,0.03)', borderColor: drowsyAlert ? '#ff4b4b' : 'rgba(255,255,255,0.1)' }}
+                    onClick={() => {
+                      setDrowsyAlert(!drowsyAlert);
+                      if (!drowsyAlert) {
+                        setAvgEyeOpenness(10);
+                        addLog('[SIMULATOR] Eyes Closed triggered.');
+                      } else {
+                        setAvgEyeOpenness(100);
+                        addLog('[SIMULATOR] Eyes Open restored.');
+                      }
+                    }}
+                  >
+                    💤 Simulate Sleep
+                  </button>
+                  <button
+                    style={{ ...styles.simToggleBtn, backgroundColor: phoneDetected ? 'rgba(255,75,75,0.2)' : 'rgba(255,255,255,0.03)', borderColor: phoneDetected ? '#ff4b4b' : 'rgba(255,255,255,0.1)' }}
+                    onClick={() => {
+                      setPhoneDetected(!phoneDetected);
+                      if (!phoneDetected) {
+                        setPhoneConf(88);
+                        addLog('[SIMULATOR] Cell Phone detection triggered.');
+                      } else {
+                        setPhoneConf(0);
+                        addLog('[SIMULATOR] Cell Phone cleared.');
+                      }
+                    }}
+                  >
+                    📱 Simulate Phone
+                  </button>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    style={{ ...styles.simToggleBtn, backgroundColor: driverGaze === 'Looking Left' ? 'rgba(255,206,0,0.2)' : 'rgba(255,255,255,0.03)', borderColor: driverGaze === 'Looking Left' ? '#ffce00' : 'rgba(255,255,255,0.1)' }}
+                    onClick={() => {
+                      if (driverGaze !== 'Looking Left') {
+                        setDriverGaze('Looking Left');
+                        setDistractedAlert(true);
+                        addLog('[SIMULATOR] Driver Looking Left triggered.');
+                      } else {
+                        setDriverGaze('Looking Straight');
+                        setDistractedAlert(false);
+                        addLog('[SIMULATOR] Driver Looking Straight restored.');
+                      }
+                    }}
+                  >
+                    ⬅️ Look Left
+                  </button>
+                  <button
+                    style={{ ...styles.simToggleBtn, backgroundColor: driverGaze === 'Looking Right' ? 'rgba(255,206,0,0.2)' : 'rgba(255,255,255,0.03)', borderColor: driverGaze === 'Looking Right' ? '#ffce00' : 'rgba(255,255,255,0.1)' }}
+                    onClick={() => {
+                      if (driverGaze !== 'Looking Right') {
+                        setDriverGaze('Looking Right');
+                        setDistractedAlert(true);
+                        addLog('[SIMULATOR] Driver Looking Right triggered.');
+                      } else {
+                        setDriverGaze('Looking Straight');
+                        setDistractedAlert(false);
+                        addLog('[SIMULATOR] Driver Looking Straight restored.');
+                      }
+                    }}
+                  >
+                    ➡️ Look Right
+                  </button>
+                  <button
+                    style={{ ...styles.simToggleBtn, backgroundColor: driverGaze === 'Looking Down' ? 'rgba(255,75,75,0.2)' : 'rgba(255,255,255,0.03)', borderColor: driverGaze === 'Looking Down' ? '#ff4b4b' : 'rgba(255,255,255,0.1)' }}
+                    onClick={() => {
+                      if (driverGaze !== 'Looking Down') {
+                        setDriverGaze('Looking Down');
+                        setDistractedAlert(true);
+                        addLog('[SIMULATOR] Driver Looking Down triggered.');
+                      } else {
+                        setDriverGaze('Looking Straight');
+                        setDistractedAlert(false);
+                        addLog('[SIMULATOR] Driver Looking Straight restored.');
+                      }
+                    }}
+                  >
+                    ⬇️ Look Down
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Logs Terminal */}
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, marginTop: '20px' }}>
+              <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 10px', fontWeight: 700 }}>AI Security Stream</h4>
+              <div style={styles.terminalBox} ref={logsContainerRef}>
+                {systemLogs.length === 0 ? (
+                  <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.75rem', fontStyle: 'italic' }}>
+                    No diagnostic events logged. Start scanner.
+                  </div>
+                ) : (
+                  systemLogs.map((log, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        color: log.includes('WARNING') || log.includes('detected') ? '#ff4b4b' : log.includes('SIMULATOR') ? '#ffce00' : 'rgba(255,255,255,0.7)',
+                        fontSize: '0.75rem',
+                        fontFamily: 'monospace',
+                        marginBottom: '4px',
+                        lineHeight: '1.25',
+                      }}
+                    >
+                      {log}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -1388,5 +1625,95 @@ const styles = {
     flex: 1,
     overflowY: 'auto',
     maxHeight: '240px',
+  },
+  mobileLayoutContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '100%',
+    boxSizing: 'border-box',
+    gap: '20px',
+  },
+  mobileStandbyCard: {
+    background: 'rgba(255,255,255,0.02)',
+    border: '1px solid rgba(255, 255, 255, 0.04)',
+    borderRadius: '16px',
+    padding: '40px 24px',
+    textAlign: 'center',
+    width: '100%',
+    maxWidth: '400px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+    boxSizing: 'border-box',
+    marginTop: '20px',
+  },
+  mobileStandbyIcon: {
+    fontSize: '3.5rem',
+    marginBottom: '15px',
+  },
+  mobileStartBtn: {
+    width: '100%',
+    background: 'linear-gradient(135deg, #00f2ff 0%, #0072ff 100%)',
+    border: 'none',
+    color: '#fff',
+    padding: '16px',
+    borderRadius: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    fontSize: '1rem',
+    boxShadow: '0 4px 15px rgba(0, 242, 255, 0.3)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+  },
+  mobileStopBtn: {
+    width: '100%',
+    background: 'linear-gradient(135deg, #ff4b4b 0%, #a80000 100%)',
+    border: 'none',
+    color: '#fff',
+    padding: '16px',
+    borderRadius: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    fontSize: '1rem',
+    boxShadow: '0 4px 15px rgba(255, 75, 75, 0.3)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+  },
+  hiddenCameraWrapper: {
+    position: 'absolute',
+    top: '-9999px',
+    left: '-9999px',
+    width: '1px',
+    height: '1px',
+    overflow: 'hidden',
+  },
+  hiddenCameraElement: {
+    width: '1px',
+    height: '1px',
+    opacity: 0.01,
+  },
+  terminalBoxMobile: {
+    background: '#060607',
+    border: '1px solid rgba(255,255,255,0.04)',
+    borderRadius: '8px',
+    padding: '10px',
+    overflowY: 'auto',
+    maxHeight: '150px',
+  },
+  alertBannerMobile: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '10px',
+    padding: '14px',
+    borderRadius: '12px',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+    zIndex: 10,
+    animation: 'pulse 1s infinite alternate',
+    width: '100%',
+    boxSizing: 'border-box',
   },
 };
