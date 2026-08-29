@@ -192,7 +192,7 @@ export default function DriverCopilotScreen() {
       }
     } else {
       if (cameraPermission !== 'granted') {
-        Alert.alert('Permission Required', 'Camera permission is required to launch Active Co-Pilot.');
+        Alert.alert('Permission Required', 'Camera permission is required to launch Drivix Assistant.');
         return;
       }
       setIsActive(!isActive);
@@ -222,7 +222,7 @@ export default function DriverCopilotScreen() {
           <ChevronLeft size={20} color="#ffce00" />
         </TouchableOpacity>
         <View style={styles.headerTitles}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Active Co-Pilot</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Drivix Assistant</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>AI Drowsiness & Distraction Alert</Text>
         </View>
         <TouchableOpacity
@@ -267,7 +267,7 @@ export default function DriverCopilotScreen() {
         ) : (
           <View style={[styles.placeholderWrapper, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
             <Video size={48} color={colors.textSecondary} style={{ marginBottom: 12 }} />
-            <Text style={[styles.placeholderTitle, { color: colors.text }]}>Co-Pilot Standby</Text>
+            <Text style={[styles.placeholderTitle, { color: colors.text }]}>Drivix Assistant Standby</Text>
             <Text style={[styles.placeholderDesc, { color: colors.textSecondary }]}>
               Secure your phone on a dashboard mount pointing at your face, then press Start.
             </Text>
