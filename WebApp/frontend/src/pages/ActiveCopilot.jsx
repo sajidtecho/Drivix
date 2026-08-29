@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Video, Volume2, VolumeX, ShieldAlert, AlertTriangle, Info, Play, Square } from 'lucide-react';
+import { io } from 'socket.io-client';
+import { API_BASE_URL } from '../config';
 
 // Euclidean distance helper
 const distance = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
@@ -34,6 +36,8 @@ export default function ActiveCopilot() {
   const [isActive, setIsActive] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [usePythonLink, setUsePythonLink] = useState(false);
+  const socketRef = useRef(null);
 
   // AI & Detection States
   const [avgEyeOpenness, setAvgEyeOpenness] = useState(100);
@@ -130,6 +134,9 @@ export default function ActiveCopilot() {
     return () => {
       active = false;
       stopScanner();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
   }, []);
 
@@ -430,6 +437,68 @@ export default function ActiveCopilot() {
     addLog('Scanner disabled. Standby.');
   };
 
+  const startPythonLink = () => {
+    setDemoMode(false);
+    setIsActive(true);
+    
+    const socketUrl = API_BASE_URL.replace('/api/v1', '');
+    addLog(`Connecting to Drivix telemetry stream at ${socketUrl}...`);
+    
+    const socket = io(socketUrl, {
+      transports: ['websocket', 'polling']
+    });
+    
+    socketRef.current = socket;
+    
+    socket.on('connect', () => {
+      addLog('🔌 Connected to Drivix telemetry stream. Awaiting alerts...');
+    });
+    
+    socket.on('connect_error', (err) => {
+      addLog(`❌ Connection error: ${err.message}`);
+    });
+    
+    socket.on('safetyAlertReceived', (data) => {
+      addLog(`📥 Safety Alert Event: ${data.alertType}`);
+      
+      if (data.alertType === 'PHONE') {
+        setPhoneDetected(true);
+        setPhoneConf(100);
+        setDrowsyAlert(false);
+        setAvgEyeOpenness(100);
+        addLog('⚠️ DISTRACTION WARNING: Phone usage detected by onboard system.');
+      } else if (data.alertType === 'EYE') {
+        setDrowsyAlert(true);
+        setPhoneDetected(false);
+        setPhoneConf(0);
+        setAvgEyeOpenness(15);
+        addLog('😴 DROWSINESS WARNING: Drowsy driving detected by onboard system.');
+      } else {
+        setPhoneDetected(false);
+        setPhoneConf(0);
+        setDrowsyAlert(false);
+        setAvgEyeOpenness(100);
+        addLog('Onboard telemetry status: SAFE.');
+      }
+    });
+    
+    socket.on('disconnect', () => {
+      addLog('🔌 Telemetry stream disconnected.');
+    });
+  };
+
+  const stopPythonLink = () => {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    setIsActive(false);
+    setDrowsyAlert(false);
+    setPhoneDetected(false);
+    setAvgEyeOpenness(100);
+    addLog('Telemetry stream stopped. Standby.');
+  };
+
   // Demo simulator helper
   const startDemo = () => {
     stopScanner();
@@ -492,24 +561,41 @@ export default function ActiveCopilot() {
         <div style={styles.previewCard}>
           <div style={styles.camContainer}>
             {isActive && !demoMode ? (
-              <>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  width="640"
-                  height="480"
-                  style={styles.camFeed}
-                />
-                <canvas
-                  ref={canvasRef}
-                  width="640"
-                  height="480"
-                  style={styles.camCanvas}
-                />
-                <div className="hud-overlay" />
-              </>
+              usePythonLink ? (
+                <div style={styles.pythonLinkWrapper}>
+                  <div style={styles.hudOverlayGrid} />
+                  <div style={{ 
+                    ...styles.demoRadarPulse, 
+                    border: drowsyAlert || phoneDetected ? '2px solid #ff4b4b' : '2px solid #00cc6a',
+                  }} />
+                  <ShieldAlert size={48} color={drowsyAlert ? '#ff4b4b' : phoneDetected ? '#ffce00' : '#00cc6a'} />
+                  <h4 style={{ color: '#fff', margin: '15px 0 5px' }}>
+                    {drowsyAlert ? '⚠️ DROWSINESS ALERT (ONBOARD) ⚠️' : phoneDetected ? '📱 PHONE DETECTED (ONBOARD) 📱' : 'ONBOARD AI TELEMETRY CONNECTED'}
+                  </h4>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', padding: '0 40px', textAlign: 'center' }}>
+                    Listening to real-time driver alert streams from the Python AI onboard camera.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    width="640"
+                    height="480"
+                    style={styles.camFeed}
+                  />
+                  <canvas
+                    ref={canvasRef}
+                    width="640"
+                    height="480"
+                    style={styles.camCanvas}
+                  />
+                  <div className="hud-overlay" />
+                </>
+              )
             ) : demoMode ? (
               <div style={styles.demoWrapper}>
                 <div style={styles.hudOverlayGrid} />
@@ -547,16 +633,55 @@ export default function ActiveCopilot() {
           <div style={styles.controlBar}>
             {!isActive ? (
               <>
-                <button style={styles.startBtn} onClick={startScanner}>
-                  <Play size={16} /> Start Scanner
+                <div style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '10px', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                    <button 
+                      style={{ 
+                        flex: 1, 
+                        padding: '8px 12px', 
+                        borderRadius: '8px', 
+                        border: '1px solid',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        backgroundColor: !usePythonLink ? 'rgba(0, 242, 255, 0.15)' : 'rgba(255,255,255,0.02)',
+                        borderColor: !usePythonLink ? '#00f2ff' : 'rgba(255,255,255,0.1)',
+                        color: !usePythonLink ? '#00f2ff' : 'rgba(255,255,255,0.6)',
+                        fontWeight: 600
+                      }} 
+                      onClick={() => setUsePythonLink(false)}
+                    >
+                      📷 Browser WebCam
+                    </button>
+                    <button 
+                      style={{ 
+                        flex: 1, 
+                        padding: '8px 12px', 
+                        borderRadius: '8px', 
+                        border: '1px solid',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        backgroundColor: usePythonLink ? 'rgba(0, 204, 106, 0.15)' : 'rgba(255,255,255,0.02)',
+                        borderColor: usePythonLink ? '#00cc6a' : 'rgba(255,255,255,0.1)',
+                        color: usePythonLink ? '#00cc6a' : 'rgba(255,255,255,0.6)',
+                        fontWeight: 600
+                      }} 
+                      onClick={() => setUsePythonLink(true)}
+                    >
+                      🔗 Onboard Python AI
+                    </button>
+                  </div>
+                </div>
+                
+                <button style={styles.startBtn} onClick={usePythonLink ? startPythonLink : startScanner}>
+                  <Play size={16} /> {usePythonLink ? 'Start Telemetry Link' : 'Start Scanner'}
                 </button>
                 <button style={styles.demoBtn} onClick={startDemo}>
                   <Info size={16} /> Test Demo Mode
                 </button>
               </>
             ) : (
-              <button style={styles.stopBtn} onClick={demoMode ? stopDemo : stopScanner}>
-                <Square size={16} /> Disable Scanner
+              <button style={styles.stopBtn} onClick={demoMode ? stopDemo : usePythonLink ? stopPythonLink : stopScanner}>
+                <Square size={16} /> Disable {usePythonLink ? 'Telemetry Link' : 'Scanner'}
               </button>
             )}
           </div>
@@ -839,6 +964,16 @@ const styles = {
     justifyContent: 'center',
     textAlign: 'center',
     background: 'radial-gradient(circle, rgba(0, 242, 255, 0.03) 0%, rgba(13, 13, 15, 0.98) 100%)',
+  },
+  pythonLinkWrapper: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    background: 'radial-gradient(circle, rgba(0, 204, 106, 0.03) 0%, rgba(13, 13, 15, 0.98) 100%)',
   },
   hudOverlayGrid: {
     position: 'absolute',
