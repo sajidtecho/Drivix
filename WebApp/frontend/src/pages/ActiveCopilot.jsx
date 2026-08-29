@@ -545,7 +545,7 @@ export default function ActiveCopilot() {
           <ChevronLeft size={20} color="#ffce00" />
         </button>
         <div style={{ flex: 1 }}>
-          <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Active Co-Pilot</h2>
+          <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Drivix Assistant</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: '2px 0 0' }}>
             Real-time Driver Drowsiness & Distraction Alert System
           </p>
@@ -611,7 +611,7 @@ export default function ActiveCopilot() {
             ) : (
               <div style={styles.standbyWrapper}>
                 <Video size={48} color="rgba(255,255,255,0.3)" />
-                <h3 style={{ color: '#fff', margin: '15px 0 5px', fontSize: '1.1rem' }}>Co-Pilot In Standby</h3>
+                <h3 style={{ color: '#fff', margin: '15px 0 5px', fontSize: '1.1rem' }}>Drivix Assistant In Standby</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', padding: '0 40px' }}>
                   Mount your laptop or webcam pointing at your face, then click Start Scanner.
                 </p>
