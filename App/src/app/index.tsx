@@ -69,20 +69,20 @@ export default function DashboardScreen() {
 
   const getDocumentCompliance = (type: 'DL' | 'PUC') => {
     if (!user || !user.documents) {
-      return { 
-        status: type === 'PUC' ? 'PUC Missing' : 'DL Missing', 
-        color: type === 'PUC' ? '#ff6b35' : '#ffce00', 
+      return {
+        status: type === 'PUC' ? 'PUC Missing' : 'DL Missing',
+        color: type === 'PUC' ? '#ff6b35' : '#ffce00',
         bgColor: type === 'PUC' ? 'rgba(255, 107, 53, 0.08)' : 'rgba(255, 206, 0, 0.08)',
         borderColor: type === 'PUC' ? 'rgba(255, 107, 53, 0.15)' : 'rgba(255, 206, 0, 0.15)',
         icon: FileText
       };
     }
-    
+
     const doc = user.documents.find((d: any) => d.type === type);
     if (!doc) {
-      return { 
-        status: type === 'PUC' ? 'PUC Missing' : 'DL Missing', 
-        color: type === 'PUC' ? '#ff6b35' : '#ffce00', 
+      return {
+        status: type === 'PUC' ? 'PUC Missing' : 'DL Missing',
+        color: type === 'PUC' ? '#ff6b35' : '#ffce00',
         bgColor: type === 'PUC' ? 'rgba(255, 107, 53, 0.08)' : 'rgba(255, 206, 0, 0.08)',
         borderColor: type === 'PUC' ? 'rgba(255, 107, 53, 0.15)' : 'rgba(255, 206, 0, 0.15)',
         icon: FileText
@@ -90,9 +90,9 @@ export default function DashboardScreen() {
     }
 
     if (!doc.expiryDate) {
-      return { 
-        status: type === 'PUC' ? 'PUC Active' : 'DL Active', 
-        color: '#00cc6a', 
+      return {
+        status: type === 'PUC' ? 'PUC Active' : 'DL Active',
+        color: '#00cc6a',
         bgColor: 'rgba(0, 204, 106, 0.08)',
         borderColor: 'rgba(0, 204, 106, 0.15)',
         icon: type === 'PUC' ? ShieldCheck : FileText
@@ -101,9 +101,9 @@ export default function DashboardScreen() {
 
     const parts = doc.expiryDate.split('/');
     if (parts.length !== 3) {
-      return { 
-        status: type === 'PUC' ? 'PUC Active' : 'DL Active', 
-        color: '#00cc6a', 
+      return {
+        status: type === 'PUC' ? 'PUC Active' : 'DL Active',
+        color: '#00cc6a',
         bgColor: 'rgba(0, 204, 106, 0.08)',
         borderColor: 'rgba(0, 204, 106, 0.15)',
         icon: type === 'PUC' ? ShieldCheck : FileText
@@ -120,9 +120,9 @@ export default function DashboardScreen() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
-      return { 
-        status: type === 'PUC' ? 'PUC Expired' : 'DL Expired', 
-        color: '#ff4b4b', 
+      return {
+        status: type === 'PUC' ? 'PUC Expired' : 'DL Expired',
+        color: '#ff4b4b',
         bgColor: 'rgba(255, 75, 75, 0.08)',
         borderColor: 'rgba(255, 75, 75, 0.15)',
         icon: AlertTriangle
@@ -131,18 +131,18 @@ export default function DashboardScreen() {
 
     const warningDays = type === 'DL' ? 30 : 5;
     if (diffDays <= warningDays) {
-      return { 
-        status: type === 'PUC' ? `PUC Expiring soon` : `DL Expiring soon`, 
-        color: '#ffce00', 
+      return {
+        status: type === 'PUC' ? `PUC Expiring soon` : `DL Expiring soon`,
+        color: '#ffce00',
         bgColor: 'rgba(255, 206, 0, 0.08)',
         borderColor: 'rgba(255, 206, 0, 0.15)',
         icon: AlertTriangle
       };
     }
 
-    return { 
-      status: type === 'PUC' ? 'PUC Active' : 'DL Active', 
-      color: '#00cc6a', 
+    return {
+      status: type === 'PUC' ? 'PUC Active' : 'DL Active',
+      color: '#00cc6a',
       bgColor: 'rgba(0, 204, 106, 0.08)',
       borderColor: 'rgba(0, 204, 106, 0.15)',
       icon: type === 'PUC' ? ShieldCheck : FileText
@@ -182,7 +182,7 @@ export default function DashboardScreen() {
           const res = await api.get('/vehicles');
           const list = res.data || [];
           setUserVehicles(list);
-          
+
           if (list.length > 0) {
             const primary = list.find((v: any) => v.isPrimary) || list[0];
             if (primary) {
@@ -403,7 +403,7 @@ export default function DashboardScreen() {
         }
       },
     })
-  , []);
+    , []);
 
   const dragHandlePanResponder = useMemo(() =>
     // eslint-disable-next-line react-hooks/refs
@@ -425,7 +425,7 @@ export default function DashboardScreen() {
         }
       },
     })
-  , []);
+    , []);
 
   // Core Data Lists
   const [locations, setLocations] = useState<any[]>([]);
@@ -478,7 +478,7 @@ export default function DashboardScreen() {
 
   const filteredLocations = React.useMemo(() => {
     if (!searchQuery.trim()) return [];
-    return processedLocations.filter(loc => 
+    return processedLocations.filter(loc =>
       loc.parkingName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       loc.address.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -552,9 +552,9 @@ export default function DashboardScreen() {
   const handleSelectSlot = async (slot: any) => {
     if (slot.status !== 'available') {
       const isReservedByMe = slot.status === 'temporarily_reserved' &&
-                             slot.reservedBy &&
-                             user &&
-                             slot.reservedBy.toString() === user._id.toString();
+        slot.reservedBy &&
+        user &&
+        slot.reservedBy.toString() === user._id.toString();
 
       if (!isReservedByMe) {
         if (Platform.OS === 'web') {
@@ -577,7 +577,7 @@ export default function DashboardScreen() {
       const response = await api.post(`/parking/${selectedLocation._id}/slots/${slot.id}/reserve`);
       if (response.data) {
         setSelectedSlot(response.data);
-        
+
         // Fetch pricing recommendation
         const responsePricing = await api.get(`/parking/${selectedLocation._id}/pricing`);
         setPricing(responsePricing.data);
@@ -731,11 +731,11 @@ export default function DashboardScreen() {
             prevSlots.map((s) =>
               s.id === data.id
                 ? {
-                    ...s,
-                    status: data.status,
-                    reservedBy: data.reservedBy,
-                    reservationExpiresAt: data.reservationExpiresAt
-                  }
+                  ...s,
+                  status: data.status,
+                  reservedBy: data.reservedBy,
+                  reservationExpiresAt: data.reservationExpiresAt
+                }
                 : s
             )
           );
@@ -851,14 +851,14 @@ export default function DashboardScreen() {
                       </View>
                     </View>
                     <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={[styles.sessionManageBtn, { flex: 1, backgroundColor: colors.primary }]}
                         onPress={() => handleNavigateToTab('/explore?tab=bookings')}
                         activeOpacity={0.8}
                       >
                         <Text style={styles.sessionManageBtnText}>Manage Booking</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={[styles.sessionManageBtn, { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', borderColor: colors.borderGlass, borderWidth: 1 }]}
                         onPress={() => {
                           const lat = activeBooking.locationId?.latitude;
@@ -902,14 +902,14 @@ export default function DashboardScreen() {
                       </View>
                     </View>
                     <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={[styles.sessionManageBtn, { flex: 1, backgroundColor: '#ff6b35' }]}
                         onPress={() => setStep('CHECKOUT')}
                         activeOpacity={0.8}
                       >
                         <Text style={styles.sessionManageBtnText}>Complete Checkout</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={[styles.sessionManageBtn, { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 }]}
                         onPress={handleReleaseSlot}
                         activeOpacity={0.8}
@@ -969,7 +969,7 @@ export default function DashboardScreen() {
                     ) : (
                       <Text style={[styles.noSuggestText, { color: colors.textSecondary }]}>No matching parking hubs found</Text>
                     )}
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.closeSuggestBtn}
                       onPress={() => setIsSearchFocused(false)}
                     >
@@ -999,10 +999,10 @@ export default function DashboardScreen() {
                     </View>
                     <View style={styles.complianceRow}>
                       {/* FASTag capsule */}
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={[
-                          styles.complianceBadge, 
-                          { 
+                          styles.complianceBadge,
+                          {
                             backgroundColor: (user?.walletBalance ?? 0) < 150 ? 'rgba(255, 75, 75, 0.08)' : 'rgba(0, 204, 106, 0.08)',
                             borderColor: (user?.walletBalance ?? 0) < 150 ? 'rgba(255, 75, 75, 0.15)' : 'rgba(0, 204, 106, 0.15)'
                           }
@@ -1017,10 +1017,10 @@ export default function DashboardScreen() {
                       </TouchableOpacity>
 
                       {/* Challans capsule (semi-mocked for high fidelity) */}
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={[
-                          styles.complianceBadge, 
-                          { 
+                          styles.complianceBadge,
+                          {
                             backgroundColor: (primaryVehicle.plate.charCodeAt(primaryVehicle.plate.length - 1) % 2 !== 0) ? 'rgba(255, 206, 0, 0.08)' : 'rgba(0, 204, 106, 0.08)',
                             borderColor: (primaryVehicle.plate.charCodeAt(primaryVehicle.plate.length - 1) % 2 !== 0) ? 'rgba(255, 206, 0, 0.15)' : 'rgba(0, 204, 106, 0.15)'
                           }
@@ -1039,10 +1039,10 @@ export default function DashboardScreen() {
                         const compliance = getDocumentCompliance('PUC');
                         const Icon = compliance.icon;
                         return (
-                          <TouchableOpacity 
+                          <TouchableOpacity
                             style={[
-                              styles.complianceBadge, 
-                              { 
+                              styles.complianceBadge,
+                              {
                                 backgroundColor: compliance.bgColor,
                                 borderColor: compliance.borderColor
                               }
@@ -1063,10 +1063,10 @@ export default function DashboardScreen() {
                         const compliance = getDocumentCompliance('DL');
                         const Icon = compliance.icon;
                         return (
-                          <TouchableOpacity 
+                          <TouchableOpacity
                             style={[
-                              styles.complianceBadge, 
-                              { 
+                              styles.complianceBadge,
+                              {
                                 backgroundColor: compliance.bgColor,
                                 borderColor: compliance.borderColor
                               }
@@ -1244,15 +1244,15 @@ export default function DashboardScreen() {
                       {activeHeroTab === 'parking' && <Search size={18} color="#ffce00" />}
                       {activeHeroTab === 'challan' && <AlertTriangle size={18} color="#ffce00" />}
                       {activeHeroTab === 'fastag' && <CreditCard size={18} color="#ffce00" />}
-                      
+
                       <TextInput
                         style={[styles.heroTextInput, { color: '#ffffff' }]}
                         placeholder={
                           activeHeroTab === 'parking'
                             ? "Search parking locations..."
                             : activeHeroTab === 'challan'
-                            ? "Enter Vehicle Number (e.g. DL1CA1234)"
-                            : "Enter Vehicle Number / FASTag ID"
+                              ? "Enter Vehicle Number (e.g. DL1CA1234)"
+                              : "Enter Vehicle Number / FASTag ID"
                         }
                         placeholderTextColor="rgba(255, 255, 255, 0.5)"
                         value={activeHeroTab === 'parking' ? searchQuery : heroVehicleNumber}
@@ -1275,7 +1275,7 @@ export default function DashboardScreen() {
                         }}
                         autoCapitalize={activeHeroTab !== 'parking' ? 'characters' : 'none'}
                       />
-                      
+
                       {((activeHeroTab === 'parking' && searchQuery) || (activeHeroTab !== 'parking' && heroVehicleNumber)) ? (
                         <TouchableOpacity onPress={() => {
                           if (activeHeroTab === 'parking') {
@@ -1330,82 +1330,82 @@ export default function DashboardScreen() {
                   </View>
                 </View>
 
-                 {/* ── Our Services Capsule Grid ── */}
-                 <View 
-                   style={styles.servicesSection}
-                   {...panResponder.panHandlers}
-                 >
-                   <View style={styles.servicesHeader}>
-                     <Text style={[styles.servicesTitle, { color: colors.text }]}>Our Services</Text>
-                     <TouchableOpacity 
-                       onPress={() => toggleServices(!isServicesExpanded)}
-                       style={styles.viewMoreBtn}
-                     >
-                       <Text style={[styles.viewMoreText, { color: colors.primary }]}>
-                         {isServicesExpanded ? 'View Less' : 'View More'}
-                       </Text>
-                     </TouchableOpacity>
-                   </View>
-                   
-                   <View style={styles.capsuleGrid}>
-                     {[
-                       { label: 'Documents',   sub: 'Secure Vault',        icon: FileText,      color: '#a78bfa', route: '/explore?tab=documents' },
-                       { label: 'Pollution',   sub: 'Renewals',            icon: ShieldCheck,   color: '#34d399', route: '/explore' },
-                       { label: 'Insurance',   sub: 'Shield & Protect',    icon: Shield,        color: '#fbbf24', route: '/explore' },
-                       { label: 'EV Charging', sub: 'Power up',            icon: Zap,           color: '#10b981', route: '/explore' },
-                       { label: 'Car Wash',    sub: 'Sparkle clean',       icon: Droplet,       color: '#60a5fa', route: '/explore' },
-                       { label: 'Driver Hub',  sub: 'Expert drivers',      icon: User,          color: '#f87171', route: '/driver-hub' },
-                       { label: 'Emergency',   sub: 'SOS Support',         icon: PhoneCall,     color: '#ef4444', route: '/explore' },
-                       { label: 'Towing',      sub: 'Roadside Help',       icon: Truck,         color: '#f59e0b', route: '/explore' },
-                     ]
-                       .slice(0, isServicesExpanded ? 8 : 4)
-                       .map((svc) => {
-                         const IconComp = svc.icon;
-                         const capsuleWidth = isMobile ? (width - 50) / 2 : 170;
-                         return (
-                           <TouchableOpacity
-                             key={svc.label}
-                             style={[
-                               styles.serviceCapsule, 
-                               { 
-                                 backgroundColor: colors.backgroundElement, 
-                                 borderColor: colors.borderGlass,
-                                 width: capsuleWidth
-                               }
-                             ]}
-                             onPress={() => {
-                               if (svc.label === 'Parking') {
-                                 setStep('PARKING_HUBS');
-                               } else if (svc.label === 'Driver Hub') {
-                                 setStep('DRIVER_HUB');
-                               } else if (svc.label === 'Challan') {
-                                 setStep('CHALLAN');
-                               } else {
-                                 handleNavigateToTab(svc.route);
-                               }
-                             }}
-                             activeOpacity={0.8}
-                           >
-                             <View style={[styles.serviceIconCircle, { backgroundColor: `${svc.color}18` }]}>
-                               <IconComp size={18} color={svc.color} />
-                             </View>
-                             <View style={{ flex: 1 }}>
-                               <Text style={[styles.serviceCapsuleLabel, { color: colors.text }]} numberOfLines={1}>{svc.label}</Text>
-                               <Text style={[styles.serviceCapsuleSub, { color: colors.textSecondary }]} numberOfLines={1}>{svc.sub}</Text>
-                             </View>
-                           </TouchableOpacity>
-                         );
-                       })}
-                   </View>
-
-                    {/* Drag Handle (Samsung One UI Style) */}
-                    <View 
-                      style={styles.dragHandleContainer}
-                      {...dragHandlePanResponder.panHandlers}
+                {/* ── Our Services Capsule Grid ── */}
+                <View
+                  style={styles.servicesSection}
+                  {...panResponder.panHandlers}
+                >
+                  <View style={styles.servicesHeader}>
+                    <Text style={[styles.servicesTitle, { color: colors.text }]}>Our Services</Text>
+                    <TouchableOpacity
+                      onPress={() => toggleServices(!isServicesExpanded)}
+                      style={styles.viewMoreBtn}
                     >
-                      <View style={[styles.dragHandle, { backgroundColor: colors.textSecondary }]} />
-                    </View>
-                 </View>
+                      <Text style={[styles.viewMoreText, { color: colors.primary }]}>
+                        {isServicesExpanded ? 'View Less' : 'View More'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.capsuleGrid}>
+                    {[
+                      { label: 'Documents', sub: 'Secure Vault', icon: FileText, color: '#a78bfa', route: '/explore?tab=documents' },
+                      { label: 'Pollution', sub: 'Renewals', icon: ShieldCheck, color: '#34d399', route: '/explore' },
+                      { label: 'Insurance', sub: 'Shield & Protect', icon: Shield, color: '#fbbf24', route: '/explore' },
+                      { label: 'EV Charging', sub: 'Power up', icon: Zap, color: '#10b981', route: '/explore' },
+                      { label: 'Car Wash', sub: 'Sparkle clean', icon: Droplet, color: '#60a5fa', route: '/explore' },
+                      { label: 'Driver Hub', sub: 'Expert drivers', icon: User, color: '#f87171', route: '/driver-hub' },
+                      { label: 'Emergency', sub: 'SOS Support', icon: PhoneCall, color: '#ef4444', route: '/explore' },
+                      { label: 'Towing', sub: 'Roadside Help', icon: Truck, color: '#f59e0b', route: '/explore' },
+                    ]
+                      .slice(0, isServicesExpanded ? 8 : 4)
+                      .map((svc) => {
+                        const IconComp = svc.icon;
+                        const capsuleWidth = isMobile ? (width - 50) / 2 : 170;
+                        return (
+                          <TouchableOpacity
+                            key={svc.label}
+                            style={[
+                              styles.serviceCapsule,
+                              {
+                                backgroundColor: colors.backgroundElement,
+                                borderColor: colors.borderGlass,
+                                width: capsuleWidth
+                              }
+                            ]}
+                            onPress={() => {
+                              if (svc.label === 'Parking') {
+                                setStep('PARKING_HUBS');
+                              } else if (svc.label === 'Driver Hub') {
+                                setStep('DRIVER_HUB');
+                              } else if (svc.label === 'Challan') {
+                                setStep('CHALLAN');
+                              } else {
+                                handleNavigateToTab(svc.route);
+                              }
+                            }}
+                            activeOpacity={0.8}
+                          >
+                            <View style={[styles.serviceIconCircle, { backgroundColor: `${svc.color}18` }]}>
+                              <IconComp size={18} color={svc.color} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={[styles.serviceCapsuleLabel, { color: colors.text }]} numberOfLines={1}>{svc.label}</Text>
+                              <Text style={[styles.serviceCapsuleSub, { color: colors.textSecondary }]} numberOfLines={1}>{svc.sub}</Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                  </View>
+
+                  {/* Drag Handle (Samsung One UI Style) */}
+                  <View
+                    style={styles.dragHandleContainer}
+                    {...dragHandlePanResponder.panHandlers}
+                  >
+                    <View style={[styles.dragHandle, { backgroundColor: colors.textSecondary }]} />
+                  </View>
+                </View>
 
                 {/* ── Buy Your Dream Car Section (Matching Reference Design) ── */}
                 <View style={styles.dreamCarSection}>
@@ -2191,18 +2191,17 @@ const styles = StyleSheet.create({
   carImageContainer: {
     width: '100%',
     height: 180,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: '#f3f4f6',
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
     marginBottom: 16,
+    overflow: 'hidden',
   },
   carCardImage: {
-    width: '98%',
-    height: '98%',
+    width: '92%',
+    height: '92%',
   },
   carRatingBadge: {
     position: 'absolute',
