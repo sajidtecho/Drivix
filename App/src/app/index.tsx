@@ -1346,29 +1346,6 @@ export default function DashboardScreen() {
                  </View>
 
 
-                {/* Nearby Facility Listings */}
-                <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 12 }]}>Nearby Parking Hubs</Text>
-
-                <FlatList
-                  horizontal
-                  data={processedLocations}
-                  keyExtractor={(item) => item._id}
-                  showsHorizontalScrollIndicator={false}
-                  snapToInterval={width - 28}
-                  decelerationRate="fast"
-                  style={{ marginHorizontal: -20 }}
-                  contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 16 }}
-                  renderItem={({ item, index }) => (
-                    <View style={{ width: width - 40, marginRight: 12 }}>
-                      <LocationCard 
-                        location={item} 
-                        onSelect={handleSelectLocation} 
-                        isNearest={userLocation !== null && index === 0}
-                      />
-                    </View>
-                  )}
-                />
-
                 <AdCarousel />
               </View>
             }
