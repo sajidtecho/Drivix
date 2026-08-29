@@ -222,6 +222,18 @@ export default function ActiveCopilot() {
     };
   }, [drowsyAlert, phoneDetected, soundEnabled]);
 
+  // Connect video element to stream when it mounts and is active
+  useEffect(() => {
+    if (isActive && !demoMode && !usePythonLink && mediaStreamRef.current && videoRef.current) {
+      if (videoRef.current.srcObject !== mediaStreamRef.current) {
+        videoRef.current.srcObject = mediaStreamRef.current;
+        videoRef.current.play().catch(playErr => {
+          console.warn("Autoplay block detected in useEffect:", playErr);
+        });
+      }
+    }
+  }, [isActive, demoMode, usePythonLink]);
+
   // Handle MediaPipe results
   const onFaceMeshResults = (results) => {
     if (!faceMeshActiveRef.current) return;
