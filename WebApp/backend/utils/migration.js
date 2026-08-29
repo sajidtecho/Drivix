@@ -1,6 +1,7 @@
 import ParkingLocation from '../models/ParkingLocation.js';
 import ParkingFloor from '../models/ParkingFloor.js';
 import Slot from '../models/Slot.js';
+import Booking from '../models/Booking.js';
 
 export const runDatabaseMigration = async () => {
   try {
@@ -117,6 +118,56 @@ export const runDatabaseMigration = async () => {
       }
       if (modified) {
         await slot.save();
+      }
+    }
+
+    // 4. Update all booking documents to link to floorId if they don't have it
+    const unlinkedBookings = await Booking.find({
+      $or: [
+        { floorId: { $exists: false } },
+        { floorId: null }
+      ]
+    });
+
+    if (unlinkedBookings.length > 0) {
+      console.log(`⚠️ Found ${unlinkedBookings.length} bookings without floorId. Attempting to resolve...`);
+      for (const booking of unlinkedBookings) {
+        const hubId = booking.locationId || booking.parkingHubId;
+        const floorName = booking.floor || 'L1';
+
+        if (!hubId) {
+          console.warn(`Cannot resolve floorId for booking ${booking.bookingId} because locationId/parkingHubId is missing.`);
+          continue;
+        }
+
+        let floorDoc = await ParkingFloor.findOne({
+          parkingHubId: hubId,
+          floorName: floorName
+        });
+
+        if (!floorDoc) {
+          floorDoc = await ParkingFloor.findOne({ parkingHubId: hubId });
+          if (!floorDoc) {
+            console.log(`➕ Creating missing floor '${floorName}' for hub '${hubId}' during booking migration.`);
+            floorDoc = await ParkingFloor.create({
+              parkingHubId: hubId,
+              floorName: floorName,
+              totalSlots: 1,
+              availableSlots: 1
+            });
+          }
+        }
+
+        await Booking.updateOne(
+          { _id: booking._id },
+          { 
+            $set: { 
+              floorId: floorDoc._id,
+              parkingHubId: hubId
+            } 
+          }
+        );
+        console.log(`✅ Successfully updated booking ${booking.bookingId} with floorId.`);
       }
     }
 
