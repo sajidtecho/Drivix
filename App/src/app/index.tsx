@@ -1312,12 +1312,8 @@ export default function DashboardScreen() {
                    
                    <View style={styles.capsuleGrid}>
                      {[
-                       { label: 'Parking',     sub: 'Secure spots',       icon: Car,          color: '#ffce00', route: '/parking-hubs' },
-                       { label: 'Challan',     sub: 'Check & Pay',         icon: AlertTriangle, color: '#ff6b35', route: '/explore?tab=bookings' },
-                       { label: 'FASTag',      sub: 'Recharge now',        icon: Zap,           color: '#00f2ff', route: '/explore?tab=fastag' },
                        { label: 'Documents',   sub: 'Secure Vault',        icon: FileText,      color: '#a78bfa', route: '/explore?tab=documents' },
                        { label: 'Pollution',   sub: 'Renewals',            icon: ShieldCheck,   color: '#34d399', route: '/explore' },
-                       { label: 'Car Sale',    sub: 'Transfer',            icon: CarFront,      color: '#f472b6', route: '/explore' },
                        { label: 'Insurance',   sub: 'Shield & Protect',    icon: Shield,        color: '#fbbf24', route: '/explore' },
                        { label: 'EV Charging', sub: 'Power up',            icon: Zap,           color: '#10b981', route: '/explore' },
                        { label: 'Car Wash',    sub: 'Sparkle clean',       icon: Droplet,       color: '#60a5fa', route: '/explore' },
@@ -1325,7 +1321,7 @@ export default function DashboardScreen() {
                        { label: 'Emergency',   sub: 'SOS Support',         icon: PhoneCall,     color: '#ef4444', route: '/explore' },
                        { label: 'Towing',      sub: 'Roadside Help',       icon: Truck,         color: '#f59e0b', route: '/explore' },
                      ]
-                       .slice(0, isServicesExpanded ? 12 : 4)
+                       .slice(0, isServicesExpanded ? 8 : 4)
                        .map((svc) => {
                          const IconComp = svc.icon;
                          const capsuleWidth = isMobile ? (width - 50) / 2 : 170;
