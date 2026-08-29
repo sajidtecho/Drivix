@@ -9,6 +9,7 @@ import { detectFaces } from 'vision-camera-face-detector';
 import { useTensorflowModel } from 'react-native-fast-tflite';
 import { Audio } from 'expo-av';
 import { Worklets } from 'react-native-worklets-core';
+import socketService from '@/services/socket';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +26,7 @@ export default function DriverCopilotScreen() {
   const [phoneDetected, setPhoneDetected] = useState(false);
   const [drowsyAlert, setDrowsyAlert] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [usePythonLink, setUsePythonLink] = useState(false);
 
   // Audio Ref
   const soundRef = useRef<Audio.Sound | null>(null);
@@ -46,6 +48,7 @@ export default function DriverCopilotScreen() {
   useEffect(() => {
     return () => {
       cleanupSound();
+      socketService.off('safetyAlertReceived');
     };
   }, []);
 
@@ -146,16 +149,58 @@ export default function DriverCopilotScreen() {
     updateAlertStates(leftProb, rightProb, isPhone, isDrowsy);
   }, [yoloModel, soundEnabled]);
 
-  const toggleCopilot = () => {
-    if (cameraPermission !== 'granted') {
-      Alert.alert('Permission Required', 'Camera permission is required to launch Active Co-Pilot.');
-      return;
-    }
-    setIsActive(!isActive);
-    if (isActive) {
-      cleanupSound();
+  const handleOnboardAlert = (data: { alertType: string; duration: number }) => {
+    if (data.alertType === 'PHONE') {
+      setPhoneDetected(true);
       setDrowsyAlert(false);
+      setLeftEyeProb(1.0);
+      setRightEyeProb(1.0);
+      if (soundEnabled) {
+        playAlarm();
+      }
+    } else if (data.alertType === 'EYE') {
+      setDrowsyAlert(true);
       setPhoneDetected(false);
+      setLeftEyeProb(0.05);
+      setRightEyeProb(0.05);
+      if (soundEnabled) {
+        playAlarm();
+      }
+    } else {
+      setPhoneDetected(false);
+      setDrowsyAlert(false);
+      setLeftEyeProb(1.0);
+      setRightEyeProb(1.0);
+      stopAlarm();
+    }
+  };
+
+  const toggleCopilot = () => {
+    if (usePythonLink) {
+      const targetActive = !isActive;
+      setIsActive(targetActive);
+      if (targetActive) {
+        socketService.connect();
+        socketService.on('safetyAlertReceived', handleOnboardAlert);
+      } else {
+        socketService.off('safetyAlertReceived', handleOnboardAlert);
+        cleanupSound();
+        setDrowsyAlert(false);
+        setPhoneDetected(false);
+        setLeftEyeProb(1.0);
+        setRightEyeProb(1.0);
+      }
+    } else {
+      if (cameraPermission !== 'granted') {
+        Alert.alert('Permission Required', 'Camera permission is required to launch Active Co-Pilot.');
+        return;
+      }
+      setIsActive(!isActive);
+      if (isActive) {
+        cleanupSound();
+        setDrowsyAlert(false);
+        setPhoneDetected(false);
+      }
     }
   };
 
@@ -190,18 +235,35 @@ export default function DriverCopilotScreen() {
 
       {/* Main Preview / HUD Area */}
       <View style={styles.previewContainer}>
-        {isActive && device && cameraPermission === 'granted' ? (
-          <View style={styles.cameraWrapper}>
-            <Camera
-              style={StyleSheet.absoluteFill}
-              device={device}
-              isActive={isActive}
-              frameProcessor={frameProcessor}
-              pixelFormat="yuv"
-            />
-            {/* Dark HUD overlay grid lines */}
-            <View style={styles.hudOverlayGrid} />
-          </View>
+        {isActive ? (
+          usePythonLink ? (
+            <View style={[styles.placeholderWrapper, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+              <View style={[
+                styles.hudRadarPulse, 
+                { borderColor: drowsyAlert || phoneDetected ? '#ff4b4b' : '#00cc6a' }
+              ]} />
+              <ShieldAlert size={48} color={drowsyAlert ? '#ff4b4b' : phoneDetected ? '#ffce00' : '#00cc6a'} style={{ marginBottom: 12 }} />
+              <Text style={[styles.placeholderTitle, { color: colors.text }]}>
+                {drowsyAlert ? '⚠️ DROWSINESS ALERT (ONBOARD) ⚠️' : phoneDetected ? '📱 PHONE DETECTED (ONBOARD) 📱' : 'ONBOARD TELEMETRY ACTIVE'}
+              </Text>
+              <Text style={[styles.placeholderDesc, { color: colors.textSecondary, marginTop: 4 }]}>
+                Streaming real-time driver alert logs from the Python onboard safety camera.
+              </Text>
+            </View>
+          ) : (
+            device && cameraPermission === 'granted' && (
+              <View style={styles.cameraWrapper}>
+                <Camera
+                  style={StyleSheet.absoluteFill}
+                  device={device}
+                  isActive={isActive}
+                  frameProcessor={frameProcessor}
+                  pixelFormat="yuv"
+                />
+                <View style={styles.hudOverlayGrid} />
+              </View>
+            )
+          )
         ) : (
           <View style={[styles.placeholderWrapper, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
             <Video size={48} color={colors.textSecondary} style={{ marginBottom: 12 }} />
@@ -273,6 +335,45 @@ export default function DriverCopilotScreen() {
 
       {/* Control Buttons */}
       <View style={styles.footerActions}>
+        {!isActive && (
+          <View style={{ flexDirection: 'row', gap: 8, width: '100%', marginBottom: 16 }}>
+            <TouchableOpacity 
+              style={{
+                flex: 1,
+                height: 40,
+                borderRadius: 12,
+                borderWidth: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: !usePythonLink ? 'rgba(0, 242, 255, 0.1)' : 'transparent',
+                borderColor: !usePythonLink ? '#00f2ff' : colors.borderGlass,
+              }}
+              onPress={() => setUsePythonLink(false)}
+            >
+              <Text style={{ color: !usePythonLink ? '#00f2ff' : colors.textSecondary, fontSize: 12, fontWeight: 'bold' }}>
+                📷 Phone Camera
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={{
+                flex: 1,
+                height: 40,
+                borderRadius: 12,
+                borderWidth: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: usePythonLink ? 'rgba(0, 204, 106, 0.1)' : 'transparent',
+                borderColor: usePythonLink ? '#00cc6a' : colors.borderGlass,
+              }}
+              onPress={() => setUsePythonLink(true)}
+            >
+              <Text style={{ color: usePythonLink ? '#00cc6a' : colors.textSecondary, fontSize: 12, fontWeight: 'bold' }}>
+                🔗 Onboard Python AI
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <TouchableOpacity
           style={[
             styles.controlBtn,
@@ -351,6 +452,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 24,
     padding: 30,
+  },
+  hudRadarPulse: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 2,
+    opacity: 0.15,
   },
   placeholderTitle: {
     fontSize: 20,
