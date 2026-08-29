@@ -1049,219 +1049,248 @@ export default function DashboardScreen() {
                 )}
 
                 {/* Hero Section */}
-                <View style={[styles.heroCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
-                  {/* Service Tabs */}
-                  <View style={styles.heroTabsContainer}>
-                    {/* Book Slot Tab */}
-                    <TouchableOpacity
-                      style={[
-                        styles.heroTabButton,
-                        {
-                          backgroundColor: activeHeroTab === 'parking' ? 'rgba(255, 206, 0, 0.04)' : 'rgba(255, 255, 255, 0.02)',
-                          borderColor: activeHeroTab === 'parking' ? 'rgba(255, 206, 0, 0.4)' : 'rgba(255, 255, 255, 0.05)',
-                        }
-                      ]}
-                      onPress={() => {
-                        setActiveHeroTab('parking');
-                        setIsSearchFocused(false);
-                      }}
-                      activeOpacity={0.8}
+                <View style={styles.heroCardOuter}>
+                  {/* Dynamic Interactive Background Image */}
+                  {activeHeroTab === 'parking' && (
+                    <ImageBackground
+                      source={require('../../assets/images/parking_bg.jpg')}
+                      style={StyleSheet.absoluteFill}
+                      imageStyle={{ borderRadius: 24, resizeMode: 'cover' }}
                     >
-                      <View style={[
-                        styles.heroTabIconP,
-                        {
-                          backgroundColor: activeHeroTab === 'parking' ? colors.primary : 'rgba(255, 255, 255, 0.08)'
-                        }
-                      ]}>
-                        <Text style={[
-                          styles.heroTabIconPText,
+                      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(8, 12, 20, 0.76)' }]} />
+                    </ImageBackground>
+                  )}
+                  {activeHeroTab === 'challan' && (
+                    <ImageBackground
+                      source={require('../../assets/images/challan_bg.jpg')}
+                      style={StyleSheet.absoluteFill}
+                      imageStyle={{ borderRadius: 24, resizeMode: 'cover' }}
+                    >
+                      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(8, 12, 20, 0.78)' }]} />
+                    </ImageBackground>
+                  )}
+                  {activeHeroTab === 'fastag' && (
+                    <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.backgroundElement, borderRadius: 24 }]} />
+                  )}
+
+                  <View style={styles.heroCardInner}>
+                    {/* Service Tabs */}
+                    <View style={styles.heroTabsContainer}>
+                      {/* Book Slot Tab */}
+                      <TouchableOpacity
+                        style={[
+                          styles.heroTabButton,
                           {
-                            color: activeHeroTab === 'parking' ? '#000000' : 'rgba(255, 255, 255, 0.6)'
+                            backgroundColor: activeHeroTab === 'parking' ? 'rgba(255, 206, 0, 0.12)' : 'rgba(20, 25, 38, 0.65)',
+                            borderColor: activeHeroTab === 'parking' ? colors.primary : 'rgba(255, 255, 255, 0.12)',
+                            borderWidth: activeHeroTab === 'parking' ? 1.5 : 1,
                           }
-                        ]}>P</Text>
-                      </View>
-                      <Text style={[
-                        styles.heroTabLabel,
-                        {
-                          color: activeHeroTab === 'parking' ? colors.text : colors.textSecondary
-                        }
-                      ]}>Book Slot</Text>
-                      {activeHeroTab === 'parking' && (
-                        <View style={[styles.heroTabActiveBar, { backgroundColor: colors.primary }]} />
-                      )}
-                    </TouchableOpacity>
-
-                    {/* E-Challan Tab */}
-                    <TouchableOpacity
-                      style={[
-                        styles.heroTabButton,
-                        {
-                          backgroundColor: activeHeroTab === 'challan' ? 'rgba(255, 206, 0, 0.04)' : 'rgba(255, 255, 255, 0.02)',
-                          borderColor: activeHeroTab === 'challan' ? 'rgba(255, 206, 0, 0.4)' : 'rgba(255, 255, 255, 0.05)',
-                        }
-                      ]}
-                      onPress={() => {
-                        setActiveHeroTab('challan');
-                        setIsSearchFocused(false);
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <View style={[
-                        styles.heroTabIconTraffic,
-                        {
-                          borderColor: activeHeroTab === 'challan' ? colors.primary : 'rgba(255, 255, 255, 0.08)',
-                          backgroundColor: 'rgba(255, 255, 255, 0.04)'
-                        }
-                      ]}>
-                        <View style={[styles.heroTabIconTrafficDot, { backgroundColor: '#ff4b4b', opacity: activeHeroTab === 'challan' ? 1 : 0.6 }]} />
-                        <View style={[styles.heroTabIconTrafficDot, { backgroundColor: '#ffae0e', opacity: activeHeroTab === 'challan' ? 1 : 0.6 }]} />
-                        <View style={[styles.heroTabIconTrafficDot, { backgroundColor: '#00cc6a', opacity: activeHeroTab === 'challan' ? 1 : 0.6 }]} />
-                      </View>
-                      <Text style={[
-                        styles.heroTabLabel,
-                        {
-                          color: activeHeroTab === 'challan' ? colors.text : colors.textSecondary
-                        }
-                      ]}>E-Challan</Text>
-                      {activeHeroTab === 'challan' && (
-                        <View style={[styles.heroTabActiveBar, { backgroundColor: colors.primary }]} />
-                      )}
-                    </TouchableOpacity>
-
-                    {/* FASTag Tab */}
-                    <TouchableOpacity
-                      style={[
-                        styles.heroTabButton,
-                        {
-                          backgroundColor: activeHeroTab === 'fastag' ? 'rgba(255, 206, 0, 0.04)' : 'rgba(255, 255, 255, 0.02)',
-                          borderColor: activeHeroTab === 'fastag' ? 'rgba(255, 206, 0, 0.4)' : 'rgba(255, 255, 255, 0.05)',
-                        }
-                      ]}
-                      onPress={() => {
-                        setActiveHeroTab('fastag');
-                        setIsSearchFocused(false);
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <View style={[
-                        styles.heroTabIconFastag,
-                        {
-                          borderColor: activeHeroTab === 'fastag' ? colors.primary : 'rgba(255, 255, 255, 0.08)',
-                          backgroundColor: 'rgba(0, 0, 0, 0.3)'
-                        }
-                      ]}>
-                        <Text style={[
-                          styles.heroTabIconFastagText,
+                        ]}
+                        onPress={() => {
+                          setActiveHeroTab('parking');
+                          setIsSearchFocused(false);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <View style={[
+                          styles.heroTabIconP,
                           {
-                            color: activeHeroTab === 'fastag' ? colors.primary : 'rgba(255, 255, 255, 0.6)'
+                            backgroundColor: activeHeroTab === 'parking' ? colors.primary : 'rgba(255, 255, 255, 0.1)'
+                          }
+                        ]}>
+                          <Text style={[
+                            styles.heroTabIconPText,
+                            {
+                              color: activeHeroTab === 'parking' ? '#000000' : 'rgba(255, 255, 255, 0.7)'
+                            }
+                          ]}>P</Text>
+                        </View>
+                        <Text style={[
+                          styles.heroTabLabel,
+                          {
+                            color: activeHeroTab === 'parking' ? '#ffffff' : colors.textSecondary
+                          }
+                        ]}>Book Slot</Text>
+                        {activeHeroTab === 'parking' && (
+                          <View style={[styles.heroTabActiveBar, { backgroundColor: colors.primary }]} />
+                        )}
+                      </TouchableOpacity>
+
+                      {/* E-Challan Tab */}
+                      <TouchableOpacity
+                        style={[
+                          styles.heroTabButton,
+                          {
+                            backgroundColor: activeHeroTab === 'challan' ? 'rgba(255, 206, 0, 0.12)' : 'rgba(20, 25, 38, 0.65)',
+                            borderColor: activeHeroTab === 'challan' ? colors.primary : 'rgba(255, 255, 255, 0.12)',
+                            borderWidth: activeHeroTab === 'challan' ? 1.5 : 1,
+                          }
+                        ]}
+                        onPress={() => {
+                          setActiveHeroTab('challan');
+                          setIsSearchFocused(false);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <View style={[
+                          styles.heroTabIconTraffic,
+                          {
+                            borderColor: activeHeroTab === 'challan' ? colors.primary : 'rgba(255, 255, 255, 0.15)',
+                            backgroundColor: 'rgba(0, 0, 0, 0.4)'
+                          }
+                        ]}>
+                          <View style={[styles.heroTabIconTrafficDot, { backgroundColor: '#ff4b4b', opacity: activeHeroTab === 'challan' ? 1 : 0.6 }]} />
+                          <View style={[styles.heroTabIconTrafficDot, { backgroundColor: '#ffae0e', opacity: activeHeroTab === 'challan' ? 1 : 0.6 }]} />
+                          <View style={[styles.heroTabIconTrafficDot, { backgroundColor: '#00cc6a', opacity: activeHeroTab === 'challan' ? 1 : 0.6 }]} />
+                        </View>
+                        <Text style={[
+                          styles.heroTabLabel,
+                          {
+                            color: activeHeroTab === 'challan' ? '#ffffff' : colors.textSecondary
+                          }
+                        ]}>E-Challan</Text>
+                        {activeHeroTab === 'challan' && (
+                          <View style={[styles.heroTabActiveBar, { backgroundColor: colors.primary }]} />
+                        )}
+                      </TouchableOpacity>
+
+                      {/* FASTag Tab */}
+                      <TouchableOpacity
+                        style={[
+                          styles.heroTabButton,
+                          {
+                            backgroundColor: activeHeroTab === 'fastag' ? 'rgba(255, 206, 0, 0.12)' : 'rgba(20, 25, 38, 0.65)',
+                            borderColor: activeHeroTab === 'fastag' ? colors.primary : 'rgba(255, 255, 255, 0.12)',
+                            borderWidth: activeHeroTab === 'fastag' ? 1.5 : 1,
+                          }
+                        ]}
+                        onPress={() => {
+                          setActiveHeroTab('fastag');
+                          setIsSearchFocused(false);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <View style={[
+                          styles.heroTabIconFastag,
+                          {
+                            borderColor: activeHeroTab === 'fastag' ? colors.primary : 'rgba(255, 255, 255, 0.15)',
+                            backgroundColor: 'rgba(0, 0, 0, 0.4)'
+                          }
+                        ]}>
+                          <Text style={[
+                            styles.heroTabIconFastagText,
+                            {
+                              color: activeHeroTab === 'fastag' ? colors.primary : 'rgba(255, 255, 255, 0.7)'
+                            }
+                          ]}>FASTag</Text>
+                        </View>
+                        <Text style={[
+                          styles.heroTabLabel,
+                          {
+                            color: activeHeroTab === 'fastag' ? '#ffffff' : colors.textSecondary
                           }
                         ]}>FASTag</Text>
-                      </View>
-                      <Text style={[
-                        styles.heroTabLabel,
-                        {
-                          color: activeHeroTab === 'fastag' ? colors.text : colors.textSecondary
+                        {activeHeroTab === 'fastag' && (
+                          <View style={[styles.heroTabActiveBar, { backgroundColor: colors.primary }]} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Search Input Container */}
+                    <View style={[
+                      styles.heroInputContainer,
+                      {
+                        borderColor: isHeroInputFocused ? colors.primary : 'rgba(255, 255, 255, 0.2)',
+                        backgroundColor: 'rgba(15, 20, 32, 0.88)'
+                      }
+                    ]}>
+                      {activeHeroTab === 'parking' && <Search size={18} color="#ffce00" />}
+                      {activeHeroTab === 'challan' && <AlertTriangle size={18} color="#ffce00" />}
+                      {activeHeroTab === 'fastag' && <CreditCard size={18} color="#ffce00" />}
+                      
+                      <TextInput
+                        style={[styles.heroTextInput, { color: '#ffffff' }]}
+                        placeholder={
+                          activeHeroTab === 'parking'
+                            ? "Search parking locations..."
+                            : activeHeroTab === 'challan'
+                            ? "Enter Vehicle Number (e.g. DL1CA1234)"
+                            : "Enter Vehicle Number / FASTag ID"
                         }
-                      ]}>FASTag</Text>
-                      {activeHeroTab === 'fastag' && (
-                        <View style={[styles.heroTabActiveBar, { backgroundColor: colors.primary }]} />
-                      )}
+                        placeholderTextColor="rgba(255, 255, 255, 0.5)"
+                        value={activeHeroTab === 'parking' ? searchQuery : heroVehicleNumber}
+                        onChangeText={(txt) => {
+                          if (activeHeroTab === 'parking') {
+                            setSearchQuery(txt);
+                            setIsSearchFocused(true);
+                          } else {
+                            setHeroVehicleNumber(txt);
+                          }
+                        }}
+                        onFocus={() => {
+                          setIsHeroInputFocused(true);
+                          if (activeHeroTab === 'parking' && searchQuery) {
+                            setIsSearchFocused(true);
+                          }
+                        }}
+                        onBlur={() => {
+                          setIsHeroInputFocused(false);
+                        }}
+                        autoCapitalize={activeHeroTab !== 'parking' ? 'characters' : 'none'}
+                      />
+                      
+                      {((activeHeroTab === 'parking' && searchQuery) || (activeHeroTab !== 'parking' && heroVehicleNumber)) ? (
+                        <TouchableOpacity onPress={() => {
+                          if (activeHeroTab === 'parking') {
+                            setSearchQuery('');
+                            setIsSearchFocused(false);
+                          } else {
+                            setHeroVehicleNumber('');
+                          }
+                        }}>
+                          <X size={16} color="#ffffff" />
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+
+                    {/* Primary Action Button */}
+                    <TouchableOpacity
+                      style={[styles.heroActionButton, { backgroundColor: colors.primary }]}
+                      onPress={() => {
+                        if (activeHeroTab === 'parking') {
+                          if (!searchQuery.trim()) {
+                            Alert.alert('Required', 'Please enter a destination or parking name.');
+                            return;
+                          }
+                          if (filteredLocations.length > 0) {
+                            handleSelectLocation(filteredLocations[0]);
+                          } else {
+                            Alert.alert('Not Found', 'No matching parking hubs found.');
+                          }
+                        } else if (activeHeroTab === 'challan') {
+                          if (!heroVehicleNumber.trim()) {
+                            Alert.alert('Required', 'Please enter your vehicle number.');
+                            return;
+                          }
+                          setStep('CHALLAN');
+                        } else if (activeHeroTab === 'fastag') {
+                          if (!heroVehicleNumber.trim()) {
+                            Alert.alert('Required', 'Please enter your vehicle number or FASTag ID.');
+                            return;
+                          }
+                          handleNavigateToTab('/explore?tab=fastag');
+                        }
+                      }}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.heroActionButtonText}>
+                        {activeHeroTab === 'parking' && "Find Parking Slot"}
+                        {activeHeroTab === 'challan' && "Check Challans"}
+                        {activeHeroTab === 'fastag' && "Recharge FASTag"}
+                      </Text>
+                      <ArrowRight size={18} color="#000000" />
                     </TouchableOpacity>
                   </View>
-
-                  {/* Search Input Container */}
-                  <View style={[
-                    styles.heroInputContainer,
-                    {
-                      borderColor: isHeroInputFocused ? colors.primary : 'rgba(255, 255, 255, 0.08)'
-                    }
-                  ]}>
-                    {activeHeroTab === 'parking' && <Search size={18} color={colors.textSecondary} />}
-                    {activeHeroTab === 'challan' && <AlertTriangle size={18} color={colors.textSecondary} />}
-                    {activeHeroTab === 'fastag' && <CreditCard size={18} color={colors.textSecondary} />}
-                    
-                    <TextInput
-                      style={[styles.heroTextInput, { color: colors.text }]}
-                      placeholder={
-                        activeHeroTab === 'parking'
-                          ? "Search parking locations..."
-                          : activeHeroTab === 'challan'
-                          ? "Enter Vehicle Number (e.g. DL1CA1234)"
-                          : "Enter Vehicle Number / FASTag ID"
-                      }
-                      placeholderTextColor={colors.textSecondary}
-                      value={activeHeroTab === 'parking' ? searchQuery : heroVehicleNumber}
-                      onChangeText={(txt) => {
-                        if (activeHeroTab === 'parking') {
-                          setSearchQuery(txt);
-                          setIsSearchFocused(true);
-                        } else {
-                          setHeroVehicleNumber(txt);
-                        }
-                      }}
-                      onFocus={() => {
-                        setIsHeroInputFocused(true);
-                        if (activeHeroTab === 'parking' && searchQuery) {
-                          setIsSearchFocused(true);
-                        }
-                      }}
-                      onBlur={() => {
-                        setIsHeroInputFocused(false);
-                      }}
-                      autoCapitalize={activeHeroTab !== 'parking' ? 'characters' : 'none'}
-                    />
-                    
-                    {((activeHeroTab === 'parking' && searchQuery) || (activeHeroTab !== 'parking' && heroVehicleNumber)) ? (
-                      <TouchableOpacity onPress={() => {
-                        if (activeHeroTab === 'parking') {
-                          setSearchQuery('');
-                          setIsSearchFocused(false);
-                        } else {
-                          setHeroVehicleNumber('');
-                        }
-                      }}>
-                        <X size={16} color={colors.textSecondary} />
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-
-                  {/* Primary Action Button */}
-                  <TouchableOpacity
-                    style={[styles.heroActionButton, { backgroundColor: colors.primary }]}
-                    onPress={() => {
-                      if (activeHeroTab === 'parking') {
-                        if (!searchQuery.trim()) {
-                          Alert.alert('Required', 'Please enter a destination or parking name.');
-                          return;
-                        }
-                        if (filteredLocations.length > 0) {
-                          handleSelectLocation(filteredLocations[0]);
-                        } else {
-                          Alert.alert('Not Found', 'No matching parking hubs found.');
-                        }
-                      } else if (activeHeroTab === 'challan') {
-                        if (!heroVehicleNumber.trim()) {
-                          Alert.alert('Required', 'Please enter your vehicle number.');
-                          return;
-                        }
-                        setStep('CHALLAN');
-                      } else if (activeHeroTab === 'fastag') {
-                        if (!heroVehicleNumber.trim()) {
-                          Alert.alert('Required', 'Please enter your vehicle number or FASTag ID.');
-                          return;
-                        }
-                        handleNavigateToTab('/explore?tab=fastag');
-                      }
-                    }}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.heroActionButtonText}>
-                      {activeHeroTab === 'parking' && "Search Parking"}
-                      {activeHeroTab === 'challan' && "Check Challans"}
-                      {activeHeroTab === 'fastag' && "Recharge FASTag"}
-                    </Text>
-                    <ArrowRight size={16} color="#0b0c10" />
-                  </TouchableOpacity>
                 </View>
 
                  {/* ── Our Services Capsule Grid ── */}
@@ -1562,18 +1591,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 99,
   },
-  heroCard: {
+  heroCardOuter: {
     borderRadius: 24,
+    overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 206, 0, 0.12)',
-    backgroundColor: 'rgba(21, 22, 30, 0.6)',
-    padding: 18,
+    borderColor: 'rgba(255, 206, 0, 0.35)',
     marginBottom: 20,
+    backgroundColor: '#0a0d16',
     shadowColor: '#ffce00',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.2,
     shadowRadius: 16,
-    elevation: 3,
+    elevation: 5,
+  },
+  heroCardInner: {
+    padding: 18,
+    zIndex: 2,
   },
   heroTabsContainer: {
     flexDirection: 'row',
