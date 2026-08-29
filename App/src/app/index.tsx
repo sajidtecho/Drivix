@@ -2191,17 +2191,18 @@ const styles = StyleSheet.create({
   carImageContainer: {
     width: '100%',
     height: 180,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
     marginBottom: 16,
-    overflow: 'hidden',
   },
   carCardImage: {
-    width: '92%',
-    height: '92%',
+    width: '98%',
+    height: '98%',
   },
   carRatingBadge: {
     position: 'absolute',
