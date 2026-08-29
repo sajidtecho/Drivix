@@ -4,8 +4,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ShieldAlert, Video, Info, Zap, AlertTriangle, Play, Square, Volume2, VolumeX } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { Audio } from 'expo-av';
 import socketService from '@/services/socket';
+
+// Safe Dynamic Imports for Native Modules (prevents ExponentAV and NitroModules crashes in Expo Go / Web)
+let Audio: any = null;
+try {
+  const expoAv = require('expo-av');
+  Audio = expoAv.Audio;
+} catch (err) {
+  console.warn('ExponentAV native module is unavailable in current client environment.');
+}
 
 // Safe Dynamic Imports for Native C++ TurboModules (prevents NitroModules crash in Expo Go)
 let Camera: any = null;
@@ -134,6 +142,7 @@ export default function DriverCopilotScreen() {
 
   const playAlarm = async () => {
     if (soundRef.current) return; // Already playing
+    if (!Audio || !Audio.Sound) return;
     try {
       const { sound } = await Audio.Sound.createAsync(
         require('../../assets/audio/eye_alert.mp3'),
