@@ -927,7 +927,8 @@ const styles = {
   camContainer: {
     position: 'relative',
     width: '100%',
-    aspectRatio: '4/3',
+    aspectRatio: '16/9',
+    maxHeight: '360px',
     background: '#070708',
     borderRadius: '12px',
     overflow: 'hidden',
