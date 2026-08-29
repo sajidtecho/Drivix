@@ -962,7 +962,7 @@ export default function ActiveCopilot() {
               <h4 style={{ color: '#ffce00', margin: '0 0 10px', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Manual Simulator Toggles
               </h4>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                 <button
                   style={{ ...styles.simToggleBtn, backgroundColor: drowsyAlert ? 'rgba(255,75,75,0.2)' : 'rgba(255,255,255,0.03)', borderColor: drowsyAlert ? '#ff4b4b' : 'rgba(255,255,255,0.1)' }}
                   onClick={() => {
@@ -992,6 +992,56 @@ export default function ActiveCopilot() {
                   }}
                 >
                   📱 Simulate Phone
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  style={{ ...styles.simToggleBtn, backgroundColor: driverGaze === 'Looking Left' ? 'rgba(255,206,0,0.2)' : 'rgba(255,255,255,0.03)', borderColor: driverGaze === 'Looking Left' ? '#ffce00' : 'rgba(255,255,255,0.1)' }}
+                  onClick={() => {
+                    if (driverGaze !== 'Looking Left') {
+                      setDriverGaze('Looking Left');
+                      setDistractedAlert(true);
+                      addLog('[SIMULATOR] Driver Looking Left triggered.');
+                    } else {
+                      setDriverGaze('Looking Straight');
+                      setDistractedAlert(false);
+                      addLog('[SIMULATOR] Driver Looking Straight restored.');
+                    }
+                  }}
+                >
+                  ⬅️ Look Left
+                </button>
+                <button
+                  style={{ ...styles.simToggleBtn, backgroundColor: driverGaze === 'Looking Right' ? 'rgba(255,206,0,0.2)' : 'rgba(255,255,255,0.03)', borderColor: driverGaze === 'Looking Right' ? '#ffce00' : 'rgba(255,255,255,0.1)' }}
+                  onClick={() => {
+                    if (driverGaze !== 'Looking Right') {
+                      setDriverGaze('Looking Right');
+                      setDistractedAlert(true);
+                      addLog('[SIMULATOR] Driver Looking Right triggered.');
+                    } else {
+                      setDriverGaze('Looking Straight');
+                      setDistractedAlert(false);
+                      addLog('[SIMULATOR] Driver Looking Straight restored.');
+                    }
+                  }}
+                >
+                  ➡️ Look Right
+                </button>
+                <button
+                  style={{ ...styles.simToggleBtn, backgroundColor: driverGaze === 'Looking Down' ? 'rgba(255,75,75,0.2)' : 'rgba(255,255,255,0.03)', borderColor: driverGaze === 'Looking Down' ? '#ff4b4b' : 'rgba(255,255,255,0.1)' }}
+                  onClick={() => {
+                    if (driverGaze !== 'Looking Down') {
+                      setDriverGaze('Looking Down');
+                      setDistractedAlert(true);
+                      addLog('[SIMULATOR] Driver Looking Down triggered.');
+                    } else {
+                      setDriverGaze('Looking Straight');
+                      setDistractedAlert(false);
+                      addLog('[SIMULATOR] Driver Looking Straight restored.');
+                    }
+                  }}
+                >
+                  ⬇️ Look Down
                 </button>
               </div>
             </div>
