@@ -175,6 +175,9 @@ export default function DashboardScreen() {
   const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
   const [isARModalVisible, setIsARModalVisible] = useState(false);
 
+  // Booking Mode: Mode 1 (FUTURE_MANUAL) vs Mode 2 (INSTANT_NEARBY)
+  const [bookingMode, setBookingMode] = useState<'INSTANT_NEARBY' | 'FUTURE_MANUAL'>('INSTANT_NEARBY');
+
   const handleCommandRecognized = (command: string, actionType: 'SEARCH' | 'FASTAG' | 'CHALLAN' | 'COPILOT') => {
     setIsVoiceModalVisible(false);
     if (actionType === 'SEARCH') {
@@ -380,6 +383,14 @@ export default function DashboardScreen() {
       loc.address.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery, processedLocations]);
+
+  const nearestInstantMatch = React.useMemo(() => {
+    if (!processedLocations || processedLocations.length === 0) return null;
+    const activeHubs = processedLocations.filter(
+      (loc) => loc.status !== 'Inactive' && loc.status !== 'Pending'
+    );
+    return activeHubs.length > 0 ? activeHubs[0] : processedLocations[0];
+  }, [processedLocations]);
 
   // Selection States
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
@@ -791,6 +802,88 @@ export default function DashboardScreen() {
                         <Text style={[styles.sessionManageBtnText, { color: '#ffffff' }]}>Cancel</Text>
                       </TouchableOpacity>
                     </View>
+                  </View>
+                )}
+
+                {/* ── Mode 1 & Mode 2 Smart Booking Mode Switcher ── */}
+                <View style={styles.bookingModeContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.bookingModeTab,
+                      bookingMode === 'INSTANT_NEARBY' && styles.bookingModeTabActive,
+                    ]}
+                    onPress={() => {
+                      setBookingMode('INSTANT_NEARBY');
+                      setSearchQuery('');
+                      setIsSearchFocused(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Zap size={13} color={bookingMode === 'INSTANT_NEARBY' ? '#000000' : '#10b981'} />
+                    <Text style={[styles.bookingModeText, bookingMode === 'INSTANT_NEARBY' && styles.bookingModeTextActive]}>
+                      Instant Park (Live GPS)
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.bookingModeTab,
+                      bookingMode === 'FUTURE_MANUAL' && styles.bookingModeTabActive,
+                    ]}
+                    onPress={() => setBookingMode('FUTURE_MANUAL')}
+                    activeOpacity={0.8}
+                  >
+                    <MapPin size={13} color={bookingMode === 'FUTURE_MANUAL' ? '#000000' : '#ffce00'} />
+                    <Text style={[styles.bookingModeText, bookingMode === 'FUTURE_MANUAL' && styles.bookingModeTextActive]}>
+                      Future Trip (Search Address)
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* MODE 2: Instant Park Recommendation Card (Live GPS Analysis) */}
+                {bookingMode === 'INSTANT_NEARBY' && nearestInstantMatch && (
+                  <View style={styles.instantCard}>
+                    <View style={styles.instantHeaderRow}>
+                      <View style={styles.instantBadge}>
+                        <View style={styles.pulseDotGreen} />
+                        <Text style={styles.instantBadgeText}>LIVE GPS NEAREST MATCH</Text>
+                      </View>
+                      <Text style={styles.instantDistText}>
+                        {nearestInstantMatch.distance !== undefined
+                          ? `${nearestInstantMatch.distance.toFixed(1)} km away`
+                          : 'Nearest Hub'}
+                      </Text>
+                    </View>
+
+                    <Text style={styles.instantHubName}>{nearestInstantMatch.parkingName}</Text>
+                    <Text style={styles.instantHubAddr} numberOfLines={1}>
+                      {nearestInstantMatch.address}
+                    </Text>
+
+                    <View style={styles.instantFooterRow}>
+                      <View style={styles.instantPill}>
+                        <Clock size={12} color="#10b981" />
+                        <Text style={styles.instantPillText}>
+                          {nearestInstantMatch.availableSlots !== null && nearestInstantMatch.availableSlots !== undefined
+                            ? `${nearestInstantMatch.availableSlots} Slots Free`
+                            : 'Slots Available'}
+                        </Text>
+                      </View>
+                      <View style={styles.instantPill}>
+                        <Text style={styles.instantStatPrice}>
+                          {nearestInstantMatch.hourlyPrice ? `₹${nearestInstantMatch.hourlyPrice}/hr` : 'Flat Rate'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.instantBookBtn}
+                      onPress={() => handleSelectLocation(nearestInstantMatch)}
+                      activeOpacity={0.85}
+                    >
+                      <Zap size={16} color="#000000" />
+                      <Text style={styles.instantBookBtnText}>INSTANT PARK HERE NOW</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
 
@@ -1261,6 +1354,136 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  bookingModeContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(21, 22, 30, 0.65)',
+    padding: 4,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 12,
+    gap: 6,
+  },
+  bookingModeTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    borderRadius: 12,
+    gap: 6,
+  },
+  bookingModeTabActive: {
+    backgroundColor: '#ffce00',
+  },
+  bookingModeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#8a959e',
+  },
+  bookingModeTextActive: {
+    color: '#000000',
+    fontWeight: '800',
+  },
+  instantCard: {
+    backgroundColor: '#0a0d16',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  instantHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  instantBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
+  },
+  pulseDotGreen: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10b981',
+  },
+  instantBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#10b981',
+    letterSpacing: 0.5,
+  },
+  instantDistText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#00f2ff',
+  },
+  instantHubName: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  instantHubAddr: {
+    fontSize: 12,
+    color: '#8a959e',
+    marginTop: 2,
+    marginBottom: 12,
+  },
+  instantFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+  },
+  instantPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    gap: 6,
+  },
+  instantPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  instantStatPrice: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#ffce00',
+  },
+  instantBookBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#10b981',
+    height: 44,
+    borderRadius: 14,
+    gap: 8,
+  },
+  instantBookBtnText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#000000',
+    letterSpacing: 0.5,
+  },
   ambientGlowTopLeft: {
     position: 'absolute',
     top: -100,
