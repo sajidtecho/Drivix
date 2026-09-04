@@ -52,15 +52,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(morgan('dev'));
 
-// Basic & Ping Routes (for cron-job.org and keep-alive monitoring)
-app.get('/', (req, res) => {
-  res.json({
+// Basic & Ping Routes (for cron-job.org and keep-alive monitoring - accepts GET, POST, HEAD, OPTIONS)
+app.all('/', (req, res) => {
+  res.status(200).json({
     message: 'Welcome to the Drivix API',
     status: 'online'
   });
 });
 
-app.get(['/ping', '/api/v1/ping', '/healthz'], (req, res) => {
+app.all(['/ping', '/api/v1/ping', '/healthz'], (req, res) => {
   res.status(200).json({
     status: 'ok',
     message: 'pong',
@@ -68,7 +68,7 @@ app.get(['/ping', '/api/v1/ping', '/healthz'], (req, res) => {
   });
 });
 
-app.get('/api/v1/health', (req, res) => {
+app.all(['/health', '/api/v1/health'], (req, res) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date(),
