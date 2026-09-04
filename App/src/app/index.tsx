@@ -16,52 +16,20 @@ import LocationCard from '@/components/drivix/LocationCard';
 import SlotSelectionGrid from '@/components/drivix/SlotSelectionGrid';
 import PricingCheckout from '@/components/drivix/PricingCheckout';
 import QRPacketPass from '@/components/drivix/QRPacketPass';
+import ActiveBookingBanner from '@/components/drivix/ActiveBookingBanner';
+import GarageCard from '@/components/drivix/GarageCard';
+import QuickServicesGrid from '@/components/drivix/QuickServicesGrid';
+import CarDealsCarousel from '@/components/drivix/CarDealsCarousel';
 import LoginBottomSheet from '@/components/LoginBottomSheet';
 import ParkingHubsScreen from './parking-hubs';
 import DriverHubScreen from './driver-hub';
 import ChallanScreen from './challan';
 import * as Location from 'expo-location';
-import { setWebHeaderVisible } from '@/components/navigation-stubs';
 
 import { useTheme } from '@/hooks/use-theme';
-
-const CAR_DEALS = [
-  {
-    id: 'altroz',
-    title: 'Tata Altroz',
-    type: 'Hatchback',
-    price: '₹6.30 - ₹10.77 Lakhs',
-    variants: '27+ Variants',
-    rating: '4.6',
-    reviews: '346',
-    image: require('../../assets/images/altroz.png'),
-    badge: 'Popular',
-  },
-  {
-    id: 'xuv700',
-    title: 'Mahindra XUV700',
-    type: 'SUV',
-    price: '₹13.99 - ₹26.99 Lakhs',
-    variants: '30+ Variants',
-    rating: '4.8',
-    reviews: '512',
-    image: require('../../assets/images/xuv700.png'),
-    badge: 'Top Rated',
-  },
-  {
-    id: 'creta',
-    title: 'Hyundai Creta',
-    type: 'Crossover SUV',
-    price: '₹10.99 - ₹20.15 Lakhs',
-    variants: '24+ Variants',
-    rating: '4.7',
-    reviews: '428',
-    image: require('../../assets/images/creta.png'),
-    badge: 'Best Seller',
-  },
-];
-
-type WizardStep = 'MAP' | 'SLOTS' | 'CHECKOUT' | 'PASS' | 'PARKING_HUBS' | 'DRIVER_HUB' | 'CHALLAN';
+import { useActiveBooking } from '@/hooks/useActiveBooking';
+import { useUserVehicles } from '@/hooks/useUserVehicles';
+import { WizardStep, DocumentComplianceStatus } from '@/types';
 
 export default function DashboardScreen() {
   const { user, isAuthenticated, refreshProfile } = useAuth();
