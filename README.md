@@ -170,7 +170,7 @@ Because Vercel serverless functions freeze after delivering an HTTP response, pe
 ### ⏱️ 4. Free-Tier Server Cold Start Mitigation (cron-job.org)
 
 To circumvent the 50-second "cold start" delay associated with Render's Free tier (where container instances spin down after 15 minutes of inactivity), Drivix is integrated with a keep-alive scheduler:
-* **Periodic Ping**: Configured via [cron-job.org](https://cron-job.org/) to trigger an HTTP GET request to `https://drivix-backend-0qvx.onrender.com/` every 10 minutes.
+* **Periodic Ping**: Configured via [cron-job.org](https://cron-job.org/) to trigger an HTTP GET request to `https://drivix-backend-0qvx.onrender.com/` (or `/ping`, `/api/v1/ping`, `/api/v1/health`) every 5 to 10 minutes.
 * **Warm Containers**: This persistent ping maintains the active state of the Node container, guaranteeing sub-second response times for end-users visiting the application.
 
 ### 🎯 5. Multi-Criteria Automated Slot Allocation Engine
