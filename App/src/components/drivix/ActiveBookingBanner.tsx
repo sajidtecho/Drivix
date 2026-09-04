@@ -178,6 +178,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  arButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 7,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 206, 0, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 206, 0, 0.4)',
+    gap: 4,
+  },
+  arButtonText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#ffce00',
+  },
   navButton: {
     padding: 8,
     borderRadius: 16,

@@ -22,6 +22,8 @@ import QuickServicesGrid from '@/components/drivix/QuickServicesGrid';
 import CarDealsCarousel from '@/components/drivix/CarDealsCarousel';
 import EVChargingCard from '@/components/drivix/EVChargingCard';
 import FASTagAlertCard from '@/components/drivix/FASTagAlertCard';
+import VoiceAssistantModal from '@/components/drivix/VoiceAssistantModal';
+import ARWayfindingOverlay from '@/components/drivix/ARWayfindingOverlay';
 import LoginBottomSheet from '@/components/LoginBottomSheet';
 import ParkingHubsScreen from './parking-hubs';
 import DriverHubScreen from './driver-hub';
@@ -167,6 +169,23 @@ export default function DashboardScreen() {
   const [activeCarTab, setActiveCarTab] = useState<'popular' | 'testdrive'>('popular');
   const [heroVehicleNumber, setHeroVehicleNumber] = useState('');
   const [isHeroInputFocused, setIsHeroInputFocused] = useState(false);
+
+  // AI Voice & AR Wayfinding Modal States
+  const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
+  const [isARModalVisible, setIsARModalVisible] = useState(false);
+
+  const handleCommandRecognized = (command: string, actionType: 'SEARCH' | 'FASTAG' | 'CHALLAN' | 'COPILOT') => {
+    setIsVoiceModalVisible(false);
+    if (actionType === 'SEARCH') {
+      setSearchQuery(command);
+    } else if (actionType === 'FASTAG') {
+      handleNavigateToTab('/explore?tab=fastag');
+    } else if (actionType === 'CHALLAN') {
+      setStep('CHALLAN');
+    } else if (actionType === 'COPILOT') {
+      setIsARModalVisible(true);
+    }
+  };
 
   useEffect(() => {
     const checkGarageCardVisibility = async () => {
@@ -717,6 +736,7 @@ export default function DashboardScreen() {
                     activeBooking={activeBooking}
                     timeLeft={activeBookingTimeLeft}
                     onPressPass={() => setStep('PASS')}
+                    onPressAR={() => setIsARModalVisible(true)}
                     colors={colors}
                   />
                 )}
@@ -793,7 +813,9 @@ export default function DashboardScreen() {
                         <X size={16} color={colors.textSecondary} />
                       </TouchableOpacity>
                     ) : (
-                      <Mic size={16} color={colors.textSecondary} />
+                      <TouchableOpacity onPress={() => setIsVoiceModalVisible(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                        <Mic size={16} color={colors.primary} />
+                      </TouchableOpacity>
                     )}
                   </View>
                 </View>
@@ -1200,6 +1222,22 @@ export default function DashboardScreen() {
       <LoginBottomSheet
         visible={loginRequiredVisible}
         onCancel={() => setLoginRequiredVisible(false)}
+      />
+
+      <VoiceAssistantModal
+        isVisible={isVoiceModalVisible}
+        onClose={() => setIsVoiceModalVisible(false)}
+        onCommandRecognized={handleCommandRecognized}
+        colors={colors}
+      />
+
+      <ARWayfindingOverlay
+        isVisible={isARModalVisible}
+        onClose={() => setIsARModalVisible(false)}
+        slotNumber={activeBooking?.slotNumber ? `Slot ${activeBooking.slotNumber}` : (selectedSlot ? `Slot ${selectedSlot.id}` : 'B2-42')}
+        floorName={(activeBooking as any)?.floor ? `Floor ${(activeBooking as any).floor}` : 'Basement 2'}
+        facilityName={activeBooking?.locationName || selectedLocation?.parkingName || 'DLF CyberHub Parking'}
+        colors={colors}
       />
     </SafeAreaView>
   );
