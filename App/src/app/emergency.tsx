@@ -29,6 +29,7 @@ import {
   Landmark,
   ShieldCheck,
   Building2,
+  Clock,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -384,25 +385,36 @@ export default function EmergencyScreen({ onBack }: EmergencyScreenProps) {
             return (
               <TouchableOpacity
                 key={svc.id}
-                style={styles.serviceCard}
+                style={[styles.serviceCard, { borderColor: `${svc.color}35` }]}
                 onPress={() => handleDialNumber(svc.number, svc.title)}
                 activeOpacity={0.8}
               >
-                <View style={[styles.serviceIconCircle, { backgroundColor: svc.bg }]}>
-                  <IconComp size={20} color={svc.color} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                {/* Top Header Row: Icon + Title + Official Badge */}
+                <View style={styles.cardHeaderRow}>
+                  <View style={[styles.serviceIconCircle, { backgroundColor: svc.bg }]}>
+                    <IconComp size={18} color={svc.color} />
+                  </View>
+                  <View style={styles.cardTitleCol}>
                     <Text style={styles.serviceTitle}>{svc.title}</Text>
-                    <View style={[styles.govBadge, { backgroundColor: `${svc.badgeColor}20` }]}>
+                    <View style={[styles.govBadge, { backgroundColor: `${svc.badgeColor}18`, borderColor: `${svc.badgeColor}40` }]}>
                       <Text style={[styles.govBadgeText, { color: svc.badgeColor }]}>{svc.badge}</Text>
                     </View>
                   </View>
-                  <Text style={styles.serviceSub}>{svc.subtitle}</Text>
                 </View>
-                <View style={[styles.callBadge, { backgroundColor: svc.color }]}>
-                  <Phone size={12} color="#000000" />
-                  <Text style={styles.callBadgeText}>{svc.number}</Text>
+
+                {/* Subtitle Description */}
+                <Text style={styles.serviceSub}>{svc.subtitle}</Text>
+
+                {/* Bottom Row: Toll Free Tag + Large Phone Dial Button */}
+                <View style={styles.cardBottomRow}>
+                  <View style={styles.tollFreeBadge}>
+                    <Clock size={11} color="#64748b" />
+                    <Text style={styles.tollFreeText}>24x7 Toll Free</Text>
+                  </View>
+                  <View style={[styles.callBadge, { backgroundColor: svc.color }]}>
+                    <Phone size={13} color="#000000" />
+                    <Text style={styles.callBadgeText}>{svc.number}</Text>
+                  </View>
                 </View>
               </TouchableOpacity>
             );
@@ -669,58 +681,92 @@ const styles = StyleSheet.create({
 
   /* Services Grid */
   servicesGrid: {
-    gap: 10,
+    gap: 12,
     marginBottom: 20,
   },
   serviceCard: {
+    backgroundColor: '#0f1322',
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f1322',
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 10,
+    marginBottom: 8,
   },
   serviceIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  cardTitleCol: {
+    flex: 1,
+    gap: 3,
+  },
   serviceTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
     color: '#ffffff',
+    letterSpacing: 0.2,
   },
   govBadge: {
-    paddingHorizontal: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 6,
+    borderWidth: 1,
   },
   govBadgeText: {
-    fontSize: 8,
-    fontWeight: '800',
-    letterSpacing: 0.4,
+    fontSize: 8.5,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   serviceSub: {
+    fontSize: 11,
+    color: '#94a3b8',
+    lineHeight: 16,
+    marginBottom: 12,
+  },
+  cardBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  tollFreeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  tollFreeText: {
     fontSize: 10.5,
+    fontWeight: '600',
     color: '#64748b',
-    marginTop: 2,
   },
   callBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: 12,
-    gap: 4,
+    gap: 6,
   },
   callBadgeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '900',
     color: '#000000',
+    letterSpacing: 0.3,
   },
 
   /* Safety Checklist */
