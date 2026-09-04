@@ -134,42 +134,23 @@ export default function DashboardScreen() {
     };
   }, [step]);
 
-  // Registered Vehicles List for pre-filling and selection
-  const [userVehicles, setUserVehicles] = useState<any[]>([]);
-
   // Form Fields
   const [duration, setDuration] = useState('1');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [vehicleName, setVehicleName] = useState('');
-
-  // Fetch vehicles and pre-fill fields with the primary vehicle upon entering checkout
-  useEffect(() => {
-    if (step === 'CHECKOUT' && isAuthenticated) {
-      const fetchAndPrefill = async () => {
-        try {
-          const res = await api.get('/vehicles');
-          const list = res.data || [];
-          setUserVehicles(list);
-
-          if (list.length > 0) {
-            const primary = list.find((v: any) => v.isPrimary) || list[0];
-            if (primary) {
-              setVehicleNumber(primary.plate || primary.vehicleNumber || '');
-              setVehicleName(primary.model || '');
-            }
-          }
-        } catch (err) {
-          console.warn('Error pre-filling primary vehicle:', err);
-        }
-      };
-      fetchAndPrefill();
-    }
-  }, [step, isAuthenticated]);
   const [loading, setLoading] = useState(false);
 
   // Custom Hooks for Active Booking and User Vehicles
   const { activeBooking, timeLeft: activeBookingTimeLeft } = useActiveBooking(isAuthenticated, step);
   const { vehicles: userVehicles, primaryVehicle } = useUserVehicles(isAuthenticated, step);
+
+  // Pre-fill primary vehicle details upon entering checkout
+  useEffect(() => {
+    if (step === 'CHECKOUT' && primaryVehicle) {
+      setVehicleNumber(primaryVehicle.plate || primaryVehicle.vehicleNumber || '');
+      setVehicleName(primaryVehicle.model || '');
+    }
+  }, [step, primaryVehicle]);
 
   // Home Screen Feature States
   const [searchQuery, setSearchQuery] = useState('');

@@ -42,7 +42,7 @@ export interface FASTagAccount {
 }
 
 export interface UserProfile {
-  id: string;
+  id?: string;
   _id?: string;
   name: string;
   email: string;
