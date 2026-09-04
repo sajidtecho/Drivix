@@ -167,9 +167,11 @@ export default function DashboardScreen() {
   }, [step, isAuthenticated]);
   const [loading, setLoading] = useState(false);
 
+  // Custom Hooks for Active Booking and User Vehicles
+  const { activeBooking, timeLeft: activeBookingTimeLeft } = useActiveBooking(isAuthenticated, step);
+  const { vehicles: userVehicles, primaryVehicle } = useUserVehicles(isAuthenticated, step);
+
   // Home Screen Feature States
-  const [activeBooking, setActiveBooking] = useState<any>(null);
-  const [activeBookingTimeLeft, setActiveBookingTimeLeft] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isGarageCardVisible, setIsGarageCardVisible] = useState(false);
@@ -196,7 +198,6 @@ export default function DashboardScreen() {
     if (isAuthenticated) {
       checkGarageCardVisibility();
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsGarageCardVisible(false);
     }
   }, [isAuthenticated]);
@@ -208,34 +209,6 @@ export default function DashboardScreen() {
       await storage.saveItem('garage_card_dismissed_date', todayStr);
     } catch (err) {
       console.warn('Error saving garage card dismissed state:', err);
-    }
-  };
-
-  const fetchActiveBookings = async () => {
-    if (!isAuthenticated) {
-      setActiveBooking(null);
-      return;
-    }
-    try {
-      const res = await api.get('/bookings/my');
-      const list = res.data || [];
-      const active = list.find((b: any) => b.status === 'booked');
-      setActiveBooking(active || null);
-    } catch (err) {
-      console.warn('Error fetching active bookings for home screen:', err);
-    }
-  };
-
-  const fetchUserVehicles = async () => {
-    if (!isAuthenticated) {
-      setUserVehicles([]);
-      return;
-    }
-    try {
-      const res = await api.get('/vehicles');
-      setUserVehicles(res.data || []);
-    } catch (err) {
-      console.warn('Error fetching vehicles for home screen:', err);
     }
   };
 
@@ -271,59 +244,7 @@ export default function DashboardScreen() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchActiveBookings();
-    fetchUserVehicles();
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    if (step === 'MAP') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchActiveBookings();
-      fetchUserVehicles();
-    }
-  }, [step]);
-
-  useEffect(() => {
-    if (!activeBooking) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setActiveBookingTimeLeft('');
-      return;
-    }
-    const calculateTime = () => {
-      try {
-        const [year, month, day] = activeBooking.entryDate.split('-').map(Number);
-        const [hour, minute] = activeBooking.entryTime.split(':').map(Number);
-        const duration = activeBooking.durationHours || activeBooking.duration || 1;
-        const startTime = new Date(year, month - 1, day, hour, minute);
-        const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
-        const now = new Date();
-        const diff = endTime.getTime() - now.getTime();
-        if (diff <= 0) {
-          setActiveBookingTimeLeft('EXPIRED');
-        } else {
-          const h = Math.floor(diff / (1000 * 60 * 60));
-          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((diff % (1000 * 60)) / 1000);
-          setActiveBookingTimeLeft(`${h}h ${m}m ${s}s`);
-        }
-      } catch (err) {
-        console.warn('Error calculating active booking time:', err);
-      }
-    };
-    calculateTime();
-    const interval = setInterval(calculateTime, 1000);
-    return () => clearInterval(interval);
-  }, [activeBooking]);
-
-  const primaryVehicle = React.useMemo(() => {
-    if (userVehicles.length === 0) return null;
-    return userVehicles.find((v: any) => v.isPrimary) || userVehicles[0];
-  }, [userVehicles]);
-
-  useEffect(() => {
     if (primaryVehicle && primaryVehicle.plate) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHeroVehicleNumber(primaryVehicle.plate.toUpperCase());
     }
   }, [primaryVehicle]);
