@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { FileText, ShieldCheck, Shield, Zap, Droplet, User, PhoneCall, Truck } from 'lucide-react-native';
 
 interface QuickServicesGridProps {
@@ -30,10 +30,6 @@ export const QuickServicesGrid: React.FC<QuickServicesGridProps> = ({
   dragHandlePanHandlers,
   colors,
 }) => {
-  const { width } = useWindowDimensions();
-  const isMobile = width < 768;
-  const capsuleWidth = isMobile ? (width - 50) / 2 : 170;
-
   const visibleServices = SERVICES_LIST.slice(0, isServicesExpanded ? 8 : 4);
 
   return (
@@ -61,7 +57,6 @@ export const QuickServicesGrid: React.FC<QuickServicesGridProps> = ({
                 {
                   backgroundColor: colors.backgroundElement,
                   borderColor: colors.borderGlass,
-                  width: capsuleWidth,
                 },
               ]}
               onPress={() => onSelectService(svc.label, svc.route)}
@@ -117,15 +112,18 @@ const styles = StyleSheet.create({
   capsuleGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: 10,
   },
   serviceCapsule: {
+    width: '48.5%',
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
     borderRadius: 16,
     borderWidth: 1,
-    gap: 10,
+    gap: 8,
   },
   serviceIconCircle: {
     width: 36,
