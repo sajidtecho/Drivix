@@ -27,14 +27,18 @@ import ChallanScreen from './challan';
 import * as Location from 'expo-location';
 import { setWebHeaderVisible } from '@/components/navigation-stubs';
 
+import OfflineNotice from '@/components/OfflineNotice';
+
 import { useTheme } from '@/hooks/use-theme';
 import { useActiveBooking } from '@/hooks/useActiveBooking';
 import { useUserVehicles } from '@/hooks/useUserVehicles';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { WizardStep, DocumentComplianceStatus } from '@/types';
 
 export default function DashboardScreen() {
   const { user, isAuthenticated, refreshProfile } = useAuth();
   const colors = useTheme();
+  const { isConnected } = useNetworkStatus();
 
   const getDocumentCompliance = (type: 'DL' | 'PUC'): DocumentComplianceStatus => {
     if (!user || !user.documents) {
@@ -660,6 +664,7 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <OfflineNotice isVisible={!isConnected} />
       {/* ── Ambient Glow Background Layers ── */}
       <View style={styles.ambientGlowTopLeft} pointerEvents="none" />
       <View style={styles.ambientGlowTopRight} pointerEvents="none" />

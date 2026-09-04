@@ -66,14 +66,34 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle common errors (like unauthorized tokens)
+// Response interceptor to handle common errors (like unauthorized tokens) and exponential backoff retry for network resilience
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const config = error.config;
+
     if (error.response && error.response.status === 401) {
       // Token has expired or is invalid, remove it from storage to force re-auth
       await storage.removeToken();
+      return Promise.reject(error);
     }
+
+    // Exponential Backoff Retry for transient 5xx server errors or network timeouts in underground parking
+    if (config && !config._retry) {
+      const isNetworkError = !error.response || error.code === 'ECONNABORTED';
+      const isServerError = error.response && error.response.status >= 500;
+
+      if (isNetworkError || isServerError) {
+        config._retryCount = (config._retryCount || 0) + 1;
+        if (config._retryCount <= 2) {
+          const delay = config._retryCount * 1000;
+          console.warn(`⚡ API Retry Attempt ${config._retryCount} in ${delay}ms for: ${config.url}`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          return api(config);
+        }
+      }
+    }
+
     return Promise.reject(error);
   }
 );

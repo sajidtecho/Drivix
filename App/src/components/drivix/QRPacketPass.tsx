@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { ShieldCheck } from 'lucide-react-native';
+import { ShieldCheck, WifiOff } from 'lucide-react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useTheme } from '@/hooks/use-theme';
+import { offlineStorage } from '@/services/offlineStorage';
 
 interface QRPacketPassProps {
   booking: any;
@@ -14,15 +15,62 @@ interface QRPacketPassProps {
 }
 
 export default function QRPacketPass({
-  booking,
-  selectedLocation,
-  selectedSlot,
-  duration,
-  vehicleNumber,
+  booking: propBooking,
+  selectedLocation: propLocation,
+  selectedSlot: propSlot,
+  duration: propDuration,
+  vehicleNumber: propVehicleNumber,
   onDone,
 }: QRPacketPassProps) {
-  const displayId = booking?._id ? `#${booking._id.substring(Math.max(0, booking._id.length - 6)).toUpperCase()}` : '#PASS';
   const colors = useTheme();
+  const [offlinePassData, setOfflinePassData] = useState<any>(null);
+  const [isOfflineLoaded, setIsOfflineLoaded] = useState(false);
+
+  // Automatically cache pass details when available
+  useEffect(() => {
+    if (propBooking) {
+      const qrToken = JSON.stringify({
+        bookingId: propBooking?._id || propBooking?.bookingId,
+        vehicleNumber: propVehicleNumber || propBooking?.vehicleNumber,
+        slotId: propSlot?.id || propBooking?.slotId,
+      });
+
+      offlineStorage.saveActivePass({
+        booking: propBooking,
+        selectedLocationName: propLocation?.parkingName || propBooking?.locationName,
+        selectedSlotNumber: propSlot?.label || propSlot?.number || propBooking?.slotId,
+        qrCodeToken: qrToken,
+        cachedAt: new Date().toISOString(),
+      });
+    } else {
+      // Offline fallback: load cached pass token
+      (async () => {
+        const cached = await offlineStorage.getActivePass();
+        if (cached) {
+          setOfflinePassData(cached);
+          setIsOfflineLoaded(true);
+        }
+      })();
+    }
+  }, [propBooking, propLocation, propSlot, propVehicleNumber]);
+
+  const booking = propBooking || offlinePassData?.booking;
+  const locationName = propLocation?.parkingName || offlinePassData?.selectedLocationName || booking?.locationName || 'Drivix Facility';
+  const slotText = propSlot?.label || propSlot?.number || offlinePassData?.selectedSlotNumber || booking?.slotId || 'Assigned';
+  const vehicle = propVehicleNumber || booking?.vehicleNumber || 'Registered Vehicle';
+  const durationText = propDuration || booking?.durationHours || booking?.duration || '1';
+
+  const displayId = booking?._id
+    ? `#${booking._id.substring(Math.max(0, booking._id.length - 6)).toUpperCase()}`
+    : booking?.bookingId
+      ? `#${booking.bookingId}`
+      : '#PASS';
+
+  const qrValue = offlinePassData?.qrCodeToken || JSON.stringify({
+    bookingId: booking?._id || booking?.bookingId,
+    vehicleNumber: vehicle,
+    slotId: propSlot?.id || booking?.slotId,
+  });
 
   return (
     <ScrollView contentContainerStyle={styles.passScroll} showsVerticalScrollIndicator={false}>
@@ -33,16 +81,18 @@ export default function QRPacketPass({
       </View>
 
       <View style={[styles.passCard, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+        {isOfflineLoaded && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255, 107, 53, 0.12)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginBottom: 8, alignSelf: 'flex-start' }}>
+            <WifiOff size={12} color="#ff6b35" />
+            <Text style={{ fontSize: 10, fontWeight: '800', color: '#ff6b35' }}>OFFLINE CACHED PASS</Text>
+          </View>
+        )}
         <Text style={styles.passBookingId}>{displayId}</Text>
-        <Text style={[styles.passLocationName, { color: colors.text }]}>{selectedLocation?.parkingName || 'Drivix Facility'}</Text>
+        <Text style={[styles.passLocationName, { color: colors.text }]}>{locationName}</Text>
         
         <View style={styles.qrContainer}>
           <QRCode
-            value={JSON.stringify({
-              bookingId: booking?._id,
-              vehicleNumber,
-              slotId: selectedSlot?.id,
-            })}
+            value={qrValue}
             size={150}
             color="#0b0c10"
             backgroundColor="#ffffff"
@@ -56,19 +106,19 @@ export default function QRPacketPass({
         <View style={[styles.passDetailsGrid, { borderColor: colors.borderGlass }]}>
           <View style={styles.passDetailBlock}>
             <Text style={[styles.passDetailLabel, { color: colors.textSecondary }]}>VEHICLE</Text>
-            <Text style={[styles.passDetailValue, { color: colors.text }]}>{vehicleNumber}</Text>
+            <Text style={[styles.passDetailValue, { color: colors.text }]}>{vehicle}</Text>
           </View>
           <View style={styles.passDetailBlock}>
             <Text style={[styles.passDetailLabel, { color: colors.textSecondary }]}>PARKING SLOT</Text>
-            <Text style={[styles.passDetailValue, { color: colors.text }]}>Slot {selectedSlot?.label || selectedSlot?.number}</Text>
+            <Text style={[styles.passDetailValue, { color: colors.text }]}>Slot {slotText}</Text>
           </View>
           <View style={styles.passDetailBlock}>
             <Text style={[styles.passDetailLabel, { color: colors.textSecondary }]}>FLOOR</Text>
-            <Text style={[styles.passDetailValue, { color: colors.text }]}>Floor {selectedSlot?.floor || '1'}</Text>
+            <Text style={[styles.passDetailValue, { color: colors.text }]}>Floor {propSlot?.floor || booking?.floor || '1'}</Text>
           </View>
           <View style={styles.passDetailBlock}>
             <Text style={[styles.passDetailLabel, { color: colors.textSecondary }]}>DURATION</Text>
-            <Text style={[styles.passDetailValue, { color: colors.text }]}>{duration} Hours</Text>
+            <Text style={[styles.passDetailValue, { color: colors.text }]}>{durationText} Hours</Text>
           </View>
         </View>
 
