@@ -349,14 +349,17 @@ export default function DashboardScreen() {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({});
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
           setUserLocation({
             latitude: loc.coords.latitude,
             longitude: loc.coords.longitude,
           });
+        } else {
+          setUserLocation({ latitude: 28.4744, longitude: 77.5040 });
         }
       } catch (err) {
         console.warn('Error getting user location in index.tsx:', err);
+        setUserLocation({ latitude: 28.4744, longitude: 77.5040 });
       }
     })();
   }, []);

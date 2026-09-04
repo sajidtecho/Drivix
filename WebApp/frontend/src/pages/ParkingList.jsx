@@ -32,26 +32,47 @@ const ParkingList = () => {
   // Booking Mode: Mode 1 (FUTURE_MANUAL) vs Mode 2 (INSTANT_NEARBY)
   const [bookingMode, setBookingMode] = useState('INSTANT_NEARBY');
 
-  const nearestInstantMatch = React.useMemo(() => {
-    if (!locations || locations.length === 0) return null;
-    const activeHubs = locations.filter(l => l.status !== 'Inactive' && l.status !== 'Pending');
-    return activeHubs.length > 0 ? activeHubs[0] : locations[0];
-  }, [locations]);
-
+  // Real-time browser live location tracking with fallback
   React.useEffect(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
+      const updatePos = (pos) => {
+        if (pos?.coords?.latitude && pos?.coords?.longitude) {
           setUserCoords({
             latitude: pos.coords.latitude,
             longitude: pos.coords.longitude
           });
-        },
-        (err) => {
-          console.warn("Unable to fetch user location for distance calculation:", err);
-        },
-        { enableHighAccuracy: true }
-      );
+        }
+      };
+
+      const handleErr = (err) => {
+        console.warn("High accuracy browser location fallback triggered:", err);
+        // Fallback to standard accuracy
+        navigator.geolocation.getCurrentPosition(
+          updatePos,
+          (err2) => {
+            console.warn("Unable to fetch user location:", err2);
+            // Default reference location (Greater Noida / Knowledge Park II region)
+            setUserCoords({ latitude: 28.4744, longitude: 77.5040 });
+          },
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+        );
+      };
+
+      navigator.geolocation.getCurrentPosition(updatePos, handleErr, {
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 10000
+      });
+
+      const watchId = navigator.geolocation.watchPosition(updatePos, handleErr, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 10000
+      });
+
+      return () => navigator.geolocation.clearWatch(watchId);
+    } else {
+      setUserCoords({ latitude: 28.4744, longitude: 77.5040 });
     }
   }, []);
 
@@ -70,12 +91,12 @@ const ParkingList = () => {
         Math.sin(dLon / 2);
         
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
-    
-    return distance;
+    return R * c; // Distance in km
   };
 
   const getDistanceText = (loc) => {
+    if (!loc) return '1.1 km';
+    if (loc.computedDistanceText) return loc.computedDistanceText;
     if (!userCoords || !loc.latitude || !loc.longitude) {
       return loc.distance || '1.1 km';
     }
@@ -129,7 +150,39 @@ const ParkingList = () => {
     fetchLocations();
   }, []);
 
+  // Process and sort parking locations by exact live distance (closest first)
+  const processedLocations = React.useMemo(() => {
+    if (!locations || locations.length === 0) return [];
+    
+    return [...locations]
+      .map((loc) => {
+        const lat = Number(loc.latitude);
+        const lon = Number(loc.longitude);
+        let km = null;
+        if (userCoords && lat && lon) {
+          km = calculateDistance(userCoords.latitude, userCoords.longitude, lat, lon);
+        }
+        
+        let formattedDist = loc.distance || '1.1 km';
+        if (km !== null) {
+          formattedDist = km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+        }
 
+        return {
+          ...loc,
+          distanceVal: km !== null ? km : 99999,
+          computedDistanceText: formattedDist
+        };
+      })
+      .sort((a, b) => a.distanceVal - b.distanceVal);
+  }, [locations, userCoords]);
+
+  // Nearest instant match picked dynamically from live location-sorted active facilities
+  const nearestInstantMatch = React.useMemo(() => {
+    if (!processedLocations || processedLocations.length === 0) return null;
+    const activeHubs = processedLocations.filter(l => l.status !== 'Inactive' && l.status !== 'Pending');
+    return activeHubs.length > 0 ? activeHubs[0] : processedLocations[0];
+  }, [processedLocations]);
 
   const matchesSearch = (text, query) => {
     if (!text) return false;
@@ -149,7 +202,7 @@ const ParkingList = () => {
     return lowerText.includes(lowerQuery);
   };
 
-  const filtered = locations.filter((p) =>
+  const filtered = processedLocations.filter((p) =>
     matchesSearch(p.name, search) || matchesSearch(p.address, search)
   );
 
@@ -244,7 +297,7 @@ const ParkingList = () => {
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: '1rem' }}>
-                {nearestInstantMatch.price}
+                ₹{nearestInstantMatch.pricePerHr || nearestInstantMatch.hourlyPrice || 20}/hr
               </span>
               <button
                 onClick={() => navigate(`/slot-layout/${nearestInstantMatch.id}`)}
@@ -298,11 +351,11 @@ const ParkingList = () => {
 
         {/* Stats row */}
         <motion.div variants={itemVariants} style={{ display: 'flex', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
-          {[{ label: 'Locations', value: locations.length, Icon: MapPin },
-            { label: 'Total Slots', value: locations.reduce((a, p) => a + (p.totalSlots || 0), 0), Icon: Car },
+          {[{ label: 'Locations', value: processedLocations.length, Icon: MapPin },
+            { label: 'Total Slots', value: processedLocations.reduce((a, p) => a + (p.totalSlots || 0), 0), Icon: Car },
             { 
               label: 'Available', 
-              value: locations.reduce((a, p) => a + (p.availableSlots || 0), 0), 
+              value: processedLocations.reduce((a, p) => a + (p.availableSlots || 0), 0), 
               Icon: Zap 
             }
           ].map((stat) => (
