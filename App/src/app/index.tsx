@@ -19,7 +19,6 @@ import QRPacketPass from '@/components/drivix/QRPacketPass';
 import ActiveBookingBanner from '@/components/drivix/ActiveBookingBanner';
 import GarageCard from '@/components/drivix/GarageCard';
 import QuickServicesGrid from '@/components/drivix/QuickServicesGrid';
-import CarDealsCarousel from '@/components/drivix/CarDealsCarousel';
 import EVChargingCard from '@/components/drivix/EVChargingCard';
 import FASTagAlertCard from '@/components/drivix/FASTagAlertCard';
 import VoiceAssistantModal from '@/components/drivix/VoiceAssistantModal';
@@ -1130,9 +1129,6 @@ export default function DashboardScreen() {
                   dragHandlePanHandlers={dragHandlePanResponder.panHandlers}
                   colors={colors}
                 />
-
-                {/* ── Buy Your Dream Car Section ── */}
-                <CarDealsCarousel />
 
                 <AdCarousel />
               </View>
