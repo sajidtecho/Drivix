@@ -31,48 +31,40 @@ const ParkingLocationSchema = new mongoose.Schema({
   },
   pincode: {
     type: String,
-    required: [true, 'Pincode is required'],
-    match: [/^\d{6}$/, 'Pincode must be exactly 6 digits']
+    default: null,
+    trim: true
   },
   latitude: {
     type: Number,
-    required: [true, 'Latitude is required'],
-    min: [-90, 'Latitude must be between -90 and 90'],
-    max: [90, 'Latitude must be between -90 and 90']
+    default: null
   },
   longitude: {
     type: Number,
-    required: [true, 'Longitude is required'],
-    min: [-180, 'Longitude must be between -180 and 180'],
-    max: [180, 'Longitude must be between -180 and 180']
+    default: null
   },
   openingTime: {
     type: String,
-    required: [true, 'Opening time is required']
+    default: null
   },
   closingTime: {
     type: String,
-    required: [true, 'Closing time is required']
+    default: null
   },
   totalFloors: {
     type: Number,
-    required: [true, 'Total floors is required'],
-    min: [1, 'Must have at least 1 floor']
+    default: null
   },
   totalSlots: {
     type: Number,
-    required: [true, 'Total slots is required'],
-    min: [0, 'Slots cannot be negative']
+    default: null
   },
   availableSlots: {
     type: Number,
-    required: [true, 'Available slots is required'],
-    min: [0, 'Slots cannot be negative']
+    default: null
   },
   hourlyPrice: {
     type: Number,
-    required: [true, 'Hourly price is required'],
-    min: [0, 'Price cannot be negative']
+    default: null
   },
   amenities: {
     type: [String],
@@ -84,13 +76,13 @@ const ParkingLocationSchema = new mongoose.Schema({
   },
   floors: {
     type: [String],
-    default: ['L1']
+    default: []
   },
   status: {
     type: String,
     enum: {
-      values: ['Active', 'Inactive'],
-      message: 'Status must be either Active or Inactive'
+      values: ['Active', 'Inactive', 'Pending'],
+      message: 'Status must be Active, Inactive, or Pending'
     },
     default: 'Active'
   }
@@ -100,12 +92,11 @@ const ParkingLocationSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// ParkingLocation → Floors (One to Many Virtual)
 ParkingLocationSchema.virtual('floorsList', {
   ref: 'ParkingFloor',
   localField: '_id',
   foreignField: 'parkingId'
 });
 
-const ParkingLocation = mongoose.model('ParkingLocation', ParkingLocationSchema);
+const ParkingLocation = mongoose.models.ParkingLocation || mongoose.model('ParkingLocation', ParkingLocationSchema, 'parkinglocations');
 export default ParkingLocation;
