@@ -4,8 +4,8 @@ import { Car, Zap, AlertTriangle, X } from 'lucide-react-native';
 import { RegisteredVehicle, UserProfile, DocumentComplianceStatus } from '@/types/user';
 
 interface GarageCardProps {
-  primaryVehicle: RegisteredVehicle;
-  user: UserProfile | null;
+  primaryVehicle: RegisteredVehicle | any;
+  user: UserProfile | any;
   getDocumentCompliance: (type: 'DL' | 'PUC') => DocumentComplianceStatus;
   onNavigateToTab: (webRoute: string) => void;
   onDismiss: () => void;

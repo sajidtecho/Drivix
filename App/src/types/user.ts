@@ -1,6 +1,6 @@
 export interface UserDocument {
   id?: string;
-  type: 'DL' | 'PUC' | 'RC' | 'INSURANCE';
+  type: 'DL' | 'PUC' | 'RC' | 'INSURANCE' | string;
   documentNumber?: string;
   expiryDate?: string; // DD/MM/YYYY
   fileUrl?: string;
@@ -16,12 +16,12 @@ export interface DocumentComplianceStatus {
 }
 
 export interface RegisteredVehicle {
-  id: string;
+  id?: string;
   _id?: string;
   plate: string;
   vehicleNumber?: string;
   model: string;
-  type: 'car' | 'bike' | 'ev' | 'truck';
+  type?: 'car' | 'bike' | 'ev' | 'truck' | string;
   brand?: string;
   isPrimary?: boolean;
   fastagBalance?: number;
@@ -46,10 +46,12 @@ export interface UserProfile {
   _id?: string;
   name: string;
   email: string;
-  phone?: string;
+  mobile?: string;
+  city?: string;
   role?: string;
   walletBalance?: number;
   documents?: UserDocument[];
   vehicles?: RegisteredVehicle[];
   avatarUrl?: string;
+  isProfileCompleted?: boolean;
 }

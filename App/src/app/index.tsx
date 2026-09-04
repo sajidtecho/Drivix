@@ -25,6 +25,7 @@ import ParkingHubsScreen from './parking-hubs';
 import DriverHubScreen from './driver-hub';
 import ChallanScreen from './challan';
 import * as Location from 'expo-location';
+import { setWebHeaderVisible } from '@/components/navigation-stubs';
 
 import { useTheme } from '@/hooks/use-theme';
 import { useActiveBooking } from '@/hooks/useActiveBooking';
