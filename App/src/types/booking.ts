@@ -1,4 +1,4 @@
-export type WizardStep = 'MAP' | 'SLOTS' | 'CHECKOUT' | 'PASS' | 'PARKING_HUBS' | 'DRIVER_HUB' | 'CHALLAN' | 'EV_CHARGING';
+export type WizardStep = 'MAP' | 'SLOTS' | 'CHECKOUT' | 'PASS' | 'PARKING_HUBS' | 'DRIVER_HUB' | 'CHALLAN' | 'EV_CHARGING' | 'EMERGENCY';
 
 export interface ParkingSlot {
   id: string;

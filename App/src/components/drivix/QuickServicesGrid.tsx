@@ -18,7 +18,7 @@ const SERVICES_LIST = [
   { label: 'EV Charging', sub: 'Power up', icon: Zap, color: '#10b981', route: '/ev-charging' },
   { label: 'Car Wash', sub: 'Sparkle clean', icon: Droplet, color: '#60a5fa', route: '/explore' },
   { label: 'Driver Hub', sub: 'Expert drivers', icon: User, color: '#f87171', route: '/driver-hub' },
-  { label: 'Emergency', sub: 'SOS Support', icon: PhoneCall, color: '#ef4444', route: '/explore' },
+  { label: 'Emergency', sub: 'SOS Support', icon: PhoneCall, color: '#ef4444', route: '/emergency' },
   { label: 'Towing', sub: 'Roadside Help', icon: Truck, color: '#f59e0b', route: '/explore' },
 ];
 

@@ -28,6 +28,7 @@ import ParkingHubsScreen from './parking-hubs';
 import DriverHubScreen from './driver-hub';
 import ChallanScreen from './challan';
 import EVChargingScreen from './ev-charging';
+import EmergencyScreen from './emergency';
 import * as Location from 'expo-location';
 import { setWebHeaderVisible } from '@/components/navigation-stubs';
 
@@ -1124,6 +1125,8 @@ export default function DashboardScreen() {
                       setStep('CHALLAN');
                     } else if (label === 'EV Charging') {
                       setStep('EV_CHARGING');
+                    } else if (label === 'Emergency') {
+                      setStep('EMERGENCY');
                     } else {
                       handleNavigateToTab(route);
                     }
@@ -1222,6 +1225,13 @@ export default function DashboardScreen() {
         <EVChargingScreen
           onBack={() => setStep('MAP')}
           vehicleModel={primaryVehicle?.model || 'Tata Nexon EV Max'}
+        />
+      )}
+
+      {/* -------------------- STEP 8: EMERGENCY SOS EXPERIENCE -------------------- */}
+      {step === 'EMERGENCY' && (
+        <EmergencyScreen
+          onBack={() => setStep('MAP')}
         />
       )}
 
