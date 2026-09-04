@@ -29,6 +29,15 @@ const ParkingList = () => {
   const [loading, setLoading] = useState(true);
   const [userCoords, setUserCoords] = React.useState(null);
 
+  // Booking Mode: Mode 1 (FUTURE_MANUAL) vs Mode 2 (INSTANT_NEARBY)
+  const [bookingMode, setBookingMode] = useState('INSTANT_NEARBY');
+
+  const nearestInstantMatch = React.useMemo(() => {
+    if (!locations || locations.length === 0) return null;
+    const activeHubs = locations.filter(l => l.status !== 'Inactive' && l.status !== 'Pending');
+    return activeHubs.length > 0 ? activeHubs[0] : locations[0];
+  }, [locations]);
+
   React.useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -179,7 +188,79 @@ const ParkingList = () => {
           </p>
         </motion.div>
 
-        {/* Search */}
+        {/* Mode 1 & Mode 2 Booking Mode Switcher */}
+        <motion.div variants={itemVariants} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+          <button
+            onClick={() => { setBookingMode('INSTANT_NEARBY'); setSearch(''); }}
+            style={{
+              flex: 1, padding: '12px 16px', borderRadius: '14px', border: '1px solid',
+              borderColor: bookingMode === 'INSTANT_NEARBY' ? '#10b981' : 'rgba(255,255,255,0.1)',
+              background: bookingMode === 'INSTANT_NEARBY' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.03)',
+              color: bookingMode === 'INSTANT_NEARBY' ? '#10b981' : 'var(--text-secondary)',
+              fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Zap size={16} color={bookingMode === 'INSTANT_NEARBY' ? '#10b981' : 'var(--text-secondary)'} />
+            Instant Park (Live GPS)
+          </button>
+
+          <button
+            onClick={() => setBookingMode('FUTURE_MANUAL')}
+            style={{
+              flex: 1, padding: '12px 16px', borderRadius: '14px', border: '1px solid',
+              borderColor: bookingMode === 'FUTURE_MANUAL' ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)',
+              background: bookingMode === 'FUTURE_MANUAL' ? 'rgba(250, 255, 0, 0.15)' : 'rgba(255,255,255,0.03)',
+              color: bookingMode === 'FUTURE_MANUAL' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <MapPin size={16} color={bookingMode === 'FUTURE_MANUAL' ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
+            Future Trip (Search Address)
+          </button>
+        </motion.div>
+
+        {/* Mode 2: Live GPS Recommendation Card */}
+        {bookingMode === 'INSTANT_NEARBY' && nearestInstantMatch && (
+          <motion.div variants={itemVariants} className="glass-panel" style={{
+            padding: '20px', borderRadius: '20px', marginBottom: '28px',
+            border: '1.5px solid rgba(16, 185, 129, 0.4)', background: 'rgba(10, 13, 22, 0.85)',
+            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#10b981', letterSpacing: '1px', background: 'rgba(16, 185, 129, 0.12)', padding: '4px 10px', borderRadius: '20px' }}>
+                ⚡ LIVE GPS NEAREST MATCH
+              </span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#00f2ff' }}>
+                {getDistanceText(nearestInstantMatch)} away
+              </span>
+            </div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff', marginBottom: '4px' }}>
+              {nearestInstantMatch.name}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '16px' }}>
+              {nearestInstantMatch.address}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: '1rem' }}>
+                {nearestInstantMatch.price}
+              </span>
+              <button
+                onClick={() => navigate(`/slot-layout/${nearestInstantMatch.id}`)}
+                style={{
+                  background: '#10b981', color: '#000', border: 'none',
+                  padding: '10px 24px', borderRadius: '14px', fontWeight: 900,
+                  cursor: 'pointer', fontSize: '0.85rem', letterSpacing: '0.5px'
+                }}
+              >
+                INSTANT PARK HERE NOW
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Search Bar */}
         <motion.div variants={itemVariants} style={{ marginBottom: '32px' }}>
           <div className="glass-panel" style={{
             display: 'flex', alignItems: 'center', gap: '14px',
