@@ -27,6 +27,7 @@ import LoginBottomSheet from '@/components/LoginBottomSheet';
 import ParkingHubsScreen from './parking-hubs';
 import DriverHubScreen from './driver-hub';
 import ChallanScreen from './challan';
+import EVChargingScreen from './ev-charging';
 import * as Location from 'expo-location';
 import { setWebHeaderVisible } from '@/components/navigation-stubs';
 
@@ -1121,6 +1122,8 @@ export default function DashboardScreen() {
                       setStep('DRIVER_HUB');
                     } else if (label === 'Challan') {
                       setStep('CHALLAN');
+                    } else if (label === 'EV Charging') {
+                      setStep('EV_CHARGING');
                     } else {
                       handleNavigateToTab(route);
                     }
@@ -1211,6 +1214,14 @@ export default function DashboardScreen() {
         <ChallanScreen
           onBack={() => setStep('MAP')}
           initialVehicleNumber={heroVehicleNumber}
+        />
+      )}
+
+      {/* -------------------- STEP 7: EV CHARGING TELEMETRY EXPERIENCE -------------------- */}
+      {step === 'EV_CHARGING' && (
+        <EVChargingScreen
+          onBack={() => setStep('MAP')}
+          vehicleModel={primaryVehicle?.model || 'Tata Nexon EV Max'}
         />
       )}
 
