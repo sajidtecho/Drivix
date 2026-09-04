@@ -32,6 +32,12 @@ export const QuickServicesGrid: React.FC<QuickServicesGridProps> = ({
 }) => {
   const visibleServices = SERVICES_LIST.slice(0, isServicesExpanded ? 8 : 4);
 
+  // Chunk services into pairs of 2 per row
+  const rows = [];
+  for (let i = 0; i < visibleServices.length; i += 2) {
+    rows.push(visibleServices.slice(i, i + 2));
+  }
+
   return (
     <View style={styles.servicesSection} {...panHandlers}>
       <View style={styles.servicesHeader}>
@@ -46,36 +52,41 @@ export const QuickServicesGrid: React.FC<QuickServicesGridProps> = ({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.capsuleGrid}>
-        {visibleServices.map((svc) => {
-          const IconComp = svc.icon;
-          return (
-            <TouchableOpacity
-              key={svc.label}
-              style={[
-                styles.serviceCapsule,
-                {
-                  backgroundColor: colors.backgroundElement,
-                  borderColor: colors.borderGlass,
-                },
-              ]}
-              onPress={() => onSelectService(svc.label, svc.route)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.serviceIconCircle, { backgroundColor: `${svc.color}18` }]}>
-                <IconComp size={18} color={svc.color} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.serviceCapsuleLabel, { color: colors.text }]} numberOfLines={1}>
-                  {svc.label}
-                </Text>
-                <Text style={[styles.serviceCapsuleSub, { color: colors.textSecondary }]} numberOfLines={1}>
-                  {svc.sub}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+      <View style={styles.gridContainer}>
+        {rows.map((rowItems, rowIndex) => (
+          <View key={rowIndex} style={styles.serviceRow}>
+            {rowItems.map((svc) => {
+              const IconComp = svc.icon;
+              return (
+                <TouchableOpacity
+                  key={svc.label}
+                  style={[
+                    styles.serviceCapsule,
+                    {
+                      backgroundColor: colors.backgroundElement,
+                      borderColor: colors.borderGlass,
+                    },
+                  ]}
+                  onPress={() => onSelectService(svc.label, svc.route)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.serviceIconCircle, { backgroundColor: `${svc.color}18` }]}>
+                    <IconComp size={18} color={svc.color} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.serviceCapsuleLabel, { color: colors.text }]} numberOfLines={1}>
+                      {svc.label}
+                    </Text>
+                    <Text style={[styles.serviceCapsuleSub, { color: colors.textSecondary }]} numberOfLines={1}>
+                      {svc.sub}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+            {rowItems.length === 1 && <View style={{ flex: 1 }} />}
+          </View>
+        ))}
       </View>
 
       {/* Interactive One UI Drag Pill */}
@@ -109,14 +120,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-  capsuleGrid: {
+  gridContainer: {
+    flexDirection: 'column',
+  },
+  serviceRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     gap: 10,
+    marginBottom: 10,
   },
   serviceCapsule: {
-    width: '48.5%',
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
