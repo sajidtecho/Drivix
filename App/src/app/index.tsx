@@ -819,9 +819,9 @@ export default function DashboardScreen() {
                     }}
                     activeOpacity={0.8}
                   >
-                    <Zap size={13} color={bookingMode === 'INSTANT_NEARBY' ? '#000000' : '#10b981'} />
-                    <Text style={[styles.bookingModeText, bookingMode === 'INSTANT_NEARBY' && styles.bookingModeTextActive]}>
-                      Instant Park (Live GPS)
+                    <Zap size={14} color={bookingMode === 'INSTANT_NEARBY' ? '#000000' : '#10b981'} />
+                    <Text numberOfLines={1} style={[styles.bookingModeText, bookingMode === 'INSTANT_NEARBY' && styles.bookingModeTextActive]}>
+                      Instant Park
                     </Text>
                   </TouchableOpacity>
 
@@ -833,9 +833,9 @@ export default function DashboardScreen() {
                     onPress={() => setBookingMode('FUTURE_MANUAL')}
                     activeOpacity={0.8}
                   >
-                    <MapPin size={13} color={bookingMode === 'FUTURE_MANUAL' ? '#000000' : '#ffce00'} />
-                    <Text style={[styles.bookingModeText, bookingMode === 'FUTURE_MANUAL' && styles.bookingModeTextActive]}>
-                      Future Trip (Search Address)
+                    <MapPin size={14} color={bookingMode === 'FUTURE_MANUAL' ? '#000000' : '#ffce00'} />
+                    <Text numberOfLines={1} style={[styles.bookingModeText, bookingMode === 'FUTURE_MANUAL' && styles.bookingModeTextActive]}>
+                      Future Trip
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -1356,32 +1356,39 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   bookingModeContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(21, 22, 30, 0.65)',
-    padding: 4,
-    borderRadius: 16,
+    backgroundColor: '#121624',
+    padding: 5,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     marginHorizontal: 16,
-    marginTop: 10,
-    marginBottom: 12,
-    gap: 6,
+    marginTop: 12,
+    marginBottom: 16,
+    gap: 8,
   },
   bookingModeTab: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 9,
-    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 15,
     gap: 6,
   },
   bookingModeTabActive: {
     backgroundColor: '#ffce00',
+    shadowColor: '#ffce00',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
   },
   bookingModeText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#8a959e',
+    color: '#94a3b8',
+    letterSpacing: -0.1,
   },
   bookingModeTextActive: {
     color: '#000000',
