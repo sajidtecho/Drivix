@@ -35,7 +35,7 @@ export default function DashboardScreen() {
   const { user, isAuthenticated, refreshProfile } = useAuth();
   const colors = useTheme();
 
-  const getDocumentCompliance = (type: 'DL' | 'PUC') => {
+  const getDocumentCompliance = (type: 'DL' | 'PUC'): DocumentComplianceStatus => {
     if (!user || !user.documents) {
       return {
         status: type === 'PUC' ? 'PUC Missing' : 'DL Missing',
