@@ -20,6 +20,8 @@ import ActiveBookingBanner from '@/components/drivix/ActiveBookingBanner';
 import GarageCard from '@/components/drivix/GarageCard';
 import QuickServicesGrid from '@/components/drivix/QuickServicesGrid';
 import CarDealsCarousel from '@/components/drivix/CarDealsCarousel';
+import EVChargingCard from '@/components/drivix/EVChargingCard';
+import FASTagAlertCard from '@/components/drivix/FASTagAlertCard';
 import LoginBottomSheet from '@/components/LoginBottomSheet';
 import ParkingHubsScreen from './parking-hubs';
 import DriverHubScreen from './driver-hub';
@@ -715,6 +717,22 @@ export default function DashboardScreen() {
                     activeBooking={activeBooking}
                     timeLeft={activeBookingTimeLeft}
                     onPressPass={() => setStep('PASS')}
+                    colors={colors}
+                  />
+                )}
+
+                {/* ── Low FASTag Balance Warning Card ── */}
+                <FASTagAlertCard
+                  balance={user?.walletBalance ?? 0}
+                  vehicleNumber={primaryVehicle?.plate}
+                  onReloadSuccess={refreshProfile}
+                  colors={colors}
+                />
+
+                {/* ── EV Charging Live Telemetry Card ── */}
+                {primaryVehicle && (primaryVehicle.type === 'ev' || primaryVehicle.model?.toLowerCase().includes('ev') || primaryVehicle.plate?.toLowerCase().includes('ev')) && (
+                  <EVChargingCard
+                    vehicleModel={primaryVehicle.model}
                     colors={colors}
                   />
                 )}
