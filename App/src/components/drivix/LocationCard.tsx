@@ -11,17 +11,31 @@ interface LocationCardProps {
 }
 
 export default function LocationCard({ location, onSelect, isNearest }: LocationCardProps) {
-  const freeSlots = location.totalSlots - (location.bookedSlots || 0);
+  const freeSlots =
+    location.availableSlots !== null && location.availableSlots !== undefined
+      ? location.availableSlots
+      : (location.totalSlots || 0) - (location.bookedSlots || 0);
+
+  const isUnavailable = location.status === 'Inactive' || location.status === 'Pending';
+  const priceDisplay =
+    location.hourlyPrice !== null && location.hourlyPrice !== undefined && location.hourlyPrice > 0
+      ? `Rs. ${location.hourlyPrice}/hr`
+      : location.status === 'Pending'
+      ? 'Under Review'
+      : 'Flat / N/A';
+
   const colors = useTheme();
 
   return (
-    <View style={[
-      styles.locationCard,
-      {
-        backgroundColor: 'rgba(21, 22, 30, 0.65)',
-        borderColor: isNearest ? 'rgba(255, 206, 0, 0.3)' : 'rgba(255, 255, 255, 0.06)',
-      }
-    ]}>
+    <View
+      style={[
+        styles.locationCard,
+        {
+          backgroundColor: 'rgba(21, 22, 30, 0.65)',
+          borderColor: isNearest ? 'rgba(255, 206, 0, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+        },
+      ]}
+    >
       <View style={styles.locationInfo}>
         <Text style={[styles.locationName, { color: colors.text }]}>{location.parkingName}</Text>
         <Text style={[styles.locationAddress, { color: colors.textSecondary }]}>{location.address}</Text>
@@ -39,14 +53,21 @@ export default function LocationCard({ location, onSelect, isNearest }: Location
           )}
           <View style={styles.pillBadge}>
             <Clock size={12} color="#ffce00" />
-            <Text style={styles.pillText}>{freeSlots} Free</Text>
+            <Text style={styles.pillText}>{location.availableSlots === null ? 'TBD' : `${freeSlots} Free`}</Text>
           </View>
         </View>
       </View>
       <View style={styles.locationAction}>
-        <Text style={styles.priceText}>Rs. {location.hourlyPrice}/hr</Text>
-        <TouchableOpacity style={styles.selectBtn} onPress={() => onSelect(location)} activeOpacity={0.85}>
-          <Text style={styles.selectBtnText}>Book Now</Text>
+        <Text style={styles.priceText}>{priceDisplay}</Text>
+        <TouchableOpacity
+          style={[styles.selectBtn, isUnavailable && { backgroundColor: '#334155' }]}
+          onPress={() => onSelect(location)}
+          disabled={isUnavailable}
+          activeOpacity={0.85}
+        >
+          <Text style={[styles.selectBtnText, isUnavailable && { color: '#94a3b8' }]}>
+            {location.status === 'Inactive' ? 'Closed' : location.status === 'Pending' ? 'Pending' : 'Book Now'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
