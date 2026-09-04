@@ -1,12 +1,13 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Platform, Linking, Alert } from 'react-native';
-import { MapPin, ArrowRight, Navigation, Camera } from 'lucide-react-native';
+import { MapPin, ArrowRight, Navigation, Camera, Compass } from 'lucide-react-native';
 import { Booking } from '@/types/booking';
 
 interface ActiveBookingBannerProps {
   activeBooking: Booking;
   timeLeft: string;
   onPressPass: () => void;
+  onPressAR?: () => void;
   colors: any;
 }
 
@@ -14,6 +15,7 @@ export const ActiveBookingBanner: React.FC<ActiveBookingBannerProps> = ({
   activeBooking,
   timeLeft,
   onPressPass,
+  onPressAR,
   colors,
 }) => {
   if (!activeBooking) return null;
@@ -68,6 +70,13 @@ export const ActiveBookingBanner: React.FC<ActiveBookingBannerProps> = ({
         </View>
 
         <View style={styles.actionsGroup}>
+          {onPressAR && (
+            <TouchableOpacity style={styles.arButton} onPress={onPressAR}>
+              <Compass size={13} color="#ffce00" />
+              <Text style={styles.arButtonText}>AR Nav</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity style={styles.navButton} onPress={handleNavigateToGate}>
             <Navigation size={13} color="#00cc6a" />
           </TouchableOpacity>
