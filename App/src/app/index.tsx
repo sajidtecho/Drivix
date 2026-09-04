@@ -803,53 +803,12 @@ export default function DashboardScreen() {
 
                 {/* ── Active Session / Reservation Widget ── */}
                 {activeBooking && (
-                  <View style={[styles.activeSessionCard, { backgroundColor: 'rgba(21, 22, 30, 0.65)', borderColor: colors.primary, borderWidth: 1.5 }]}>
-                    <View style={styles.sessionHeader}>
-                      <Text style={[styles.sessionTitle, { color: colors.text }]}>Active Parking Session</Text>
-                      <View style={styles.sessionPulse} />
-                    </View>
-                    <View style={styles.sessionRow}>
-                      <View style={styles.sessionDetails}>
-                        <Text style={[styles.sessionHubName, { color: colors.text }]}>{activeBooking.locationName}</Text>
-                        <Text style={[styles.sessionSlotText, { color: colors.textSecondary }]}>Slot {activeBooking.slotId} • Floor {activeBooking.floor}</Text>
-                      </View>
-                      <View style={styles.sessionTimer}>
-                        <Text style={styles.sessionTimerLabel}>Time Remaining</Text>
-                        <Text style={[styles.sessionTimerVal, activeBookingTimeLeft === 'EXPIRED' && { color: '#ff4b4b' }]}>{activeBookingTimeLeft}</Text>
-                      </View>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-                      <TouchableOpacity
-                        style={[styles.sessionManageBtn, { flex: 1, backgroundColor: colors.primary }]}
-                        onPress={() => handleNavigateToTab('/explore?tab=bookings')}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={styles.sessionManageBtnText}>Manage Booking</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.sessionManageBtn, { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', borderColor: colors.borderGlass, borderWidth: 1 }]}
-                        onPress={() => {
-                          const lat = activeBooking.locationId?.latitude;
-                          const lon = activeBooking.locationId?.longitude;
-                          if (lat !== undefined && lon !== undefined) {
-                            const url = Platform.select({
-                              ios: `maps://app?daddr=${lat},${lon}`,
-                              android: `google.navigation:q=${lat},${lon}`,
-                              default: `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
-                            });
-                            Linking.openURL(url).catch(() => {
-                              Alert.alert('Error', 'Unable to launch map application.');
-                            });
-                          } else {
-                            Alert.alert('Navigation Error', 'Location coordinates not available for this booking.');
-                          }
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={[styles.sessionManageBtnText, { color: colors.text }]}>Navigate</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+                  <ActiveBookingBanner
+                    activeBooking={activeBooking}
+                    timeLeft={activeBookingTimeLeft}
+                    onPressPass={() => setStep('PASS')}
+                    colors={colors}
+                  />
                 )}
 
                 {/* ── Pending Slot Reservation Widget (Soft Lock) ── */}
@@ -949,108 +908,14 @@ export default function DashboardScreen() {
 
                 {/* ── My Garage compliance status ── */}
                 {isAuthenticated && primaryVehicle && isGarageCardVisible && (
-                  <View style={[styles.garageContainer, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
-                    <View style={styles.garageHeader}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                        <Car size={16} color={colors.primary} />
-                        <Text style={[styles.garageTitle, { color: colors.text }]} numberOfLines={1}>{primaryVehicle.model}</Text>
-                        <Text style={[styles.garagePlate, { color: colors.textSecondary }]}>{primaryVehicle.plate}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                        <TouchableOpacity onPress={() => handleNavigateToTab('/explore?tab=vehicles')}>
-                          <Text style={[styles.garageLink, { color: colors.primary }]}>Manage</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={handleDismissGarageCard} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                          <X size={16} color={colors.textSecondary} />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                    <View style={styles.complianceRow}>
-                      {/* FASTag capsule */}
-                      <TouchableOpacity
-                        style={[
-                          styles.complianceBadge,
-                          {
-                            backgroundColor: (user?.walletBalance ?? 0) < 150 ? 'rgba(255, 75, 75, 0.08)' : 'rgba(0, 204, 106, 0.08)',
-                            borderColor: (user?.walletBalance ?? 0) < 150 ? 'rgba(255, 75, 75, 0.15)' : 'rgba(0, 204, 106, 0.15)'
-                          }
-                        ]}
-                        onPress={() => handleNavigateToTab('/explore?tab=fastag')}
-                        activeOpacity={0.8}
-                      >
-                        <Zap size={11} color={(user?.walletBalance ?? 0) < 150 ? '#ff4b4b' : '#00cc6a'} />
-                        <Text style={[styles.complianceText, { color: (user?.walletBalance ?? 0) < 150 ? '#ff4b4b' : '#00cc6a' }]}>
-                          FASTag: Rs. {user?.walletBalance ?? 0}
-                        </Text>
-                      </TouchableOpacity>
-
-                      {/* Challans capsule (semi-mocked for high fidelity) */}
-                      <TouchableOpacity
-                        style={[
-                          styles.complianceBadge,
-                          {
-                            backgroundColor: (primaryVehicle.plate.charCodeAt(primaryVehicle.plate.length - 1) % 2 !== 0) ? 'rgba(255, 206, 0, 0.08)' : 'rgba(0, 204, 106, 0.08)',
-                            borderColor: (primaryVehicle.plate.charCodeAt(primaryVehicle.plate.length - 1) % 2 !== 0) ? 'rgba(255, 206, 0, 0.15)' : 'rgba(0, 204, 106, 0.15)'
-                          }
-                        ]}
-                        onPress={() => handleNavigateToTab('/explore?tab=bookings')}
-                        activeOpacity={0.8}
-                      >
-                        <AlertTriangle size={11} color={(primaryVehicle.plate.charCodeAt(primaryVehicle.plate.length - 1) % 2 !== 0) ? '#ffce00' : '#00cc6a'} />
-                        <Text style={[styles.complianceText, { color: (primaryVehicle.plate.charCodeAt(primaryVehicle.plate.length - 1) % 2 !== 0) ? '#ffce00' : '#00cc6a' }]}>
-                          {(primaryVehicle.plate.charCodeAt(primaryVehicle.plate.length - 1) % 2 !== 0) ? '1 Challan' : '0 Challans'}
-                        </Text>
-                      </TouchableOpacity>
-
-                      {/* PUC capsule */}
-                      {(() => {
-                        const compliance = getDocumentCompliance('PUC');
-                        const Icon = compliance.icon;
-                        return (
-                          <TouchableOpacity
-                            style={[
-                              styles.complianceBadge,
-                              {
-                                backgroundColor: compliance.bgColor,
-                                borderColor: compliance.borderColor
-                              }
-                            ]}
-                            onPress={() => handleNavigateToTab('/explore?tab=documents')}
-                            activeOpacity={0.8}
-                          >
-                            <Icon size={11} color={compliance.color} />
-                            <Text style={[styles.complianceText, { color: compliance.color }]}>
-                              {compliance.status}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })()}
-
-                      {/* Driving Licence (DL) capsule */}
-                      {(() => {
-                        const compliance = getDocumentCompliance('DL');
-                        const Icon = compliance.icon;
-                        return (
-                          <TouchableOpacity
-                            style={[
-                              styles.complianceBadge,
-                              {
-                                backgroundColor: compliance.bgColor,
-                                borderColor: compliance.borderColor
-                              }
-                            ]}
-                            onPress={() => handleNavigateToTab('/explore?tab=documents')}
-                            activeOpacity={0.8}
-                          >
-                            <Icon size={11} color={compliance.color} />
-                            <Text style={[styles.complianceText, { color: compliance.color }]}>
-                              {compliance.status}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })()}
-                    </View>
-                  </View>
+                  <GarageCard
+                    primaryVehicle={primaryVehicle}
+                    user={user}
+                    getDocumentCompliance={getDocumentCompliance}
+                    onNavigateToTab={handleNavigateToTab}
+                    onDismiss={handleDismissGarageCard}
+                    colors={colors}
+                  />
                 )}
 
                 {/* Hero Section */}
@@ -1299,185 +1164,27 @@ export default function DashboardScreen() {
                 </View>
 
                 {/* ── Our Services Capsule Grid ── */}
-                <View
-                  style={styles.servicesSection}
-                  {...panResponder.panHandlers}
-                >
-                  <View style={styles.servicesHeader}>
-                    <Text style={[styles.servicesTitle, { color: colors.text }]}>Our Services</Text>
-                    <TouchableOpacity
-                      onPress={() => toggleServices(!isServicesExpanded)}
-                      style={styles.viewMoreBtn}
-                    >
-                      <Text style={[styles.viewMoreText, { color: colors.primary }]}>
-                        {isServicesExpanded ? 'View Less' : 'View More'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                <QuickServicesGrid
+                  isServicesExpanded={isServicesExpanded}
+                  onToggleExpand={toggleServices}
+                  onSelectService={(label, route) => {
+                    if (label === 'Parking') {
+                      setStep('PARKING_HUBS');
+                    } else if (label === 'Driver Hub') {
+                      setStep('DRIVER_HUB');
+                    } else if (label === 'Challan') {
+                      setStep('CHALLAN');
+                    } else {
+                      handleNavigateToTab(route);
+                    }
+                  }}
+                  panHandlers={panResponder.panHandlers}
+                  dragHandlePanHandlers={dragHandlePanResponder.panHandlers}
+                  colors={colors}
+                />
 
-                  <View style={styles.capsuleGrid}>
-                    {[
-                      { label: 'Documents', sub: 'Secure Vault', icon: FileText, color: '#a78bfa', route: '/explore?tab=documents' },
-                      { label: 'Pollution', sub: 'Renewals', icon: ShieldCheck, color: '#34d399', route: '/explore' },
-                      { label: 'Insurance', sub: 'Shield & Protect', icon: Shield, color: '#fbbf24', route: '/explore' },
-                      { label: 'EV Charging', sub: 'Power up', icon: Zap, color: '#10b981', route: '/explore' },
-                      { label: 'Car Wash', sub: 'Sparkle clean', icon: Droplet, color: '#60a5fa', route: '/explore' },
-                      { label: 'Driver Hub', sub: 'Expert drivers', icon: User, color: '#f87171', route: '/driver-hub' },
-                      { label: 'Emergency', sub: 'SOS Support', icon: PhoneCall, color: '#ef4444', route: '/explore' },
-                      { label: 'Towing', sub: 'Roadside Help', icon: Truck, color: '#f59e0b', route: '/explore' },
-                    ]
-                      .slice(0, isServicesExpanded ? 8 : 4)
-                      .map((svc) => {
-                        const IconComp = svc.icon;
-                        const capsuleWidth = isMobile ? (width - 50) / 2 : 170;
-                        return (
-                          <TouchableOpacity
-                            key={svc.label}
-                            style={[
-                              styles.serviceCapsule,
-                              {
-                                backgroundColor: colors.backgroundElement,
-                                borderColor: colors.borderGlass,
-                                width: capsuleWidth
-                              }
-                            ]}
-                            onPress={() => {
-                              if (svc.label === 'Parking') {
-                                setStep('PARKING_HUBS');
-                              } else if (svc.label === 'Driver Hub') {
-                                setStep('DRIVER_HUB');
-                              } else if (svc.label === 'Challan') {
-                                setStep('CHALLAN');
-                              } else {
-                                handleNavigateToTab(svc.route);
-                              }
-                            }}
-                            activeOpacity={0.8}
-                          >
-                            <View style={[styles.serviceIconCircle, { backgroundColor: `${svc.color}18` }]}>
-                              <IconComp size={18} color={svc.color} />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <Text style={[styles.serviceCapsuleLabel, { color: colors.text }]} numberOfLines={1}>{svc.label}</Text>
-                              <Text style={[styles.serviceCapsuleSub, { color: colors.textSecondary }]} numberOfLines={1}>{svc.sub}</Text>
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      })}
-                  </View>
-
-                  {/* Drag Handle (Samsung One UI Style) */}
-                  <View
-                    style={styles.dragHandleContainer}
-                    {...dragHandlePanResponder.panHandlers}
-                  >
-                    <View style={[styles.dragHandle, { backgroundColor: colors.textSecondary }]} />
-                  </View>
-                </View>
-
-                {/* ── Buy Your Dream Car Section (Matching Reference Design) ── */}
-                <View style={styles.dreamCarSection}>
-                  {/* Header Subtitle Accent */}
-                  <View style={styles.dreamCarHeaderAccents}>
-                    <Text style={styles.dreamCarSparkle}>✦</Text>
-                    <Text style={styles.dreamCarSubtitle}>BUY YOUR DREAM CAR</Text>
-                    <Text style={styles.dreamCarSparkle}>✦</Text>
-                  </View>
-
-                  {/* Header Main Title */}
-                  <Text style={styles.dreamCarTitle}>
-                    Drive home with <Text style={styles.dreamCarBrand}>Drivix</Text>
-                  </Text>
-
-                  {/* Navigation Tabs */}
-                  <View style={styles.dreamCarTabsRow}>
-                    <TouchableOpacity
-                      style={styles.dreamCarTabItem}
-                      onPress={() => setActiveCarTab('popular')}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[
-                        styles.dreamCarTabText,
-                        { color: activeCarTab === 'popular' ? '#ffffff' : 'rgba(255, 255, 255, 0.5)' }
-                      ]}>
-                        Popular Cars
-                      </Text>
-                      {activeCarTab === 'popular' && (
-                        <View style={styles.dreamCarActiveIndicator} />
-                      )}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.dreamCarTabItem}
-                      onPress={() => setActiveCarTab('testdrive')}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[
-                        styles.dreamCarTabText,
-                        { color: activeCarTab === 'testdrive' ? '#ffffff' : 'rgba(255, 255, 255, 0.5)' }
-                      ]}>
-                        Test Drive
-                      </Text>
-                      {activeCarTab === 'testdrive' && (
-                        <View style={styles.dreamCarActiveIndicator} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Horizontal Interactive Sliding Carousel */}
-                  <FlatList
-                    horizontal
-                    data={CAR_DEALS}
-                    keyExtractor={(item) => item.id}
-                    showsHorizontalScrollIndicator={false}
-                    snapToInterval={width - 54}
-                    decelerationRate="fast"
-                    contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
-                    renderItem={({ item }) => (
-                      <View style={[styles.carCardContainer, { width: width - 72 }]}>
-                        {/* Car Image Backdrop Container */}
-                        <View style={styles.carImageContainer}>
-                          <RNImage
-                            source={item.image}
-                            style={styles.carCardImage}
-                            resizeMode="contain"
-                          />
-                          {/* Rating Badge at Bottom Edge */}
-                          <View style={styles.carRatingBadge}>
-                            <Text style={styles.carRatingStar}>★</Text>
-                            <Text style={styles.carRatingText}>{item.rating} ({item.reviews} reviews)</Text>
-                          </View>
-                        </View>
-
-                        {/* Car Specs Information */}
-                        <View style={styles.carInfoContainer}>
-                          <Text style={styles.carModelTitle}>{item.title}</Text>
-                          <Text style={styles.carModelSpecs}>
-                            {item.type} • {item.price} • {item.variants}
-                          </Text>
-
-                          {/* Action Button */}
-                          <TouchableOpacity
-                            style={styles.bookTestDriveBtn}
-                            onPress={() => Alert.alert('Book Test Drive', `Test drive request submitted for ${item.title}. Our Drivix concierge will contact you shortly!`)}
-                            activeOpacity={0.85}
-                          >
-                            <Text style={styles.bookTestDriveBtnText}>Book Test Drive</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    )}
-                  />
-
-                  {/* Bottom Link */}
-                  <TouchableOpacity
-                    style={styles.viewMoreCarsLink}
-                    onPress={() => Alert.alert('Explore Models', 'Opening Drivix Car Marketplace with 200+ certified models...')}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.viewMoreCarsLinkText}>View 200+ Models</Text>
-                  </TouchableOpacity>
-                </View>
+                {/* ── Buy Your Dream Car Section ── */}
+                <CarDealsCarousel />
 
                 <AdCarousel />
               </View>
