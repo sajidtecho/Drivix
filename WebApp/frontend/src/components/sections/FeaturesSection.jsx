@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Key, Tag, Search, Gavel, Car, ShieldCheck, Banknote, Wallet } from 'lucide-react';
 import fastagIcon from '../../assets/fastag.png';
 import FadeIn from '../common/FadeIn';
+import NetworkMapModal from '../common/NetworkMapModal';
 
 const FeaturesSection = () => {
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+
   return (
     <section id="features" style={{ padding: '80px 0', background: 'var(--bg-primary)' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 5%' }}>
@@ -74,7 +78,11 @@ const FeaturesSection = () => {
           `}</style>
 
           {/* Main Large Card */}
-          <div className="glass-panel bento-card" style={{ gridArea: 'network', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, var(--bg-secondary), #1a1a24)' }}>
+          <div
+            onClick={() => setIsMapModalOpen(true)}
+            className="glass-panel bento-card"
+            style={{ gridArea: 'network', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, var(--bg-secondary), #1a1a24)' }}
+          >
             <div>
               <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>Network Growth</div>
               <h3 style={{ fontSize: 'clamp(1.3rem, 3.5vw, 2.2rem)', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 0.9, marginBottom: '14px' }}>
@@ -85,7 +93,16 @@ const FeaturesSection = () => {
               </p>
             </div>
             <div style={{ marginTop: '16px' }}>
-              <button className="btn" style={{ padding: '0', background: 'none', color: 'var(--accent-primary)', fontWeight: 800, borderBottom: '2px solid' }}>See Network →</button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMapModalOpen(true);
+                }}
+                className="btn"
+                style={{ padding: '0', background: 'none', color: 'var(--accent-primary)', fontWeight: 800, borderBottom: '2px solid', cursor: 'pointer' }}
+              >
+                See Network →
+              </button>
             </div>
           </div>
 
@@ -159,6 +176,12 @@ const FeaturesSection = () => {
 
         </div>
       </div>
+
+      {/* Interactive Parking Network Map Modal */}
+      <NetworkMapModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+      />
     </section>
   );
 };
