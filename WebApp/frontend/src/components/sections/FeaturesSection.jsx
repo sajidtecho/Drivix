@@ -403,57 +403,28 @@ const FeaturesSection = () => {
           </div>
 
           {/* AVAILABLE 24/7 CARD WITH ANIMATED WATCH */}
-          <div className="bento-card-premium" style={{ gridArea: 'avail', padding: '22px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <div className="bento-card-premium" style={{ gridArea: 'avail', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
-                <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: 0 }}>Available 24/7</h4>
-                <p style={{ margin: '2px 0 0 0', fontSize: '0.76rem', color: '#8a8d9b' }}>Live Continuous Telemetry Sync</p>
+                <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', margin: 0 }}>Available 24/7</h4>
+                <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#8a8d9b' }}>Live Continuous Telemetry Sync</p>
               </div>
               <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#00cc6a', background: 'rgba(0,204,106,0.12)', padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(0,204,106,0.25)' }}>
                 100% Live Sync
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '22px', flexWrap: 'wrap' }}>
               {/* Live 60fps Animated Sweeping Watch */}
-              <AnimatedWatch size={68} />
+              <AnimatedWatch size={72} />
 
-              {/* Occupancy Bars & Telemetry */}
+              {/* Clean Telemetry Details without yellow blocks */}
               <div style={{ flex: 1, minWidth: '180px' }}>
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                  {[1, 2, 3, 4, 5, 6].map(i => (
-                    <div key={i} style={{
-                      flex: 1, height: '32px',
-                      background: 'rgba(255,255,255,0.05)',
-                      borderRadius: '6px',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}>
-                      {i < 5 && (
-                        <motion.div
-                          initial={{ width: '0%' }}
-                          whileInView={{ width: '100%' }}
-                          transition={{
-                            delay: i * 0.12,
-                            duration: 0.5,
-                            ease: [0.22, 1, 0.36, 1]
-                          }}
-                          viewport={{ once: false }}
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            height: '100%',
-                            background: 'var(--accent-primary, #FAFF00)',
-                            boxShadow: '0 0 12px var(--accent-glow)'
-                          }}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <p style={{ margin: 0, color: 'var(--text-secondary, #8a8d9b)', fontSize: '0.8rem', lineHeight: 1.3 }}>
-                  Real-time slot availability monitoring & continuous ANPR gate readiness 24/7.
+                <h5 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#fff', margin: '0 0 4px 0' }}>
+                  Real-time Zone Monitoring
+                </h5>
+                <p style={{ margin: 0, color: 'var(--text-secondary, #8a8d9b)', fontSize: '0.84rem', lineHeight: 1.4 }}>
+                  Continuous ANPR gate readiness & real-time slot availability sync across all active network zones.
                 </p>
               </div>
             </div>
