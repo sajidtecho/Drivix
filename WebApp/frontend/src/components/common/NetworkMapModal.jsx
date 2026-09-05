@@ -1,13 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   X, MapPin, Navigation, Search, Filter, Car, Zap, Shield, Check,
-  ChevronRight, Layers, Sparkles, Compass, ExternalLink, RefreshCw
+  ChevronRight, Layers, Sparkles, Compass, ExternalLink, RefreshCw, Star
 } from 'lucide-react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from '@react-google-maps/api';
 import { API_BASE_URL } from '../../config';
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyD45w3pytPwzXDg9Xk8veMXeJBdwtodkqw';
+
+// Custom sleek dark mode map styling array for Google Maps
+const DARK_GOOGLE_MAP_STYLES = [
+  { elementType: "geometry", stylers: [{ color: "#0c0e17" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#8a8d9b" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#0c0e17" }] },
+  { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#1f2438" }] },
+  { featureType: "administrative.country", elementType: "labels.text.fill", stylers: [{ color: "#9b9ea8" }] },
+  { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#111422" }] },
+  { featureType: "poi", elementType: "geometry", stylers: [{ color: "#181d2f" }] },
+  { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#7a7f92" }] },
+  { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#122023" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#1a1f33" }] },
+  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#111422" }] },
+  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#777c8e" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#252b45" }] },
+  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#141727" }] },
+  { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#b8bac6" }] },
+  { featureType: "transit", elementType: "geometry", stylers: [{ color: "#192033" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#090c14" }] },
+  { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#48536e" }] }
+];
 
 // Comprehensive dataset representing Drivix active parking network locations across NCR
 const DEFAULT_NETWORK_LOCATIONS = [
@@ -25,27 +48,46 @@ const DEFAULT_NETWORK_LOCATIONS = [
   { id: 'gr-noida-west', name: 'Gaur City Mall Parking Hub', address: 'Greater Noida West Rd', city: 'Greater Noida', latitude: 28.6087, longitude: 77.4285, totalSlots: 500, availableSlots: 210, hourlyPrice: 20, status: 'Active', ev: true, anpr: true }
 ];
 
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%'
+};
+
+const defaultCenter = {
+  lat: 28.5400,
+  lng: 77.3800
+};
+
+const mapOptions = {
+  styles: DARK_GOOGLE_MAP_STYLES,
+  disableDefaultUI: false,
+  zoomControl: true,
+  mapTypeControl: false,
+  streetViewControl: false,
+  fullscreenControl: false
+};
+
 const NetworkMapModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const mapContainerRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const markersRef = useRef({});
-  const userMarkerRef = useRef(null);
+  const mapRef = useRef(null);
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY
+  });
 
   const [locations, setLocations] = useState(DEFAULT_NETWORK_LOCATIONS);
   const [selectedCity, setSelectedCity] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [userCoords, setUserCoords] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Fetch real locations from backend on load
+  // Load locations from API or default dataset
   useEffect(() => {
     if (!isOpen) return;
 
     const fetchLocations = async () => {
-      setLoading(true);
       try {
         const token = localStorage.getItem('drivix_auth_token');
         const res = await fetch(`${API_BASE_URL}/api/v1/parking`, {
@@ -56,7 +98,6 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
           const apiData = await res.json();
           if (Array.isArray(apiData) && apiData.length > 0) {
             const mappedApi = apiData.map((loc, idx) => {
-              // fallback coords if backend lat/lng missing
               const fallback = DEFAULT_NETWORK_LOCATIONS[idx % DEFAULT_NETWORK_LOCATIONS.length];
               return {
                 id: loc._id || loc.id || `loc-${idx}`,
@@ -74,7 +115,6 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
               };
             });
 
-            // Combine backend locations with default ones to show comprehensive 42+ site coverage
             const combined = [...mappedApi];
             DEFAULT_NETWORK_LOCATIONS.forEach(defLoc => {
               if (!combined.some(c => c.name.toLowerCase() === defLoc.name.toLowerCase())) {
@@ -86,14 +126,11 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
         }
       } catch (err) {
         console.warn("Using offline default network location dataset:", err);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchLocations();
 
-    // Get live user geolocation
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -110,7 +147,6 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  // Filtered locations
   const filteredLocations = locations.filter(loc => {
     const matchesCity = selectedCity === 'ALL' || loc.city.toLowerCase() === selectedCity.toLowerCase();
     const matchesSearch = !searchQuery.trim() ||
@@ -120,7 +156,6 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
     return matchesCity && matchesSearch;
   });
 
-  // Calculate distance from user coords
   const calculateDistance = (lat, lon) => {
     if (!userCoords || !lat || !lon) return null;
     const R = 6371;
@@ -135,197 +170,29 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
     return (R * c).toFixed(1);
   };
 
-  // Initialize and update Leaflet Map
-  useEffect(() => {
-    if (!isOpen || !mapContainerRef.current) return;
+  const onMapLoad = useCallback((map) => {
+    mapRef.current = map;
+  }, []);
 
-    // Prevent re-initialization if map already exists
-    if (!mapInstanceRef.current) {
-      const map = L.map(mapContainerRef.current, {
-        center: [28.5400, 77.3800], // Center of Noida/NCR
-        zoom: 11,
-        zoomControl: false,
-        attributionControl: false
-      });
-
-      // Dark theme map tiles
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        subdomains: 'abcd',
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
-      }).addTo(map);
-
-      // Custom Zoom Control positioning
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-      mapInstanceRef.current = map;
-    }
-
-    const map = mapInstanceRef.current;
-
-    // Clear existing markers
-    Object.values(markersRef.current).forEach(marker => map.removeLayer(marker));
-    markersRef.current = {};
-
-    // Render Markers for filtered locations
-    filteredLocations.forEach(loc => {
-      if (!loc.latitude || !loc.longitude) return;
-
-      const isSelected = selectedLocation?.id === loc.id;
-      const isAvailable = loc.availableSlots > 0;
-      const badgeColor = !isAvailable ? '#ff4b4b' : loc.availableSlots < 20 ? '#FFCE00' : '#00cc6a';
-
-      const customIcon = L.divIcon({
-        className: 'drivix-leaflet-marker',
-        html: `
-          <div style="
-            position: relative;
-            width: ${isSelected ? '48px' : '38px'};
-            height: ${isSelected ? '48px' : '38px'};
-            background: #111422;
-            border: 2px solid ${isSelected ? '#FAFF00' : 'var(--accent-primary, #FAFF00)'};
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 ${isSelected ? '24px' : '14px'} ${isSelected ? 'rgba(250, 255, 0, 0.9)' : 'rgba(250, 255, 0, 0.35)'};
-            cursor: pointer;
-            transition: all 0.25s ease;
-          ">
-            <span style="font-size: ${isSelected ? '14px' : '12px'}; font-weight: 900; color: #fff; font-family: system-ui;">
-              ${loc.availableSlots}
-            </span>
-            <div style="
-              position: absolute;
-              bottom: 0px;
-              right: 0px;
-              width: 10px;
-              height: 10px;
-              background: ${badgeColor};
-              border-radius: 50%;
-              border: 2px solid #111422;
-            "></div>
-          </div>
-        `,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
-        popupAnchor: [0, -22]
-      });
-
-      const marker = L.marker([loc.latitude, loc.longitude], { icon: customIcon }).addTo(map);
-
-      // Popup Content
-      const popupHtml = `
-        <div style="font-family: var(--font-display, sans-serif); color: #fff; padding: 4px; min-width: 220px;">
-          <div style="font-size: 0.7rem; text-transform: uppercase; color: #FAFF00; font-weight: 800; letter-spacing: 0.08em; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-            <span>⚡ Drivix Active Site</span>
-          </div>
-          <h4 style="font-size: 1rem; font-weight: 800; margin: 0 0 4px 0; color: #fff; line-height: 1.2;">${loc.name}</h4>
-          <p style="font-size: 0.78rem; color: #999; margin: 0 0 10px 0; line-height: 1.3;">${loc.address}</p>
-          <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
-            <span style="background: rgba(0,204,106,0.15); color: #00cc6a; border: 1px solid rgba(0,204,106,0.3); font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;">${loc.availableSlots} slots free</span>
-            <span style="background: rgba(250,255,0,0.12); color: #FAFF00; border: 1px solid rgba(250,255,0,0.3); font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;">₹${loc.hourlyPrice}/hr</span>
-            ${loc.ev ? `<span style="background: rgba(0,242,255,0.12); color: #00f2ff; border: 1px solid rgba(0,242,255,0.3); font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;">EV Plug</span>` : ''}
-          </div>
-          <div style="display: flex; gap: 6px;">
-            <button id="book-btn-${loc.id}" style="flex:1; background: #FAFF00; color: #000; font-weight: 800; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 4px;">
-              Book Slot →
-            </button>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}" target="_blank" rel="noreferrer" style="background: rgba(255,255,255,0.1); color: #fff; text-decoration: none; padding: 8px 10px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.15);">
-              📍 Nav
-            </a>
-          </div>
-        </div>
-      `;
-
-      marker.bindPopup(popupHtml, {
-        className: 'drivix-dark-popup',
-        closeButton: true
-      });
-
-      marker.on('click', () => {
-        setSelectedLocation(loc);
-      });
-
-      marker.on('popupopen', () => {
-        const bookBtn = document.getElementById(`book-btn-${loc.id}`);
-        if (bookBtn) {
-          bookBtn.onclick = () => {
-            onClose();
-            navigate(`/slot-layout?locationId=${loc.id}`, { state: { selectedLocation: loc } });
-          };
-        }
-      });
-
-      markersRef.current[loc.id] = marker;
-    });
-
-    // Render User Location Pin if available
-    if (userCoords) {
-      if (userMarkerRef.current) map.removeLayer(userMarkerRef.current);
-
-      const userIcon = L.divIcon({
-        className: 'drivix-user-marker',
-        html: `
-          <div style="
-            position: relative;
-            width: 24px;
-            height: 24px;
-            background: #3b82f6;
-            border: 3px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 20px #3b82f6;
-          ">
-            <div style="
-              position: absolute;
-              top: -8px; left: -8px; right: -8px; bottom: -8px;
-              border: 2px solid rgba(59, 130, 246, 0.4);
-              border-radius: 50%;
-              animation: drivixPulse 2s infinite;
-            "></div>
-          </div>
-        `,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      });
-
-      userMarkerRef.current = L.marker([userCoords.latitude, userCoords.longitude], { icon: userIcon })
-        .addTo(map)
-        .bindPopup('<div style="font-weight:700; color:#fff;">📍 Your Current Location</div>');
-    }
-
-  }, [isOpen, filteredLocations, selectedLocation, userCoords]);
-
-  // Center map on facility click
   const handleSelectLocation = (loc) => {
     setSelectedLocation(loc);
-    if (mapInstanceRef.current && loc.latitude && loc.longitude) {
-      mapInstanceRef.current.flyTo([loc.latitude, loc.longitude], 14, {
-        duration: 1.2
-      });
-
-      const marker = markersRef.current[loc.id];
-      if (marker) {
-        setTimeout(() => marker.openPopup(), 400);
-      }
+    if (mapRef.current && loc.latitude && loc.longitude) {
+      mapRef.current.panTo({ lat: loc.latitude, lng: loc.longitude });
+      mapRef.current.setZoom(14);
     }
   };
 
-  // Center map on user location
   const handleLocateUser = () => {
-    if (userCoords && mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([userCoords.latitude, userCoords.longitude], 14, {
-        duration: 1.2
-      });
-      if (userMarkerRef.current) {
-        setTimeout(() => userMarkerRef.current.openPopup(), 400);
-      }
+    if (userCoords && mapRef.current) {
+      mapRef.current.panTo({ lat: userCoords.latitude, lng: userCoords.longitude });
+      mapRef.current.setZoom(14);
     } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
         const coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
         setUserCoords(coords);
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([coords.latitude, coords.longitude], 14);
+        if (mapRef.current) {
+          mapRef.current.panTo({ lat: coords.latitude, lng: coords.longitude });
+          mapRef.current.setZoom(14);
         }
       });
     }
@@ -341,30 +208,24 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
-        justify: 'center',
+        justifyContent: 'center',
         background: 'rgba(5, 7, 15, 0.88)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)'
       }}>
-        {/* Leaflet CSS Custom Popup Overrides */}
         <style>{`
-          .drivix-dark-popup .leaflet-popup-content-wrapper {
-            background: rgba(15, 18, 30, 0.95) !important;
+          .gm-style-iw-c {
+            background-color: #0f121e !important;
             border: 1px solid rgba(250, 255, 0, 0.3) !important;
+            border-radius: 14px !important;
+            padding: 12px !important;
             box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(250,255,0,0.15) !important;
-            border-radius: 12px !important;
-            padding: 8px !important;
           }
-          .drivix-dark-popup .leaflet-popup-tip {
-            background: rgba(15, 18, 30, 0.95) !important;
+          .gm-style-iw-tc::after {
+            background-color: #0f121e !important;
           }
-          .drivix-dark-popup .leaflet-popup-close-button {
-            color: #fff !important;
-            padding: 8px !important;
-          }
-          @keyframes drivixPulse {
-            0% { transform: scale(0.9); opacity: 0.8; }
-            100% { transform: scale(2.2); opacity: 0; }
+          .gm-ui-hover-effect {
+            filter: invert(1) !important;
           }
         `}</style>
 
@@ -415,7 +276,7 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 900, fontFamily: 'var(--font-display, sans-serif)', color: '#fff', margin: 0 }}>
-                    Drivix Parking Network
+                    Drivix Google Maps Network
                   </h3>
                   <span style={{
                     fontSize: '0.72rem',
@@ -430,14 +291,13 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                   </span>
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary, #8a8d9b)', margin: 0 }}>
-                  Real-time slot availability, ANPR gate matching, and navigation across NCR
+                  Real-time Google Maps telemetry, ANPR gate matching, and navigation across NCR
                 </p>
               </div>
             </div>
 
             {/* Quick City Tabs & Search */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              {/* City Pill Selectors */}
               <div style={{
                 display: 'flex',
                 background: 'rgba(255, 255, 255, 0.05)',
@@ -466,7 +326,6 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                 ))}
               </div>
 
-              {/* Search Bar */}
               <div style={{ position: 'relative', width: '220px' }}>
                 <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#8a8d9b' }} />
                 <input
@@ -487,7 +346,6 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                 />
               </div>
 
-              {/* Locate Me Button */}
               <button
                 onClick={handleLocateUser}
                 title="Find My Location"
@@ -508,7 +366,6 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                 <Compass size={16} /> Locate Me
               </button>
 
-              {/* Close Modal Button */}
               <button
                 onClick={onClose}
                 style={{
@@ -530,10 +387,9 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Main Content Body (Map + Sidebar Drawer) */}
+          {/* Main Body */}
           <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
 
-            {/* Sidebar Toggle Button for Mobile/Desktop */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               style={{
@@ -560,7 +416,7 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
               {isSidebarOpen ? 'Hide Facilities' : 'Show List'}
             </button>
 
-            {/* Side Facilities List Drawer */}
+            {/* Side Drawer List */}
             <div style={{
               width: isSidebarOpen ? '340px' : '0px',
               minWidth: isSidebarOpen ? '340px' : '0px',
@@ -616,18 +472,16 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                         </p>
 
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                            <span style={{
-                              fontSize: '0.72rem',
-                              fontWeight: 800,
-                              color: loc.availableSlots > 0 ? '#00cc6a' : '#ff4b4b',
-                              background: loc.availableSlots > 0 ? 'rgba(0, 204, 106, 0.12)' : 'rgba(255, 75, 75, 0.12)',
-                              padding: '2px 8px',
-                              borderRadius: '6px'
-                            }}>
-                              {loc.availableSlots} / {loc.totalSlots} Slots Free
-                            </span>
-                          </div>
+                          <span style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 800,
+                            color: loc.availableSlots > 0 ? '#00cc6a' : '#ff4b4b',
+                            background: loc.availableSlots > 0 ? 'rgba(0, 204, 106, 0.12)' : 'rgba(255, 75, 75, 0.12)',
+                            padding: '2px 8px',
+                            borderRadius: '6px'
+                          }}>
+                            {loc.availableSlots} / {loc.totalSlots} Slots Free
+                          </span>
 
                           <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent-primary, #FAFF00)' }}>
                             ₹{loc.hourlyPrice}<span style={{ fontSize: '0.7rem', color: '#8a8d9b' }}>/hr</span>
@@ -667,19 +521,116 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
               )}
             </div>
 
-            {/* Leaflet Map Div Container */}
-            <div
-              ref={mapContainerRef}
-              style={{
-                flex: 1,
-                height: '100%',
-                background: '#0a0c14',
-                zIndex: 1
-              }}
-            />
+            {/* Google Map Container */}
+            <div style={{ flex: 1, height: '100%', background: '#0a0c14', position: 'relative' }}>
+              {isLoaded ? (
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={userCoords ? { lat: userCoords.latitude, lng: userCoords.longitude } : defaultCenter}
+                  zoom={11}
+                  options={mapOptions}
+                  onLoad={onMapLoad}
+                >
+                  {/* User Location Marker */}
+                  {userCoords && (
+                    <MarkerF
+                      position={{ lat: userCoords.latitude, lng: userCoords.longitude }}
+                      title="Your Location"
+                      icon={{
+                        path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
+                        scale: 8,
+                        fillColor: '#3b82f6',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 3
+                      }}
+                    />
+                  )}
+
+                  {/* Facility Location Markers */}
+                  {filteredLocations.map(loc => {
+                    const isSelected = selectedLocation?.id === loc.id;
+                    const isAvailable = loc.availableSlots > 0;
+                    const pinColor = !isAvailable ? '#ff4b4b' : loc.availableSlots < 20 ? '#FFCE00' : '#FAFF00';
+
+                    return (
+                      <MarkerF
+                        key={loc.id}
+                        position={{ lat: loc.latitude, lng: loc.longitude }}
+                        title={loc.name}
+                        onClick={() => setSelectedLocation(loc)}
+                        icon={{
+                          path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
+                          scale: isSelected ? 12 : 9,
+                          fillColor: pinColor,
+                          fillOpacity: 1,
+                          strokeColor: '#111422',
+                          strokeWeight: 3
+                        }}
+                      />
+                    );
+                  })}
+
+                  {/* InfoWindow for Selected Location */}
+                  {selectedLocation && (
+                    <InfoWindowF
+                      position={{ lat: selectedLocation.latitude, lng: selectedLocation.longitude }}
+                      onCloseClick={() => setSelectedLocation(null)}
+                    >
+                      <div style={{ color: '#fff', padding: '4px', minWidth: '220px', fontFamily: 'sans-serif' }}>
+                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#FAFF00', fontWeight: 800, letterSpacing: '0.08em', marginBottom: '4px' }}>
+                          ⚡ Drivix Active Site
+                        </div>
+                        <h4 style={{ fontSize: '1rem', fontWeight: 800, margin: '0 0 4px 0', color: '#fff' }}>
+                          {selectedLocation.name}
+                        </h4>
+                        <p style={{ fontSize: '0.78rem', color: '#aaa', margin: '0 0 10px 0' }}>
+                          {selectedLocation.address}
+                        </p>
+                        <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                          <span style={{ background: 'rgba(0,204,106,0.15)', color: '#00cc6a', border: '1px solid rgba(0,204,106,0.3)', fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: '4px' }}>
+                            {selectedLocation.availableSlots} slots free
+                          </span>
+                          <span style={{ background: 'rgba(250,255,0,0.12)', color: '#FAFF00', border: '1px solid rgba(250,255,0,0.3)', fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: '4px' }}>
+                            ₹{selectedLocation.hourlyPrice}/hr
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            onClick={() => {
+                              onClose();
+                              navigate(`/slot-layout?locationId=${selectedLocation.id}`, { state: { selectedLocation } });
+                            }}
+                            style={{ flex: 1, background: '#FAFF00', color: '#000', fontWeight: 800, border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
+                          >
+                            Book Slot →
+                          </button>
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', textDecoration: 'none', padding: '8px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}
+                          >
+                            📍 Nav
+                          </a>
+                        </div>
+                      </div>
+                    </InfoWindowF>
+                  )}
+                </GoogleMap>
+              ) : loadError ? (
+                <div style={{ padding: '40px', color: '#ff4b4b', textAlign: 'center' }}>
+                  Failed to load Google Maps script. Check API Key configuration.
+                </div>
+              ) : (
+                <div style={{ padding: '40px', color: '#FAFF00', textAlign: 'center' }}>
+                  Loading Google Maps...
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Footer Live Stats Bar */}
+          {/* Footer Stats */}
           <div style={{
             padding: '10px 24px',
             background: 'rgba(15, 18, 28, 0.98)',
@@ -695,20 +646,16 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00cc6a', boxShadow: '0 0 10px #00cc6a' }}></span>
-                <span>Active Network Nodes: <strong style={{ color: '#fff' }}>42 Sites</strong></span>
+                <span>Google Maps Telemetry: <strong style={{ color: '#fff' }}>42 Sites Connected</strong></span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Zap size={14} color="#00f2ff" />
-                <span>EV Charging Hubs: <strong style={{ color: '#fff' }}>18 Locations</strong></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Shield size={14} color="var(--accent-primary)" />
-                <span>ANPR Gate Sync: <strong style={{ color: '#fff' }}>100% Live</strong></span>
+                <span>EV Charging: <strong style={{ color: '#fff' }}>18 Stations</strong></span>
               </div>
             </div>
 
             <div style={{ fontSize: '0.75rem', color: '#666' }}>
-              Click any pin or list item to view real-time floor availability and reserve immediately.
+              Powered by Google Maps Platform API & Drivix Real-Time Gate Sync
             </div>
           </div>
         </motion.div>
