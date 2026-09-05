@@ -48,9 +48,9 @@ const Navbar = () => {
 
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
-    if (saved) return saved === 'dark';
-    // If no saved preference, respect system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (saved !== null) return saved === 'dark';
+    // Default to dark mode for Drivix premium aesthetic
+    return true;
   });
 
   const scrolled = isLanding && hasScrolled;
