@@ -26,7 +26,7 @@ const FeaturesSection = () => {
       <div style={{ maxWidth: '1140px', margin: '0 auto', padding: '0 5%', position: 'relative', zIndex: 1 }}>
         
         {/* Section Header */}
-        <div style={{ marginBottom: '52px', maxWidth: '680px' }}>
+        <div style={{ marginBottom: '52px', maxWidth: '900px' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -46,21 +46,22 @@ const FeaturesSection = () => {
           </div>
 
           <h2 style={{
-            fontSize: 'clamp(2.2rem, 5vw, 3.6rem)',
+            fontSize: 'clamp(2rem, 4.2vw, 3.4rem)',
             fontWeight: 900,
             fontFamily: 'var(--font-display)',
-            lineHeight: 1.05,
-            letterSpacing: '-0.04em',
+            lineHeight: 1.15,
+            letterSpacing: '-0.03em',
             marginBottom: '18px',
-            color: '#fff'
+            color: '#fff',
+            whiteSpace: 'nowrap'
           }}>
             Built for <span style={{
               background: 'linear-gradient(135deg, var(--accent-primary, #FAFF00), #ffaa00)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
-            }}>human drivers</span>,<br />not just sensors.
+            }}>human drivers</span>, not just sensors.
           </h2>
-          <p style={{ color: 'var(--text-secondary, #8a8d9b)', fontSize: '1.1rem', lineHeight: 1.6 }}>
+          <p style={{ color: 'var(--text-secondary, #8a8d9b)', fontSize: '1.1rem', lineHeight: 1.6, maxWidth: '680px' }}>
             A parking ecosystem engineered to eliminate delays at every step — from smart mall gates to your corporate office tower.
           </p>
         </div>
