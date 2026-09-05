@@ -83,7 +83,7 @@ const ParkingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Active', 'Inactive', 'Pending'],
+      enum: ['Active', 'Inactive', 'Pending', 'Restricted'],
       default: 'Active',
     },
   },

@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --forceExit",
     "seed:ndmc": "node seed/parking-ndmc.seed.js",
-    "seed:south": "node seed/parking-south-zone.seed.js"
+    "seed:south": "node seed/parking-south-zone.seed.js",
+    "seed:noida": "node seed/parking-noida-city.seed.js"
   },
   "keywords": [],
   "author": "",
