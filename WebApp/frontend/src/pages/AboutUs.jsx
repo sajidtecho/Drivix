@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -6,6 +6,7 @@ import {
   Sparkles, Cpu, CheckCircle2, ArrowRight, Activity, Clock,
   Lock, Navigation, Eye, Globe, Building2, Quote, Layers, Check
 } from 'lucide-react';
+import NetworkMapModal from '../components/common/NetworkMapModal';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -19,6 +20,7 @@ const itemVariants = {
 
 const AboutUs = () => {
   const navigate = useNavigate();
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -193,7 +195,7 @@ const AboutUs = () => {
 
             <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
               <button
-                onClick={() => navigate('/find')}
+                onClick={() => setIsMapModalOpen(true)}
                 className="btn btn-primary"
                 style={{ padding: '12px 24px', fontSize: '0.92rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}
               >
@@ -458,6 +460,12 @@ const AboutUs = () => {
         </motion.div>
 
       </div>
+
+      {/* Network Locations Interactive Map Modal */}
+      <NetworkMapModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+      />
     </motion.div>
   );
 };
