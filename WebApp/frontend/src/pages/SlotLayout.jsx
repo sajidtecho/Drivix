@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Layers, Calendar, Clock, Loader2, ArrowRight, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import loadingCar from '../assets/Loading_car.mp4';
@@ -11,6 +11,7 @@ import { useBookingStore } from '../store/bookingStore';
 const SlotLayout = () => {
   const navigate = useNavigate();
   const { state: locationState } = useLocation();
+  const { id } = useParams();
   const { showToast } = useToast();
   
   const updateBookingDetails = useBookingStore((state) => state.updateBookingDetails);
@@ -18,10 +19,10 @@ const SlotLayout = () => {
   
   const [loc, setLoc] = useState(locationState?.location ? {
     id: locationState.location._id || locationState.location.id,
-    name: locationState.location.parkingName,
+    name: locationState.location.parkingName || locationState.location.name,
     address: locationState.location.address,
     floors: locationState.location.floors || ['L1'],
-    pricePerHr: locationState.location.hourlyPrice
+    pricePerHr: locationState.location.hourlyPrice || locationState.location.pricePerHr
   } : null);
 
   const [selectedFloor, setSelectedFloor] = useState('L1');
@@ -37,10 +38,10 @@ const SlotLayout = () => {
   const [duration, setDuration] = useState(2);
   const [usageType, setUsageType] = useState('personal'); // 'personal' | 'commercial'
 
-  // Fetch locations list to set default location if not passed in state
+  // Fetch locations list to set target location if not passed in state
   useEffect(() => {
     if (!loc) {
-      const fetchDefaultLoc = async () => {
+      const fetchTargetLoc = async () => {
         const token = localStorage.getItem('drivix_auth_token');
         try {
           const res = await fetch(`${API_BASE_URL}/api/v1/parking`, {
@@ -49,12 +50,14 @@ const SlotLayout = () => {
           if (res.ok) {
             const data = await res.json();
             if (data.length > 0) {
-              const target = data.find(l => l.parkingName === 'Sharda University') || data[0];
+              const target = (id ? data.find(l => String(l._id || l.id) === String(id)) : null)
+                || data.find(l => l.parkingName === 'Sharda University')
+                || data[0];
               const mapped = {
-                id: target._id,
-                name: target.parkingName,
+                id: target._id || target.id,
+                name: target.parkingName || target.name,
                 address: target.address,
-                pricePerHr: target.hourlyPrice,
+                pricePerHr: target.hourlyPrice || target.pricePerHr,
                 floors: target.floors || ['L1'],
                 ...target
               };
@@ -63,12 +66,12 @@ const SlotLayout = () => {
             }
           }
         } catch (err) {
-          console.error('Error fetching fallback location:', err);
+          console.error('Error fetching location:', err);
         }
       };
-      fetchDefaultLoc();
+      fetchTargetLoc();
     }
-  }, [loc]);
+  }, [loc, id]);
 
   // Fetch live floor capacities
   const fetchLiveCapacities = async (showLoading = false) => {

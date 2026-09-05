@@ -300,7 +300,7 @@ const ParkingList = () => {
                 ₹{nearestInstantMatch.pricePerHr || nearestInstantMatch.hourlyPrice || 20}/hr
               </span>
               <button
-                onClick={() => navigate(`/slot-layout/${nearestInstantMatch.id}`)}
+                onClick={() => navigate('/slot-layout', { state: { location: nearestInstantMatch } })}
                 style={{
                   background: '#10b981', color: '#000', border: 'none',
                   padding: '10px 24px', borderRadius: '14px', fontWeight: 900,

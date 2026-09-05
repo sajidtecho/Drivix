@@ -65,6 +65,7 @@ function App() {
 
               {/* Facility-specific pages */}
               <Route path="/slot-layout" element={<SlotLayout />} />
+              <Route path="/slot-layout/:id" element={<SlotLayout />} />
               <Route path="/slot-booking" element={<SlotBookingForm />} />
               <Route path="/ticket" element={<Ticket />} />
               <Route path="/safety" element={<Safety />} />
