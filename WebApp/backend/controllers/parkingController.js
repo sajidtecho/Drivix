@@ -72,12 +72,33 @@ export const createLocation = async (req, res) => {
   }
 };
 
-// @desc    Get all parking locations
+// @desc    Get all parking locations (with optional filters)
 // @route   GET /api/v1/parking
 // @access  Private
 export const getLocations = async (req, res) => {
   try {
-    const locations = await ParkingLocation.find({});
+    const { city, status, search } = req.query;
+    let filterQuery = {};
+
+    if (city && city !== 'ALL') {
+      filterQuery.city = new RegExp(city, 'i');
+    }
+
+    if (status && status !== 'ALL') {
+      filterQuery.status = status;
+    }
+
+    if (search && search.trim() !== '') {
+      const searchRegex = new RegExp(search.trim(), 'i');
+      filterQuery.$or = [
+        { parkingName: searchRegex },
+        { address: searchRegex },
+        { city: searchRegex },
+        { parkingCode: searchRegex }
+      ];
+    }
+
+    const locations = await ParkingLocation.find(filterQuery);
     res.json(locations);
   } catch (error) {
     res.status(500).json({ message: error.message });
