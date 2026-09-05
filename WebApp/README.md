@@ -221,4 +221,33 @@ npm run dev
 
 ---
 
+## 🐳 Docker Deployment & Containerization
+
+You can run the entire Drivix ecosystem (Backend + Frontend + Nginx) with a single command using Docker:
+
+### Production Mode (Nginx + Express):
+
+```bash
+# Build and run containers in detached mode
+docker compose up --build -d
+
+# View live logs
+docker compose logs -f
+
+# Stop containers
+docker compose down
+```
+
+Access Points:
+- **Frontend SPA**: `http://localhost:80` (or `http://localhost:5173`)
+- **Backend API**: `http://localhost:5000`
+
+### Hot-Reloading Development Mode:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+---
+
 *Designed with ❤️ for the Smart Cities of tomorrow.*
