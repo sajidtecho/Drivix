@@ -157,7 +157,7 @@ const Navbar = () => {
             gap: '12px',
             textDecoration: 'none',
             color: 'var(--text-primary)',
-            marginRight: 'auto'
+            flexShrink: 0
           }}
           onClick={() => setIsMenuOpen(false)}
         >
@@ -177,87 +177,96 @@ const Navbar = () => {
 
         {/* Desktop Navigation Capsule */}
         <div style={{
+          flex: 1,
           display: 'flex',
+          justifyContent: 'center',
           alignItems: 'center',
-          gap: '8px',
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'var(--glass-bg)',
-          border: '1px solid var(--glass-border)',
-          padding: '5px 10px',
-          borderRadius: 'var(--radius-pill)',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+          minWidth: 0,
+          margin: '0 12px'
         }} className="desktop-only">
-          {isLanding ?
-            LANDING_LINKS.map((link) => (
-              <button
-                key={link.scrollId || link.path}
-                onClick={() => link.scrollId ? scrollTo(link.scrollId) : navigate(link.path)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-secondary)',
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-pill)',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = 'var(--text-primary)';
-                  e.target.style.background = 'rgba(255,255,255,0.03)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = 'var(--text-secondary)';
-                  e.target.style.background = 'none';
-                }}
-              >
-                {link.label}
-              </button>
-            )) :
-            APP_LINKS.map((link) => {
-              const isActive = location.pathname === link.path || (link.path === '/' && isLanding);
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            background: 'var(--glass-bg)',
+            border: '1px solid var(--glass-border)',
+            padding: '4px 8px',
+            borderRadius: 'var(--radius-pill)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            maxWidth: '100%',
+            overflow: 'hidden'
+          }}>
+            {isLanding ?
+              LANDING_LINKS.map((link) => (
+                <button
+                  key={link.scrollId || link.path}
+                  onClick={() => link.scrollId ? scrollTo(link.scrollId) : navigate(link.path)}
                   style={{
-                    textDecoration: 'none',
-                    color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                    fontSize: '0.82rem',
-                    fontWeight: 800,
-                    padding: '6px 14px',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    padding: '6px 12px',
                     borderRadius: 'var(--radius-pill)',
-                    background: isActive ? 'rgba(250, 255, 0, 0.08)' : 'transparent',
-                    border: isActive ? '1px solid rgba(250, 255, 0, 0.15)' : '1px solid transparent',
                     transition: 'all 0.2s',
-                    display: 'inline-block'
+                    whiteSpace: 'nowrap'
                   }}
                   onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.target.style.color = 'var(--text-primary)';
-                      e.target.style.background = 'rgba(255,255,255,0.03)';
-                    }
+                    e.target.style.color = 'var(--text-primary)';
+                    e.target.style.background = 'rgba(255,255,255,0.03)';
                   }}
                   onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.target.style.color = 'var(--text-secondary)';
-                      e.target.style.background = 'transparent';
-                    }
+                    e.target.style.color = 'var(--text-secondary)';
+                    e.target.style.background = 'none';
                   }}
                 >
                   {link.label}
-                </Link>
-              );
-            })}
+                </button>
+              )) :
+              APP_LINKS.map((link) => {
+                const isActive = location.pathname === link.path || (link.path === '/' && isLanding);
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    style={{
+                      textDecoration: 'none',
+                      color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      fontSize: '0.8rem',
+                      fontWeight: 800,
+                      padding: '6px 12px',
+                      borderRadius: 'var(--radius-pill)',
+                      background: isActive ? 'rgba(250, 255, 0, 0.08)' : 'transparent',
+                      border: isActive ? '1px solid rgba(250, 255, 0, 0.15)' : '1px solid transparent',
+                      transition: 'all 0.2s',
+                      display: 'inline-block',
+                      whiteSpace: 'nowrap'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.target.style.color = 'var(--text-primary)';
+                        e.target.style.background = 'rgba(255,255,255,0.03)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.target.style.color = 'var(--text-secondary)';
+                        e.target.style.background = 'transparent';
+                      }
+                    }}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+          </div>
         </div>
 
-
         {/* Right Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
 
           {user?.role !== 'admin' && (
             <div className="desktop-only" style={{ display: 'flex', gap: '12px' }}>
