@@ -8,7 +8,7 @@ services:
     container_name: drivix-backend-dev
     command: npm run dev
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -23,7 +23,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: drivix-frontend-dev
     ports:
-      - "5173:5173"
+      - "5174:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules

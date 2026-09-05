@@ -80,7 +80,7 @@ app.all(['/health', '/api/v1/health'], (req, res) => {
 // Mounted Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/vehicles', vehicleRoutes);
-app.use('/api/v1/parking', parkingRoutes);
+app.use(['/api/v1/parking', '/api/parking'], parkingRoutes);
 app.get('/api/parking/floors/:floorId/availability', getFloorAvailability);
 app.use('/api/v1/bookings', bookingRoutes);
 app.get('/api/bookings/:bookingId/slot-recommendations', getSlotRecommendations);

@@ -9,7 +9,7 @@ services:
     container_name: drivix-backend
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "5001:5000"
     env_file:
       - ./backend/.env
     environment:
@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "5173:80"
+      - "5174:80"
     env_file:
       - ./frontend/.env
     depends_on:
@@ -35,21 +35,6 @@ services:
     networks:
       - drivix-network
 
-# Optional Local MongoDB container (Uncomment if you want local DB instead of Atlas cloud)
-#  mongodb:
-#    image: mongo:7.0
-#    container_name: drivix-mongo
-#    restart: unless-stopped
-#    ports:
-#      - "27017:27017"
-#    volumes:
-#      - mongo-data:/data/db
-#    networks:
-#      - drivix-network
-
 networks:
   drivix-network:
     driver: bridge
-
-# volumes:
-#   mongo-data:
