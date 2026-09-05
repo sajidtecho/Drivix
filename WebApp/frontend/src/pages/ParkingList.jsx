@@ -549,8 +549,29 @@ const ParkingList = () => {
                   )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
                   
+                  {/* Location / City Filter */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Location / City
+                    </label>
+                    <select
+                      value={cityFilter}
+                      onChange={(e) => setCityFilter(e.target.value)}
+                      style={{
+                        width: '100%', padding: '10px 14px', borderRadius: '12px',
+                        background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)',
+                        color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 600, outline: 'none'
+                      }}
+                    >
+                      <option value="ALL">All Locations / Cities</option>
+                      <option value="New Delhi">🏛️ New Delhi / NDMC & South Zone</option>
+                      <option value="Noida">🌆 Noida City</option>
+                      <option value="Greater Noida">🏙️ Greater Noida</option>
+                    </select>
+                  </div>
+
                   {/* Status Filter */}
                   <div>
                     <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
