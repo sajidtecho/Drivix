@@ -227,9 +227,35 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
           .gm-ui-hover-effect {
             filter: invert(1) !important;
           }
+          @media (max-width: 768px) {
+            .drivix-map-modal-card {
+              width: 100vw !important;
+              height: 100vh !important;
+              border-radius: 0 !important;
+              border: none !important;
+            }
+            .drivix-map-header {
+              padding: 12px 14px !important;
+              gap: 10px !important;
+            }
+            .drivix-map-header-title {
+              font-size: 1.05rem !important;
+            }
+            .drivix-sidebar-panel {
+              position: absolute !important;
+              top: 0 !important;
+              bottom: 0 !important;
+              left: 0 !important;
+              width: 88vw !important;
+              min-width: 88vw !important;
+              z-index: 1200 !important;
+              box-shadow: 10px 0 40px rgba(0,0,0,0.9) !important;
+            }
+          }
         `}</style>
 
         <motion.div
+          className="drivix-map-modal-card"
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -249,16 +275,19 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
           }}
         >
           {/* Top Modal Header */}
-          <div style={{
-            padding: '16px 24px',
-            background: 'rgba(15, 18, 28, 0.95)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '16px',
-            flexWrap: 'wrap'
-          }}>
+          <div
+            className="drivix-map-header"
+            style={{
+              padding: '16px 24px',
+              background: 'rgba(15, 18, 28, 0.95)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px',
+              flexWrap: 'wrap'
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div style={{
                 width: '42px',
@@ -417,17 +446,20 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
             </button>
 
             {/* Side Drawer List */}
-            <div style={{
-              width: isSidebarOpen ? '340px' : '0px',
-              minWidth: isSidebarOpen ? '340px' : '0px',
-              background: 'rgba(12, 14, 23, 0.95)',
-              borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-              overflowY: 'auto',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              zIndex: 900
-            }}>
+            <div
+              className="drivix-sidebar-panel"
+              style={{
+                width: isSidebarOpen ? '340px' : '0px',
+                minWidth: isSidebarOpen ? '340px' : '0px',
+                background: 'rgba(12, 14, 23, 0.95)',
+                borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+                overflowY: 'auto',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                zIndex: 900
+              }}
+            >
               {isSidebarOpen && (
                 <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

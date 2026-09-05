@@ -92,6 +92,9 @@ const FeaturesSection = () => {
               }
             }
             @media (max-width: 640px) {
+              #features {
+                padding: 48px 0 !important;
+              }
               .bento-grid { 
                 grid-template-columns: 1fr !important;
                 grid-template-areas: 
@@ -101,6 +104,18 @@ const FeaturesSection = () => {
                   "payment"
                   "avail"
                 !important;
+                gap: 12px !important;
+              }
+              .bento-card-premium {
+                padding: 18px 16px !important;
+                border-radius: 16px !important;
+              }
+              .network-hero-card {
+                padding: 20px 16px !important;
+                min-height: auto !important;
+              }
+              .network-hero-card h3 {
+                font-size: 2.2rem !important;
               }
             }
             .bento-card-premium {
