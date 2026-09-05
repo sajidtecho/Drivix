@@ -61,7 +61,7 @@ const defaultCenter = {
 const mapOptions = {
   styles: DARK_GOOGLE_MAP_STYLES,
   disableDefaultUI: false,
-  zoomControl: true,
+  zoomControl: false, // Custom clean zoom controls
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: false
@@ -81,9 +81,27 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [userCoords, setUserCoords] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Load locations from API or default dataset
+  // Default sidebar state: CLOSED on mobile screens so map is 100% visible immediately!
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth > 768;
+    }
+    return true;
+  });
+
+  // Automatically adjust on resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Fetch locations from backend on open
   useEffect(() => {
     if (!isOpen) return;
 
@@ -176,9 +194,13 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
 
   const handleSelectLocation = (loc) => {
     setSelectedLocation(loc);
+    // On mobile, auto-collapse list drawer so user can immediately see location on map
+    if (window.innerWidth <= 768) {
+      setIsSidebarOpen(false);
+    }
     if (mapRef.current && loc.latitude && loc.longitude) {
       mapRef.current.panTo({ lat: loc.latitude, lng: loc.longitude });
-      mapRef.current.setZoom(14);
+      mapRef.current.setZoom(15);
     }
   };
 
@@ -209,7 +231,7 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'rgba(5, 7, 15, 0.88)',
+        background: 'rgba(5, 7, 15, 0.92)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)'
       }}>
@@ -227,6 +249,8 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
           .gm-ui-hover-effect {
             filter: invert(1) !important;
           }
+
+          /* Mobile Screen Responsive Layout Override */
           @media (max-width: 768px) {
             .drivix-map-modal-card {
               width: 100vw !important;
@@ -235,21 +259,42 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
               border: none !important;
             }
             .drivix-map-header {
-              padding: 12px 14px !important;
-              gap: 10px !important;
+              padding: 12px 16px !important;
+              flex-direction: column !important;
+              align-items: stretch !important;
+              gap: 8px !important;
             }
-            .drivix-map-header-title {
-              font-size: 1.05rem !important;
+            .drivix-map-header-toprow {
+              display: flex !important;
+              align-items: center !important;
+              justify-content: space-between !important;
+              width: 100% !important;
+            }
+            .drivix-map-header-controls {
+              flex-direction: column !important;
+              align-items: stretch !important;
+              gap: 8px !important;
+              width: 100% !important;
+            }
+            .drivix-city-tabs-container {
+              overflow-x: auto !important;
+              white-space: nowrap !important;
+              padding-bottom: 2px !important;
             }
             .drivix-sidebar-panel {
               position: absolute !important;
               top: 0 !important;
               bottom: 0 !important;
               left: 0 !important;
-              width: 88vw !important;
-              min-width: 88vw !important;
+              right: 0 !important;
+              width: 100vw !important;
+              min-width: 100vw !important;
+              height: 100% !important;
               z-index: 1200 !important;
-              box-shadow: 10px 0 40px rgba(0,0,0,0.9) !important;
+              background: rgba(12, 14, 23, 0.98) !important;
+            }
+            .drivix-modal-footer {
+              display: none !important;
             }
           }
         `}</style>
@@ -274,7 +319,7 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
             boxShadow: '0 30px 90px rgba(0,0,0,0.9)'
           }}
         >
-          {/* Top Modal Header */}
+          {/* Top Header */}
           <div
             className="drivix-map-header"
             style={{
@@ -284,117 +329,46 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: '16px',
-              flexWrap: 'wrap'
+              gap: '16px'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, var(--accent-primary, #FAFF00), #ff9900)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#000',
-                boxShadow: '0 0 20px rgba(250, 255, 0, 0.3)'
-              }}>
-                <MapPin size={22} strokeWidth={2.5} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 900, fontFamily: 'var(--font-display, sans-serif)', color: '#fff', margin: 0 }}>
-                    Drivix Google Maps Network
-                  </h3>
-                  <span style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                    padding: '2px 8px',
-                    borderRadius: '20px',
-                    background: 'rgba(250, 255, 0, 0.15)',
-                    color: 'var(--accent-primary, #FAFF00)',
-                    border: '1px solid rgba(250, 255, 0, 0.3)'
-                  }}>
-                    {filteredLocations.length} Facilities Live
-                  </span>
-                </div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary, #8a8d9b)', margin: 0 }}>
-                  Real-time Google Maps telemetry, ANPR gate matching, and navigation across NCR
-                </p>
-              </div>
-            </div>
-
-            {/* Quick City Tabs & Search */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <div style={{
-                display: 'flex',
-                background: 'rgba(255, 255, 255, 0.05)',
-                padding: '4px',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.08)'
-              }}>
-                {['ALL', 'Noida', 'Greater Noida', 'Delhi'].map(city => (
-                  <button
-                    key={city}
-                    onClick={() => setSelectedCity(city)}
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      fontSize: '0.8rem',
-                      fontWeight: selectedCity === city ? 800 : 600,
-                      background: selectedCity === city ? 'var(--accent-primary, #FAFF00)' : 'transparent',
-                      color: selectedCity === city ? '#000' : 'var(--text-secondary, #8a8d9b)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    {city === 'ALL' ? 'All Hubs' : city}
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ position: 'relative', width: '220px' }}>
-                <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#8a8d9b' }} />
-                <input
-                  type="text"
-                  placeholder="Search sector or hub..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px 8px 34px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '10px',
-                    color: '#fff',
-                    fontSize: '0.82rem',
-                    outline: 'none'
-                  }}
-                />
-              </div>
-
-              <button
-                onClick={handleLocateUser}
-                title="Find My Location"
-                style={{
-                  padding: '8px 14px',
-                  background: 'rgba(59, 130, 246, 0.15)',
-                  color: '#60a5fa',
-                  border: '1px solid rgba(59, 130, 246, 0.3)',
+            {/* Title & Badge Row */}
+            <div className="drivix-map-header-toprow">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
                   borderRadius: '10px',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
+                  background: 'linear-gradient(135deg, var(--accent-primary, #FAFF00), #ff9900)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <Compass size={16} /> Locate Me
-              </button>
+                  justifyContent: 'center',
+                  color: '#000',
+                  boxShadow: '0 0 16px rgba(250, 255, 0, 0.3)'
+                }}>
+                  <MapPin size={20} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 900, fontFamily: 'var(--font-display, sans-serif)', color: '#fff', margin: 0 }}>
+                      Drivix Network Map
+                    </h3>
+                    <span style={{
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '20px',
+                      background: 'rgba(250, 255, 0, 0.15)',
+                      color: 'var(--accent-primary, #FAFF00)',
+                      border: '1px solid rgba(250, 255, 0, 0.3)'
+                    }}>
+                      {filteredLocations.length} Live Hubs
+                    </span>
+                  </div>
+                </div>
+              </div>
 
+              {/* Top Close Button (Visible prominently on Mobile and Desktop) */}
               <button
                 onClick={onClose}
                 style={{
@@ -408,150 +382,256 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  flexShrink: 0
                 }}
               >
                 <X size={18} />
               </button>
             </div>
+
+            {/* Quick City Tabs & Search Controls */}
+            <div className="drivix-map-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {/* City Pill Selectors */}
+              <div className="drivix-city-tabs-container" style={{
+                display: 'flex',
+                background: 'rgba(255, 255, 255, 0.05)',
+                padding: '4px',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.08)'
+              }}>
+                {['ALL', 'Noida', 'Greater Noida', 'Delhi'].map(city => (
+                  <button
+                    key={city}
+                    onClick={() => setSelectedCity(city)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: selectedCity === city ? 800 : 600,
+                      background: selectedCity === city ? 'var(--accent-primary, #FAFF00)' : 'transparent',
+                      color: selectedCity === city ? '#000' : 'var(--text-secondary, #8a8d9b)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
+                    }}
+                  >
+                    {city === 'ALL' ? 'All Hubs' : city}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Bar */}
+              <div style={{ position: 'relative', flex: 1, minWidth: '160px' }}>
+                <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#8a8d9b' }} />
+                <input
+                  type="text"
+                  placeholder="Search sector or hub..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '7px 12px 7px 32px',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    color: '#fff',
+                    fontSize: '0.8rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Main Body */}
+          {/* Main Body (Map + Drawer) */}
           <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
 
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                left: isSidebarOpen ? '336px' : '16px',
-                zIndex: 1000,
-                background: '#111422',
-                border: '1px solid rgba(250, 255, 0, 0.3)',
-                color: '#FAFF00',
-                padding: '8px 14px',
-                borderRadius: '10px',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
-                transition: 'all 0.3s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <Layers size={14} />
-              {isSidebarOpen ? 'Hide Facilities' : 'Show List'}
-            </button>
+            {/* Floating Action Controls over Map */}
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              left: '12px',
+              right: '12px',
+              zIndex: 1000,
+              display: 'flex',
+              justify: 'space-between',
+              pointerEvents: 'none'
+            }}>
+              {/* Toggle Facilities List Button */}
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                style={{
+                  pointerEvents: 'auto',
+                  background: '#111422',
+                  border: '1px solid rgba(250, 255, 0, 0.3)',
+                  color: '#FAFF00',
+                  padding: '8px 14px',
+                  borderRadius: '12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Layers size={15} />
+                {isSidebarOpen ? 'Close List' : `Facilities List (${filteredLocations.length})`}
+              </button>
 
-            {/* Side Drawer List */}
-            <div
-              className="drivix-sidebar-panel"
-              style={{
-                width: isSidebarOpen ? '340px' : '0px',
-                minWidth: isSidebarOpen ? '340px' : '0px',
-                background: 'rgba(12, 14, 23, 0.95)',
-                borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-                overflowY: 'auto',
-                transition: 'all 0.3s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                zIndex: 900
-              }}
-            >
+              {/* Locate Me Floating Button */}
+              <button
+                onClick={handleLocateUser}
+                style={{
+                  pointerEvents: 'auto',
+                  background: '#111422',
+                  border: '1px solid rgba(59, 130, 246, 0.4)',
+                  color: '#60a5fa',
+                  padding: '8px 14px',
+                  borderRadius: '12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Compass size={15} /> Locate Me
+              </button>
+            </div>
+
+            {/* Side Drawer List (Collapsible / Full Mobile Sheet) */}
+            <AnimatePresence>
               {isSidebarOpen && (
-                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#8a8d9b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Nearby Parking Sites ({filteredLocations.length})
-                    </span>
-                  </div>
-
-                  {filteredLocations.map((loc) => {
-                    const isSelected = selectedLocation?.id === loc.id;
-                    const dist = calculateDistance(loc.latitude, loc.longitude);
-
-                    return (
-                      <div
-                        key={loc.id}
-                        onClick={() => handleSelectLocation(loc)}
+                <motion.div
+                  className="drivix-sidebar-panel"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    width: '360px',
+                    minWidth: '360px',
+                    background: 'rgba(12, 14, 23, 0.98)',
+                    borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    zIndex: 900
+                  }}
+                >
+                  <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#8a8d9b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Nearby Parking Sites ({filteredLocations.length})
+                      </span>
+                      {/* Mobile Close Handle */}
+                      <button
+                        onClick={() => setIsSidebarOpen(false)}
                         style={{
-                          padding: '14px',
-                          borderRadius: '14px',
-                          background: isSelected ? 'rgba(250, 255, 0, 0.08)' : 'rgba(255, 255, 255, 0.03)',
-                          border: `1px solid ${isSelected ? 'var(--accent-primary, #FAFF00)' : 'rgba(255, 255, 255, 0.06)'}`,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px'
+                          background: 'rgba(255,255,255,0.08)',
+                          border: 'none',
+                          color: '#fff',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#fff', margin: 0, lineHeight: 1.2 }}>
-                            {loc.name}
-                          </h4>
-                          {dist && (
-                            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#60a5fa', background: 'rgba(59,130,246,0.15)', padding: '2px 6px', borderRadius: '4px' }}>
-                              {dist} km
+                        ✕ Close List
+                      </button>
+                    </div>
+
+                    {filteredLocations.map((loc) => {
+                      const isSelected = selectedLocation?.id === loc.id;
+                      const dist = calculateDistance(loc.latitude, loc.longitude);
+
+                      return (
+                        <div
+                          key={loc.id}
+                          onClick={() => handleSelectLocation(loc)}
+                          style={{
+                            padding: '14px',
+                            borderRadius: '14px',
+                            background: isSelected ? 'rgba(250, 255, 0, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                            border: `1px solid ${isSelected ? 'var(--accent-primary, #FAFF00)' : 'rgba(255, 255, 255, 0.06)'}`,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#fff', margin: 0, lineHeight: 1.2 }}>
+                              {loc.name}
+                            </h4>
+                            {dist && (
+                              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#60a5fa', background: 'rgba(59,130,246,0.15)', padding: '2px 6px', borderRadius: '4px' }}>
+                                {dist} km
+                              </span>
+                            )}
+                          </div>
+
+                          <p style={{ fontSize: '0.78rem', color: '#8a8d9b', margin: 0, lineHeight: 1.3 }}>
+                            {loc.address}
+                          </p>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                            <span style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              color: loc.availableSlots > 0 ? '#00cc6a' : '#ff4b4b',
+                              background: loc.availableSlots > 0 ? 'rgba(0, 204, 106, 0.12)' : 'rgba(255, 75, 75, 0.12)',
+                              padding: '2px 8px',
+                              borderRadius: '6px'
+                            }}>
+                              {loc.availableSlots} / {loc.totalSlots} Slots Free
                             </span>
-                          )}
-                        </div>
 
-                        <p style={{ fontSize: '0.78rem', color: '#8a8d9b', margin: 0, lineHeight: 1.3 }}>
-                          {loc.address}
-                        </p>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent-primary, #FAFF00)' }}>
+                              ₹{loc.hourlyPrice}<span style={{ fontSize: '0.7rem', color: '#8a8d9b' }}>/hr</span>
+                            </div>
+                          </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-                          <span style={{
-                            fontSize: '0.72rem',
-                            fontWeight: 800,
-                            color: loc.availableSlots > 0 ? '#00cc6a' : '#ff4b4b',
-                            background: loc.availableSlots > 0 ? 'rgba(0, 204, 106, 0.12)' : 'rgba(255, 75, 75, 0.12)',
-                            padding: '2px 8px',
-                            borderRadius: '6px'
-                          }}>
-                            {loc.availableSlots} / {loc.totalSlots} Slots Free
-                          </span>
-
-                          <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent-primary, #FAFF00)' }}>
-                            ₹{loc.hourlyPrice}<span style={{ fontSize: '0.7rem', color: '#8a8d9b' }}>/hr</span>
+                          <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onClose();
+                                navigate(`/slot-layout?locationId=${loc.id}`, { state: { selectedLocation: loc } });
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '8px 10px',
+                                background: 'var(--accent-primary, #FAFF00)',
+                                color: '#000',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontWeight: 800,
+                                fontSize: '0.78rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              Book Spot <ChevronRight size={14} />
+                            </button>
                           </div>
                         </div>
-
-                        <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onClose();
-                              navigate(`/slot-layout?locationId=${loc.id}`, { state: { selectedLocation: loc } });
-                            }}
-                            style={{
-                              flex: 1,
-                              padding: '6px 10px',
-                              background: 'var(--accent-primary, #FAFF00)',
-                              color: '#000',
-                              border: 'none',
-                              borderRadius: '8px',
-                              fontWeight: 800,
-                              fontSize: '0.75rem',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            Book Spot <ChevronRight size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
 
             {/* Google Map Container */}
             <div style={{ flex: 1, height: '100%', background: '#0a0c14', position: 'relative' }}>
@@ -602,79 +682,132 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                       />
                     );
                   })}
-
-                  {/* InfoWindow for Selected Location */}
-                  {selectedLocation && (
-                    <InfoWindowF
-                      position={{ lat: selectedLocation.latitude, lng: selectedLocation.longitude }}
-                      onCloseClick={() => setSelectedLocation(null)}
-                    >
-                      <div style={{ color: '#fff', padding: '4px', minWidth: '220px', fontFamily: 'sans-serif' }}>
-                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#FAFF00', fontWeight: 800, letterSpacing: '0.08em', marginBottom: '4px' }}>
-                          ⚡ Drivix Active Site
-                        </div>
-                        <h4 style={{ fontSize: '1rem', fontWeight: 800, margin: '0 0 4px 0', color: '#fff' }}>
-                          {selectedLocation.name}
-                        </h4>
-                        <p style={{ fontSize: '0.78rem', color: '#aaa', margin: '0 0 10px 0' }}>
-                          {selectedLocation.address}
-                        </p>
-                        <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                          <span style={{ background: 'rgba(0,204,106,0.15)', color: '#00cc6a', border: '1px solid rgba(0,204,106,0.3)', fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: '4px' }}>
-                            {selectedLocation.availableSlots} slots free
-                          </span>
-                          <span style={{ background: 'rgba(250,255,0,0.12)', color: '#FAFF00', border: '1px solid rgba(250,255,0,0.3)', fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: '4px' }}>
-                            ₹{selectedLocation.hourlyPrice}/hr
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button
-                            onClick={() => {
-                              onClose();
-                              navigate(`/slot-layout?locationId=${selectedLocation.id}`, { state: { selectedLocation } });
-                            }}
-                            style={{ flex: 1, background: '#FAFF00', color: '#000', fontWeight: 800, border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
-                          >
-                            Book Slot →
-                          </button>
-                          <a
-                            href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', textDecoration: 'none', padding: '8px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}
-                          >
-                            📍 Nav
-                          </a>
-                        </div>
-                      </div>
-                    </InfoWindowF>
-                  )}
                 </GoogleMap>
               ) : loadError ? (
                 <div style={{ padding: '40px', color: '#ff4b4b', textAlign: 'center' }}>
-                  Failed to load Google Maps script. Check API Key configuration.
+                  Failed to load Google Maps script.
                 </div>
               ) : (
                 <div style={{ padding: '40px', color: '#FAFF00', textAlign: 'center' }}>
                   Loading Google Maps...
                 </div>
               )}
+
+              {/* Selected Location Mobile Bottom Sheet Card */}
+              <AnimatePresence>
+                {selectedLocation && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 30 }}
+                    style={{
+                      position: 'absolute',
+                      bottom: '16px',
+                      left: '16px',
+                      right: '16px',
+                      zIndex: 1100,
+                      background: 'rgba(15, 18, 30, 0.96)',
+                      border: '1px solid rgba(250, 255, 0, 0.35)',
+                      borderRadius: '16px',
+                      padding: '16px',
+                      boxShadow: '0 20px 50px rgba(0,0,0,0.85), 0 0 30px rgba(250,255,0,0.15)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                      <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#FAFF00', fontWeight: 800, letterSpacing: '0.08em' }}>
+                        ⚡ Drivix Active Site
+                      </div>
+                      <button
+                        onClick={() => setSelectedLocation(null)}
+                        style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', padding: 0 }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+
+                    <h4 style={{ fontSize: '1.05rem', fontWeight: 800, margin: '0 0 4px 0', color: '#fff' }}>
+                      {selectedLocation.name}
+                    </h4>
+                    <p style={{ fontSize: '0.8rem', color: '#8a8d9b', margin: '0 0 10px 0' }}>
+                      {selectedLocation.address}
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
+                      <span style={{ background: 'rgba(0,204,106,0.15)', color: '#00cc6a', border: '1px solid rgba(0,204,106,0.3)', fontSize: '0.75rem', fontWeight: 800, padding: '3px 8px', borderRadius: '4px' }}>
+                        {selectedLocation.availableSlots} slots free
+                      </span>
+                      <span style={{ background: 'rgba(250,255,0,0.12)', color: '#FAFF00', border: '1px solid rgba(250,255,0,0.3)', fontSize: '0.75rem', fontWeight: 800, padding: '3px 8px', borderRadius: '4px' }}>
+                        ₹{selectedLocation.hourlyPrice}/hr
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => {
+                          onClose();
+                          navigate(`/slot-layout?locationId=${selectedLocation.id}`, { state: { selectedLocation } });
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '10px 14px',
+                          background: 'var(--accent-primary, #FAFF00)',
+                          color: '#000',
+                          border: 'none',
+                          borderRadius: '10px',
+                          fontWeight: 900,
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        Book Spot <ChevronRight size={16} />
+                      </button>
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          padding: '10px 14px',
+                          background: 'rgba(255,255,255,0.1)',
+                          color: '#fff',
+                          textDecoration: 'none',
+                          borderRadius: '10px',
+                          fontWeight: 800,
+                          fontSize: '0.85rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '1px solid rgba(255,255,255,0.15)'
+                        }}
+                      >
+                        📍 Nav
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
-          {/* Footer Stats */}
-          <div style={{
-            padding: '10px 24px',
-            background: 'rgba(15, 18, 28, 0.98)',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '0.8rem',
-            color: '#8a8d9b',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
+          {/* Footer (Desktop Only) */}
+          <div
+            className="drivix-modal-footer"
+            style={{
+              padding: '10px 24px',
+              background: 'rgba(15, 18, 28, 0.98)',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              fontSize: '0.8rem',
+              color: '#8a8d9b',
+              flexWrap: 'wrap',
+              gap: '12px'
+            }}
+          >
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00cc6a', boxShadow: '0 0 10px #00cc6a' }}></span>
