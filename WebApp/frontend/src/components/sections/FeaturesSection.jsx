@@ -276,42 +276,83 @@ const FeaturesSection = () => {
           </div>
 
           {/* ANPR SECURE CARD */}
-          <div className="bento-card-premium" style={{ gridArea: 'secure', padding: '22px' }}>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '12px',
-              background: 'rgba(0, 242, 255, 0.12)',
-              border: '1px solid rgba(0, 242, 255, 0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '16px',
-              color: '#00f2ff'
-            }}>
-              <ShieldCheck size={24} />
+          <div className="bento-card-premium" style={{
+            gridArea: 'secure',
+            padding: '22px',
+            display: 'flex',
+            flexDirection: 'column',
+            justify: 'space-between'
+          }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: 'rgba(0, 242, 255, 0.12)',
+                  border: '1px solid rgba(0, 242, 255, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#00f2ff'
+                }}>
+                  <ShieldCheck size={22} />
+                </div>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#00f2ff', background: 'rgba(0, 242, 255, 0.1)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(0, 242, 255, 0.2)' }}>
+                  Live ANPR
+                </span>
+              </div>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>ANPR Gate Secure</h4>
+              <p style={{ color: 'var(--text-secondary, #8a8d9b)', fontSize: '0.84rem', lineHeight: 1.4, margin: 0 }}>
+                High-speed camera entry. Automatic license plate matching — zero physical tickets.
+              </p>
             </div>
-            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>ANPR Gate Secure</h4>
-            <p style={{ color: 'var(--text-secondary, #8a8d9b)', fontSize: '0.84rem', lineHeight: 1.4 }}>
-              High-speed camera entry. Automatic license plate matching — zero physical tickets.
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '14px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: '0.72rem', fontWeight: 800, color: '#00f2ff' }}>
+              <span>📹 4K AI Camera Entry</span>
+            </div>
           </div>
 
           {/* TIME SAVED CARD */}
-          <div className="bento-card-premium" style={{ gridArea: 'time', padding: '22px', background: 'rgba(255, 170, 0, 0.05)' }}>
-            <div style={{
-              fontSize: '2.4rem',
-              fontWeight: 900,
-              fontFamily: 'var(--font-display)',
-              color: '#ffaa00',
-              lineHeight: 1,
-              marginBottom: '6px'
-            }}>
-              3 min
+          <div className="bento-card-premium" style={{
+            gridArea: 'time',
+            padding: '22px',
+            background: 'rgba(255, 170, 0, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            justify: 'space-between'
+          }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <Clock size={20} color="#ffaa00" />
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#ffaa00', background: 'rgba(255, 170, 0, 0.12)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(255, 170, 0, 0.25)' }}>
+                  Speed Metric
+                </span>
+              </div>
+              <div style={{
+                fontSize: '2.4rem',
+                fontWeight: 900,
+                fontFamily: 'var(--font-display)',
+                color: '#ffaa00',
+                lineHeight: 1,
+                marginBottom: '6px'
+              }}>
+                3 min
+              </div>
+              <p style={{ color: 'var(--text-secondary, #8a8d9b)', fontSize: '0.84rem', fontWeight: 600, lineHeight: 1.3, margin: 0 }}>
+                Avg. search time saved per session vs. standard parking.
+              </p>
             </div>
-            <p style={{ color: 'var(--text-secondary, #8a8d9b)', fontSize: '0.84rem', fontWeight: 600, lineHeight: 1.3 }}>
-              Avg. search time saved per session vs. standard parking.
-            </p>
+
+            {/* Bottom Progress Bar to eliminate empty space */}
+            <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid rgba(255,170,0,0.12)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#ffaa00' }}>Efficiency Boost</span>
+                <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#fff' }}>85% Faster</span>
+              </div>
+              <div style={{ width: '100%', height: '5px', background: 'rgba(255,170,0,0.15)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ width: '85%', height: '100%', background: '#ffaa00', boxShadow: '0 0 10px #ffaa00', borderRadius: '3px' }}></div>
+              </div>
+            </div>
           </div>
 
           {/* ZERO-FRICTION PAYMENTS CARD */}
