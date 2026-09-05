@@ -72,7 +72,7 @@ const FeaturesSection = () => {
           gridTemplateAreas: `
             "network network secure time"
             "network network payment payment"
-            "help help avail avail"
+            "avail avail avail avail"
           `,
           gridAutoRows: 'minmax(140px, auto)',
           gap: '16px',
@@ -87,7 +87,6 @@ const FeaturesSection = () => {
                   "network network"
                   "secure time"
                   "payment payment"
-                  "help help"
                   "avail avail"
                 !important;
               }
@@ -100,7 +99,6 @@ const FeaturesSection = () => {
                   "secure"
                   "time"
                   "payment"
-                  "help"
                   "avail"
                 !important;
               }
@@ -380,26 +378,6 @@ const FeaturesSection = () => {
                 One-tap FASTag sync means seamless boom barrier exit without manual payments.
               </p>
             </div>
-          </div>
-
-          {/* NEED INSURANCE HELP CARD */}
-          <div className="bento-card-premium" style={{ gridArea: 'help', padding: '22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>Need Insurance Cover?</h4>
-              <p style={{ color: 'var(--text-secondary, #8a8d9b)', fontSize: '0.84rem' }}>Partnered quotes for instant vehicle protection.</p>
-            </div>
-            <button style={{
-              padding: '10px 18px',
-              borderRadius: '10px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: '0.82rem',
-              cursor: 'pointer'
-            }}>
-              Explore
-            </button>
           </div>
 
           {/* AVAILABLE 24/7 CARD WITH ANIMATED WATCH */}
