@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import VehicleServices from './pages/VehicleServices';
@@ -31,6 +31,14 @@ import LoadingScreen from './components/common/LoadingScreen';
 
 import AboutUs from './pages/AboutUs';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   const [showInitialLoader, setShowInitialLoader] = useState(true);
 
@@ -47,6 +55,7 @@ function App() {
 
   return (
     <>
+      <ScrollToTop />
       <div className="ambient-glow" />
       <div className="ambient-glow-2" />
 
