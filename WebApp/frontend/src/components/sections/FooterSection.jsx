@@ -458,7 +458,7 @@ const FooterSection = () => {
                   if (link === 'Policy') setIsPolicyOpen(true);
                   if (link === 'Terms & Conditions') setIsTermsOpen(true);
                   if (link === 'Support') setIsSupportOpen(true);
-                  if (link === 'About Us') setIsAboutOpen(true);
+                  if (link === 'About Us') navigate('/about');
                 }}
                 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', cursor: 'pointer', transition: 'color 0.2s' }}
                 onMouseEnter={e => e.target.style.color = 'var(--text-primary)'}

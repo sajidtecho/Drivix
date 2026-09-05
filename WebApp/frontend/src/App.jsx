@@ -29,6 +29,8 @@ import ErrorBoundary from './ErrorBoundary';
 import './index.css';
 import LoadingScreen from './components/common/LoadingScreen';
 
+import AboutUs from './pages/AboutUs';
+
 function App() {
   const [showInitialLoader, setShowInitialLoader] = useState(true);
 
@@ -72,6 +74,7 @@ function App() {
               <Route path="/anpr" element={<AnprGateSimulator />} />
               <Route path="/partner" element={<PartnerLandingPage />} />
               <Route path="/copilot" element={<ActiveCopilot />} />
+              <Route path="/about" element={<AboutUs />} />
 
               {/* Admin Routes */}
               <Route element={<AdminRoute />}>

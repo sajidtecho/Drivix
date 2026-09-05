@@ -12,12 +12,14 @@ const LANDING_LINKS = [
   { label: 'The Problem', scrollId: 'problem' },
   { label: 'How It Works', scrollId: 'how-it-works' },
   { label: 'App Features', scrollId: 'features' },
+  { label: 'About Us', path: '/about' },
   { label: 'Become a Partner', path: '/partner' },
 ];
 
 const APP_LINKS = [
   { label: 'Home', path: '/' },
   { label: 'Services', path: '/services' },
+  { label: 'About Us', path: '/about' },
   { label: 'Gate Simulator', path: '/anpr' },
   { label: 'Drivix Assistant', path: '/copilot' },
   { label: 'Become a Partner', path: '/partner' },
