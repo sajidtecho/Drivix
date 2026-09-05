@@ -12,12 +12,12 @@ import { API_BASE_URL } from '../config';
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
 
 const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 90 } },
+  hidden: { y: 15, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } },
 };
 
 const ParkingList = () => {
@@ -330,58 +330,97 @@ const ParkingList = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      style={{ paddingTop: '100px', minHeight: '100vh', background: 'var(--bg-primary)', padding: '110px 5% 80px' }}
+      style={{ paddingTop: '90px', minHeight: '100vh', background: 'var(--bg-primary)', padding: '95px 4% 60px' }}
     >
+      {/* Mobile Responsive Override Styles */}
+      <style>{`
+        @media (max-width: 640px) {
+          .parking-card {
+            padding: 16px 14px !important;
+            border-radius: 16px !important;
+          }
+          .parking-card-inner {
+            gap: 12px !important;
+          }
+          .parking-card-icon {
+            width: 44px !important;
+            height: 44px !important;
+            border-radius: 12px !important;
+          }
+          .parking-card-icon svg {
+            width: 22px !important;
+            height: 22px !important;
+          }
+          .parking-card-title {
+            font-size: 1.05rem !important;
+            line-height: 1.25 !important;
+          }
+          .parking-card-address {
+            font-size: 0.78rem !important;
+            margin-bottom: 8px !important;
+          }
+          .parking-card-features {
+            display: none !important;
+          }
+          .parking-card-actions {
+            width: 100% !important;
+            justify-content: space-between !important;
+          }
+          .parking-card-bottom {
+            margin-top: 4px !important;
+          }
+        }
+      `}</style>
+
       <div style={{ maxWidth: '920px', margin: '0 auto' }}>
 
         {/* Header */}
-        <motion.div variants={itemVariants} style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-input)', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Car color="#000" size={22} />
+        <motion.div variants={itemVariants} style={{ marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Car color="#000" size={20} />
             </div>
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-secondary)', letterSpacing: '2px', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-secondary)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
               Smart Parking Directory
             </span>
           </div>
-          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 900, lineHeight: 1.1, marginBottom: '12px' }}>
-            Select <span className="text-gradient">Parking</span>
-            <br />Location
+          <h1 style={{ fontSize: 'clamp(1.75rem, 4.5vw, 2.5rem)', fontWeight: 900, lineHeight: 1.1, marginBottom: '8px' }}>
+            Select <span className="text-gradient">Parking</span> Location
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
             Filter by city, status, or pricing to find your optimal spot in real-time.
           </p>
         </motion.div>
 
         {/* Mode 1 & Mode 2 Booking Mode Switcher */}
-        <motion.div variants={itemVariants} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <motion.div variants={itemVariants} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
           <button
             onClick={() => { setBookingMode('INSTANT_NEARBY'); setSearch(''); }}
             style={{
-              flex: 1, padding: '12px 16px', borderRadius: '14px', border: '1px solid',
+              flex: 1, padding: '10px 14px', borderRadius: '12px', border: '1px solid',
               borderColor: bookingMode === 'INSTANT_NEARBY' ? '#10b981' : 'rgba(255,255,255,0.1)',
               background: bookingMode === 'INSTANT_NEARBY' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.03)',
               color: bookingMode === 'INSTANT_NEARBY' ? '#10b981' : 'var(--text-secondary)',
-              fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               transition: 'all 0.2s'
             }}
           >
-            <Zap size={16} color={bookingMode === 'INSTANT_NEARBY' ? '#10b981' : 'var(--text-secondary)'} />
+            <Zap size={15} color={bookingMode === 'INSTANT_NEARBY' ? '#10b981' : 'var(--text-secondary)'} />
             Instant Park
           </button>
 
           <button
             onClick={() => setBookingMode('FUTURE_MANUAL')}
             style={{
-              flex: 1, padding: '12px 16px', borderRadius: '14px', border: '1px solid',
+              flex: 1, padding: '10px 14px', borderRadius: '12px', border: '1px solid',
               borderColor: bookingMode === 'FUTURE_MANUAL' ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)',
               background: bookingMode === 'FUTURE_MANUAL' ? 'rgba(250, 255, 0, 0.15)' : 'rgba(255,255,255,0.03)',
               color: bookingMode === 'FUTURE_MANUAL' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-              fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               transition: 'all 0.2s'
             }}
           >
-            <MapPin size={16} color={bookingMode === 'FUTURE_MANUAL' ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
+            <MapPin size={15} color={bookingMode === 'FUTURE_MANUAL' ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
             Future Trip
           </button>
         </motion.div>
@@ -389,26 +428,26 @@ const ParkingList = () => {
         {/* Mode 2: Live GPS Recommendation Card */}
         {bookingMode === 'INSTANT_NEARBY' && nearestInstantMatch && (
           <motion.div variants={itemVariants} className="glass-panel" style={{
-            padding: '20px', borderRadius: '20px', marginBottom: '28px',
+            padding: '16px 18px', borderRadius: '16px', marginBottom: '20px',
             border: '1.5px solid rgba(16, 185, 129, 0.4)', background: 'rgba(10, 13, 22, 0.85)',
-            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)'
+            boxShadow: '0 6px 20px rgba(16, 185, 129, 0.12)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#10b981', letterSpacing: '1px', background: 'rgba(16, 185, 129, 0.12)', padding: '4px 10px', borderRadius: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#10b981', letterSpacing: '0.8px', background: 'rgba(16, 185, 129, 0.12)', padding: '3px 8px', borderRadius: '14px' }}>
                 ⚡ LIVE GPS NEAREST MATCH
               </span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#00f2ff' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#00f2ff' }}>
                 {getDistanceText(nearestInstantMatch)} away
               </span>
             </div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff', marginBottom: '4px' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', marginBottom: '2px' }}>
               {nearestInstantMatch.name}
             </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '16px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '12px' }}>
               {nearestInstantMatch.address}
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: '1rem' }}>
+              <span style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: '0.95rem' }}>
                 {nearestInstantMatch.pricePerHr !== null && nearestInstantMatch.pricePerHr !== undefined
                   ? `₹${nearestInstantMatch.pricePerHr}/hr`
                   : 'Rate Unverified'}
@@ -417,32 +456,32 @@ const ParkingList = () => {
                 onClick={() => navigate('/slot-layout', { state: { location: nearestInstantMatch } })}
                 style={{
                   background: '#10b981', color: '#000', border: 'none',
-                  padding: '10px 24px', borderRadius: '14px', fontWeight: 900,
-                  cursor: 'pointer', fontSize: '0.85rem', letterSpacing: '0.5px'
+                  padding: '8px 18px', borderRadius: '12px', fontWeight: 900,
+                  cursor: 'pointer', fontSize: '0.8rem', letterSpacing: '0.3px'
                 }}
               >
-                INSTANT PARK HERE NOW
+                INSTANT PARK
               </button>
             </div>
           </motion.div>
         )}
 
         {/* Search Bar & Filter Toggle Header */}
-        <motion.div variants={itemVariants} style={{ marginBottom: '16px' }}>
+        <motion.div variants={itemVariants} style={{ marginBottom: '14px' }}>
           <div className="glass-panel" style={{
-            display: 'flex', alignItems: 'center', gap: '14px',
-            padding: '14px 20px', borderRadius: 'var(--radius-card)',
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '10px 14px', borderRadius: '16px',
             background: 'var(--glass-bg)', flexWrap: 'wrap'
           }}>
-            <Search size={20} color="var(--text-secondary)" />
+            <Search size={18} color="var(--text-secondary)" />
             <input
               type="text"
-              placeholder="Search parking facilities (e.g. Sector 18, Palika, DLF)..."
+              placeholder="Search facilities (e.g. Sector 18, Palika, DLF)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{
-                flex: 1, minWidth: '200px', background: 'transparent', border: 'none',
-                outline: 'none', fontSize: '1rem', fontFamily: 'inherit',
+                flex: 1, minWidth: '160px', background: 'transparent', border: 'none',
+                outline: 'none', fontSize: '0.92rem', fontFamily: 'inherit',
                 color: 'var(--text-primary)',
               }}
             />
@@ -451,21 +490,21 @@ const ParkingList = () => {
             <button
               onClick={() => setShowFilterDrawer(!showFilterDrawer)}
               style={{
-                display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px',
-                borderRadius: 'var(--radius-input)',
+                display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px',
+                borderRadius: '10px',
                 background: showFilterDrawer || activeFilterCount > 0 ? 'rgba(250, 255, 0, 0.15)' : 'rgba(255, 255, 255, 0.05)',
                 border: showFilterDrawer || activeFilterCount > 0 ? '1px solid rgba(250, 255, 0, 0.4)' : '1px solid var(--glass-border)',
                 color: showFilterDrawer || activeFilterCount > 0 ? 'var(--accent-primary)' : 'var(--text-primary)',
-                fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s'
+                fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
-              <SlidersHorizontal size={16} />
+              <SlidersHorizontal size={15} />
               <span>Filters</span>
               {activeFilterCount > 0 && (
                 <span style={{
                   background: 'var(--accent-primary)', color: '#000', borderRadius: '50%',
-                  width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.75rem', fontWeight: 900
+                  width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.7rem', fontWeight: 900
                 }}>
                   {activeFilterCount}
                 </span>
@@ -475,22 +514,20 @@ const ParkingList = () => {
             <div
               onClick={() => window.open(`https://www.google.com/maps/search/parking+near+${search || 'me'}`, '_blank')}
               style={{
-                display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px',
-                borderRadius: 'var(--radius-input)', background: 'rgba(250, 255, 0, 0.08)',
+                display: 'flex', alignItems: 'center', gap: '4px', padding: '8px 12px',
+                borderRadius: '10px', background: 'rgba(250, 255, 0, 0.08)',
                 border: '1px solid rgba(250, 255, 0, 0.25)', cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(250, 255, 0, 0.18)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(250, 255, 0, 0.08)'}
             >
-              <Navigation size={14} color="var(--accent-primary)" />
-              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--accent-primary)' }}>Maps</span>
+              <Navigation size={13} color="var(--accent-primary)" />
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--accent-primary)' }}>Maps</span>
             </div>
           </div>
         </motion.div>
 
         {/* Quick City Filter Chips Bar */}
-        <motion.div variants={itemVariants} style={{ display: 'flex', gap: '8px', marginBottom: '20px', overflowX: 'auto', paddingBottom: '4px' }}>
+        <motion.div variants={itemVariants} style={{ display: 'flex', gap: '6px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
           {[
             { id: 'ALL', label: 'All Cities' },
             { id: 'New Delhi', label: '🏛️ New Delhi / NDMC' },
@@ -503,11 +540,11 @@ const ParkingList = () => {
                 key={chip.id}
                 onClick={() => setCityFilter(chip.id)}
                 style={{
-                  padding: '8px 16px', borderRadius: '20px', border: '1px solid',
+                  padding: '6px 14px', borderRadius: '16px', border: '1px solid',
                   borderColor: isActive ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.1)',
                   background: isActive ? 'rgba(250, 255, 0, 0.15)' : 'rgba(255, 255, 255, 0.03)',
                   color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                  fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap',
+                  fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', whiteSpace: 'nowrap',
                   transition: 'all 0.2s'
                 }}
               >
@@ -524,45 +561,45 @@ const ParkingList = () => {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              style={{ overflow: 'hidden', marginBottom: '24px' }}
+              transition={{ duration: 0.2 }}
+              style={{ overflow: 'hidden', marginBottom: '20px' }}
             >
               <div className="glass-panel" style={{
-                padding: '24px', borderRadius: '20px', background: 'rgba(15, 20, 32, 0.95)',
-                border: '1px solid rgba(250, 255, 0, 0.25)', boxShadow: '0 12px 32px rgba(0,0,0,0.3)'
+                padding: '18px 20px', borderRadius: '16px', background: 'rgba(15, 20, 32, 0.95)',
+                border: '1px solid rgba(250, 255, 0, 0.25)', boxShadow: '0 10px 28px rgba(0,0,0,0.3)'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Filter size={18} color="var(--accent-primary)" />
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff' }}>Filter & Sort Parking Facilities</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Filter size={16} color="var(--accent-primary)" />
+                    <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#fff' }}>Filter & Sort Parking Facilities</h3>
                   </div>
                   {activeFilterCount > 0 && (
                     <button
                       onClick={resetFilters}
                       style={{
                         background: 'transparent', border: 'none', color: '#ff4b4b',
-                        fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+                        fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
                       }}
                     >
-                      <RotateCcw size={14} /> Clear All
+                      <RotateCcw size={13} /> Clear All
                     </button>
                   )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
                   
                   {/* Location / City Filter */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Location / City
                     </label>
                     <select
                       value={cityFilter}
                       onChange={(e) => setCityFilter(e.target.value)}
                       style={{
-                        width: '100%', padding: '10px 14px', borderRadius: '12px',
+                        width: '100%', padding: '8px 12px', borderRadius: '10px',
                         background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)',
-                        color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 600, outline: 'none'
+                        color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 600, outline: 'none'
                       }}
                     >
                       <option value="ALL">All Locations / Cities</option>
@@ -574,16 +611,16 @@ const ParkingList = () => {
 
                   {/* Status Filter */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Operational Status
                     </label>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
                       style={{
-                        width: '100%', padding: '10px 14px', borderRadius: '12px',
+                        width: '100%', padding: '8px 12px', borderRadius: '10px',
                         background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)',
-                        color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 600, outline: 'none'
+                        color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 600, outline: 'none'
                       }}
                     >
                       <option value="ALL">All Statuses</option>
@@ -595,16 +632,16 @@ const ParkingList = () => {
 
                   {/* Sort By */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Sort Results By
                     </label>
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
                       style={{
-                        width: '100%', padding: '10px 14px', borderRadius: '12px',
+                        width: '100%', padding: '8px 12px', borderRadius: '10px',
                         background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)',
-                        color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 600, outline: 'none'
+                        color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 600, outline: 'none'
                       }}
                     >
                       <option value="distance">📍 Distance (Closest First)</option>
@@ -617,16 +654,16 @@ const ParkingList = () => {
 
                   {/* Max Hourly Rate */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Max Hourly Rate
                     </label>
                     <select
                       value={maxPriceFilter}
                       onChange={(e) => setMaxPriceFilter(e.target.value)}
                       style={{
-                        width: '100%', padding: '10px 14px', borderRadius: '12px',
+                        width: '100%', padding: '8px 12px', borderRadius: '10px',
                         background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)',
-                        color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 600, outline: 'none'
+                        color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 600, outline: 'none'
                       }}
                     >
                       <option value="ALL">Any Rate</option>
@@ -639,29 +676,29 @@ const ParkingList = () => {
                 </div>
 
                 {/* Feature Checkbox Toggles */}
-                <div style={{ display: 'flex', gap: '16px', marginTop: '20px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '14px', marginTop: '16px', flexWrap: 'wrap' }}>
                   <label style={{
-                    display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
-                    fontSize: '0.85rem', fontWeight: 700, color: onlyEvCharging ? 'var(--accent-primary)' : 'var(--text-secondary)'
+                    display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                    fontSize: '0.8rem', fontWeight: 700, color: onlyEvCharging ? 'var(--accent-primary)' : 'var(--text-secondary)'
                   }}>
                     <input
                       type="checkbox"
                       checked={onlyEvCharging}
                       onChange={(e) => setOnlyEvCharging(e.target.checked)}
-                      style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px' }}
+                      style={{ accentColor: 'var(--accent-primary)', width: '15px', height: '15px' }}
                     />
                     ⚡ EV Charging Available
                   </label>
 
                   <label style={{
-                    display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
-                    fontSize: '0.85rem', fontWeight: 700, color: onlyMultilevel ? 'var(--accent-primary)' : 'var(--text-secondary)'
+                    display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                    fontSize: '0.8rem', fontWeight: 700, color: onlyMultilevel ? 'var(--accent-primary)' : 'var(--text-secondary)'
                   }}>
                     <input
                       type="checkbox"
                       checked={onlyMultilevel}
                       onChange={(e) => setOnlyMultilevel(e.target.checked)}
-                      style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px' }}
+                      style={{ accentColor: 'var(--accent-primary)', width: '15px', height: '15px' }}
                     />
                     🏢 Multilevel / Underground (MLCP)
                   </label>
@@ -673,23 +710,23 @@ const ParkingList = () => {
         </AnimatePresence>
 
         {/* Stats & Results Summary Row */}
-        <motion.div variants={itemVariants} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+        <motion.div variants={itemVariants} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               Showing <span style={{ color: 'var(--accent-primary)' }}>{filtered.length}</span> of {processedLocations.length} locations
             </span>
             {activeFilterCount > 0 && (
-              <span style={{ fontSize: '0.78rem', background: 'rgba(250, 255, 0, 0.12)', color: 'var(--accent-primary)', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.72rem', background: 'rgba(250, 255, 0, 0.12)', color: 'var(--accent-primary)', padding: '2px 6px', borderRadius: '10px', fontWeight: 700 }}>
                 Filtered ({activeFilterCount})
               </span>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             {[{ label: 'Total Slots', value: filtered.reduce((a, p) => a + (p.totalSlots || 0), 0) },
               { label: 'Available', value: filtered.reduce((a, p) => a + (p.availableSlots || 0), 0) }
             ].map((st) => (
-              <div key={st.label} style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
+              <div key={st.label} style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
                 {st.label}: <span style={{ color: '#fff' }}>{st.value}</span>
               </div>
             ))}
@@ -697,7 +734,7 @@ const ParkingList = () => {
         </motion.div>
 
         {/* Location Cards List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {filtered.map((loc) => {
             const total = loc.totalSlots;
             const dynamicAvailable = loc.availableSlots;
@@ -709,15 +746,16 @@ const ParkingList = () => {
               <motion.div
                 key={loc.id}
                 variants={itemVariants}
-                whileHover={{ y: -4, scale: 1.005 }}
+                whileHover={{ y: -3, scale: 1.003 }}
                 onHoverStart={() => setHoveredId(loc.id)}
                 onHoverEnd={() => setHoveredId(null)}
                 onClick={() => navigate('/slot-layout', { state: { location: loc } })}
-                className="glass-panel"
+                className="glass-panel parking-card"
                 style={{
-                  padding: '28px', cursor: 'pointer', overflow: 'hidden', position: 'relative',
+                  padding: '20px 22px', cursor: 'pointer', overflow: 'hidden', position: 'relative',
                   border: hoveredId === loc.id ? `1.5px solid ${loc.color}77` : '1px solid var(--glass-border)',
-                  transition: 'all 0.25s ease',
+                  transition: 'all 0.2s ease',
+                  borderRadius: '20px'
                 }}
               >
                 {/* Color accent bar */}
@@ -726,39 +764,46 @@ const ParkingList = () => {
                   background: `linear-gradient(90deg, ${loc.color}, transparent)`,
                 }} />
 
-                {/* Status Badge */}
-                <div style={{
-                  position: 'absolute', top: '20px', right: '20px',
-                  padding: '4px 12px', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem',
-                  fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase',
-                  background: `${loc.color}22`, color: loc.color, border: `1px solid ${loc.color}44`,
-                  display: 'flex', alignItems: 'center', gap: '4px'
-                }}>
-                  {loc.status === 'Restricted' && <AlertTriangle size={12} />}
-                  {loc.badge}
-                </div>
-
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }} className="parking-card-inner">
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }} className="parking-card-inner">
                   
                   {/* Facility Icon */}
                   <div style={{
-                    width: '60px', height: '60px', borderRadius: 'var(--radius-card)', flexShrink: 0,
+                    width: '52px', height: '52px', borderRadius: '16px', flexShrink: 0,
                     background: `${loc.color}18`, display: 'flex', alignItems: 'center',
                     justifyContent: 'center', border: `1.5px solid ${loc.color}33`,
                   }} className="parking-card-icon">
-                    <Car size={28} color={loc.color} />
+                    <Car size={24} color={loc.color} />
                   </div>
 
                   {/* Info Block */}
                   <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '4px', paddingRight: '90px' }} className="parking-card-title">
-                      {loc.name}
-                    </h2>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '12px', flexWrap: 'wrap' }}>
-                      <MapPin size={14} />
-                      <span>{loc.address}</span>
-                      <span style={{ padding: '2px 8px', borderRadius: 'var(--radius-input)', background: 'var(--bg-secondary)', fontSize: '0.78rem', fontWeight: 600, color: 'var(--accent-secondary)' }}>
+                    {/* Header Row: Title & Badge */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }} className="parking-card-header">
+                      <h2 style={{ fontSize: '1.18rem', fontWeight: 800, margin: 0, lineHeight: 1.25 }} className="parking-card-title">
+                        {loc.name}
+                      </h2>
+
+                      {/* Status Badge */}
+                      <div 
+                        className="parking-card-badge"
+                        style={{
+                          padding: '4px 10px', borderRadius: 'var(--radius-pill)', fontSize: '0.7rem',
+                          fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', flexShrink: 0,
+                          background: `${loc.color}22`, color: loc.color, border: `1px solid ${loc.color}44`,
+                          display: 'flex', alignItems: 'center', gap: '4px'
+                        }}
+                      >
+                        {loc.status === 'Restricted' && <AlertTriangle size={12} />}
+                        {loc.badge}
+                      </div>
+                    </div>
+                    
+                    {/* Address & Distance */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.84rem', marginBottom: '10px', flexWrap: 'wrap' }} className="parking-card-address">
+                      <MapPin size={13} style={{ flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>{loc.address}</span>
+                      <span style={{ padding: '2px 8px', borderRadius: '10px', background: 'var(--bg-secondary)', fontSize: '0.74rem', fontWeight: 700, color: 'var(--accent-secondary)' }}>
                         {getDistanceText(loc)}
                       </span>
                     </div>
@@ -767,12 +812,12 @@ const ParkingList = () => {
                     {loc.status === 'Restricted' && (
                       <div style={{
                         background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)',
-                        color: '#ff4b4b', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px',
-                        fontSize: '0.83rem', fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: '8px'
+                        color: '#ff4b4b', borderRadius: '10px', padding: '8px 12px', marginBottom: '10px',
+                        fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: '6px'
                       }}>
-                        <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
                         <div>
-                          <strong>RESTRICTED PUBLIC ACCESS:</strong> Official reports indicate ~90% of capacity is utilized for dealership vehicle storage. Only limited public slots available.
+                          <strong>RESTRICTED ACCESS:</strong> ~90% capacity utilized for dealership vehicle storage. Limited public slots available.
                         </div>
                       </div>
                     )}
@@ -781,26 +826,26 @@ const ParkingList = () => {
                     {loc.status === 'Pending' && (
                       <div style={{
                         background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)',
-                        color: '#FFAD00', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px',
-                        fontSize: '0.83rem', fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: '8px'
+                        color: '#FFAD00', borderRadius: '10px', padding: '8px 12px', marginBottom: '10px',
+                        fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: '6px'
                       }}>
-                        <Clock size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <Clock size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
                         <div>
-                          <strong>OPERATIONAL PENDING:</strong> Facility is inaugurated but public operational status is pending final municipal verification.
+                          <strong>OPERATIONAL PENDING:</strong> Facility inaugurated but operational status pending final municipal verification.
                         </div>
                       </div>
                     )}
 
                     {/* Availability Bar */}
-                    <div style={{ marginBottom: '14px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Availability</span>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: avColor }}>
-                          {total !== null && dynamicAvailable !== null ? `${dynamicAvailable}/${total} slots` : (total !== null ? `${total} Total Slots` : 'Unverified Capacity')}
+                    <div style={{ marginBottom: '10px' }} className="parking-card-avail">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Availability</span>
+                        <span style={{ fontSize: '0.84rem', fontWeight: 800, color: avColor }}>
+                          {total !== null && dynamicAvailable !== null ? `${dynamicAvailable}/${total} slots` : (total !== null ? `${total} Total Slots` : 'Unverified')}
                         </span>
                       </div>
                       {total !== null && dynamicAvailable !== null && (
-                        <div style={{ height: '6px', borderRadius: '3px', background: 'var(--bg-secondary)', overflow: 'hidden' }}>
+                        <div style={{ height: '5px', borderRadius: '3px', background: 'var(--bg-secondary)', overflow: 'hidden' }}>
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${pct}%` }}
@@ -812,34 +857,34 @@ const ParkingList = () => {
                     </div>
 
                     {/* Bottom Row: Features & Action */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }} className="parking-card-bottom">
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        {(loc.features || []).slice(0, 3).map((f) => (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '6px' }} className="parking-card-bottom">
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }} className="parking-card-features">
+                        {(loc.features || []).slice(0, 2).map((f) => (
                           <span key={f} style={{
-                            fontSize: '0.7rem', fontWeight: 600, padding: '4px 10px',
-                            borderRadius: 'var(--radius-input)', background: 'var(--bg-secondary)',
+                            fontSize: '0.68rem', fontWeight: 600, padding: '3px 8px',
+                            borderRadius: '8px', background: 'var(--bg-secondary)',
                             color: 'var(--text-secondary)', border: '1px solid var(--glass-border)',
                           }}>{f}</span>
                         ))}
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '100%', justifyContent: 'space-between' }} className="parking-card-actions">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Star size={14} color="#FFCE00" fill="#FFCE00" />
-                            <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{loc.rating}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto' }} className="parking-card-actions">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                            <Star size={13} color="#FFCE00" fill="#FFCE00" />
+                            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{loc.rating}</span>
                           </div>
-                          <span style={{ fontSize: '1.15rem', fontWeight: 900, color: displayPrice ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
-                            {displayPrice ? `${displayPrice}/hr` : 'Rate Unverified'}
+                          <span style={{ fontSize: '1.05rem', fontWeight: 900, color: displayPrice ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
+                            {displayPrice ? `${displayPrice}/hr` : 'Unverified'}
                           </span>
                         </div>
 
                         <div style={{
-                          display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px',
-                          borderRadius: 'var(--radius-button)', background: `${loc.color}15`, border: `1px solid ${loc.color}30`,
-                          color: loc.color, fontWeight: 700, fontSize: '0.88rem',
+                          display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 14px',
+                          borderRadius: '12px', background: `${loc.color}18`, border: `1px solid ${loc.color}35`,
+                          color: loc.color, fontWeight: 800, fontSize: '0.82rem', flexShrink: 0
                         }}>
-                          {loc.status === 'Restricted' ? 'View Details' : 'Slots'} <ChevronRight size={14} />
+                          {loc.status === 'Restricted' ? 'View' : 'Slots'} <ChevronRight size={14} />
                         </div>
                       </div>
                     </div>
@@ -860,27 +905,27 @@ const ParkingList = () => {
             className="glass-panel"
             style={{ 
               textAlign: 'center', 
-              padding: '60px 30px', 
-              borderRadius: 'var(--radius-card)', 
+              padding: '50px 24px', 
+              borderRadius: '20px', 
               border: '1px solid var(--glass-border)',
               background: 'rgba(255, 255, 255, 0.01)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-              maxWidth: '600px',
-              margin: '40px auto 0',
+              boxShadow: '0 16px 36px rgba(0,0,0,0.15)',
+              maxWidth: '540px',
+              margin: '32px auto 0',
             }}
           >
-            <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🚗💨</div>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '12px', color: 'var(--text-primary)' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🚗💨</div>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-primary)' }}>
               No Facilities Found 🔎
             </h3>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto 24px', lineHeight: 1.5, fontSize: '0.95rem' }}>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto 20px', lineHeight: 1.45, fontSize: '0.9rem' }}>
               No parking facilities matched your selected search or filter criteria. Try adjusting your filters.
             </p>
             <button
               onClick={resetFilters}
               style={{
                 background: 'var(--accent-primary)', color: '#000', border: 'none',
-                padding: '12px 24px', borderRadius: '14px', fontWeight: 800, cursor: 'pointer'
+                padding: '10px 20px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer'
               }}
             >
               Reset All Filters
@@ -889,12 +934,12 @@ const ParkingList = () => {
         )}
 
         {/* Dynamic Advertisement Carousel */}
-        <div style={{ marginTop: '32px', width: '100%' }}>
+        <div style={{ marginTop: '24px', width: '100%' }}>
           <AdCarousel />
         </div>
 
         {loading && (
-           <div style={{ textAlign: 'center', padding: '60px 0' }}>
+           <div style={{ textAlign: 'center', padding: '50px 0' }}>
               <video 
                 src={loadingCar} 
                 autoPlay 
@@ -902,9 +947,9 @@ const ParkingList = () => {
                 muted 
                 playsInline 
                 className="loader-video"
-                style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 16px' }} 
+                style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 12px' }} 
               />
-              <p style={{ color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '2px' }}>CONNECTING TO PARKING...</p>
+              <p style={{ color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '1.5px', fontSize: '0.85rem' }}>CONNECTING TO PARKING...</p>
            </div>
         )}
       </div>
