@@ -8,8 +8,6 @@ const AdCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const autoPlayRef = useRef(null);
-  
-  // Tracked banners to avoid double impressions in the same session
   const trackedImpressions = useRef(new Set());
 
   useEffect(() => {
@@ -29,7 +27,6 @@ const AdCarousel = () => {
     fetchBanners();
   }, []);
 
-  // Analytics helper for impressions
   useEffect(() => {
     if (banners.length === 0) return;
     const currentBanner = banners[currentIndex];
@@ -38,21 +35,17 @@ const AdCarousel = () => {
     const bannerId = currentBanner._id;
     if (!trackedImpressions.current.has(bannerId)) {
       trackedImpressions.current.add(bannerId);
-      // Fire impression tracking call in background
       fetch(`${API_BASE_URL}/api/v1/banners/${bannerId}/impression`, {
         method: 'POST'
       }).catch(err => console.error('Impression tracking error:', err));
     }
   }, [currentIndex, banners]);
 
-  // Autoplay setup
   useEffect(() => {
     if (banners.length <= 1) return;
-    
     autoPlayRef.current = setInterval(() => {
       handleNext();
     }, 5000);
-
     return () => {
       if (autoPlayRef.current) clearInterval(autoPlayRef.current);
     };
@@ -91,14 +84,12 @@ const AdCarousel = () => {
   const renderHeroStyleTitle = (titleText) => {
     const separators = ['|', '-', ':'];
     let parts = [];
-    
     for (const sep of separators) {
       if (titleText.includes(sep)) {
         parts = titleText.split(sep);
         break;
       }
     }
-    
     if (parts.length < 2) {
       const words = titleText.split(' ');
       if (words.length > 2) {
@@ -111,20 +102,11 @@ const AdCarousel = () => {
         parts = [titleText, ''];
       }
     }
-    
     const firstLine = parts[0].trim();
     const secondLine = parts.slice(1).join(' ').trim();
-    
+
     return (
-      <h3 
-        style={{
-          fontSize: '1.8rem',
-          fontWeight: 800,
-          color: '#ffffff',
-          marginBottom: '10px',
-          lineHeight: 1.25
-        }}
-      >
+      <h3 className="ad-hero-title">
         {firstLine}
         {secondLine && (
           <>
@@ -136,33 +118,76 @@ const AdCarousel = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-        <p style={{ color: 'var(--text-secondary)' }}>Loading advertisements...</p>
-      </div>
-    );
-  }
-
+  if (loading) return null;
   if (banners.length === 0) return null;
 
   const currentBanner = banners[currentIndex];
 
   return (
-    <div 
-      className="glass-panel"
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '220px',
-        borderRadius: 'var(--radius-card)',
-        overflow: 'hidden',
-        border: '1.5px solid var(--glass-border)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-        background: 'var(--bg-tertiary)',
-        marginBottom: '24px'
-      }}
-    >
+    <div className="glass-panel ad-carousel-container">
+      <style>{`
+        .ad-carousel-container {
+          position: relative;
+          width: 100%;
+          min-height: 200px;
+          border-radius: var(--radius-card);
+          overflow: hidden;
+          border: 1.5px solid var(--glass-border);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          background: var(--bg-tertiary);
+          margin-bottom: 24px;
+        }
+        .ad-content-wrapper {
+          position: relative;
+          z-index: 3;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          width: 85%;
+          padding: 24px 36px;
+        }
+        .ad-hero-title {
+          font-size: 1.6rem;
+          font-weight: 800;
+          color: #ffffff;
+          margin-bottom: 8px;
+          line-height: 1.2;
+        }
+        .ad-description {
+          color: var(--text-secondary);
+          font-size: 0.88rem;
+          line-height: 1.4;
+          margin-bottom: 14px;
+          max-width: 600px;
+        }
+        @media (max-width: 640px) {
+          .ad-carousel-container {
+            min-height: 170px;
+          }
+          .ad-content-wrapper {
+            width: 100% !important;
+            padding: 16px 32px 14px 28px !important;
+          }
+          .ad-hero-title {
+            font-size: 1.12rem !important;
+            margin-bottom: 4px !important;
+          }
+          .ad-description {
+            font-size: 0.78rem !important;
+            line-height: 1.35 !important;
+            margin-bottom: 10px !important;
+          }
+          .ad-cta-btn {
+            padding: 7px 14px !important;
+            font-size: 0.75rem !important;
+          }
+          .ad-nav-btn {
+            width: 26px !important;
+            height: 26px !important;
+          }
+        }
+      `}</style>
+
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -170,96 +195,43 @@ const AdCarousel = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.35 }}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            padding: '32px 48px'
-          }}
+          style={{ position: 'relative', width: '100%', height: '100%', minHeight: 'inherit' }}
         >
-          {/* Blended Background Watermark Image */}
-          <div 
-            style={{
-              position: 'absolute',
-              inset: 0,
-              zIndex: 1,
-              overflow: 'hidden'
-            }}
-          >
+          {/* Watermark Image Background */}
+          <div style={{ position: 'absolute', inset: 0, zIndex: 1, overflow: 'hidden' }}>
             <img 
               src={currentBanner.imageUrl} 
               alt={currentBanner.title}
               loading="lazy"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                opacity: 0.12
-              }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.14 }}
             />
-            <div 
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'radial-gradient(circle at center, transparent 30%, var(--bg-tertiary) 90%)'
-              }}
-            />
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, transparent 20%, var(--bg-tertiary) 85%)' }} />
           </div>
 
-          {/* Left Column: Hero-style Text Layout */}
-          <div 
-            style={{
-              position: 'relative',
-              zIndex: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              width: '80%',
-              gap: '6px'
-            }}
-          >
-            <span 
-              style={{
-                fontSize: '0.75rem',
-                fontWeight: 900,
-                color: 'var(--accent-primary)',
-                letterSpacing: '2.5px',
-                textTransform: 'uppercase',
-                marginBottom: '4px'
-              }}
-            >
+          <div className="ad-content-wrapper">
+            <span style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--accent-primary)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '2px' }}>
               Sponsored Promotion
             </span>
             
             {renderHeroStyleTitle(currentBanner.title)}
             
-            <p 
-              style={{
-                color: 'var(--text-secondary)',
-                fontSize: '0.92rem',
-                lineHeight: 1.45,
-                marginBottom: '16px',
-                maxWidth: '650px'
-              }}
-            >
+            <p className="ad-description">
               {currentBanner.description}
             </p>
             
             <button
               onClick={() => handleBannerClick(currentBanner)}
-              className="btn btn-primary"
+              className="btn btn-primary ad-cta-btn"
               style={{
                 alignSelf: 'flex-start',
-                padding: '10px 24px',
-                fontSize: '0.85rem',
+                padding: '9px 20px',
+                fontSize: '0.82rem',
                 fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '6px',
                 cursor: 'pointer',
-                borderRadius: '24px', // Capsule Shape
+                borderRadius: '24px',
                 boxShadow: '0 4px 15px var(--accent-glow)',
                 border: 'none',
                 background: 'var(--accent-primary)',
@@ -278,85 +250,47 @@ const AdCarousel = () => {
         <>
           <button
             onClick={handlePrev}
+            className="ad-nav-btn"
             style={{
-              position: 'absolute',
-              top: '50%',
-              left: '12px',
-              transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.5)',
-              border: '1px solid var(--glass-border)',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              cursor: 'pointer',
-              zIndex: 10,
-              transition: 'all 0.2s'
+              position: 'absolute', top: '50%', left: '4px', transform: 'translateY(-50%)',
+              background: 'rgba(0,0,0,0.6)', border: '1px solid var(--glass-border)',
+              borderRadius: '50%', width: '32px', height: '32px', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', color: '#ffffff', cursor: 'pointer', zIndex: 10
             }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--glass-border)'}
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={16} />
           </button>
           <button
             onClick={handleNext}
+            className="ad-nav-btn"
             style={{
-              position: 'absolute',
-              top: '50%',
-              right: '12px',
-              transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.5)',
-              border: '1px solid var(--glass-border)',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              cursor: 'pointer',
-              zIndex: 10,
-              transition: 'all 0.2s'
+              position: 'absolute', top: '50%', right: '4px', transform: 'translateY(-50%)',
+              background: 'rgba(0,0,0,0.6)', border: '1px solid var(--glass-border)',
+              borderRadius: '50%', width: '32px', height: '32px', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', color: '#ffffff', cursor: 'pointer', zIndex: 10
             }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--glass-border)'}
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={16} />
           </button>
         </>
       )}
 
-      {/* Pagination Dot Indicators (Top Right Capsule) */}
+      {/* Pagination Dots */}
       {banners.length > 1 && (
-        <div 
-          style={{
-            position: 'absolute',
-            top: '16px',
-            right: '16px',
-            display: 'flex',
-            gap: '6px',
-            zIndex: 10,
-            background: 'rgba(0,0,0,0.45)',
-            padding: '6px 10px',
-            borderRadius: '12px'
-          }}
-        >
+        <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '4px', zIndex: 10, background: 'rgba(0,0,0,0.5)', padding: '4px 8px', borderRadius: '10px' }}>
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => handleDotClick(index)}
               style={{
-                width: index === currentIndex ? '16px' : '6px',
-                height: '6px',
+                width: index === currentIndex ? '14px' : '5px',
+                height: '5px',
                 borderRadius: '3px',
                 background: index === currentIndex ? 'var(--accent-primary)' : 'rgba(255,255,255,0.4)',
                 border: 'none',
                 cursor: 'pointer',
                 padding: 0,
-                transition: 'all 0.3s ease'
+                transition: 'all 0.25s ease'
               }}
             />
           ))}
