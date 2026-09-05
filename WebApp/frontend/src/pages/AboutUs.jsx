@@ -366,7 +366,7 @@ const AboutUs = () => {
                   </div>
                 </div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fff', margin: '0 0 2px' }}>
-                  Shakil Ahmad
+                  Sajid Ahmad
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 800, margin: 0 }}>
                   Founder & Lead Architect
@@ -387,7 +387,7 @@ const AboutUs = () => {
                 </p>
 
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.55, margin: 0 }}>
-                  Driven by a vision to solve daily commuter frustration across Delhi-NCR, <strong>Shakil Ahmad</strong> founded Drivix to integrate computer vision ANPR cameras, IoT slot sensors, and predictive pricing into a single unified mobile & web ecosystem. Under his engineering leadership, Drivix has scaled to seed and support major hubs across Noida, Greater Noida, and New Delhi.
+                  Driven by a vision to solve daily commuter frustration across Delhi-NCR, <strong>Sajid Ahmad</strong> founded Drivix to integrate computer vision ANPR cameras, IoT slot sensors, and predictive pricing into a single unified mobile & web ecosystem. Under his engineering leadership, Drivix has scaled to seed and support major hubs across Noida, Greater Noida, and New Delhi.
                 </p>
               </div>
 
