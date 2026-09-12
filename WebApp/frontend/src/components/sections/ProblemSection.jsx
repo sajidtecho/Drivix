@@ -51,7 +51,7 @@ const ProblemSection = () => {
             The <span style={{ whiteSpace: 'nowrap' }}>20-minute</span> <span style={{ color: 'var(--accent-warm)' }}>parking tax</span>.
           </h2>
           <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-            Every morning in Noida, thousands of drivers lose 20 minutes just circling. It's not just a delay; it's a productivity tax we've all been forced to pay. Until now.
+            Every morning in every metropolitan city, thousands of drivers lose 20 minutes just circling. It's not just a delay; it's a productivity tax we've all been forced to pay. Until now.
           </p>
         </div>
 
