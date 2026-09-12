@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { Layers, Calendar, Clock, Loader2, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Layers, Calendar, Clock, Loader2, ArrowRight, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import loadingCar from '../assets/Loading_car.mp4';
 import { API_BASE_URL } from '../config';
@@ -166,6 +166,28 @@ const SlotLayout = () => {
   return (
     <div style={{ paddingTop: '90px', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <div style={{ maxWidth: '640px', margin: '0 auto', padding: '32px 5% 80px' }}>
+
+        <button
+          onClick={() => {
+            if (window.history.state && window.history.state.idx > 0) {
+              navigate(-1);
+            } else {
+              navigate('/find');
+            }
+          }}
+          className="btn btn-secondary"
+          style={{
+            marginBottom: '24px',
+            padding: '10px 18px',
+            fontSize: '0.9rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer'
+          }}
+        >
+          <ArrowLeft size={16} /> Move Back
+        </button>
 
         <h1 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '8px' }}>
           Choose Preferred <span className="text-gradient">Floor</span>
