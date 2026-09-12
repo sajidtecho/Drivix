@@ -68,7 +68,7 @@ export default function FAQScreen() {
     },
     {
       question: "Who founded Drivix Smart Parking?",
-      answer: "Drivix was founded by a passionate leadership team: Sajid Ahmad (Founder and CEO), Irfan Khan (Co-Founder and CMO), and Mohd. Bilal (Co-Founder and COO) to eradicate urban parking congestion."
+      answer: "Drivix was founded by a passionate leadership team: Sajid Ahmad (Chief Engineer and Builder), Irfan Khan (Research Analyst and Designer), and Bilal Khan (Research and Feasibility Architect) to eradicate urban parking congestion."
     }
   ];
 

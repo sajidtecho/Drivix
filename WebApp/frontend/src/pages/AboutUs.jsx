@@ -345,58 +345,94 @@ const AboutUs = () => {
           </div>
         </motion.div>
 
-        {/* About the Founder Section */}
+        {/* Leadership Team Section */}
         <motion.div variants={itemVariants} style={{ marginBottom: '64px' }}>
-          <div className="glass-panel" style={{
-            padding: '36px', borderRadius: '24px', background: 'rgba(15, 20, 32, 0.9)',
-            border: '1.5px solid rgba(250, 255, 0, 0.3)', boxShadow: '0 12px 40px rgba(0, 0, 0, 0.35)'
-          }}>
-            <div className="about-founder-card">
-              
-              {/* Founder Avatar & Badge */}
-              <div className="founder-avatar-container" style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '6px' }}>
+              Meet Our <span className="text-gradient">Leadership Team</span>
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
+              The architects, researchers, and engineers driving Drivix smart mobility.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {/* Sajid Ahmad */}
+            <div className="glass-panel" style={{
+              padding: '28px 24px', borderRadius: '20px', background: 'rgba(15, 20, 32, 0.9)',
+              border: '1.5px solid rgba(250, 255, 0, 0.3)', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)', textAlign: 'center'
+            }}>
+              <div style={{
+                width: '100px', height: '100px', borderRadius: '50%', margin: '0 auto 16px',
+                background: 'linear-gradient(135deg, var(--accent-primary), #00f2ff)', padding: '3px',
+                boxShadow: '0 8px 24px var(--accent-glow)'
+              }}>
                 <div style={{
-                  width: '180px', height: '180px', borderRadius: '50%', margin: '0 auto 16px',
-                  background: 'linear-gradient(135deg, var(--accent-primary), #00f2ff)', padding: '4px',
-                  boxShadow: '0 8px 24px var(--accent-glow)'
+                  width: '100%', height: '100%', borderRadius: '50%', background: '#0d1117',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>
-                  <div style={{
-                    width: '100%', height: '100%', borderRadius: '50%',
-                    background: '#0d1117', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', overflow: 'hidden'
-                  }}>
-                    {/* Founder Avatar Icon / Initial */}
-                    <span style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--accent-primary)' }}>
-                      SA
-                    </span>
-                  </div>
+                  <span style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--accent-primary)' }}>SA</span>
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fff', margin: '0 0 2px' }}>
-                  Sajid Ahmad
-                </h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 800, margin: 0 }}>
-                  Founder & Lead Architect
-                </p>
               </div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#fff', margin: '0 0 4px' }}>Sajid Ahmad</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 800, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Chief Engineer & Builder
+              </p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                Lead visionary integrating computer vision ANPR cameras, IoT slot sensors, and full-stack architecture into a unified platform.
+              </p>
+            </div>
 
-              {/* Founder Bio & Philosophy */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <Quote size={20} color="var(--accent-primary)" />
-                  <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    Founder's Perspective
-                  </span>
+            {/* Irfan Khan */}
+            <div className="glass-panel" style={{
+              padding: '28px 24px', borderRadius: '20px', background: 'rgba(15, 20, 32, 0.9)',
+              border: '1.5px solid rgba(0, 242, 254, 0.3)', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)', textAlign: 'center'
+            }}>
+              <div style={{
+                width: '100px', height: '100px', borderRadius: '50%', margin: '0 auto 16px',
+                background: 'linear-gradient(135deg, #00f2ff, #7000ff)', padding: '3px',
+                boxShadow: '0 8px 24px rgba(0, 242, 254, 0.25)'
+              }}>
+                <div style={{
+                  width: '100%', height: '100%', borderRadius: '50%', background: '#0d1117',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <span style={{ fontSize: '2rem', fontWeight: 900, color: '#00f2ff' }}>IK</span>
                 </div>
-
-                <p style={{ color: 'var(--text-primary)', fontSize: '1.02rem', lineHeight: 1.6, fontStyle: 'italic', marginBottom: '16px' }}>
-                  "Urban congestion in Indian metro cities isn't just a traffic management problem — it’s an information bottleneck. Everyday drivers spend thousands of hours and burn fuel looking for a parking spot because system silos keep capacity invisible. We built Drivix to make urban parking completely transparent, automated, and effortless."
-                </p>
-
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.55, margin: 0 }}>
-                  Driven by a vision to solve daily commuter frustration across Delhi-NCR, <strong>Sajid Ahmad</strong> founded Drivix to integrate computer vision ANPR cameras, IoT slot sensors, and predictive pricing into a single unified mobile & web ecosystem. Under his engineering leadership, Drivix has scaled to seed and support major hubs across Noida, Greater Noida, and New Delhi.
-                </p>
               </div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#fff', margin: '0 0 4px' }}>Irfan Khan</h3>
+              <p style={{ fontSize: '0.85rem', color: '#00f2ff', fontWeight: 800, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Research Analyst & Designer
+              </p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                Pioneering UI/UX design workflows, user experience research, and product strategy aesthetics.
+              </p>
+            </div>
 
+            {/* Bilal Khan */}
+            <div className="glass-panel" style={{
+              padding: '28px 24px', borderRadius: '20px', background: 'rgba(15, 20, 32, 0.9)',
+              border: '1.5px solid rgba(0, 255, 135, 0.3)', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)', textAlign: 'center'
+            }}>
+              <div style={{
+                width: '100px', height: '100px', borderRadius: '50%', margin: '0 auto 16px',
+                background: 'linear-gradient(135deg, #00FF87, #60EFFF)', padding: '3px',
+                boxShadow: '0 8px 24px rgba(0, 255, 135, 0.25)'
+              }}>
+                <div style={{
+                  width: '100%', height: '100%', borderRadius: '50%', background: '#0d1117',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <span style={{ fontSize: '2rem', fontWeight: 900, color: '#00FF87' }}>BK</span>
+                </div>
+              </div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#fff', margin: '0 0 4px' }}>Bilal Khan</h3>
+              <p style={{ fontSize: '0.85rem', color: '#00FF87', fontWeight: 800, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Research & Feasibility Architect
+              </p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                Analyzing urban mobility feasibility, physical infrastructure integration, and operational scalability.
+              </p>
             </div>
           </div>
         </motion.div>

@@ -109,7 +109,7 @@ export default function AboutScreen() {
             </View>
             <View style={styles.teamMemberInfo}>
               <Text style={[styles.teamMemberName, { color: colors.text }]}>Sajid Ahmad</Text>
-              <Text style={[styles.teamMemberRole, { color: colors.textSecondary }]}>Founder and CEO</Text>
+              <Text style={[styles.teamMemberRole, { color: colors.textSecondary }]}>Chief Engineer & Builder</Text>
             </View>
           </View>
 
@@ -121,7 +121,7 @@ export default function AboutScreen() {
             </View>
             <View style={styles.teamMemberInfo}>
               <Text style={[styles.teamMemberName, { color: colors.text }]}>Irfan Khan</Text>
-              <Text style={[styles.teamMemberRole, { color: colors.textSecondary }]}>Co-Founder and CMO</Text>
+              <Text style={[styles.teamMemberRole, { color: colors.textSecondary }]}>Research Analyst & Designer</Text>
             </View>
           </View>
 
@@ -129,11 +129,11 @@ export default function AboutScreen() {
 
           <View style={styles.teamMemberRow}>
             <View style={[styles.avatarWrapper, { backgroundColor: colors.backgroundSelected, borderColor: colors.borderGlass }]}>
-              <Text style={[styles.avatarText, { color: colors.primary }]}>MB</Text>
+              <Text style={[styles.avatarText, { color: colors.primary }]}>BK</Text>
             </View>
             <View style={styles.teamMemberInfo}>
-              <Text style={[styles.teamMemberName, { color: colors.text }]}>Mohd. Bilal</Text>
-              <Text style={[styles.teamMemberRole, { color: colors.textSecondary }]}>Co-Founder and COO</Text>
+              <Text style={[styles.teamMemberName, { color: colors.text }]}>Bilal Khan</Text>
+              <Text style={[styles.teamMemberRole, { color: colors.textSecondary }]}>Research & Feasibility Architect</Text>
             </View>
           </View>
         </View>

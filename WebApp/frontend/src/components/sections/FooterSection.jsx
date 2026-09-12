@@ -124,29 +124,29 @@ const AboutUsModal = ({ onClose }) => {
           </div>
 
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Meet the Co-Founders
+            Meet the Core Team
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-            {/* Founder 1 */}
+            {/* Team Member 1 */}
             <div className="glass-panel" style={{ padding: '16px', borderRadius: '12px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
               <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-primary), #FF5E3A)', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: 800, color: '#000' }}>SA</div>
               <h4 style={{ margin: '0 0 4px 0', fontSize: '0.98rem', fontWeight: 800 }}>Sajid Ahmad</h4>
-              <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: 'var(--accent-primary)', fontWeight: 700, textTransform: 'uppercase' }}>Co-Founder & CEO</p>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>Lead visionary scaling the smart infrastructure ecosystem.</p>
+              <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: 'var(--accent-primary)', fontWeight: 700, textTransform: 'uppercase' }}>Chief Engineer & Builder</p>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>Lead visionary & system architect building smart mobility solutions.</p>
             </div>
-            {/* Founder 2 */}
+            {/* Team Member 2 */}
             <div className="glass-panel" style={{ padding: '16px', borderRadius: '12px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
               <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-secondary), #00F2FE)', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: 800, color: '#000' }}>IK</div>
               <h4 style={{ margin: '0 0 4px 0', fontSize: '0.98rem', fontWeight: 800 }}>Irfan Khan</h4>
-              <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: 'var(--accent-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>Co-Founder & COO</p>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>Pioneering operations strategy and growth mechanics.</p>
+              <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: 'var(--accent-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>Research Analyst & Designer</p>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>Pioneering user experience design and market research analytics.</p>
             </div>
-            {/* Founder 3 */}
+            {/* Team Member 3 */}
             <div className="glass-panel" style={{ padding: '16px', borderRadius: '12px', background: 'var(--bg-tertiary)', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg, #00FF87, #60EFFF)', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: 800, color: '#000' }}>MB</div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '0.98rem', fontWeight: 800 }}>Bilal</h4>
-              <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: '#00FF87', fontWeight: 700, textTransform: 'uppercase' }}>Co-Founder & CTO</p>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>Technical mastermind engineering allocation logic.</p>
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg, #00FF87, #60EFFF)', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: 800, color: '#000' }}>BK</div>
+              <h4 style={{ margin: '0 0 4px 0', fontSize: '0.98rem', fontWeight: 800 }}>Bilal Khan</h4>
+              <p style={{ margin: '0 0 8px 0', fontSize: '0.78rem', color: '#00FF87', fontWeight: 700, textTransform: 'uppercase' }}>Research & Feasibility Architect</p>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>Evaluating urban mobility feasibility & technological infrastructure.</p>
             </div>
           </div>
         </motion.div>
