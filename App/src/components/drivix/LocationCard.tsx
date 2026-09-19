@@ -16,11 +16,11 @@ export default function LocationCard({ location, onSelect, isNearest }: Location
       ? location.availableSlots
       : (location.totalSlots || 0) - (location.bookedSlots || 0);
 
-  const isNoOnlineBooking =
-    location.allowOnlineBooking === false ||
-    location.status === 'Inactive' ||
-    location.status === 'Pending' ||
-    location.status === 'Restricted';
+  const isSharda =
+    (location.parkingName || '').toLowerCase().includes('sharda') ||
+    (location.address || '').toLowerCase().includes('sharda');
+
+  const isNoOnlineBooking = !isSharda;
 
   const priceDisplay =
     location.hourlyPrice !== null && location.hourlyPrice !== undefined && location.hourlyPrice > 0
@@ -57,6 +57,16 @@ export default function LocationCard({ location, onSelect, isNearest }: Location
       <View style={styles.locationInfo}>
         <Text style={[styles.locationName, { color: colors.text }]}>{location.parkingName}</Text>
         <Text style={[styles.locationAddress, { color: colors.textSecondary }]}>{location.address}</Text>
+
+        {isNoOnlineBooking && (
+          <View style={styles.noticeBanner}>
+            <AlertTriangle size={12} color="#ffad00" style={{ marginRight: 4, marginTop: 1 }} />
+            <Text style={styles.noticeText}>
+              NOT ONLINE BOOKING: On-site entry only. Use Navigate for GPS directions.
+            </Text>
+          </View>
+        )}
+
         <View style={styles.badgeRow}>
           {isNearest ? (
             <View style={[styles.pillBadge, { backgroundColor: 'rgba(0, 204, 106, 0.05)', borderColor: 'rgba(0, 204, 106, 0.15)' }]}>
@@ -207,5 +217,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 12,
     letterSpacing: 0.5,
+  },
+  noticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginTop: 6,
+  },
+  noticeText: {
+    color: '#ffad00',
+    fontSize: 10,
+    fontWeight: '700',
+    flex: 1,
+    lineHeight: 13,
   },
 });

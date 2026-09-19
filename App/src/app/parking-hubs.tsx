@@ -402,12 +402,11 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
       ? `${Math.round(item.distance * 1000)}m`
       : `${item.distance?.toFixed(1)} km`;
 
-    const isNoOnlineBooking =
-      (item as any).allowOnlineBooking === false ||
-      item.hourlyPrice === 0 ||
-      (item as any).status === 'Inactive' ||
-      (item as any).status === 'Pending' ||
-      (item as any).status === 'Restricted';
+    const isSharda =
+      (item.parkingName || '').toLowerCase().includes('sharda') ||
+      (item.address || '').toLowerCase().includes('sharda');
+
+    const isNoOnlineBooking = !isSharda;
 
     return (
       <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: isNoOnlineBooking ? 'rgba(245, 158, 11, 0.35)' : colors.borderGlass }]}>
@@ -427,9 +426,11 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
         </View>
 
         {isNoOnlineBooking && (
-          <View style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', borderColor: 'rgba(245, 158, 11, 0.3)', borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, marginVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', borderColor: 'rgba(245, 158, 11, 0.35)', borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, marginVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <AlertTriangle size={13} color="#ffad00" />
-            <Text style={{ color: '#ffad00', fontSize: 12, fontWeight: '700' }}>Not Online Booking</Text>
+            <Text style={{ color: '#ffad00', fontSize: 11, fontWeight: '700', flex: 1 }}>
+              NOT ONLINE BOOKING: On-site entry only. Use Navigate for GPS directions.
+            </Text>
           </View>
         )}
 

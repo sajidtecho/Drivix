@@ -754,6 +754,8 @@ const ParkingList = () => {
             const avColor = availabilityColor(dynamicAvailable, total);
             const pct = (total && total > 0 && dynamicAvailable !== null) ? Math.round((dynamicAvailable / total) * 100) : 0;
             const displayPrice = loc.hourlyPrice !== null && loc.hourlyPrice !== undefined ? `₹${loc.hourlyPrice}` : null;
+            const isSharda = (loc.name || '').toLowerCase().includes('sharda') || (loc.address || '').toLowerCase().includes('sharda');
+            const isNoOnlineBooking = !isSharda;
 
             return (
               <motion.div
@@ -785,10 +787,7 @@ const ParkingList = () => {
                     background: `${loc.color}18`, display: 'flex', alignItems: 'center',
                     justifyContent: 'center', border: `1.5px solid ${loc.color}33`,
                   }} className="parking-card-icon">
-                    <Car size={22} color={loc.color} />
-                  </div>
-
-                  {/* Info Block */}
+                               {/* Info Block */}
                   <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                     
                     {/* Header Row: Title & Badge */}
@@ -803,12 +802,14 @@ const ParkingList = () => {
                         style={{
                           padding: '3px 8px', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem',
                           fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', flexShrink: 0,
-                          background: `${loc.color}22`, color: loc.color, border: `1px solid ${loc.color}44`,
+                          background: isNoOnlineBooking ? 'rgba(245, 158, 11, 0.18)' : `${loc.color}22`,
+                          color: isNoOnlineBooking ? '#FFAD00' : loc.color,
+                          border: isNoOnlineBooking ? '1px solid rgba(245, 158, 11, 0.4)' : `1px solid ${loc.color}44`,
                           display: 'flex', alignItems: 'center', gap: '3px'
                         }}
                       >
-                        {loc.status === 'Restricted' && <AlertTriangle size={11} />}
-                        {loc.badge}
+                        {isNoOnlineBooking ? <AlertTriangle size={11} /> : (loc.status === 'Restricted' && <AlertTriangle size={11} />)}
+                        {isNoOnlineBooking ? 'Not Online Booking' : loc.badge}
                       </div>
                     </div>
                     
@@ -824,7 +825,7 @@ const ParkingList = () => {
                     </div>
 
                     {/* NOT ONLINE BOOKING BANNER */}
-                    {(loc.allowOnlineBooking === false || loc.status === 'Inactive' || loc.status === 'Pending') && (
+                    {isNoOnlineBooking && (
                       <div style={{
                         background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)',
                         color: '#FFAD00', borderRadius: '10px', padding: '8px 10px', marginBottom: '8px',
@@ -833,20 +834,6 @@ const ParkingList = () => {
                         <AlertTriangle size={14} style={{ flexShrink: 0 }} />
                         <div>
                           <strong>NOT ONLINE BOOKING:</strong> On-site entry only. Use Navigate for GPS directions.
-                        </div>
-                      </div>
-                    )}
-
-                    {/* RESTRICTED STATUS WARNING BANNER */}
-                    {loc.status === 'Restricted' && (
-                      <div style={{
-                        background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)',
-                        color: '#ff4b4b', borderRadius: '10px', padding: '8px 10px', marginBottom: '8px',
-                        fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: '6px'
-                      }}>
-                        <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
-                        <div>
-                          <strong>RESTRICTED ACCESS:</strong> ~90% capacity utilized for dealership vehicle storage. Limited public slots available.
                         </div>
                       </div>
                     )}
@@ -898,7 +885,7 @@ const ParkingList = () => {
                           <Navigation size={13} /> Navigate
                         </button>
 
-                        {loc.allowOnlineBooking !== false && loc.status !== 'Inactive' && loc.status !== 'Pending' && (
+                        {!isNoOnlineBooking && (
                           <div style={{
                             display: 'flex', alignItems: 'center', gap: '3px', padding: '5px 12px',
                             borderRadius: '10px', background: `${loc.color}18`, border: `1px solid ${loc.color}35`,
@@ -907,6 +894,8 @@ const ParkingList = () => {
                             Slots <ChevronRight size={13} />
                           </div>
                         )}
+                      </div>
+                    </div>           )}
                       </div>
                     </div>
 
