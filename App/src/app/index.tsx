@@ -882,33 +882,6 @@ export default function DashboardScreen() {
                   </View>
                 )}
 
-                {/* ── Search Bar Component ── */}
-                <View style={[styles.searchBarContainer, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
-                  <View style={styles.searchInner}>
-                    <MapPin size={18} color={colors.textSecondary} />
-                    <TextInput
-                      style={[styles.searchInput, { color: colors.text }]}
-                      placeholder="Search destination or parking..."
-                      placeholderTextColor={colors.textSecondary}
-                      value={searchQuery}
-                      onChangeText={(txt) => {
-                        setSearchQuery(txt);
-                        setIsSearchFocused(true);
-                      }}
-                      onFocus={() => setIsSearchFocused(true)}
-                    />
-                    {searchQuery ? (
-                      <TouchableOpacity onPress={() => setSearchQuery('')}>
-                        <X size={16} color={colors.textSecondary} />
-                      </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity onPress={() => setIsVoiceModalVisible(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                        <Mic size={16} color={colors.primary} />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-
                 {/* Autocomplete Suggestions Overlay */}
                 {isSearchFocused && searchQuery.length > 0 && (
                   <View style={[styles.searchOverlay, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
@@ -1111,7 +1084,7 @@ export default function DashboardScreen() {
                         backgroundColor: 'rgba(15, 20, 32, 0.88)'
                       }
                     ]}>
-                      {activeHeroTab === 'parking' && <Search size={18} color="#ffce00" />}
+                      {activeHeroTab === 'parking' && <MapPin size={18} color={colors.textSecondary || "#94a3b8"} />}
                       {activeHeroTab === 'challan' && <AlertTriangle size={18} color="#ffce00" />}
                       {activeHeroTab === 'fastag' && <CreditCard size={18} color="#ffce00" />}
 
@@ -1119,7 +1092,7 @@ export default function DashboardScreen() {
                         style={[styles.heroTextInput, { color: '#ffffff' }]}
                         placeholder={
                           activeHeroTab === 'parking'
-                            ? "Search parking locations..."
+                            ? "Search destination or parking..."
                             : activeHeroTab === 'challan'
                               ? "Enter Vehicle Number (e.g. DL1CA1234)"
                               : "Enter Vehicle Number / FASTag ID"
@@ -1136,7 +1109,7 @@ export default function DashboardScreen() {
                         }}
                         onFocus={() => {
                           setIsHeroInputFocused(true);
-                          if (activeHeroTab === 'parking' && searchQuery) {
+                          if (activeHeroTab === 'parking') {
                             setIsSearchFocused(true);
                           }
                         }}
@@ -1146,16 +1119,22 @@ export default function DashboardScreen() {
                         autoCapitalize={activeHeroTab !== 'parking' ? 'characters' : 'none'}
                       />
 
-                      {((activeHeroTab === 'parking' && searchQuery) || (activeHeroTab !== 'parking' && heroVehicleNumber)) ? (
-                        <TouchableOpacity onPress={() => {
-                          if (activeHeroTab === 'parking') {
+                      {activeHeroTab === 'parking' ? (
+                        searchQuery ? (
+                          <TouchableOpacity onPress={() => {
                             setSearchQuery('');
                             setIsSearchFocused(false);
-                          } else {
-                            setHeroVehicleNumber('');
-                          }
-                        }}>
-                          <X size={16} color="#ffffff" />
+                          }}>
+                            <X size={16} color="rgba(255, 255, 255, 0.6)" />
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity onPress={() => setIsVoiceModalVisible(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                            <Mic size={16} color={colors.primary} />
+                          </TouchableOpacity>
+                        )
+                      ) : heroVehicleNumber ? (
+                        <TouchableOpacity onPress={() => setHeroVehicleNumber('')}>
+                          <X size={16} color="rgba(255, 255, 255, 0.6)" />
                         </TouchableOpacity>
                       ) : null}
                     </View>
