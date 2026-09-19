@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Modal, Animated, TextInput, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Modal, Animated, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { Mic, X, Sparkles, Navigation, CreditCard, AlertTriangle, Send, Volume2 } from 'lucide-react-native';
+import * as Speech from 'expo-speech';
 import { processVoiceCommandWithGemini } from '@/services/geminiService';
 
 interface VoiceAssistantModalProps {
@@ -32,17 +33,67 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
   const [animatedValue] = useState(new Animated.Value(1));
   const recognitionRef = useRef<any>(null);
 
-  // Text-To-Speech helper
-  const speakResponse = (text: string) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  // Clean raw markdown and special characters for clear natural pronunciation
+  const cleanTextForSpeech = (text: string) => {
+    if (!text) return '';
+    return text
+      .replace(/[*#_~`]/g, '')
+      .replace(/[-•]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  // Human-like Text-To-Speech engine with smooth pitch & voice selector
+  const speakResponse = (rawText: string) => {
+    const text = cleanTextForSpeech(rawText);
+    if (!text) return;
+
+    const isWeb = Platform.OS === 'web' || (typeof window !== 'undefined' && 'speechSynthesis' in window);
+
+    if (isWeb && typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        window.speechSynthesis.speak(utterance);
+
+        const applyVoiceAndSpeak = () => {
+          const voices = window.speechSynthesis.getVoices();
+          // Pick human natural voice (Indian English/Hindi, Google, Natural, Microsoft)
+          const naturalVoice = voices.find((v) =>
+            v.lang.includes('IN') || v.lang.includes('hi')
+          ) || voices.find((v) =>
+            v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Online') || v.name.includes('Samantha') || v.name.includes('Sangeeta') || v.name.includes('Veena')
+          ) || voices.find((v) => v.lang.startsWith('en')) || voices[0];
+
+          if (naturalVoice) utterance.voice = naturalVoice;
+          utterance.rate = 0.93; // Smooth conversational pace
+          utterance.pitch = 1.02; // Warm human tone
+          utterance.volume = 1.0;
+          window.speechSynthesis.speak(utterance);
+        };
+
+        if (window.speechSynthesis.getVoices().length > 0) {
+          applyVoiceAndSpeak();
+        } else {
+          window.speechSynthesis.onvoiceschanged = () => {
+            applyVoiceAndSpeak();
+          };
+          applyVoiceAndSpeak();
+        }
       } catch (err) {
-        console.warn('Speech synthesis error:', err);
+        console.warn('Web Speech Synthesis error:', err);
+      }
+    } else {
+      // Native iOS / Android via Expo Speech
+      try {
+        Speech.stop();
+        Speech.speak(text, {
+          language: 'en-IN',
+          pitch: 1.02,
+          rate: 0.93,
+          onError: (err) => console.warn('Expo speech error:', err),
+        });
+      } catch (e) {
+        console.warn('Expo speech fallback error:', e);
       }
     }
   };
@@ -126,8 +177,9 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
       setGeminiReply(greeting);
       setTranscript(greeting);
       setInputText('');
+
+      // Speak greeting initial response
       speakResponse(greeting);
-      startSpeechRecognition();
 
       // Pulse animation for mic orb
       const pulseLoop = Animated.loop(
@@ -148,6 +200,9 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
 
       return () => {
         pulseLoop.stop();
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          try { window.speechSynthesis.cancel(); } catch (e) {}
+        }
         if (recognitionRef.current) {
           try { recognitionRef.current.stop(); } catch (e) {}
         }
@@ -167,7 +222,14 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
 
           <View style={styles.header}>
             <Sparkles size={18} color="#ffce00" />
-            <Text style={styles.title}>Gemini Voice Assistant</Text>
+            <Text style={styles.title}>Drivix Voice Assistant</Text>
+            <TouchableOpacity
+              style={{ marginLeft: 8, padding: 4 }}
+              onPress={() => speakResponse(geminiReply || 'Hi sir, how can I help you?')}
+              activeOpacity={0.7}
+            >
+              <Volume2 size={18} color="#ffce00" />
+            </TouchableOpacity>
           </View>
 
           {/* Animated Mic Orb */}
