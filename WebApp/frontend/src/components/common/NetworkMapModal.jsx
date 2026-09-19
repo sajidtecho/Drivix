@@ -550,21 +550,23 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                     {filteredLocations.map((loc) => {
                       const isSelected = selectedLocation?.id === loc.id;
                       const dist = calculateDistance(loc.latitude, loc.longitude);
+                      const isLocSharda = (loc.name || '').toLowerCase().includes('sharda') || (loc.address || '').toLowerCase().includes('sharda');
+                      const isLocNoOnlineBooking = !isLocSharda;
 
                       return (
                         <div
                           key={loc.id}
                           onClick={() => handleSelectLocation(loc)}
                           style={{
-                            padding: '14px',
-                            borderRadius: '14px',
-                            background: isSelected ? 'rgba(250, 255, 0, 0.08)' : 'rgba(255, 255, 255, 0.03)',
-                            border: `1px solid ${isSelected ? 'var(--accent-primary, #FAFF00)' : 'rgba(255, 255, 255, 0.06)'}`,
+                            padding: '12px 14px',
+                            background: isSelected ? 'rgba(250,255,0,0.08)' : 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${isSelected ? 'var(--accent-primary, #FAFF00)' : 'rgba(255,255,255,0.07)'}`,
+                            borderRadius: '12px',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '8px'
+                            gap: '6px'
                           }}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -586,44 +588,60 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                             <span style={{
                               fontSize: '0.72rem',
                               fontWeight: 800,
-                              color: loc.availableSlots > 0 ? '#00cc6a' : '#ff4b4b',
-                              background: loc.availableSlots > 0 ? 'rgba(0, 204, 106, 0.12)' : 'rgba(255, 75, 75, 0.12)',
+                              color: isLocNoOnlineBooking ? '#ffad00' : (loc.availableSlots > 0 ? '#00cc6a' : '#ff4b4b'),
+                              background: isLocNoOnlineBooking ? 'rgba(245, 158, 11, 0.15)' : (loc.availableSlots > 0 ? 'rgba(0, 204, 106, 0.12)' : 'rgba(255, 75, 75, 0.12)'),
                               padding: '2px 8px',
                               borderRadius: '6px'
                             }}>
-                              {loc.availableSlots} / {loc.totalSlots} Slots Free
+                              {isLocNoOnlineBooking ? 'Not Online Booking' : `${loc.availableSlots} / ${loc.totalSlots} Slots Free`}
                             </span>
 
-                            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent-primary, #FAFF00)' }}>
-                              ₹{loc.hourlyPrice}<span style={{ fontSize: '0.7rem', color: '#8a8d9b' }}>/hr</span>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: isLocNoOnlineBooking ? '#ffad00' : 'var(--accent-primary, #FAFF00)' }}>
+                              {isLocNoOnlineBooking ? 'On-Site Only' : `₹${loc.hourlyPrice}/hr`}
                             </div>
                           </div>
 
                           <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onClose();
-                                navigate(`/slot-layout?locationId=${loc.id}`, { state: { selectedLocation: loc } });
-                              }}
-                              style={{
-                                flex: 1,
-                                padding: '8px 10px',
-                                background: 'var(--accent-primary, #FAFF00)',
-                                color: '#000',
-                                border: 'none',
+                            {!isLocNoOnlineBooking ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onClose();
+                                  navigate(`/slot-layout?locationId=${loc.id}`, { state: { selectedLocation: loc } });
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '8px 10px',
+                                  background: 'var(--accent-primary, #FAFF00)',
+                                  color: '#000',
+                                  border: 'none',
+                                  borderRadius: '8px',
+                                  fontWeight: 800,
+                                  fontSize: '0.78rem',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                Book Spot <ChevronRight size={14} />
+                              </button>
+                            ) : (
+                              <div style={{
+                                fontSize: '0.74rem',
+                                fontWeight: 700,
+                                color: '#ffad00',
+                                background: 'rgba(245, 158, 11, 0.12)',
+                                border: '1px solid rgba(245, 158, 11, 0.3)',
                                 borderRadius: '8px',
-                                fontWeight: 800,
-                                fontSize: '0.78rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '4px'
-                              }}
-                            >
-                              Book Spot <ChevronRight size={14} />
-                            </button>
+                                padding: '6px 8px',
+                                width: '100%',
+                                textAlign: 'center'
+                              }}>
+                                ⚠️ NOT ONLINE BOOKING (On-site entry only)
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -732,60 +750,83 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                       {selectedLocation.address}
                     </p>
 
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
-                      <span style={{ background: 'rgba(0,204,106,0.15)', color: '#00cc6a', border: '1px solid rgba(0,204,106,0.3)', fontSize: '0.75rem', fontWeight: 800, padding: '3px 8px', borderRadius: '4px' }}>
-                        {selectedLocation.availableSlots} slots free
-                      </span>
-                      <span style={{ background: 'rgba(250,255,0,0.12)', color: '#FAFF00', border: '1px solid rgba(250,255,0,0.3)', fontSize: '0.75rem', fontWeight: 800, padding: '3px 8px', borderRadius: '4px' }}>
-                        ₹{selectedLocation.hourlyPrice}/hr
-                      </span>
-                    </div>
+                    {(() => {
+                      const isSelSharda = (selectedLocation.name || '').toLowerCase().includes('sharda') || (selectedLocation.address || '').toLowerCase().includes('sharda');
+                      const isSelNoOnlineBooking = !isSelSharda;
 
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => {
-                          onClose();
-                          navigate(`/slot-layout?locationId=${selectedLocation.id}`, { state: { selectedLocation } });
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '10px 14px',
-                          background: 'var(--accent-primary, #FAFF00)',
-                          color: '#000',
-                          border: 'none',
-                          borderRadius: '10px',
-                          fontWeight: 900,
-                          fontSize: '0.85rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px'
-                        }}
-                      >
-                        Book Spot <ChevronRight size={16} />
-                      </button>
-                      <a
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          padding: '10px 14px',
-                          background: 'rgba(255,255,255,0.1)',
-                          color: '#fff',
-                          textDecoration: 'none',
-                          borderRadius: '10px',
-                          fontWeight: 800,
-                          fontSize: '0.85rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: '1px solid rgba(255,255,255,0.15)'
-                        }}
-                      >
-                        📍 Nav
-                      </a>
-                    </div>
+                      return (
+                        <>
+                          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
+                            <span style={{
+                              background: isSelNoOnlineBooking ? 'rgba(245, 158, 11, 0.15)' : 'rgba(0,204,106,0.15)',
+                              color: isSelNoOnlineBooking ? '#ffad00' : '#00cc6a',
+                              border: isSelNoOnlineBooking ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid rgba(0,204,106,0.3)',
+                              fontSize: '0.75rem', fontWeight: 800, padding: '3px 8px', borderRadius: '4px'
+                            }}>
+                              {isSelNoOnlineBooking ? '⚠️ Not Online Booking' : `${selectedLocation.availableSlots} slots free`}
+                            </span>
+                            <span style={{
+                              background: isSelNoOnlineBooking ? 'rgba(245, 158, 11, 0.12)' : 'rgba(250,255,0,0.12)',
+                              color: isSelNoOnlineBooking ? '#ffad00' : '#FAFF00',
+                              border: isSelNoOnlineBooking ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid rgba(250,255,0,0.3)',
+                              fontSize: '0.75rem', fontWeight: 800, padding: '3px 8px', borderRadius: '4px'
+                            }}>
+                              {isSelNoOnlineBooking ? 'On-Site Entry Only' : `₹${selectedLocation.hourlyPrice}/hr`}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {!isSelNoOnlineBooking && (
+                              <button
+                                onClick={() => {
+                                  onClose();
+                                  navigate(`/slot-layout?locationId=${selectedLocation.id}`, { state: { selectedLocation } });
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '10px 14px',
+                                  background: 'var(--accent-primary, #FAFF00)',
+                                  color: '#000',
+                                  border: 'none',
+                                  borderRadius: '10px',
+                                  fontWeight: 900,
+                                  fontSize: '0.85rem',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px'
+                                }}
+                              >
+                                Book Spot <ChevronRight size={16} />
+                              </button>
+                            )}
+                            <a
+                              href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                flex: isSelNoOnlineBooking ? 1 : undefined,
+                                padding: '10px 14px',
+                                background: isSelNoOnlineBooking ? 'var(--accent-primary, #FAFF00)' : 'rgba(255,255,255,0.1)',
+                                color: isSelNoOnlineBooking ? '#000' : '#fff',
+                                textDecoration: 'none',
+                                borderRadius: '10px',
+                                fontWeight: 900,
+                                fontSize: '0.85rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                border: isSelNoOnlineBooking ? 'none' : '1px solid rgba(255,255,255,0.15)'
+                              }}
+                            >
+                              <Navigation size={16} /> {isSelNoOnlineBooking ? 'Navigate GPS (On-Site Entry Only)' : '📍 Nav'}
+                            </a>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </motion.div>
                 )}
               </AnimatePresence>

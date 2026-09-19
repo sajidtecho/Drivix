@@ -197,12 +197,14 @@ const ParkingList = () => {
     });
   }, [locations, userCoords]);
 
-  // Nearest instant match
+  // Nearest instant match (only online-bookable locations)
   const nearestInstantMatch = React.useMemo(() => {
     if (!processedLocations || processedLocations.length === 0) return null;
     const sorted = [...processedLocations].sort((a, b) => a.distanceVal - b.distanceVal);
-    const activeHubs = sorted.filter(l => l.status === 'Active');
-    return activeHubs.length > 0 ? activeHubs[0] : sorted[0];
+    const activeHubs = sorted.filter(l => l.status === 'Active' && (
+      (l.name || '').toLowerCase().includes('sharda') || (l.address || '').toLowerCase().includes('sharda')
+    ));
+    return activeHubs.length > 0 ? activeHubs[0] : null;
   }, [processedLocations]);
 
   const matchesSearch = (text, query) => {
@@ -764,10 +766,14 @@ const ParkingList = () => {
                 whileHover={{ y: -2, scale: 1.002 }}
                 onHoverStart={() => setHoveredId(loc.id)}
                 onHoverEnd={() => setHoveredId(null)}
-                onClick={() => navigate('/slot-layout', { state: { location: loc } })}
+                onClick={() => {
+                  if (!isNoOnlineBooking) {
+                    navigate('/slot-layout', { state: { location: loc } });
+                  }
+                }}
                 className="glass-panel parking-card"
                 style={{
-                  padding: '18px 20px', cursor: 'pointer', overflow: 'hidden', position: 'relative',
+                  padding: '18px 20px', cursor: isNoOnlineBooking ? 'default' : 'pointer', overflow: 'hidden', position: 'relative',
                   border: hoveredId === loc.id ? `1.5px solid ${loc.color}77` : '1px solid var(--glass-border)',
                   transition: 'all 0.2s ease',
                   borderRadius: '18px'
