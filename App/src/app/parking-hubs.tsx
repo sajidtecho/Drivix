@@ -45,7 +45,8 @@ import {
   Heart,
   Home,
   Ticket,
-  Wallet
+  Wallet,
+  AlertTriangle
 } from 'lucide-react-native';
 
 import { api } from '@/services/api';
