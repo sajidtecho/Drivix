@@ -102,14 +102,52 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
     fallbackWebSpeech(text, lang);
   };
 
+  // Voice Selector prioritizing high-definition Neural and Natural human voices
+  const findUltraNaturalVoice = (voices: any[], isHindi: boolean) => {
+    if (!voices || voices.length === 0) return null;
+
+    // 1. Highest Priority: Neural / Natural Online voices (e.g. "Microsoft Neerja Online (Natural)", "Microsoft Swara Online (Natural)", "Google Natural")
+    let voice = voices.find((v) =>
+      (v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Online')) &&
+      (isHindi ? (v.lang.includes('hi') || v.name.includes('Swara') || v.name.includes('Hindi')) : (v.lang.includes('IN') || v.lang.includes('en')))
+    );
+
+    // 2. Second Priority: Google High Definition Voices (e.g., "Google हिन्दी", "Google US English", "Google UK English Female")
+    if (!voice) {
+      voice = voices.find((v) =>
+        v.name.includes('Google') && (isHindi ? (v.lang.includes('hi') || v.name.includes('हिन्दी')) : (v.lang.includes('en') || v.lang.includes('IN')))
+      );
+    }
+
+    // 3. Third Priority: Apple/Android HD Voices (e.g., "Samantha", "Rishi", "Veena", "Sangeeta", "Karen")
+    if (!voice) {
+      voice = voices.find((v) =>
+        v.name.includes('Samantha') || v.name.includes('Rishi') || v.name.includes('Veena') || v.name.includes('Sangeeta') || v.name.includes('Karen')
+      );
+    }
+
+    // 4. Any Indian Accent Voice
+    if (!voice) {
+      voice = voices.find((v) => v.lang.includes(isHindi ? 'hi' : 'IN') || v.lang.includes('en-IN'));
+    }
+
+    // 5. Fallback English
+    if (!voice) {
+      voice = voices.find((v) => v.lang.startsWith('en'));
+    }
+
+    return voice || voices[0];
+  };
+
   const fallbackWebSpeech = (text: string, lang: string) => {
     const isWeb = Platform.OS === 'web' || (typeof window !== 'undefined' && 'speechSynthesis' in window);
+    const isHindi = lang === 'hi';
 
     if (isWeb && typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
+        utterance.lang = isHindi ? 'hi-IN' : 'en-IN';
 
         utterance.onstart = () => setIsPlayingAudio(true);
         utterance.onend = () => setIsPlayingAudio(false);
@@ -117,15 +155,11 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
 
         const applyVoiceAndSpeak = () => {
           const voices = window.speechSynthesis.getVoices();
-          const naturalVoice = voices.find((v) =>
-            v.lang.includes(lang === 'hi' ? 'hi' : 'IN')
-          ) || voices.find((v) =>
-            v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Online') || v.name.includes('Samantha') || v.name.includes('Veena')
-          ) || voices.find((v) => v.lang.startsWith('en')) || voices[0];
+          const naturalVoice = findUltraNaturalVoice(voices, isHindi);
 
           if (naturalVoice) utterance.voice = naturalVoice;
-          utterance.rate = 0.92;
-          utterance.pitch = 1.0;
+          utterance.rate = 0.94; // Smooth conversational pace
+          utterance.pitch = 1.04; // Friendly warm pitch
           utterance.volume = 1.0;
           window.speechSynthesis.speak(utterance);
         };
@@ -145,9 +179,9 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
       try {
         Speech.stop();
         Speech.speak(text, {
-          language: lang === 'hi' ? 'hi-IN' : 'en-IN',
-          pitch: 1.0,
-          rate: 0.92,
+          language: isHindi ? 'hi-IN' : 'en-IN',
+          pitch: 1.04,
+          rate: 0.94,
           onStart: () => setIsPlayingAudio(true),
           onDone: () => setIsPlayingAudio(false),
           onError: () => setIsPlayingAudio(false),
