@@ -183,10 +183,10 @@ const Navbar = () => {
           transform: 'translateX(-50%)',
           display: 'flex',
           alignItems: 'center',
-          gap: '2px',
+          gap: '4px',
           background: 'var(--glass-bg)',
           border: '1px solid var(--glass-border)',
-          padding: '4px 6px',
+          padding: '5px 8px',
           borderRadius: 'var(--radius-pill)',
           backdropFilter: 'blur(10px)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -201,17 +201,17 @@ const Navbar = () => {
                   background: 'none',
                   border: 'none',
                   color: 'var(--text-secondary)',
-                  fontSize: '0.78rem',
+                  fontSize: '0.95rem',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  padding: '5px 10px',
+                  padding: '7px 15px',
                   borderRadius: 'var(--radius-pill)',
                   transition: 'all 0.2s',
                   whiteSpace: 'nowrap'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.color = 'var(--text-primary)';
-                  e.target.style.background = 'rgba(255,255,255,0.03)';
+                  e.target.style.background = 'rgba(255,255,255,0.06)';
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.color = 'var(--text-secondary)';
@@ -230,9 +230,9 @@ const Navbar = () => {
                   style={{
                     textDecoration: 'none',
                     color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                    fontSize: '0.78rem',
+                    fontSize: '0.95rem',
                     fontWeight: 800,
-                    padding: '5px 10px',
+                    padding: '7px 15px',
                     borderRadius: 'var(--radius-pill)',
                     background: isActive ? 'rgba(250, 255, 0, 0.08)' : 'transparent',
                     border: isActive ? '1px solid rgba(250, 255, 0, 0.15)' : '1px solid transparent',
@@ -243,7 +243,7 @@ const Navbar = () => {
                   onMouseEnter={(e) => {
                     if (!isActive) {
                       e.target.style.color = 'var(--text-primary)';
-                      e.target.style.background = 'rgba(255,255,255,0.03)';
+                      e.target.style.background = 'rgba(255,255,255,0.06)';
                     }
                   }}
                   onMouseLeave={(e) => {
