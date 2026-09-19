@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { AlertCircle, CreditCard, ArrowRight, Check } from 'lucide-react-native';
+import { AlertCircle, CreditCard, ArrowRight, Check, X } from 'lucide-react-native';
 import { api } from '@/services/api';
 
 interface FASTagAlertCardProps {
@@ -18,6 +18,7 @@ export const FASTagAlertCard: React.FC<FASTagAlertCardProps> = ({
 }) => {
   const [reloading, setReloading] = useState(false);
   const [reloadedSuccess, setReloadedSuccess] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   const handleQuickReload = async (amount: number) => {
     setReloading(true);
@@ -39,7 +40,7 @@ export const FASTagAlertCard: React.FC<FASTagAlertCardProps> = ({
     }
   };
 
-  if (balance >= 150 && !reloadedSuccess) return null;
+  if (dismissed || (balance >= 150 && !reloadedSuccess)) return null;
 
   return (
     <View style={[styles.cardContainer, { backgroundColor: colors.surface, borderColor: 'rgba(255, 75, 75, 0.3)' }]}>
@@ -48,7 +49,17 @@ export const FASTagAlertCard: React.FC<FASTagAlertCardProps> = ({
           <AlertCircle size={13} color="#ff4b4b" />
           <Text style={styles.badgeText}>LOW FASTAG BALANCE</Text>
         </View>
-        <Text style={[styles.balanceText, { color: '#ff4b4b' }]}>₹{balance}</Text>
+        <View style={styles.rightHeaderGroup}>
+          <Text style={[styles.balanceText, { color: '#ff4b4b' }]}>₹{balance}</Text>
+          <TouchableOpacity
+            style={styles.closeBtn}
+            onPress={() => setDismissed(true)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            activeOpacity={0.7}
+          >
+            <X size={15} color={colors.subtext || '#888888'} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Text style={[styles.title, { color: colors.text }]}>
@@ -112,6 +123,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  rightHeaderGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  closeBtn: {
+    padding: 4,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badge: {
     flexDirection: 'row',
