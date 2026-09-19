@@ -787,7 +787,10 @@ const ParkingList = () => {
                     background: `${loc.color}18`, display: 'flex', alignItems: 'center',
                     justifyContent: 'center', border: `1.5px solid ${loc.color}33`,
                   }} className="parking-card-icon">
-                               {/* Info Block */}
+                    <Car size={22} color={loc.color} />
+                  </div>
+
+                  {/* Info Block */}
                   <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                     
                     {/* Header Row: Title & Badge */}
@@ -895,10 +898,7 @@ const ParkingList = () => {
                           </div>
                         )}
                       </div>
-                    </div>           )}
-                      </div>
                     </div>
-
                   </div>
                 </div>
               </motion.div>
