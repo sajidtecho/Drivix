@@ -178,14 +178,35 @@ export default function DashboardScreen() {
   // Booking Mode: Mode 1 (FUTURE_MANUAL) vs Mode 2 (INSTANT_NEARBY)
   const [bookingMode, setBookingMode] = useState<'INSTANT_NEARBY' | 'FUTURE_MANUAL'>('INSTANT_NEARBY');
 
-  const handleCommandRecognized = (command: string, actionType: 'SEARCH' | 'FASTAG' | 'CHALLAN' | 'COPILOT') => {
+  const handleCommandRecognized = (command: string, actionType: string, params?: any, replyText?: string) => {
     setIsVoiceModalVisible(false);
-    if (actionType === 'SEARCH') {
-      setSearchQuery(command);
-    } else if (actionType === 'FASTAG') {
+    if (actionType === 'SEARCH_PARKING' || actionType === 'SEARCH') {
+      const locName = params?.locationName || command;
+      setSearchQuery(locName);
+      if (locations && locations.length > 0) {
+        const matched = locations.find((l: any) =>
+          l.parkingName.toLowerCase().includes(locName.toLowerCase()) ||
+          l.address.toLowerCase().includes(locName.toLowerCase())
+        );
+        if (matched) {
+          handleSelectLocation(matched);
+        }
+      }
+    } else if (actionType === 'BOOK_PARKING') {
+      const locName = params?.locationName || '';
+      const matched = locName && locations.length > 0
+        ? locations.find((l: any) => l.parkingName.toLowerCase().includes(locName.toLowerCase())) || locations[0]
+        : locations[0];
+      if (matched) {
+        if (params?.durationHours) setDuration(String(params.durationHours));
+        handleSelectLocation(matched);
+      }
+    } else if (actionType === 'RECHARGE_FASTAG' || actionType === 'FASTAG') {
       handleNavigateToTab('/explore?tab=fastag');
-    } else if (actionType === 'CHALLAN') {
+    } else if (actionType === 'CHECK_CHALLAN' || actionType === 'CHALLAN') {
       setStep('CHALLAN');
+    } else if (actionType === 'NAVIGATE' && params?.route) {
+      handleNavigateToTab(params.route);
     } else if (actionType === 'COPILOT') {
       setIsARModalVisible(true);
     }
@@ -825,12 +846,15 @@ export default function DashboardScreen() {
                       styles.bookingModeTab,
                       bookingMode === 'FUTURE_MANUAL' && styles.bookingModeTabActive,
                     ]}
-                    onPress={() => setBookingMode('FUTURE_MANUAL')}
+                    onPress={() => {
+                      setBookingMode('FUTURE_MANUAL');
+                      setIsVoiceModalVisible(true);
+                    }}
                     activeOpacity={0.8}
                   >
-                    <MapPin size={14} color={bookingMode === 'FUTURE_MANUAL' ? '#000000' : '#ffce00'} />
+                    <Sparkles size={14} color={bookingMode === 'FUTURE_MANUAL' ? '#000000' : '#ffce00'} />
                     <Text numberOfLines={1} style={[styles.bookingModeText, bookingMode === 'FUTURE_MANUAL' && styles.bookingModeTextActive]}>
-                      Future Trip
+                      Drivix Assistant
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -1312,6 +1336,13 @@ export default function DashboardScreen() {
         isVisible={isVoiceModalVisible}
         onClose={() => setIsVoiceModalVisible(false)}
         onCommandRecognized={handleCommandRecognized}
+        contextData={{
+          locations,
+          userVehicles,
+          walletBalance: user?.walletBalance ?? 0,
+          currentStep: step,
+          userName: user?.name,
+        }}
         colors={colors}
       />
 
