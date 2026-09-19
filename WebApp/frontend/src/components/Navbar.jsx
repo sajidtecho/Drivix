@@ -11,7 +11,6 @@ import logoImg from '../assets/Logo.png';
 const LANDING_LINKS = [
   { label: 'The Problem', scrollId: 'problem' },
   { label: 'How It Works', scrollId: 'how-it-works' },
-  { label: 'App Features', scrollId: 'features' },
   { label: 'About Us', path: '/about' },
   { label: 'Become a Partner', path: '/partner' },
 ];
