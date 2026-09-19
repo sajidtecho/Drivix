@@ -33,6 +33,9 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
   const [animatedValue] = useState(new Animated.Value(1));
   const recognitionRef = useRef<any>(null);
 
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
   // Clean raw markdown and special characters for clear natural pronunciation
   const cleanTextForSpeech = (text: string) => {
     if (!text) return '';
@@ -43,30 +46,86 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
       .trim();
   };
 
-  // Human-like Text-To-Speech engine with smooth pitch & voice selector
+  const stopAllAudio = () => {
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      } catch (e) {}
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+    }
+    try { Speech.stop(); } catch (e) {}
+    setIsPlayingAudio(false);
+  };
+
+  // Ultra-Natural Human Voice engine (Google Neural Voice Stream + Web Speech Fallback)
   const speakResponse = (rawText: string) => {
     const text = cleanTextForSpeech(rawText);
     if (!text) return;
 
+    stopAllAudio();
+
+    // Language auto-detection: Hindi / Hinglish / Indian English
+    const containsHindi = /[\u0900-\u097F]/.test(text) || /\b(aap|aapka|hai|kar|chahiye|dhundh|raha|hoon|sir|bataiye|paas|ho|rahi)\b/i.test(text);
+    const lang = containsHindi ? 'hi' : 'en-IN';
+
+    // 1. Try Google Neural Audio Stream for Hyper-Realistic Human Voice (Gemini / Assistant Voice Engine)
+    if (typeof window !== 'undefined' && typeof Audio !== 'undefined') {
+      try {
+        const encodedText = encodeURIComponent(text.slice(0, 200));
+        const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodedText}`;
+        const audio = new Audio(ttsUrl);
+        currentAudioRef.current = audio;
+
+        audio.onplay = () => setIsPlayingAudio(true);
+        audio.onended = () => setIsPlayingAudio(false);
+        audio.onerror = () => {
+          console.warn('Google Neural Audio stream failed, falling back to Web Speech API');
+          fallbackWebSpeech(text, lang);
+        };
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.warn('Audio stream play blocked by browser, using Web Speech API:', err);
+            fallbackWebSpeech(text, lang);
+          });
+        }
+        return;
+      } catch (e) {
+        console.warn('Neural Audio stream error:', e);
+      }
+    }
+
+    fallbackWebSpeech(text, lang);
+  };
+
+  const fallbackWebSpeech = (text: string, lang: string) => {
     const isWeb = Platform.OS === 'web' || (typeof window !== 'undefined' && 'speechSynthesis' in window);
 
     if (isWeb && typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
+
+        utterance.onstart = () => setIsPlayingAudio(true);
+        utterance.onend = () => setIsPlayingAudio(false);
+        utterance.onerror = () => setIsPlayingAudio(false);
 
         const applyVoiceAndSpeak = () => {
           const voices = window.speechSynthesis.getVoices();
-          // Pick human natural voice (Indian English/Hindi, Google, Natural, Microsoft)
           const naturalVoice = voices.find((v) =>
-            v.lang.includes('IN') || v.lang.includes('hi')
+            v.lang.includes(lang === 'hi' ? 'hi' : 'IN')
           ) || voices.find((v) =>
-            v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Online') || v.name.includes('Samantha') || v.name.includes('Sangeeta') || v.name.includes('Veena')
+            v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Online') || v.name.includes('Samantha') || v.name.includes('Veena')
           ) || voices.find((v) => v.lang.startsWith('en')) || voices[0];
 
           if (naturalVoice) utterance.voice = naturalVoice;
-          utterance.rate = 0.93; // Smooth conversational pace
-          utterance.pitch = 1.02; // Warm human tone
+          utterance.rate = 0.92;
+          utterance.pitch = 1.0;
           utterance.volume = 1.0;
           window.speechSynthesis.speak(utterance);
         };
@@ -83,14 +142,15 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
         console.warn('Web Speech Synthesis error:', err);
       }
     } else {
-      // Native iOS / Android via Expo Speech
       try {
         Speech.stop();
         Speech.speak(text, {
-          language: 'en-IN',
-          pitch: 1.02,
-          rate: 0.93,
-          onError: (err) => console.warn('Expo speech error:', err),
+          language: lang === 'hi' ? 'hi-IN' : 'en-IN',
+          pitch: 1.0,
+          rate: 0.92,
+          onStart: () => setIsPlayingAudio(true),
+          onDone: () => setIsPlayingAudio(false),
+          onError: () => setIsPlayingAudio(false),
         });
       } catch (e) {
         console.warn('Expo speech fallback error:', e);
@@ -130,6 +190,7 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
 
   // Start Speech Recognition
   const startSpeechRecognition = () => {
+    stopAllAudio();
     if (typeof window !== 'undefined') {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
@@ -178,7 +239,7 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
       setTranscript(greeting);
       setInputText('');
 
-      // Speak greeting initial response
+      // Speak greeting initial response using Google Neural Audio
       speakResponse(greeting);
 
       // Pulse animation for mic orb
@@ -200,9 +261,7 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
 
       return () => {
         pulseLoop.stop();
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          try { window.speechSynthesis.cancel(); } catch (e) {}
-        }
+        stopAllAudio();
         if (recognitionRef.current) {
           try { recognitionRef.current.stop(); } catch (e) {}
         }
@@ -216,7 +275,13 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
     <Modal visible={isVisible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={[styles.modalCard, { backgroundColor: '#0f1420', borderColor: 'rgba(255, 206, 0, 0.35)' }]}>
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+          <TouchableOpacity
+            style={styles.closeBtn}
+            onPress={() => {
+              stopAllAudio();
+              onClose();
+            }}
+          >
             <X size={18} color="rgba(255, 255, 255, 0.7)" />
           </TouchableOpacity>
 
