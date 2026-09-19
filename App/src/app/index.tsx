@@ -756,14 +756,6 @@ export default function DashboardScreen() {
                   />
                 )}
 
-                {/* ── Low FASTag Balance Warning Card ── */}
-                <FASTagAlertCard
-                  balance={user?.walletBalance ?? 0}
-                  vehicleNumber={primaryVehicle?.plate}
-                  onReloadSuccess={refreshProfile}
-                  colors={colors}
-                />
-
                 {/* ── EV Charging Live Telemetry Card ── */}
                 {primaryVehicle && (primaryVehicle.type === 'ev' || primaryVehicle.model?.toLowerCase().includes('ev') || primaryVehicle.plate?.toLowerCase().includes('ev')) && (
                   <EVChargingCard

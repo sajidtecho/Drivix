@@ -40,7 +40,8 @@ export const FASTagAlertCard: React.FC<FASTagAlertCardProps> = ({
     }
   };
 
-  if (dismissed || (balance >= 150 && !reloadedSuccess)) return null;
+  // Permanently disabled FASTag warning pop card on home screen
+  return null;
 
   return (
     <View style={[styles.cardContainer, { backgroundColor: colors.surface, borderColor: 'rgba(255, 75, 75, 0.3)' }]}>
