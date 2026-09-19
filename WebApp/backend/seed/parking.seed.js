@@ -153,9 +153,10 @@ const parkingSeedData = [
     totalSlots: 0,
     availableSlots: 0,
     hourlyPrice: 0,
-    amenities: [],
+    amenities: ['Offline parking only'],
     images: [],
     floors: [],
+    allowOnlineBooking: false,
     status: 'Inactive'
   },
   {
@@ -165,21 +166,21 @@ const parkingSeedData = [
     city: 'Greater Noida',
     state: 'Uttar Pradesh',
     pincode: '201306',
-    latitude: null, // TODO: verify with NMRC before going live
-    longitude: null, // TODO: verify with NMRC before going live
-    openingTime: null, // TODO: verify with NMRC before going live
-    closingTime: null, // TODO: verify with NMRC before going live
-    totalFloors: null, // TODO: verify with NMRC before going live
-    totalSlots: null, // TODO: verify with NMRC before going live
-    availableSlots: null, // TODO: verify with NMRC before going live
-    hourlyPrice: null, // TODO: verify with NMRC before going live
+    latitude: 28.4590,
+    longitude: 77.5020,
+    openingTime: null,
+    closingTime: null,
+    totalFloors: null,
+    totalSlots: null,
+    availableSlots: null,
+    hourlyPrice: null,
     amenities: [
       'GNIDA-owned 37-acre circular plot under redevelopment',
-      'Planned structured parking (~75,000 sqm of 150,000 sqm plot)',
-      'Planned amenities: toilets, kiosks, green space, event area'
+      'Offline entry on-site'
     ],
     images: [],
     floors: [],
+    allowOnlineBooking: false,
     status: 'Pending'
   }
 ];

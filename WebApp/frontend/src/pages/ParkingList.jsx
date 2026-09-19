@@ -823,6 +823,20 @@ const ParkingList = () => {
                       </span>
                     </div>
 
+                    {/* NOT ONLINE BOOKING BANNER */}
+                    {(loc.allowOnlineBooking === false || loc.status === 'Inactive' || loc.status === 'Pending') && (
+                      <div style={{
+                        background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)',
+                        color: '#FFAD00', borderRadius: '10px', padding: '8px 10px', marginBottom: '8px',
+                        fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px'
+                      }}>
+                        <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+                        <div>
+                          <strong>NOT ONLINE BOOKING:</strong> On-site entry only. Use Navigate for GPS directions.
+                        </div>
+                      </div>
+                    )}
+
                     {/* RESTRICTED STATUS WARNING BANNER */}
                     {loc.status === 'Restricted' && (
                       <div style={{
@@ -837,26 +851,12 @@ const ParkingList = () => {
                       </div>
                     )}
 
-                    {/* PENDING STATUS WARNING BANNER */}
-                    {loc.status === 'Pending' && (
-                      <div style={{
-                        background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)',
-                        color: '#FFAD00', borderRadius: '10px', padding: '8px 10px', marginBottom: '8px',
-                        fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: '6px'
-                      }}>
-                        <Clock size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
-                        <div>
-                          <strong>OPERATIONAL PENDING:</strong> Facility inaugurated but operational status pending final municipal verification.
-                        </div>
-                      </div>
-                    )}
-
                     {/* Availability Bar */}
                     <div style={{ marginBottom: '8px' }} className="parking-card-avail">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Availability</span>
                         <span style={{ fontSize: '0.82rem', fontWeight: 800, color: avColor }}>
-                          {total !== null && dynamicAvailable !== null ? `${dynamicAvailable}/${total} slots` : (total !== null ? `${total} Total Slots` : 'Unverified')}
+                          {total !== null && dynamicAvailable !== null ? `${dynamicAvailable}/${total} slots` : (total !== null ? `${total} Total Slots` : 'Offline / Unverified')}
                         </span>
                       </div>
                       {total !== null && dynamicAvailable !== null && (
@@ -884,23 +884,29 @@ const ParkingList = () => {
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }} className="parking-card-actions">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                            <Star size={13} color="#FFCE00" fill="#FFCE00" />
-                            <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{loc.rating}</span>
-                          </div>
-                          <span style={{ fontSize: '1rem', fontWeight: 900, color: displayPrice ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
-                            {displayPrice ? `${displayPrice}/hr` : 'Unverified'}
-                          </span>
-                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${loc.latitude || 28.4727},${loc.longitude || 77.4827}`, '_blank');
+                          }}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px',
+                            borderRadius: '10px', background: 'var(--accent-primary)', border: 'none',
+                            color: '#000', fontWeight: 900, fontSize: '0.78rem', cursor: 'pointer'
+                          }}
+                        >
+                          <Navigation size={13} /> Navigate
+                        </button>
 
-                        <div style={{
-                          display: 'flex', alignItems: 'center', gap: '3px', padding: '5px 12px',
-                          borderRadius: '10px', background: `${loc.color}18`, border: `1px solid ${loc.color}35`,
-                          color: loc.color, fontWeight: 800, fontSize: '0.8rem', flexShrink: 0
-                        }}>
-                          {loc.status === 'Restricted' ? 'View' : 'Slots'} <ChevronRight size={13} />
-                        </div>
+                        {loc.allowOnlineBooking !== false && loc.status !== 'Inactive' && loc.status !== 'Pending' && (
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: '3px', padding: '5px 12px',
+                            borderRadius: '10px', background: `${loc.color}18`, border: `1px solid ${loc.color}35`,
+                            color: loc.color, fontWeight: 800, fontSize: '0.8rem', flexShrink: 0
+                          }}>
+                            Slots <ChevronRight size={13} />
+                          </div>
+                        )}
                       </div>
                     </div>
 

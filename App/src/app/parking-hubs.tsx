@@ -401,8 +401,15 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
       ? `${Math.round(item.distance * 1000)}m`
       : `${item.distance?.toFixed(1)} km`;
 
+    const isNoOnlineBooking =
+      (item as any).allowOnlineBooking === false ||
+      item.hourlyPrice === 0 ||
+      (item as any).status === 'Inactive' ||
+      (item as any).status === 'Pending' ||
+      (item as any).status === 'Restricted';
+
     return (
-      <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.borderGlass }]}>
+      <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: isNoOnlineBooking ? 'rgba(245, 158, 11, 0.35)' : colors.borderGlass }]}>
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>
@@ -418,6 +425,13 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
           </View>
         </View>
 
+        {isNoOnlineBooking && (
+          <View style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', borderColor: 'rgba(245, 158, 11, 0.3)', borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, marginVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <AlertTriangle size={13} color="#ffad00" />
+            <Text style={{ color: '#ffad00', fontSize: 12, fontWeight: '700' }}>Not Online Booking</Text>
+          </View>
+        )}
+
         <View style={styles.cardInfoGrid}>
           <View style={styles.infoRow}>
             <MapPin size={12} color={colors.primary} />
@@ -426,17 +440,19 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
           <View style={styles.infoRow}>
             <Car size={12} color="#00f2ff" />
             <Text style={[styles.infoValue, { color: colors.text }]}>
-              {item.availableSlots > 0 ? `${item.availableSlots} slots` : 'Full'}
+              {item.availableSlots > 0 ? `${item.availableSlots} slots` : isNoOnlineBooking ? 'Offline Only' : 'Full'}
             </Text>
           </View>
           <View style={styles.infoRow}>
             <Clock size={12} color="#a78bfa" />
             <Text style={[styles.infoValue, { color: colors.text }]}>
-              {item.openingTime} - {item.closingTime}
+              {item.openingTime || '06:00'} - {item.closingTime || '23:00'}
             </Text>
           </View>
           <View style={styles.infoRow}>
-            <Text style={[styles.priceTag, { color: colors.primary }]}>₹{item.hourlyPrice}/hr</Text>
+            <Text style={[styles.priceTag, { color: isNoOnlineBooking ? '#ffad00' : colors.primary }]}>
+              {isNoOnlineBooking ? 'On-Site Only' : `₹${item.hourlyPrice}/hr`}
+            </Text>
           </View>
         </View>
 
@@ -452,19 +468,21 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
 
         <View style={styles.cardActions}>
           <ScalePressable
-            style={[styles.btnSecondary, { borderColor: colors.borderGlass }]}
-            onPress={() => handleNavigate(item.latitude, item.longitude)}
+            style={[styles.btnSecondary, { flex: 1, borderColor: colors.primary, backgroundColor: colors.primary }]}
+            onPress={() => handleNavigate(item.latitude || 28.4727, item.longitude || 77.4827)}
           >
-            <Compass size={13} color={colors.text} style={{ marginRight: 4 }} />
-            <Text style={[styles.btnSecondaryText, { color: colors.text }]}>Navigate</Text>
+            <Compass size={14} color="#0b0c10" style={{ marginRight: 6 }} />
+            <Text style={[styles.btnSecondaryText, { color: '#0b0c10', fontWeight: 'bold' }]}>Navigate</Text>
           </ScalePressable>
-          <ScalePressable
-            style={[styles.btnPrimary, { backgroundColor: colors.primary }]}
-            onPress={() => handleBookingRedirect(item._id)}
-          >
-            <Text style={styles.btnPrimaryText}>Book Now</Text>
-            <ArrowRight size={13} color="#0b0c10" style={{ marginLeft: 4 }} />
-          </ScalePressable>
+          {!isNoOnlineBooking && (
+            <ScalePressable
+              style={[styles.btnPrimary, { backgroundColor: colors.primary }]}
+              onPress={() => handleBookingRedirect(item._id)}
+            >
+              <Text style={styles.btnPrimaryText}>Book Now</Text>
+              <ArrowRight size={13} color="#0b0c10" style={{ marginLeft: 4 }} />
+            </ScalePressable>
+          )}
         </View>
       </View>
     );

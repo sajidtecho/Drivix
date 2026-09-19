@@ -81,6 +81,10 @@ const ParkingSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    allowOnlineBooking: {
+      type: Boolean,
+      default: true,
+    },
     status: {
       type: String,
       enum: ['Active', 'Inactive', 'Pending', 'Restricted'],
