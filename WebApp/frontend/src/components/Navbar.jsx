@@ -199,9 +199,9 @@ const Navbar = () => {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--text-secondary)',
+                  color: 'var(--accent-primary)',
                   fontSize: '0.95rem',
-                  fontWeight: 700,
+                  fontWeight: 800,
                   cursor: 'pointer',
                   padding: '7px 15px',
                   borderRadius: 'var(--radius-pill)',
@@ -209,11 +209,11 @@ const Navbar = () => {
                   whiteSpace: 'nowrap'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.color = 'var(--text-primary)';
-                  e.target.style.background = 'rgba(255,255,255,0.06)';
+                  e.target.style.color = 'var(--accent-primary)';
+                  e.target.style.background = 'rgba(250, 255, 0, 0.12)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.color = 'var(--text-secondary)';
+                  e.target.style.color = 'var(--accent-primary)';
                   e.target.style.background = 'none';
                 }}
               >
@@ -228,26 +228,26 @@ const Navbar = () => {
                   to={link.path}
                   style={{
                     textDecoration: 'none',
-                    color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    color: 'var(--accent-primary)',
                     fontSize: '0.95rem',
                     fontWeight: 800,
                     padding: '7px 15px',
                     borderRadius: 'var(--radius-pill)',
-                    background: isActive ? 'rgba(250, 255, 0, 0.08)' : 'transparent',
-                    border: isActive ? '1px solid rgba(250, 255, 0, 0.15)' : '1px solid transparent',
+                    background: isActive ? 'rgba(250, 255, 0, 0.15)' : 'transparent',
+                    border: isActive ? '1px solid rgba(250, 255, 0, 0.3)' : '1px solid transparent',
                     transition: 'all 0.2s',
                     display: 'inline-block',
                     whiteSpace: 'nowrap'
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.target.style.color = 'var(--text-primary)';
-                      e.target.style.background = 'rgba(255,255,255,0.06)';
+                      e.target.style.color = 'var(--accent-primary)';
+                      e.target.style.background = 'rgba(250, 255, 0, 0.12)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
-                      e.target.style.color = 'var(--text-secondary)';
+                      e.target.style.color = 'var(--accent-primary)';
                       e.target.style.background = 'transparent';
                     }
                   }}
