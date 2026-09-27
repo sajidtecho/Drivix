@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import loadingCar from '../assets/Loading_car.mp4';
 import { API_BASE_URL } from '../config';
+import { launchLiveGpsNavigation } from '../utils/navigationUtils';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -883,7 +884,11 @@ const ParkingList = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`https://www.google.com/maps/search/?api=1&query=${loc.latitude || 28.4727},${loc.longitude || 77.4827}`, '_blank');
+                            launchLiveGpsNavigation({
+                              latitude: loc.latitude,
+                              longitude: loc.longitude,
+                              locationName: loc.name
+                            });
                           }}
                           style={{
                             display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px',

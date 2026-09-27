@@ -6,6 +6,7 @@ import * as htmlToImage from 'html-to-image';
 import challanIcon from '../assets/challan.png';
 import { API_BASE_URL } from '../config';
 import { useToast } from '../context/ToastContext';
+import { launchLiveGpsNavigation } from '../utils/navigationUtils';
 import {
   CheckCircle2, MapPin, Navigation, Car, Clock,
   Calendar, Download, Home, Share2, Shield, Loader2
@@ -107,11 +108,11 @@ const Ticket = () => {
 
         // Delay navigation slightly to let user see confirmation
         setTimeout(() => {
-          if (data.booking.latitude !== undefined && data.booking.longitude !== undefined) {
-            window.open(`https://www.google.com/maps/dir/?api=1&destination=${data.booking.latitude},${data.booking.longitude}`, '_blank');
-          } else {
-            window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(data.booking.locationName)}`, '_blank');
-          }
+          launchLiveGpsNavigation({
+            latitude: data.booking.latitude,
+            longitude: data.booking.longitude,
+            locationName: data.booking.locationName
+          });
         }, 1500);
       } else {
         const err = await res.json();
@@ -166,11 +167,11 @@ const Ticket = () => {
   };
 
   const handleOpenMaps = () => {
-    if (booking.latitude !== undefined && booking.longitude !== undefined) {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${booking.latitude},${booking.longitude}`, '_blank');
-    } else {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(booking.locationName)}`, '_blank');
-    }
+    launchLiveGpsNavigation({
+      latitude: booking.latitude,
+      longitude: booking.longitude,
+      locationName: booking.locationName
+    });
   };
 
   const handleShare = async () => {
