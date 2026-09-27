@@ -23,18 +23,11 @@ export const ActiveBookingBanner: React.FC<ActiveBookingBannerProps> = ({
   const handleNavigateToGate = () => {
     const lat = (activeBooking as any).locationId?.latitude;
     const lon = (activeBooking as any).locationId?.longitude;
-    if (lat !== undefined && lon !== undefined) {
-      const url = Platform.select({
-        ios: `maps://app?daddr=${lat},${lon}`,
-        android: `google.navigation:q=${lat},${lon}`,
-        default: `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`,
-      });
-      Linking.openURL(url).catch(() => {
-        Alert.alert('Error', 'Unable to launch maps application.');
-      });
-    } else {
-      Alert.alert('Navigation Info', `Navigating to ${activeBooking.locationName} ANPR Gate...`);
-    }
+    launchMobileLiveGpsNavigation({
+      latitude: lat,
+      longitude: lon,
+      locationName: activeBooking.locationName,
+    });
   };
 
   const slotBadgeText = activeBooking.slotNumber || (activeBooking as any).slotId ? `Slot ${(activeBooking as any).slotNumber || (activeBooking as any).slotId}` : 'Slot Assigned';

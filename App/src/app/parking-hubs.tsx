@@ -21,6 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { launchMobileLiveGpsNavigation } from '@/services/navigation';
 import {
   Menu,
   Search,
@@ -323,14 +324,11 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
     });
   };
 
-  const handleNavigate = (lat: number, lon: number) => {
-    const url = Platform.select({
-      ios: `maps://app?daddr=${lat},${lon}`,
-      android: `google.navigation:q=${lat},${lon}`,
-      default: `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
-    });
-    Linking.openURL(url).catch(() => {
-      Alert.alert('Error', 'Unable to launch map application.');
+  const handleNavigate = (lat: number, lon: number, locationName?: string) => {
+    launchMobileLiveGpsNavigation({
+      latitude: lat,
+      longitude: lon,
+      locationName,
     });
   };
 
