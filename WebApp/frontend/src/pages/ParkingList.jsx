@@ -526,19 +526,6 @@ const ParkingList = () => {
                 </span>
               )}
             </button>
-
-            <div
-              onClick={() => window.open(`https://www.google.com/maps/search/parking+near+${search || 'me'}`, '_blank')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '4px', padding: '7px 10px',
-                borderRadius: '8px', background: 'rgba(250, 255, 0, 0.08)',
-                border: '1px solid rgba(250, 255, 0, 0.25)', cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              <Navigation size={12} color="var(--accent-primary)" />
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-primary)' }}>Maps</span>
-            </div>
           </div>
         </motion.div>
 
