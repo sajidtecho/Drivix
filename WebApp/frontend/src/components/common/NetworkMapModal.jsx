@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from '@react-google-maps/api';
 import { API_BASE_URL } from '../../config';
+import { launchLiveGpsNavigation } from '../../utils/navigationUtils';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyD45w3pytPwzXDg9Xk8veMXeJBdwtodkqw';
 
@@ -803,28 +804,35 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                                 Book Spot <ChevronRight size={16} />
                               </button>
                             )}
-                            <a
-                              href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`}
-                              target="_blank"
-                              rel="noreferrer"
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                launchLiveGpsNavigation({
+                                  latitude: selectedLocation.latitude,
+                                  longitude: selectedLocation.longitude,
+                                  locationName: selectedLocation.name,
+                                  userCoords
+                                });
+                              }}
                               style={{
                                 flex: isSelNoOnlineBooking ? 1 : undefined,
                                 padding: '10px 14px',
                                 background: isSelNoOnlineBooking ? 'var(--accent-primary, #FAFF00)' : 'rgba(255,255,255,0.1)',
                                 color: isSelNoOnlineBooking ? '#000' : '#fff',
-                                textDecoration: 'none',
+                                border: isSelNoOnlineBooking ? 'none' : '1px solid rgba(255,255,255,0.15)',
                                 borderRadius: '10px',
                                 fontWeight: 900,
                                 fontSize: '0.85rem',
+                                cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '6px',
-                                border: isSelNoOnlineBooking ? 'none' : '1px solid rgba(255,255,255,0.15)'
+                                gap: '6px'
                               }}
                             >
                               <Navigation size={16} /> {isSelNoOnlineBooking ? 'Navigate GPS (On-Site Entry Only)' : '📍 Nav'}
-                            </a>
+                            </button>
                           </div>
                         </>
                       );
