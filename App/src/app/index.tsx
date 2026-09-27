@@ -204,8 +204,6 @@ export default function DashboardScreen() {
       setStep('CHALLAN');
     } else if (actionType === 'NAVIGATE' && params?.route) {
       handleNavigateToTab(params.route);
-    } else if (actionType === 'COPILOT') {
-      setIsARModalVisible(true);
     }
   };
 
