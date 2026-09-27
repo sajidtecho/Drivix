@@ -67,11 +67,11 @@ const ShowcaseSection = () => {
   const navigate = useNavigate();
   // 'parking' is active, others are placeholders for the future
   const [activeTab, setActiveTab] = useState('parking');
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false);
 
   React.useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth <= 1024);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -82,6 +82,249 @@ const ShowcaseSection = () => {
       setActiveTab(tab.id);
     }
   };
+
+  const renderTabItem = (tab) => {
+    const TabIcon = tab.icon;
+    const isActive = activeTab === tab.id;
+
+    return (
+      <motion.div
+        key={tab.id}
+        initial={{ opacity: 0, height: 0, scale: 0.95 }}
+        animate={{ opacity: 1, height: 'auto', scale: 1 }}
+        exit={{ opacity: 0, height: 0, scale: 0.95 }}
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        onClick={() => handleTabClick(tab)}
+        className={`tab-item ${isActive ? 'active' : 'inactive'} ${!tab.isAvailable ? 'disabled' : ''}`}
+        style={{ overflow: 'hidden' }}
+      >
+        {isActive ? (
+          <motion.div
+            layoutId="activeTabDetails"
+            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                background: '#000000',
+                color: 'var(--accent-primary)',
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <TabIcon size={20} />
+              </div>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#000000', fontFamily: 'var(--font-display)' }}>
+                {tab.title}
+              </h3>
+              <span style={{
+                background: '#000000',
+                color: '#FFFFFF',
+                fontSize: '0.65rem',
+                fontWeight: 800,
+                padding: '3px 8px',
+                borderRadius: '20px',
+                marginLeft: 'auto',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                Active
+              </span>
+            </div>
+
+            <p style={{
+              fontSize: '0.9rem',
+              lineHeight: '1.5',
+              fontWeight: 600,
+              color: 'rgba(0, 0, 0, 0.8)',
+              margin: 0
+            }}>
+              {tab.description}
+            </p>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (tab.path) {
+                  if (tab.path.startsWith('http')) {
+                    window.open(tab.path, '_blank', 'noopener,noreferrer');
+                  } else {
+                    navigate(tab.path);
+                  }
+                }
+              }}
+              style={{
+                alignSelf: 'flex-start',
+                background: '#000000',
+                color: '#FFFFFF',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.15)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.25)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.15)';
+              }}
+            >
+              {tab.btnText} &rarr;
+            </button>
+          </motion.div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid var(--glass-border)',
+              color: 'var(--text-secondary)',
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <TabIcon size={16} />
+            </div>
+            <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-display)' }}>
+              {tab.title}
+            </h4>
+            {!tab.isAvailable && (
+              <span className="coming-soon-tag">Coming Soon</span>
+            )}
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+  const renderMediaPanel = () => (
+    <div 
+      className="media-panel-container"
+      style={{
+        aspectRatio: activeTab === 'parking' ? '4/3' : '16/9',
+        maxWidth: activeTab === 'parking' ? '100%' : '700px',
+        margin: '0 auto',
+        transition: 'aspect-ratio 0.3s ease, max-width 0.3s ease'
+      }}
+    >
+      <AnimatePresence mode="wait">
+        {activeTab === 'parking' && (
+          <motion.div
+            key="parking-video"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="video-wrapper"
+          >
+            <video
+              src={parkingVideo}
+              className="video-player"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+            <div className="video-overlay-glow" />
+          </motion.div>
+        )}
+        {activeTab === 'challan' && (
+          <motion.div
+            key="challan-video"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="video-wrapper"
+          >
+            <video
+              src={challanVideo}
+              className="video-player"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+            <div className="video-overlay-glow" />
+          </motion.div>
+        )}
+        {activeTab === 'fastag' && (
+          <motion.div
+            key="fastag-video"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="video-wrapper"
+          >
+            <video
+              src={fastagVideo}
+              className="video-player"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+            <div className="video-overlay-glow" />
+          </motion.div>
+        )}
+        {activeTab === 'payments' && (
+          <motion.div
+            key="payments-video"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="video-wrapper"
+          >
+            <video
+              src={billPaymentsVideo}
+              className="video-player"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+            <div className="video-overlay-glow" />
+          </motion.div>
+        )}
+        {activeTab === 'testdrive' && (
+          <motion.div
+            key="testdrive-video"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="video-wrapper"
+          >
+            <video
+              src={testDriveVideo}
+              className="video-player"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+            <div className="video-overlay-glow" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 
   return (
     <section className="showcase-section" style={{ padding: '100px 0', background: 'var(--bg-secondary)', position: 'relative', overflow: 'hidden' }}>
@@ -189,7 +432,7 @@ const ShowcaseSection = () => {
           width: 100%;
           display: flex;
           align-items: center;
-          justifyContent: center;
+          justify-content: center;
         }
 
         .video-wrapper {
@@ -267,260 +510,40 @@ const ShowcaseSection = () => {
           </p>
         </div>
 
-        {/* Core Showcase Grid */}
-        <div className="showcase-container">
-          
-          {/* Left Column: Tab switcher list */}
-          <div className="tab-list">
-            <AnimatePresence initial={false}>
-              {TABS.map((tab, index) => {
-                const activeIndex = TABS.findIndex(t => t.id === activeTab);
-                if (isMobile && index > activeIndex + 1) return null;
+        {/* Core Showcase Layout */}
+        {isMobile ? (
+          <div className="showcase-mobile-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Active Selected Card on Top */}
+            <div className="tab-list">
+              <AnimatePresence initial={false}>
+                {TABS.filter(t => t.id === activeTab).map(renderTabItem)}
+              </AnimatePresence>
+            </div>
 
-                const TabIcon = tab.icon;
-                const isActive = activeTab === tab.id;
+            {/* Video Player in Middle */}
+            {renderMediaPanel()}
 
-                return (
-                  <motion.div
-                    key={tab.id}
-                    initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, height: 'auto', scale: 1 }}
-                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                    transition={{ duration: 0.25, ease: 'easeInOut' }}
-                    onClick={() => handleTabClick(tab)}
-                    className={`tab-item ${isActive ? 'active' : 'inactive'} ${!tab.isAvailable ? 'disabled' : ''}`}
-                    style={{ overflow: 'hidden' }}
-                  >
-                  {isActive ? (
-                    <motion.div
-                      layoutId="activeTabDetails"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                          background: '#000000',
-                          color: 'var(--accent-primary)',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '10px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          <TabIcon size={20} />
-                        </div>
-                        <h3 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#000000', fontFamily: 'var(--font-display)' }}>
-                          {tab.title}
-                        </h3>
-                        <span style={{
-                          background: '#000000',
-                          color: '#FFFFFF',
-                          fontSize: '0.65rem',
-                          fontWeight: 800,
-                          padding: '3px 8px',
-                          borderRadius: '20px',
-                          marginLeft: 'auto',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em'
-                        }}>
-                          Active
-                        </span>
-                      </div>
-
-                      <p style={{
-                        fontSize: '0.9rem',
-                        lineHeight: '1.5',
-                        fontWeight: 600,
-                        color: 'rgba(0, 0, 0, 0.8)',
-                        margin: 0
-                      }}>
-                        {tab.description}
-                      </p>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (tab.path) {
-                            if (tab.path.startsWith('http')) {
-                              window.open(tab.path, '_blank', 'noopener,noreferrer');
-                            } else {
-                              navigate(tab.path);
-                            }
-                          }
-                        }}
-                        style={{
-                          alignSelf: 'flex-start',
-                          background: '#000000',
-                          color: '#FFFFFF',
-                          border: 'none',
-                          padding: '12px 20px',
-                          borderRadius: '12px',
-                          fontSize: '0.85rem',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          transition: 'all 0.2s ease',
-                          boxShadow: '0 4px 10px rgba(0,0,0,0.15)'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.25)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.15)';
-                        }}
-                      >
-                        {tab.btnText} &rarr;
-                      </button>
-                    </motion.div>
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
-                      <div style={{
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid var(--glass-border)',
-                        color: 'var(--text-secondary)',
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <TabIcon size={16} />
-                      </div>
-                      <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-display)' }}>
-                        {tab.title}
-                      </h4>
-                      {!tab.isAvailable && (
-                        <span className="coming-soon-tag">Coming Soon</span>
-                      )}
-                    </div>
-                  )}
-                </motion.div>
-              );
-            })}
-            </AnimatePresence>
+            {/* Inactive Tab Options Below Video */}
+            <div className="tab-list">
+              <AnimatePresence initial={false}>
+                {TABS.filter(t => t.id !== activeTab).map(renderTabItem)}
+              </AnimatePresence>
+            </div>
           </div>
+        ) : (
+          <div className="showcase-container">
+            {/* Left Column: Tab switcher list */}
+            <div className="tab-list">
+              <AnimatePresence initial={false}>
+                {TABS.map(renderTabItem)}
+              </AnimatePresence>
+            </div>
 
-          {/* Right Column: Visual Player */}
-          <div 
-            className="media-panel-container"
-            style={{
-              aspectRatio: activeTab === 'parking' ? '4/3' : '16/9',
-              maxWidth: activeTab === 'parking' ? '100%' : '700px',
-              margin: '0 auto',
-              transition: 'aspect-ratio 0.3s ease, max-width 0.3s ease'
-            }}
-          >
-            <AnimatePresence mode="wait">
-              {activeTab === 'parking' && (
-                <motion.div
-                  key="parking-video"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="video-wrapper"
-                >
-                  <video
-                    src={parkingVideo}
-                    className="video-player"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
-                  <div className="video-overlay-glow" />
-                </motion.div>
-              )}
-              {activeTab === 'challan' && (
-                <motion.div
-                  key="challan-video"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="video-wrapper"
-                >
-                  <video
-                    src={challanVideo}
-                    className="video-player"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
-                  <div className="video-overlay-glow" />
-                </motion.div>
-              )}
-              {activeTab === 'fastag' && (
-                <motion.div
-                  key="fastag-video"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="video-wrapper"
-                >
-                  <video
-                    src={fastagVideo}
-                    className="video-player"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
-                  <div className="video-overlay-glow" />
-                </motion.div>
-              )}
-              {activeTab === 'payments' && (
-                <motion.div
-                  key="payments-video"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="video-wrapper"
-                >
-                  <video
-                    src={billPaymentsVideo}
-                    className="video-player"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
-                  <div className="video-overlay-glow" />
-                </motion.div>
-              )}
-              {activeTab === 'testdrive' && (
-                <motion.div
-                  key="testdrive-video"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="video-wrapper"
-                >
-                  <video
-                    src={testDriveVideo}
-                    className="video-player"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
-                  <div className="video-overlay-glow" />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Right Column: Visual Player */}
+            {renderMediaPanel()}
           </div>
+        )}
 
-        </div>
       </div>
     </section>
   );
