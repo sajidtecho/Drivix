@@ -13,7 +13,6 @@ import Ticket from './pages/Ticket';
 import Safety from './pages/Safety';
 import AnprGateSimulator from './pages/AnprGateSimulator';
 import PartnerLandingPage from './pages/PartnerLandingPage';
-import ActiveCopilot from './pages/ActiveCopilot';
 import AdminRoute from './components/admin/AdminRoute';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -82,7 +81,6 @@ function App() {
               <Route path="/safety" element={<Safety />} />
               <Route path="/anpr" element={<AnprGateSimulator />} />
               <Route path="/partner" element={<PartnerLandingPage />} />
-              <Route path="/copilot" element={<ActiveCopilot />} />
               <Route path="/about" element={<AboutUs />} />
 
               {/* Admin Routes */}

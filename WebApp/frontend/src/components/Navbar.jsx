@@ -20,7 +20,6 @@ const APP_LINKS = [
   { label: 'Services', path: '/services' },
   { label: 'About Us', path: '/about' },
   { label: 'Gate Simulator', path: '/anpr' },
-  { label: 'Drivix Assistant', path: '/copilot' },
   { label: 'Become a Partner', path: '/partner' },
 ];
 
