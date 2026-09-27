@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Linking, Platform } from 'react-native';
 import { Clock, Navigation, AlertTriangle } from 'lucide-react-native';
 
-import { useTheme } from '@/hooks/use-theme';
+import { launchMobileLiveGpsNavigation } from '@/services/navigation';
 
 interface LocationCardProps {
   location: any;
@@ -32,15 +32,10 @@ export default function LocationCard({ location, onSelect, isNearest }: Location
   const colors = useTheme();
 
   const handleNavigate = () => {
-    const lat = location.latitude || 28.4727;
-    const lon = location.longitude || 77.4827;
-    const url = Platform.select({
-      ios: `maps://app?daddr=${lat},${lon}`,
-      android: `google.navigation:q=${lat},${lon}`,
-      default: `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
-    });
-    Linking.openURL(url).catch(() => {
-      if (typeof window !== 'undefined') window.open(url, '_blank');
+    launchMobileLiveGpsNavigation({
+      latitude: location.latitude,
+      longitude: location.longitude,
+      locationName: location.parkingName || location.address,
     });
   };
 
