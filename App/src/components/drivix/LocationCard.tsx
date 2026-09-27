@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Linking, Platform } from 'react-native';
 import { Clock, Navigation, AlertTriangle } from 'lucide-react-native';
 
+import { useTheme } from '@/hooks/use-theme';
 import { launchMobileLiveGpsNavigation } from '@/services/navigation';
 
 interface LocationCardProps {

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { launchMobileLiveGpsNavigation } from '@/services/navigation';
 import {
   ChevronLeft,
   Star,
@@ -403,7 +404,11 @@ export default function DriverHubScreen({ onBack, selectedLocation, locations }:
                   </TouchableOpacity>
                   <TouchableOpacity 
                     style={[styles.bookingBtn, { backgroundColor: 'rgba(0, 242, 255, 0.12)', borderColor: 'rgba(0,242,255,0.25)' }]} 
-                    onPress={() => Alert.alert('Navigating', `Launching Google Maps directions to ${activeBooking.locationName}...`)}
+                    onPress={() => launchMobileLiveGpsNavigation({
+                      latitude: activeBooking.latitude || (activeBooking as any).locationId?.latitude,
+                      longitude: activeBooking.longitude || (activeBooking as any).locationId?.longitude,
+                      locationName: activeBooking.locationName,
+                    })}
                   >
                     <Navigation size={14} color="#00f2ff" />
                     <Text style={[styles.bookingBtnText, { color: '#00f2ff', marginLeft: 4 }]}>Navigate</Text>
