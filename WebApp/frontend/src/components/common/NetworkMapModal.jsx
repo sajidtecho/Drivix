@@ -715,20 +715,22 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
               <AnimatePresence>
                 {selectedLocation && (
                   <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 30, x: '-50%' }}
+                    animate={{ opacity: 1, y: 0, x: '-50%' }}
+                    exit={{ opacity: 0, y: 30, x: '-50%' }}
                     style={{
                       position: 'absolute',
-                      bottom: '16px',
-                      left: '16px',
-                      right: '16px',
+                      bottom: '20px',
+                      left: '50%',
+                      width: 'calc(100% - 32px)',
+                      maxWidth: '360px',
                       zIndex: 1100,
                       background: 'rgba(15, 18, 30, 0.96)',
                       border: '1px solid rgba(250, 255, 0, 0.35)',
                       borderRadius: '16px',
                       padding: '16px',
-                      boxShadow: '0 20px 50px rgba(0,0,0,0.85), 0 0 30px rgba(250,255,0,0.15)'
+                      boxShadow: '0 20px 50px rgba(0,0,0,0.85), 0 0 30px rgba(250,255,0,0.2)',
+                      backdropFilter: 'blur(12px)'
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
