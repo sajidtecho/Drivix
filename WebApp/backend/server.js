@@ -18,7 +18,6 @@ import placeRoutes from './routes/placeRoutes.js';
 import partnerRoutes from './routes/partnerRoutes.js';
 import fastagRoutes from './routes/fastagRoutes.js';
 import gateRoutes from './routes/gateRoutes.js';
-import safetyRoutes from './routes/safetyRoutes.js';
 import { seedBanners } from './utils/seedBanners.js';
 import { seedPlaces } from './controllers/placeController.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -90,7 +89,6 @@ app.use('/api/v1/places', placeRoutes);
 app.use('/api/v1/partners', partnerRoutes);
 app.use('/api/v1/fastags', fastagRoutes);
 app.use('/api/v1/gate', gateRoutes);
-app.use('/api/v1/safety', safetyRoutes);
 
 // Centralized Error Handling Middlewares
 app.use(notFound);
@@ -109,43 +107,6 @@ global.io = io;
 
 io.on('connection', (socket) => {
   console.log(`🔌 Client connected: ${socket.id}`);
-
-  // Join cross-platform copilot room for real-time telemetry sync between Web and Mobile
-  socket.on('joinCopilotRoom', (data) => {
-    const roomId = data?.userId ? `copilot:${data.userId}` : 'copilot:global';
-    socket.join(roomId);
-    console.log(`📡 Socket ${socket.id} joined copilot room: ${roomId}`);
-    socket.emit('copilotRoomJoined', { roomId, status: 'connected' });
-  });
-
-  // Relay live copilot telemetry (speed, location, eye openness, gaze, alerts)
-  socket.on('copilotTelemetryUpdate', (telemetry) => {
-    const roomId = telemetry?.userId ? `copilot:${telemetry.userId}` : 'copilot:global';
-    socket.to(roomId).emit('copilotLiveRadarSync', {
-      ...telemetry,
-      senderId: socket.id,
-      timestamp: new Date().toISOString()
-    });
-    // Also broadcast to global telemetry feed for admin and active copilot radar views
-    socket.broadcast.emit('copilotGlobalRadarUpdate', {
-      ...telemetry,
-      senderId: socket.id,
-      timestamp: new Date().toISOString()
-    });
-  });
-
-  // Relay high-priority driver safety alerts across platforms
-  socket.on('copilotSafetyAlert', (alertData) => {
-    const roomId = alertData?.userId ? `copilot:${alertData.userId}` : 'copilot:global';
-    io.to(roomId).emit('safetyAlertReceived', {
-      ...alertData,
-      timestamp: new Date().toISOString()
-    });
-    socket.broadcast.emit('safetyAlertReceived', {
-      ...alertData,
-      timestamp: new Date().toISOString()
-    });
-  });
 
   socket.on('disconnect', () => {
     console.log(`🔌 Client disconnected: ${socket.id}`);
