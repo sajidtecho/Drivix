@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Platform, Linking, Alert } from 'react-native';
 import { MapPin, ArrowRight, Navigation, Camera, Compass } from 'lucide-react-native';
+import { Booking } from '@/types/booking';
 import { launchMobileLiveGpsNavigation } from '@/services/navigation';
 
 interface ActiveBookingBannerProps {
