@@ -21,7 +21,6 @@ import GarageCard from '@/components/drivix/GarageCard';
 import QuickServicesGrid from '@/components/drivix/QuickServicesGrid';
 import EVChargingCard from '@/components/drivix/EVChargingCard';
 import FASTagAlertCard from '@/components/drivix/FASTagAlertCard';
-import VoiceAssistantModal from '@/components/drivix/VoiceAssistantModal';
 import ARWayfindingOverlay from '@/components/drivix/ARWayfindingOverlay';
 import LoginBottomSheet from '@/components/LoginBottomSheet';
 import ParkingHubsScreen from './parking-hubs';
@@ -171,15 +170,13 @@ export default function DashboardScreen() {
   const [heroVehicleNumber, setHeroVehicleNumber] = useState('');
   const [isHeroInputFocused, setIsHeroInputFocused] = useState(false);
 
-  // AI Voice & AR Wayfinding Modal States
-  const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
+  // AR Wayfinding Modal State
   const [isARModalVisible, setIsARModalVisible] = useState(false);
 
   // Booking Mode: Mode 1 (FUTURE_MANUAL) vs Mode 2 (INSTANT_NEARBY)
   const [bookingMode, setBookingMode] = useState<'INSTANT_NEARBY' | 'FUTURE_MANUAL'>('INSTANT_NEARBY');
 
   const handleCommandRecognized = (command: string, actionType: string, params?: any, replyText?: string) => {
-    setIsVoiceModalVisible(false);
     if (actionType === 'SEARCH_PARKING' || actionType === 'SEARCH') {
       const locName = params?.locationName || command;
       setSearchQuery(locName);
@@ -1330,20 +1327,6 @@ export default function DashboardScreen() {
       <LoginBottomSheet
         visible={loginRequiredVisible}
         onCancel={() => setLoginRequiredVisible(false)}
-      />
-
-      <VoiceAssistantModal
-        isVisible={isVoiceModalVisible}
-        onClose={() => setIsVoiceModalVisible(false)}
-        onCommandRecognized={handleCommandRecognized}
-        contextData={{
-          locations,
-          userVehicles,
-          walletBalance: user?.walletBalance ?? 0,
-          currentStep: step,
-          userName: user?.name,
-        }}
-        colors={colors}
       />
 
       <ARWayfindingOverlay

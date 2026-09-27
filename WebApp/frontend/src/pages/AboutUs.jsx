@@ -58,18 +58,6 @@ const AboutUs = () => {
       color: '#ec4899'
     },
     {
-      icon: Shield,
-      title: 'Safety & Incident Alert System',
-      description: 'Integrated emergency SOS assistance, 24/7 CCTV surveillance monitoring, and instant support ticketing for peace of mind.',
-      color: '#3b82f6'
-    },
-    {
-      icon: Sparkles,
-      title: 'Drivix AI Assistant & Copilot',
-      description: 'Built-in conversational AI assistant providing smart route advice, pricing forecasts, and instant booking help on the go.',
-      color: '#f97316'
-    },
-    {
       icon: Building2,
       title: 'Partner & Operator Ecosystem',
       description: 'Dedicated analytics and management dashboard empowering municipal bodies and private commercial lot operators to maximize space utilization.',
