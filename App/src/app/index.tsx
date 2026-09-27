@@ -843,13 +843,12 @@ export default function DashboardScreen() {
                     ]}
                     onPress={() => {
                       setBookingMode('FUTURE_MANUAL');
-                      setIsVoiceModalVisible(true);
                     }}
                     activeOpacity={0.8}
                   >
                     <Sparkles size={14} color={bookingMode === 'FUTURE_MANUAL' ? '#000000' : '#ffce00'} />
                     <Text numberOfLines={1} style={[styles.bookingModeText, bookingMode === 'FUTURE_MANUAL' && styles.bookingModeTextActive]}>
-                      Drivix Assistant
+                      Manual Select
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -1146,11 +1145,7 @@ export default function DashboardScreen() {
                           }}>
                             <X size={16} color="rgba(255, 255, 255, 0.6)" />
                           </TouchableOpacity>
-                        ) : (
-                          <TouchableOpacity onPress={() => setIsVoiceModalVisible(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                            <Mic size={16} color={colors.primary} />
-                          </TouchableOpacity>
-                        )
+                        ) : null
                       ) : heroVehicleNumber ? (
                         <TouchableOpacity onPress={() => setHeroVehicleNumber('')}>
                           <X size={16} color="rgba(255, 255, 255, 0.6)" />
