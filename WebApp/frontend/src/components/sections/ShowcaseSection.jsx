@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Car, AlertTriangle, CreditCard } from 'lucide-react';
+import { Car, AlertTriangle, CreditCard, MapPin } from 'lucide-react';
+import NetworkMapModal from '../common/NetworkMapModal';
 import parkingVideo from '../../assets/Parking_Web.m4v';
 import challanVideo from '../../assets/challan_video.mp4';
 import fastagVideo from '../../assets/fastag_video.mp4';
@@ -68,6 +69,7 @@ const ShowcaseSection = () => {
   // 'parking' is active, others are placeholders for the future
   const [activeTab, setActiveTab] = useState('parking');
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -580,6 +582,12 @@ const ShowcaseSection = () => {
         )}
 
       </div>
+
+      {/* Interactive Parking Network Map Modal */}
+      <NetworkMapModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+      />
     </section>
   );
 };
