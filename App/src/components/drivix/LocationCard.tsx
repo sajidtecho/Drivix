@@ -45,8 +45,8 @@ export default function LocationCard({ location, onSelect, isNearest }: Location
       style={[
         styles.locationCard,
         {
-          backgroundColor: 'rgba(21, 22, 30, 0.65)',
-          borderColor: isNearest ? 'rgba(255, 206, 0, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+          backgroundColor: '#FFFFFF',
+          borderColor: isNearest ? '#FFCE00' : 'rgba(0, 0, 0, 0.1)',
         },
       ]}
     >
