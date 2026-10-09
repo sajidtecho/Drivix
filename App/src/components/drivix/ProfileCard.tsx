@@ -62,10 +62,10 @@ export default function ProfileCard({ user, onLogout }: ProfileCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(21, 22, 30, 0.75)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
     padding: 20,
     marginBottom: 20,
   },
@@ -86,12 +86,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
-    color: '#ffffff',
+    color: '#000000',
     fontSize: 18,
     fontWeight: 'bold',
   },
   profileEmail: {
-    color: '#a0aab2',
+    color: '#4B5563',
     fontSize: 13,
     marginTop: 2,
   },
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
     marginVertical: 16,
   },
   detailsRow: {
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   detailText: {
-    color: '#a0aab2',
+    color: '#4B5563',
     fontSize: 13,
   },
   logoutBtn: {
