@@ -145,44 +145,79 @@ const ShowcaseSection = () => {
               {tab.description}
             </p>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (tab.path) {
-                  if (tab.path.startsWith('http')) {
-                    window.open(tab.path, '_blank', 'noopener,noreferrer');
-                  } else {
-                    navigate(tab.path);
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', alignSelf: 'flex-start' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (tab.path) {
+                    if (tab.path.startsWith('http')) {
+                      window.open(tab.path, '_blank', 'noopener,noreferrer');
+                    } else {
+                      navigate(tab.path);
+                    }
                   }
-                }
-              }}
-              style={{
-                alignSelf: 'flex-start',
-                background: '#000000',
-                color: '#FFFFFF',
-                border: 'none',
-                padding: '12px 20px',
-                borderRadius: '12px',
-                fontSize: '0.85rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.15)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.25)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.15)';
-              }}
-            >
-              {tab.btnText} &rarr;
-            </button>
+                }}
+                style={{
+                  background: '#000000',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '12px 20px',
+                  borderRadius: '12px',
+                  fontSize: '0.85rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.15)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.25)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.15)';
+                }}
+              >
+                {tab.btnText} &rarr;
+              </button>
+
+              {tab.id === 'parking' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMapModalOpen(true);
+                  }}
+                  style={{
+                    background: '#000000',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    fontSize: '0.85rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.15)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.25)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.15)';
+                  }}
+                >
+                  <MapPin size={16} /> View Map &rarr;
+                </button>
+              )}
+            </div>
           </motion.div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
