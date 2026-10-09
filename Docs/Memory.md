@@ -39,8 +39,19 @@
 
 ---
 
-## 3. Active Workspace State
+## 3. Active Subsystems & Component Map
 
-- Backend Server: Express Node.js app running locally on `http://localhost:5000` (or Render production endpoint `https://drivix-backend-0qvx.onrender.com`).
-- Web Frontend: Vite dev server on `http://localhost:5173` (or Vercel production endpoint `https://drivix-pearl.vercel.app/`).
-- Mobile App: Expo dev server running on `App/`.
+- **WebApp Backend (`WebApp/backend`)**: Express REST API on `http://localhost:5000` handling JWT auth, MongoDB Atlas/local persistence, Socket.IO broadcasts, ANPR gate simulator, multi-criteria slot allocation engine (`SlotAllocationService.js`), and atomic soft-lock concurrency holds (5-min auto-release window).
+- **WebApp Frontend (`WebApp/frontend`)**: React + Vite client on `http://localhost:5173` featuring Cyberpunk glassmorphic design system, compact map popovers, direct 1-tap turn-by-turn driving GPS navigation (`navigationUtils.js`), interactive 2D multi-floor slot layout grid (`SlotLayout.jsx`), and comprehensive admin suite.
+- **Mobile App (`App/`)**: Expo + React Native app featuring One UI 7 spring-animated floating tab bar, Sci-Fi radar map, QR packet gate pass generator, driver hub amenities, and native direct GPS driving navigation (`navigation.ts`).
+- **Machine Learning Subsystem (`ml_service/`)**: Python Random Forest model engine predicting demand scores (0-100) based on occupancy, peak hours, weather, and event parameters for dynamic pricing rules.
+- **Documentation Suite (`Docs/`)**: Complete specifications maintained across `Architecture.md`, `Design.md`, `PRD.md`, `Rules.md`, `Tasks.md`, and `Memory.md`.
+
+---
+
+## 4. Preparedness for New Features
+
+- **System Memory Status**: Fully synced & primed.
+- **Codebase Indexing**: All models, controllers, routes, frontend pages, mobile screens, ML scripts, and documentation files parsed and verified.
+- **Engineering Rules**: Enforcing dark mode glassmorphism UI, atomic concurrency protection, non-blocking main loops, exact prop/API contract verification, and empirical build testing.
+
