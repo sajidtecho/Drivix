@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useColorScheme as useRNColorScheme, ColorSchemeName } from 'react-native';
 
-let currentTheme: ColorSchemeName | null = 'dark';
+let currentTheme: ColorSchemeName | null = 'light';
 const listeners = new Set<(theme: ColorSchemeName | null) => void>();
 
 export const getThemeMode = (): ColorSchemeName | null => {
@@ -17,7 +17,7 @@ export function useColorScheme(): ColorSchemeName {
   const [hasHydrated, setHasHydrated] = useState(false);
   const colorScheme = useRNColorScheme();
   const [scheme, setScheme] = useState<ColorSchemeName>(
-    currentTheme || colorScheme || 'dark'
+    currentTheme || colorScheme || 'light'
   );
 
   useEffect(() => {
@@ -54,6 +54,6 @@ export function useColorScheme(): ColorSchemeName {
     return scheme;
   }
 
-  return 'dark'; // Default to dark mode for Drivix premium theme
+  return 'light'; // Default to light mode for Drivix white/black/yellow theme
 }
 

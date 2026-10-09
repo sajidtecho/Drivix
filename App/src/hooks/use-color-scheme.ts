@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useColorScheme as useRNColorScheme, ColorSchemeName } from 'react-native';
 
-let currentTheme: ColorSchemeName | null = 'dark';
+let currentTheme: ColorSchemeName | null = 'light';
 const listeners = new Set<(theme: ColorSchemeName | null) => void>();
 
 export const getThemeMode = (): ColorSchemeName | null => {
@@ -16,7 +16,7 @@ export const setThemeMode = (mode: ColorSchemeName | null) => {
 export function useColorScheme(): ColorSchemeName {
   const colorScheme = useRNColorScheme();
   const [scheme, setScheme] = useState<ColorSchemeName>(
-    currentTheme || colorScheme || 'dark'
+    currentTheme || colorScheme || 'light'
   );
 
   useEffect(() => {

@@ -134,8 +134,8 @@ export default function AppTabs() {
           style={[
             styles.tabBarContainer,
             {
-              backgroundColor: 'rgba(15, 16, 22, 0.9)',
-              borderColor: colors.borderGlass,
+              backgroundColor: '#FFFFFF',
+              borderColor: 'rgba(0, 0, 0, 0.1)',
             },
           ]}
         >
@@ -145,7 +145,7 @@ export default function AppTabs() {
               styles.capsuleIndicator,
               {
                 width: TAB_WIDTH - 12,
-                backgroundColor: '#ffce00', // Drivix Yellow/Gold Capsule
+                backgroundColor: '#FFCE00', // Drivix Yellow/Gold Capsule
                 transform: [{ translateX: Animated.add(slideAnim, 6) }],
               },
             ]}
@@ -172,7 +172,7 @@ export default function AppTabs() {
                 <Animated.View style={{ transform: [{ scale: isActive ? scale : 1 }] }}>
                   <IconComp
                     size={20}
-                    color={isActive ? '#0b0c10' : '#a0aab2'}
+                    color={isActive ? '#000000' : '#4B5563'}
                     strokeWidth={isActive ? 2.5 : 2.0}
                   />
                 </Animated.View>
@@ -180,7 +180,7 @@ export default function AppTabs() {
                   style={[
                     styles.tabLabel,
                     {
-                      color: isActive ? '#0b0c10' : '#a0aab2',
+                      color: isActive ? '#000000' : '#4B5563',
                       fontWeight: isActive ? '900' : '500',
                     },
                   ]}
