@@ -247,10 +247,12 @@ export const createBooking = async (req, res) => {
     // Resolve total cost
     let resolvedTotalCost = totalCost;
     if (resolvedTotalCost === undefined || resolvedTotalCost === null) {
-      const recommendation = calculateDynamicPrice({
+      const recommendation = await calculateDynamicPrice({
+        locationName: location.parkingName,
         basePrice: location.hourlyPrice,
         totalSlots: location.totalSlots,
-        availableSlots: location.availableSlots
+        availableSlots: location.availableSlots,
+        durationHours: durationNum
       });
       resolvedTotalCost = (recommendation.recommendedPrice * durationNum) + resolvedServicesCost;
     }
