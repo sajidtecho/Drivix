@@ -435,7 +435,8 @@ export const getPricingRecommendation = async (req, res) => {
       return res.status(404).json({ message: 'Parking location not found' });
     }
 
-    const recommendation = calculateDynamicPrice({
+    const recommendation = await calculateDynamicPrice({
+      locationName: location.parkingName,
       basePrice: location.hourlyPrice,
       totalSlots: location.totalSlots,
       availableSlots: location.availableSlots,

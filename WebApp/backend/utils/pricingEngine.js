@@ -1,24 +1,17 @@
 /**
  * Drivix Hybrid AI Dynamic Pricing Engine
  * 
- * 1. AI Demand Predictor: Simulates ML demand prediction (Random Forest/XGBoost) 
- *    based on occupancy, hour, weekend/weekday, holidays, events, and weather.
- * 2. Rule-Based Pricing Engine: Translates predicted demand scores into recommended
- *    prices, surge multipliers, peak alerts, and discount suggestions.
+ * 1. ML Microservice Integration: Queries the production XGBoost model
+ *    running on FastAPI (http://localhost:8000) for real-time demand scoring
+ *    and bounded surge/discount multiplier calculation.
+ * 2. Deterministic Rule-Based Fallback: If the ML service is offline or unreachable,
+ *    gracefully falls back to heuristic occupancy & peak-hour curves with zero downtime.
  */
 
 /**
- * Predict demand score and recommended price
- * @param {Object} params
- * @param {number} params.basePrice - Standard hourly price of the location
- * @param {number} params.totalSlots - Total slot capacity
- * @param {number} params.availableSlots - Currently available slots
- * @param {string} params.weather - Weather condition ('clear', 'rainy', 'stormy')
- * @param {boolean} params.isHoliday - Is today a public holiday
- * @param {boolean} params.nearbyEvent - Is there a concert/sports event nearby
- * @returns {Object} Pricing recommendation details
+ * Synchronous rule-based pricing fallback
  */
-export const calculateDynamicPrice = ({
+export const calculateDynamicPriceSync = ({
   basePrice,
   totalSlots,
   availableSlots,
@@ -34,66 +27,54 @@ export const calculateDynamicPrice = ({
   const occupiedSlots = totalSlots - availableSlots;
   const currentOccupancyRate = totalSlots > 0 ? (occupiedSlots / totalSlots) : 0;
 
-  // 2. AI Demand Estimation Logic (Simulating RandomForest/XGBoost regression output)
-  // Base demand starts from current occupancy (0 to 50 points)
+  // 2. Heuristic demand estimation
   let demandScore = currentOccupancyRate * 50;
 
-  // Hour of the day factor (Peak Hours: 9 AM - 12 PM, 5 PM - 8 PM)
   if ((hour >= 9 && hour <= 12) || (hour >= 17 && hour <= 20)) {
     demandScore += 25; // Peak hour surge
   } else if (hour >= 0 && hour <= 6) {
     demandScore -= 15; // Late night off-peak
   }
 
-  // Day of the week factor (Weekend demand increases by 10 points)
   if (dayOfWeek === 0 || dayOfWeek === 6) {
     demandScore += 10;
   }
 
-  // Holiday factor (+15 points)
   if (isHoliday) {
     demandScore += 15;
   }
 
-  // Nearby Event factor (+20 points)
   if (nearbyEvent) {
     demandScore += 20;
   }
 
-  // Weather Factor (Rainy/Stormy weather drives indoor parking demand up)
   if (weather === 'rainy') {
     demandScore += 8;
   } else if (weather === 'stormy') {
     demandScore += 12;
   }
 
-  // Normalize demand score between 0 and 100
   demandScore = Math.max(0, Math.min(100, Math.round(demandScore)));
 
-  // Estimate future occupancy rate based on demand score
   const predictedOccupancy = Math.max(
     Math.round(currentOccupancyRate * 100),
     Math.round(demandScore * 0.95)
   );
 
-  // 3. Rule-Based Pricing Engine (Translates Demand Score to Price Recommendations)
   let multiplier = 1.0;
   let pricingAlert = 'Normal Rate';
   let discountSuggestion = '';
   let peakHourAlert = false;
 
   if (demandScore >= 85) {
-    // Critical Peak Demand
     multiplier = 1.50;
     pricingAlert = '🔥 Surge Pricing Active (Critical Demand)';
     peakHourAlert = true;
   } else if (demandScore >= 70) {
-    // High Demand
     multiplier = 1.25;
     pricingAlert = '📈 Surge Pricing Active (High Demand)';
     peakHourAlert = true;
   } else if (demandScore < 30) {
-    // Low Demand
     multiplier = 0.85; // 15% discount
     pricingAlert = '🎉 Off-Peak Discount Active';
     discountSuggestion = 'Save 15% by booking during this low-demand period!';
@@ -110,6 +91,76 @@ export const calculateDynamicPrice = ({
     multiplier,
     pricingAlert,
     discountSuggestion,
-    peakHourAlert
+    peakHourAlert,
+    isSurgeActive: peakHourAlert,
+    mlPowered: false,
+    modelVersion: 'heuristic-rule-engine-v1'
   };
+};
+
+/**
+ * Predict demand score and recommended dynamic price
+ * Queries the ML Microservice first; falls back to synchronous rules if unreachable.
+ */
+export const calculateDynamicPrice = async ({
+  locationName = 'Main Parking',
+  basePrice,
+  totalSlots,
+  availableSlots,
+  durationHours = 2,
+  weather = 'clear',
+  isHoliday = false,
+  nearbyEvent = false
+}) => {
+  const mlServiceUrl = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000';
+
+  try {
+    const payload = {
+      location_name: locationName,
+      total_capacity: Number(totalSlots) || 100,
+      available_slots: Number(availableSlots) >= 0 ? Number(availableSlots) : 50,
+      duration_hours: Number(durationHours) || 2,
+      base_hourly_rate: Number(basePrice) || 60
+    };
+
+    const response = await fetch(`${mlServiceUrl}/api/v1/predict`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(1500)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const occupied = Math.max(0, (Number(totalSlots) || 100) - (Number(availableSlots) || 0));
+      const currentOcc = Number(totalSlots) > 0 ? Math.round((occupied / Number(totalSlots)) * 100) : 0;
+
+      return {
+        currentOccupancy: currentOcc,
+        predictedOccupancy: Math.round(data.predicted_occupancy_rate * 100),
+        demandScore: Math.round(data.demand_score_percent),
+        basePrice: data.base_hourly_rate,
+        recommendedPrice: data.recommended_hourly_price,
+        multiplier: data.pricing_multiplier,
+        pricingAlert: data.alert_label,
+        discountSuggestion: data.pricing_multiplier < 1.0 ? '🎉 Save 15% by booking during this low-demand period!' : '',
+        peakHourAlert: data.is_surge_active,
+        isSurgeActive: data.is_surge_active,
+        mlPowered: true,
+        modelVersion: data.model_version
+      };
+    }
+  } catch (err) {
+    // Expected during offline ML service / network latency - silently fall back
+  }
+
+  // Graceful heuristic fallback
+  return calculateDynamicPriceSync({
+    basePrice,
+    totalSlots,
+    availableSlots,
+    weather,
+    isHoliday,
+    nearbyEvent
+  });
 };
