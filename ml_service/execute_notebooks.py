@@ -5,7 +5,11 @@ import base64
 import traceback
 from contextlib import redirect_stdout, redirect_stderr
 import nbformat as nbf
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+plt.show = lambda *args, **kwargs: None
 
 def execute_notebook(nb_path, working_dir=None):
     """
@@ -28,6 +32,7 @@ def execute_notebook(nb_path, working_dir=None):
     global_ns = {
         '__name__': '__main__',
         '__file__': os.path.abspath(nb_path),
+        'plt': plt,
     }
 
     execution_count = 1
@@ -49,6 +54,8 @@ def execute_notebook(nb_path, working_dir=None):
                     with redirect_stdout(stdout_buf), redirect_stderr(stderr_buf):
                         # Compile and execute
                         exec(code, global_ns)
+                    
+                    print(f"  [Cell {idx+1}/{len(nb.cells)}] executed successfully.")
                     
                     stdout_str = stdout_buf.getvalue()
                     stderr_str = stderr_buf.getvalue()

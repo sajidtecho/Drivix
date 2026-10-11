@@ -206,7 +206,7 @@ print(f"Features for evaluation ({len(feature_names)}):", feature_names)"""))
 
     cells.append(create_cell("markdown", """## 2. Model-Based Feature Importance (Random Forest Regressor)"""))
 
-    cells.append(create_cell("code", """rf = RandomForestRegressor(n_estimators=100, max_depth=12, random_state=42, n_jobs=-1)
+    cells.append(create_cell("code", """rf = RandomForestRegressor(n_estimators=80, max_depth=10, random_state=42)
 rf.fit(X_train, y_train)
 
 mdi_importance = pd.DataFrame({
@@ -220,7 +220,7 @@ print(mdi_importance.head(10).to_string(index=False))"""))
     cells.append(create_cell("markdown", """## 3. Permutation Feature Importance on Validation Set
 Permutation importance evaluates generalization impact by shuffling each feature on the holdout validation set and observing the degradation in Mean Absolute Error (MAE)."""))
 
-    cells.append(create_cell("code", """perm_res = permutation_importance(rf, X_valid, y_valid, scoring='neg_mean_absolute_error', n_repeats=10, random_state=42, n_jobs=-1)
+    cells.append(create_cell("code", """perm_res = permutation_importance(rf, X_valid, y_valid, scoring='neg_mean_absolute_error', n_repeats=5, random_state=42)
 
 perm_df = pd.DataFrame({
     'Feature': feature_names,
@@ -376,15 +376,15 @@ dt = DecisionTreeRegressor(max_depth=10, min_samples_leaf=10, random_state=42)
 dt.fit(X_train, y_train)
 eval_results.append(compute_metrics(y_valid, dt.predict(X_valid), name="Decision Tree Regressor"))
 
-rf = RandomForestRegressor(n_estimators=100, max_depth=14, min_samples_leaf=5, n_jobs=-1, random_state=42)
+rf = RandomForestRegressor(n_estimators=80, max_depth=12, min_samples_leaf=5, random_state=42)
 rf.fit(X_train, y_train)
 eval_results.append(compute_metrics(y_valid, rf.predict(X_valid), name="Random Forest Regressor"))
 
-hgb = HistGradientBoostingRegressor(max_iter=150, max_depth=8, learning_rate=0.08, random_state=42)
+hgb = HistGradientBoostingRegressor(max_iter=120, max_depth=8, learning_rate=0.08, random_state=42)
 hgb.fit(X_train, y_train)
 eval_results.append(compute_metrics(y_valid, hgb.predict(X_valid), name="HistGradientBoosting Regressor"))
 
-xgb = XGBRegressor(n_estimators=150, max_depth=6, learning_rate=0.08, n_jobs=-1, random_state=42)
+xgb = XGBRegressor(n_estimators=100, max_depth=6, learning_rate=0.08, n_jobs=1, random_state=42)
 xgb.fit(X_train, y_train)
 eval_results.append(compute_metrics(y_valid, xgb.predict(X_valid), name="XGBoost Regressor"))"""))
 
@@ -506,11 +506,11 @@ hgb_base = HistGradientBoostingRegressor(random_state=42)
 search = RandomizedSearchCV(
     estimator=hgb_base,
     param_distributions=param_dist,
-    n_iter=12,
+    n_iter=8,
     cv=tscv,
     scoring='neg_mean_absolute_error',
     random_state=42,
-    n_jobs=-1
+    n_jobs=1
 )
 
 print("Running Time-Aware Hyperparameter Search...")
