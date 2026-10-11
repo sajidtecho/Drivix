@@ -8,10 +8,10 @@ on:
 
 jobs:
   # -------------------------------------------------------------
-  # Job 1: Test & Lint Machine Learning Subsystem
+  # Job 1: Pytest Suite for Machine Learning Subsystem
   # -------------------------------------------------------------
-  ml-service-validation:
-    name: ML Service Tests & Integrity
+  ml-service-tests:
+    name: ML Service Pytest Suite
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -23,30 +23,20 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install ML Production Dependencies
+      - name: Install ML Dependencies & Test Runner
         run: |
           python -m pip install --upgrade pip
           pip install -r ml_service/requirements-prod.txt
+          pip install pytest httpx
 
-      - name: Verify Model Artifacts & Pipeline Integrity
-        run: |
-          python -c "
-          import os, sys, joblib
-          sys.path.append(os.path.join('ml_service', 'src'))
-          from predict import get_inference_engine
-          engine = get_inference_engine()
-          assert engine.pipeline is not None, 'Model pipeline failed to load!'
-          print('ML pipeline verified successfully.')
-          quote = engine.predict_single({'f_location': 'Vanice Mall', 'f_capacity': 100, 'f_occ_entry_at_quote': 0.85}, base_hourly_rate=60)
-          print('Sample prediction quote:', quote)
-          assert quote['recommended_hourly_price'] > 0
-          "
+      - name: Execute Pytest Suite (Unit, Pipeline, & API Tests)
+        run: pytest ml_service/tests -v
 
   # -------------------------------------------------------------
-  # Job 2: Test & Build Node.js Backend
+  # Job 2: Jest Test Suite for Node.js Backend
   # -------------------------------------------------------------
-  backend-validation:
-    name: Node.js Backend Build
+  backend-tests:
+    name: Node.js Backend Jest Suite
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -63,15 +53,9 @@ jobs:
         working-directory: WebApp/backend
         run: npm ci
 
-      - name: Validate Pricing Engine & Syntax
+      - name: Execute Pricing Engine Unit & Fallback Tests
         working-directory: WebApp/backend
-        run: |
-          node -e "
-          import('./utils/pricingEngine.js').then(async (m) => {
-            const res = await m.calculateDynamicPrice({ basePrice: 60, totalSlots: 100, availableSlots: 20 });
-            console.log('Pricing fallback verified:', res);
-          });
-          "
+        run: node --experimental-vm-modules node_modules/jest/bin/jest.js __tests__/pricing.test.js --forceExit
 
   # -------------------------------------------------------------
   # Job 3: Build React Vite Frontend
