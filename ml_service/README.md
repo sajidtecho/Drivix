@@ -125,3 +125,33 @@ For training, variables are defined and mapped as follows:
 | `is_holiday` | `Binary` | `0` or `1` | Public holiday indicator. |
 | `nearby_event` | `Binary` | `0` or `1` | Concerts, sports, or local events indicator. |
 | **`demand_score` (Target)** | `Integer` | `0 - 100` | Target prediction value, used to assign the multiplier. |
+
+---
+
+## 🚀 Starting the FastAPI Microservice
+
+To run the ML inference server locally:
+
+```bash
+# Using uvicorn
+uvicorn main:app --app-dir ml_service/api --host 0.0.0.0 --port 8000 --reload
+
+# Or directly with Python
+python ml_service/api/main.py
+```
+
+### 📡 API Endpoints
+
+- **`GET /health`** - Microservice health status and model load confirmation.
+- **`GET /docs`** - Interactive Swagger UI documentation.
+- **`POST /api/v1/predict`** - Real-time occupancy prediction and dynamic price recommendation for a single booking quote.
+- **`POST /api/v1/predict/batch`** - Concurrent predictions for multi-lot or multi-floor batches.
+
+### 🔗 Node.js Backend Integration
+
+In `WebApp/backend/.env`:
+```env
+ML_SERVICE_URL=http://localhost:8000
+```
+
+The Node.js dynamic pricing engine in `WebApp/backend/utils/pricingEngine.js` will automatically query this ML microservice with a 1.5-second timeout and seamless fallback to the local deterministic heuristic if the service is ever unavailable.
