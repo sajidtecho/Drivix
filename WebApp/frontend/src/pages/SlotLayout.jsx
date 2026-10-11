@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { Layers, Calendar, Clock, Loader2, ArrowRight, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Layers, Calendar, Clock, Loader2, ArrowRight, AlertTriangle, ArrowLeft, Zap, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import loadingCar from '../assets/Loading_car.mp4';
 import { API_BASE_URL } from '../config';
@@ -28,6 +28,8 @@ const SlotLayout = () => {
   const [selectedFloor, setSelectedFloor] = useState('L1');
   const [floorCapacities, setFloorCapacities] = useState({});
   const [loading, setLoading] = useState(true);
+  const [pricingData, setPricingData] = useState(null);
+  const [pricingLoading, setPricingLoading] = useState(false);
 
   // Booking Flow parameters
   const [bookingDate, setBookingDate] = useState(new Date().toISOString().split('T')[0]);
@@ -122,6 +124,31 @@ const SlotLayout = () => {
     }
   }, [loc, bookingDate, startTime, duration]);
 
+  // Fetch AI Dynamic Pricing for the location and duration
+  useEffect(() => {
+    if (!loc?.id) return;
+    let isMounted = true;
+    const fetchDynamicPricing = async () => {
+      setPricingLoading(true);
+      const token = localStorage.getItem('drivix_auth_token');
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/parking/${loc.id}/pricing`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          setPricingData(data);
+        }
+      } catch (err) {
+        console.error('Error fetching dynamic pricing:', err);
+      } finally {
+        if (isMounted) setPricingLoading(false);
+      }
+    };
+    fetchDynamicPricing();
+    return () => { isMounted = false; };
+  }, [loc?.id, duration]);
+
   // Real-time capacity synchronization
   useEffect(() => {
     if (!loc) return;
@@ -154,7 +181,8 @@ const SlotLayout = () => {
       bookingDate,
       startTime,
       duration,
-      usageType
+      usageType,
+      dynamicPricing: pricingData
     });
     setSelectedSlot(null);
 
@@ -426,21 +454,103 @@ const SlotLayout = () => {
           </div>
         )}
 
-        {/* Pricing details and Proceed */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '0 8px' }}>
-          <div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.5px' }}>
-              RESERVED FLOOR
-            </p>
-            <span style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--accent-primary)' }}>{selectedFloor}</span>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Total Est. Cost</p>
-            <span style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--accent-primary)' }}>
-              ₹{(loc?.pricePerHr || 60) * duration}
-            </span>
-          </div>
-        </div>
+        {/* Pricing details and AI Dynamic Rate Banner */}
+        {(() => {
+          const effectiveRate = pricingData?.recommendedPrice || loc?.pricePerHr || 60;
+          const baseRate = loc?.pricePerHr || pricingData?.basePrice || 60;
+          const totalCost = effectiveRate * duration;
+          const baseTotal = baseRate * duration;
+          const isSurge = pricingData?.isSurgeActive || (pricingData?.multiplier > 1.0);
+          const isDiscount = (pricingData?.multiplier < 1.0);
+
+          return (
+            <div className="glass-panel" style={{
+              padding: '18px 20px',
+              borderRadius: 'var(--radius-card)',
+              marginBottom: '24px',
+              background: isSurge 
+                ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(30, 41, 59, 0.85) 100%)'
+                : isDiscount
+                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(30, 41, 59, 0.85) 100%)'
+                : 'var(--bg-secondary)',
+              border: isSurge 
+                ? '1px solid rgba(239, 68, 68, 0.35)' 
+                : isDiscount 
+                ? '1px solid rgba(16, 185, 129, 0.35)' 
+                : '1px solid var(--glass-border)'
+            }}>
+              {/* AI Demand & Multiplier Banner */}
+              {pricingData && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '14px',
+                  paddingBottom: '12px',
+                  borderBottom: '1px solid var(--glass-border)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      background: isSurge ? '#ef4444' : isDiscount ? '#10b981' : 'var(--accent-primary)',
+                      color: isSurge || isDiscount ? '#ffffff' : '#000000',
+                      boxShadow: isSurge ? '0 0 10px rgba(239, 68, 68, 0.3)' : isDiscount ? '0 0 10px rgba(16, 185, 129, 0.3)' : 'none'
+                    }}>
+                      {isSurge ? '🔥 SURGE ACTIVE' : isDiscount ? '🎉 OFF-PEAK SAVINGS' : '⚡ AI DYNAMIC RATE'}
+                    </span>
+                    <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                      {pricingData.pricingAlert || 'Live Dynamic Rate'}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                    {pricingData.mlPowered ? '🤖 XGBoost AI' : 'Rule Engine'}
+                  </span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.5px' }}>
+                    RESERVED FLOOR
+                  </p>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--accent-primary)' }}>{selectedFloor}</span>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    ₹{effectiveRate}/hr {isSurge && <span style={{ color: '#ef4444', fontWeight: 700 }}>(+{Math.round(((pricingData?.multiplier || 1) - 1) * 100)}%)</span>}
+                  </p>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Total Est. Cost ({duration}h)</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', gap: '8px' }}>
+                    {isDiscount && (
+                      <span style={{ fontSize: '1.1rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>
+                        ₹{baseTotal}
+                      </span>
+                    )}
+                    <span style={{ 
+                      fontSize: '1.6rem', 
+                      fontWeight: 900, 
+                      color: isDiscount ? '#10b981' : isSurge ? '#f87171' : 'var(--accent-primary)' 
+                    }}>
+                      ₹{totalCost}
+                    </span>
+                  </div>
+                  {isDiscount && (
+                    <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700 }}>
+                      Saved ₹{baseTotal - totalCost} (15% Off)
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Proceed Button */}
         <motion.button

@@ -303,8 +303,15 @@ const SlotBookingForm = () => {
     'Food & Beverages': 200
   };
 
+  const dynamicPricing = bookingDetails?.dynamicPricing;
+  const effectivePricePerHr = dynamicPricing?.recommendedPrice || location?.pricePerHr || 60;
+  const basePricePerHr = location?.pricePerHr || dynamicPricing?.basePrice || 60;
+  const parkingCost = effectivePricePerHr * duration;
+  const baseParkingCost = basePricePerHr * duration;
   const servicesCost = selectedServices.reduce((sum, srv) => sum + (SERVICE_PRICES[srv] || 0), 0);
-  const totalCost = (location?.pricePerHr || 60) * duration + servicesCost;
+  const totalCost = parkingCost + servicesCost;
+  const isSurge = dynamicPricing?.isSurgeActive || (dynamicPricing?.multiplier > 1.0);
+  const isDiscount = (dynamicPricing?.multiplier < 1.0);
 
   const validate = () => {
     const e = {};
@@ -707,14 +714,65 @@ const SlotBookingForm = () => {
                 })}
               </div>
 
-              {/* Cost preview */}
-              <div className="glass-panel" style={{ padding: '18px 22px', borderRadius: 'var(--radius-card)', marginBottom: '28px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--bg-tertiary)' }}>
+              {/* Cost preview with AI Dynamic Rate Indicator */}
+              <div className="glass-panel" style={{ 
+                padding: '18px 22px', 
+                borderRadius: 'var(--radius-card)', 
+                marginBottom: '28px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '8px', 
+                background: isSurge 
+                  ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, var(--bg-tertiary) 100%)' 
+                  : isDiscount 
+                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--bg-tertiary) 100%)' 
+                  : 'var(--bg-tertiary)',
+                border: isSurge 
+                  ? '1px solid rgba(239, 68, 68, 0.25)' 
+                  : isDiscount 
+                  ? '1px solid rgba(16, 185, 129, 0.25)' 
+                  : '1px solid var(--glass-border)'
+              }}>
+                {/* Dynamic Rate Banner */}
+                {dynamicPricing && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '6px', borderBottom: '1px solid var(--glass-border-light)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        background: isSurge ? '#ef4444' : isDiscount ? '#10b981' : 'var(--accent-primary)',
+                        color: isSurge || isDiscount ? '#ffffff' : '#000000'
+                      }}>
+                        {isSurge ? '🔥 SURGE ACTIVE' : isDiscount ? '🎉 OFF-PEAK DISCOUNT' : '⚡ AI RATE'}
+                      </span>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        {dynamicPricing.pricingAlert || 'Dynamic Pricing'}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      {dynamicPricing.mlPowered ? 'XGBoost ML' : 'Rule Engine'}
+                    </span>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                    Parking ({duration}h × ₹{location.pricePerHr}/hr)
+                    Parking ({duration}h × ₹{effectivePricePerHr}/hr)
                   </span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>₹{(location?.pricePerHr || 60) * duration}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {isDiscount && (
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>
+                        ₹{baseParkingCost}
+                      </span>
+                    )}
+                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: isDiscount ? '#10b981' : 'inherit' }}>
+                      ₹{parkingCost}
+                    </span>
+                  </div>
                 </div>
+
                 {servicesCost > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--glass-border-light)', paddingTop: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
@@ -723,11 +781,19 @@ const SlotBookingForm = () => {
                     <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>+₹{servicesCost}</span>
                   </div>
                 )}
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid var(--glass-border)', paddingTop: '10px', marginTop: '4px' }}>
-                  <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>
-                    Total Payable
-                  </span>
-                  <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--accent-primary)' }}>₹{totalCost}</span>
+                  <div>
+                    <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>
+                      Total Payable
+                    </span>
+                    {isDiscount && (
+                      <p style={{ margin: 0, fontSize: '0.74rem', color: '#10b981', fontWeight: 700 }}>
+                        Discounted Total (Saved ₹{baseParkingCost - parkingCost})
+                      </p>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '1.4rem', fontWeight: 900, color: isDiscount ? '#10b981' : 'var(--accent-primary)' }}>₹{totalCost}</span>
                 </div>
               </div>
 
