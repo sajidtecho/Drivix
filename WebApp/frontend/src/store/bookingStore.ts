@@ -15,6 +15,18 @@ export interface BookingDetails {
   duration?: number;
   usageType?: string;
   reservationExpiresAt?: string | null;
+  dynamicPricing?: {
+    recommendedPrice?: number;
+    basePrice?: number;
+    multiplier?: number;
+    pricingAlert?: string;
+    discountSuggestion?: string;
+    isSurgeActive?: boolean;
+    predictedOccupancy?: number;
+    demandScore?: number;
+    mlPowered?: boolean;
+    modelVersion?: string;
+  } | null;
 }
 
 interface BookingStoreState {
