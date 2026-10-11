@@ -140,7 +140,8 @@ preprocessor_path = os.path.join(MODEL_DIR, "preprocessor.joblib")
 joblib.dump(pipeline, preprocessor_path)
 print(f"Fitted preprocessor successfully saved to: {preprocessor_path}")"""))
 
-    with open(os.path.join("notebooks", "03_data_preprocessing_and_feature_engineering.ipynb"), "w") as f:
+    nb.cells = cells
+    with open(os.path.join("notebooks", "03_data_preprocessing_and_feature_engineering.ipynb"), "w", encoding="utf-8") as f:
         nbf.write(nb, f)
     print("Notebook 3 written successfully.")
 
@@ -268,7 +269,8 @@ plt.show()"""))
 4. **Recent Momentum (`f_requests_last_60min_location`):** Informs real-time arrival velocity.
 5. **Decision:** All engineered features demonstrate positive permutation importance on the holdout set; no features degrade validation performance. All are retained for model comparison."""))
 
-    with open(os.path.join("notebooks", "04_feature_selection.ipynb"), "w") as f:
+    nb.cells = cells
+    with open(os.path.join("notebooks", "04_feature_selection.ipynb"), "w", encoding="utf-8") as f:
         nbf.write(nb, f)
     print("Notebook 4 written successfully.")
 
@@ -426,7 +428,8 @@ plt.show()"""))
    - **HistGradientBoosting Regressor & XGBoost:** Achieved validation MAE $\\approx 0.077$ and $R^2 \\approx 0.85$.
 3. **Next Step:** Hyperparameter tuning of Random Forest and Gradient Boosting to find optimal regularization and depth parameters."""))
 
-    with open(os.path.join("notebooks", "05_model_training_and_comparison.ipynb"), "w") as f:
+    nb.cells = cells
+    with open(os.path.join("notebooks", "05_model_training_and_comparison.ipynb"), "w", encoding="utf-8") as f:
         nbf.write(nb, f)
     print("Notebook 5 written successfully.")
 
@@ -627,7 +630,8 @@ print(json.dumps(res_night, indent=2))"""))
    - Model outputs are strictly bounded between $0.85\\times$ and $1.50\\times$ multiplier.
    - Recommended for **Phase 1 Shadow Mode / Canary Rollout** until real quote logs reach 2,000 location-hours."""))
 
-    with open(os.path.join("notebooks", "06_hyperparameter_tuning_and_evaluation.ipynb"), "w") as f:
+    nb.cells = cells
+    with open(os.path.join("notebooks", "06_hyperparameter_tuning_and_evaluation.ipynb"), "w", encoding="utf-8") as f:
         nbf.write(nb, f)
     print("Notebook 6 written successfully.")
 

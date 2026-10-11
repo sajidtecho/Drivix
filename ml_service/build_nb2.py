@@ -210,7 +210,8 @@ plt.show()"""))
    - `f_capacity` ($r = -0.32$): Smaller lots (Botanical Garden with 8 slots) reach 100% capacity faster than larger lots (Venice Mall with 20 slots).
 3. **No Target Leakage Detected:** Features carry expected physical relationships without artificial 1.0 correlations."""))
 
-    with open(os.path.join("notebooks", "02_exploratory_data_analysis.ipynb"), "w") as f:
+    nb.cells = cells
+    with open(os.path.join("notebooks", "02_exploratory_data_analysis.ipynb"), "w", encoding="utf-8") as f:
         nbf.write(nb, f)
     print("Notebook 2 written successfully.")
 

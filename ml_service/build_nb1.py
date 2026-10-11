@@ -133,7 +133,7 @@ split_summary"""))
 - **Readiness:** Dataset is verified and validated. Proceeding to Exploratory Data Analysis (EDA)."""))
 
     nb.cells = cells
-    with open(os.path.join("notebooks", "01_data_understanding_and_validation.ipynb"), "w") as f:
+    with open(os.path.join("notebooks", "01_data_understanding_and_validation.ipynb"), "w", encoding="utf-8") as f:
         nbf.write(nb, f)
     print("Notebook 1 written successfully.")
 
