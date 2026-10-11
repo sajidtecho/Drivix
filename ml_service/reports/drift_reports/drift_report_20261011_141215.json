@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-10-11T14:12:15.554769",
+  "reference_sample_size": 7704,
+  "production_sample_size": 200,
+  "is_drift_detected": true,
+  "drifted_features_count": 6,
+  "drifted_features": [
+    "f_occ_entry_at_quote",
+    "f_lead_time_min",
+    "f_capacity",
+    "f_entry_dow",
+    "f_requests_last_60min_location",
+    "f_busy_frac_window_at_quote"
+  ],
+  "recommendation": "TRIGGER_RETRAINING",
+  "features": {
+    "f_occ_entry_at_quote": {
+      "type": "numerical",
+      "ks_statistic": 0.3681,
+      "ks_pvalue": 3.5476e-24,
+      "psi": 0.8015,
+      "drift_detected": true,
+      "severity": "CRITICAL"
+    },
+    "f_lead_time_min": {
+      "type": "numerical",
+      "ks_statistic": 0.1313,
+      "ks_pvalue": 0.0021531,
+      "psi": 0.7503,
+      "drift_detected": true,
+      "severity": "CRITICAL"
+    },
+    "f_capacity": {
+      "type": "numerical",
+      "ks_statistic": 0.113,
+      "ks_pvalue": 0.012637,
+      "psi": 0.3534,
+      "drift_detected": true,
+      "severity": "CRITICAL"
+    },
+    "f_entry_hour": {
+      "type": "numerical",
+      "ks_statistic": 0.1489,
+      "ks_pvalue": 0.00030986,
+      "psi": 0.184,
+      "drift_detected": false,
+      "severity": "MODERATE"
+    },
+    "f_entry_dow": {
+      "type": "numerical",
+      "ks_statistic": 0.6473,
+      "ks_pvalue": 6.1011e-80,
+      "psi": 5.4995,
+      "drift_detected": true,
+      "severity": "CRITICAL"
+    },
+    "f_requests_last_60min_location": {
+      "type": "numerical",
+      "ks_statistic": 0.2434,
+      "ks_pvalue": 1.1969e-10,
+      "psi": 0.2997,
+      "drift_detected": true,
+      "severity": "CRITICAL"
+    },
+    "f_busy_frac_window_at_quote": {
+      "type": "numerical",
+      "ks_statistic": 0.4046,
+      "ks_pvalue": 2.5564e-29,
+      "psi": 0.9427,
+      "drift_detected": true,
+      "severity": "CRITICAL"
+    },
+    "f_location": {
+      "type": "categorical",
+      "max_category_shift": 0.1582,
+      "drift_detected": false,
+      "severity": "STABLE"
+    }
+  }
+}

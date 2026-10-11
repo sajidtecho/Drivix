@@ -1,9 +1,10 @@
 import os
 import sys
+import json
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 
 # Add src to sys.path so model loading and inference work cleanly
 SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -11,6 +12,9 @@ if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 from predict import get_inference_engine, FEATURE_COLUMNS_RAW
+from inference_logger import log_inference_event
+from drift_detector import generate_drift_report
+from retrain_pipeline import DrivixRetrainingPipeline
 
 router = APIRouter()
 
@@ -32,21 +36,6 @@ class PricingQuoteRequest(BaseModel):
     busy_frac_window: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Lot busy fraction in recent moving window")
     occ_same_hour_last_week: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Lagged occupancy at same hour last week")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "location_name": "Connaught Place",
-                "total_capacity": 120,
-                "available_slots": 15,
-                "entry_hour": 18,
-                "entry_dow": 4,
-                "duration_hours": 3.0,
-                "lead_time_minutes": 20.0,
-                "base_hourly_rate": 60.0,
-                "requests_last_60min": 18.0
-            }
-        }
-
 class PricingQuoteResponse(BaseModel):
     location_name: str
     predicted_occupancy_rate: float
@@ -67,11 +56,13 @@ class BatchPricingResponse(BaseModel):
     count: int
     results: List[PricingQuoteResponse]
 
+class RetrainRequest(BaseModel):
+    force_promote: bool = Field(default=False, description="Promote challenger model even if margin is flat")
+
 # -------------------------------------------------------------
 # Helper: Feature Mapper
 # -------------------------------------------------------------
 def map_request_to_features(req: PricingQuoteRequest) -> dict:
-    # Resolve current occupancy
     if req.current_occupancy is not None:
         occ = req.current_occupancy
     elif req.available_slots is not None and req.total_capacity > 0:
@@ -80,7 +71,6 @@ def map_request_to_features(req: PricingQuoteRequest) -> dict:
     else:
         occ = 0.50
 
-    # Resolve date/time
     now = datetime.now()
     if req.entry_datetime:
         try:
@@ -113,10 +103,10 @@ def map_request_to_features(req: PricingQuoteRequest) -> dict:
     }
 
 # -------------------------------------------------------------
-# Endpoints
+# Inference Endpoints
 # -------------------------------------------------------------
 @router.post("/predict", response_model=PricingQuoteResponse, summary="Get dynamic price quote for parking")
-def predict_price_quote(request: PricingQuoteRequest):
+def predict_price_quote(request: PricingQuoteRequest, background_tasks: BackgroundTasks):
     """
     Returns AI-driven occupancy prediction and bounded surge/discount pricing
     recommendations for a parking reservation request.
@@ -125,6 +115,9 @@ def predict_price_quote(request: PricingQuoteRequest):
         engine = get_inference_engine()
         features = map_request_to_features(request)
         quote = engine.predict_single(features, base_hourly_rate=request.base_hourly_rate)
+
+        # Asynchronously log inference event for MLOps drift tracking
+        background_tasks.add_task(log_inference_event, features, quote)
 
         return PricingQuoteResponse(
             location_name=request.location_name,
@@ -143,7 +136,7 @@ def predict_price_quote(request: PricingQuoteRequest):
         raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
 
 @router.post("/predict/batch", response_model=BatchPricingResponse, summary="Batch price quote predictions")
-def predict_price_batch(batch_req: BatchPricingRequest):
+def predict_price_batch(batch_req: BatchPricingRequest, background_tasks: BackgroundTasks):
     """
     Returns predictions for multiple parking location quotes concurrently.
     """
@@ -153,6 +146,7 @@ def predict_price_batch(batch_req: BatchPricingRequest):
         for req in batch_req.quotes:
             features = map_request_to_features(req)
             quote = engine.predict_single(features, base_hourly_rate=req.base_hourly_rate)
+            background_tasks.add_task(log_inference_event, features, quote)
             results.append(PricingQuoteResponse(
                 location_name=req.location_name,
                 predicted_occupancy_rate=quote['predicted_occupancy_rate'],
@@ -169,3 +163,71 @@ def predict_price_batch(batch_req: BatchPricingRequest):
         return BatchPricingResponse(count=len(results), results=results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Batch inference error: {str(e)}")
+
+# -------------------------------------------------------------
+# MLOps Monitoring & Retraining Endpoints
+# -------------------------------------------------------------
+@router.get("/mlops/drift-report", tags=["MLOps Monitoring & Drift"])
+def get_drift_report():
+    """
+    Executes real-time Kolmogorov-Smirnov and Population Stability Index (PSI)
+    drift tests between baseline reference data and recent production logs.
+    """
+    try:
+        report = generate_drift_report()
+        return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Drift analysis error: {str(e)}")
+
+@router.post("/mlops/retrain", tags=["MLOps Retraining & Registry"])
+def trigger_retraining(req: RetrainRequest = RetrainRequest()):
+    """
+    Triggers automated model retraining, runs Champion-vs-Challenger validation gate,
+    and conditionally promotes the new model to production.
+    """
+    try:
+        pipeline = DrivixRetrainingPipeline()
+        result = pipeline.run_retraining(force_promote=req.force_promote)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Retraining error: {str(e)}")
+
+@router.get("/mlops/model-registry", tags=["MLOps Retraining & Registry"])
+def get_model_registry():
+    """
+    Returns active champion model metadata, archived champion snapshots,
+    and historical retraining audit trails.
+    """
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    model_path = os.path.join(base_dir, "models", "drivix_price_model.pkl")
+    archive_dir = os.path.join(base_dir, "models", "archive")
+    history_file = os.path.join(base_dir, "reports", "retraining_history.json")
+
+    archived_models = []
+    if os.path.exists(archive_dir):
+        archived_models = sorted(os.listdir(archive_dir), reverse=True)
+
+    history = []
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, "r", encoding="utf-8") as f:
+                history = json.load(f)
+        except Exception:
+            history = []
+
+    last_modified = None
+    if os.path.exists(model_path):
+        last_modified = datetime.fromtimestamp(os.path.getmtime(model_path)).isoformat()
+
+    return {
+        "active_model": {
+            "name": "drivix_price_model.pkl",
+            "framework": "XGBoost Regressor Pipeline",
+            "last_modified": last_modified,
+            "status": "CHAMPION_ACTIVE"
+        },
+        "archived_snapshots_count": len(archived_models),
+        "archived_snapshots": archived_models[:10],
+        "retraining_history_count": len(history),
+        "recent_retraining_runs": history[-5:]
+    }

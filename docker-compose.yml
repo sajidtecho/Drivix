@@ -12,6 +12,10 @@ services:
       - "8000:8000"
     environment:
       - PORT=8000
+    volumes:
+      - ./ml_service/models:/app/models
+      - ./ml_service/reports:/app/reports
+      - ./ml_service/data:/app/data
     networks:
       - drivix-network
 
