@@ -1,0 +1,36 @@
+{
+  "test_metrics": {
+    "model_name": "Final Model (Test Set)",
+    "mae": 0.0816,
+    "rmse": 0.1168,
+    "r2": 0.7825,
+    "max_error": 0.6043,
+    "surge_band_mae": 0.1263,
+    "discount_band_mae": 0.0746,
+    "sample_count": 2130
+  },
+  "location_breakdown": {
+    "Botanical garden": {
+      "mae": 0.114,
+      "rmse": 0.1576,
+      "count": 382
+    },
+    "Sharda University": {
+      "mae": 0.0911,
+      "rmse": 0.1288,
+      "count": 410
+    },
+    "Vanice Mall": {
+      "mae": 0.0694,
+      "rmse": 0.0977,
+      "count": 1338
+    }
+  },
+  "best_hyperparameters": {
+    "min_samples_leaf": 20,
+    "max_iter": 150,
+    "max_depth": 10,
+    "learning_rate": 0.05,
+    "l2_regularization": 1.0
+  }
+}
