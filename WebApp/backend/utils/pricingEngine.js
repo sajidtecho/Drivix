@@ -28,10 +28,17 @@ export const calculateDynamicPriceSync = ({
   const currentOccupancyRate = totalSlots > 0 ? (occupiedSlots / totalSlots) : 0;
 
   // 2. Heuristic demand estimation
-  let demandScore = currentOccupancyRate * 50;
+  let demandScore = currentOccupancyRate * 60;
+
+  // Capacity pressure factor (high occupancy directly activates surge)
+  if (currentOccupancyRate >= 0.85) {
+    demandScore += 25;
+  } else if (currentOccupancyRate >= 0.70) {
+    demandScore += 15;
+  }
 
   if ((hour >= 9 && hour <= 12) || (hour >= 17 && hour <= 20)) {
-    demandScore += 25; // Peak hour surge
+    demandScore += 20; // Peak hour surge
   } else if (hour >= 0 && hour <= 6) {
     demandScore -= 15; // Late night off-peak
   }
