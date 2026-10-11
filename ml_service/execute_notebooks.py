@@ -51,9 +51,21 @@ def execute_notebook(nb_path, working_dir=None):
                 plt.close('all') # Clear previous plots
 
                 try:
+                    import ast
+                    tree = ast.parse(code)
+                    eval_res = None
+
                     with redirect_stdout(stdout_buf), redirect_stderr(stderr_buf):
-                        # Compile and execute
-                        exec(code, global_ns)
+                        if tree.body and isinstance(tree.body[-1], ast.Expr):
+                            last_expr = tree.body.pop()
+                            if tree.body:
+                                compiled_stmts = compile(tree, filename='<cell>', mode='exec')
+                                exec(compiled_stmts, global_ns)
+                            compiled_expr = compile(ast.Expression(last_expr.value), filename='<cell>', mode='eval')
+                            eval_res = eval(compiled_expr, global_ns)
+                        else:
+                            compiled = compile(tree, filename='<cell>', mode='exec')
+                            exec(compiled, global_ns)
                     
                     print(f"  [Cell {idx+1}/{len(nb.cells)}] executed successfully.")
                     
@@ -71,6 +83,20 @@ def execute_notebook(nb_path, working_dir=None):
                             output_type='stream',
                             name='stderr',
                             text=stderr_str
+                        ))
+
+                    if eval_res is not None:
+                        data_dict = {'text/plain': str(eval_res)}
+                        if hasattr(eval_res, 'to_html'):
+                            try:
+                                data_dict['text/html'] = eval_res.to_html()
+                            except Exception:
+                                pass
+                        cell.outputs.append(nbf.v4.new_output(
+                            output_type='execute_result',
+                            execution_count=cell.execution_count,
+                            data=data_dict,
+                            metadata={}
                         ))
 
                     # Check if a matplotlib figure was generated and not yet closed
@@ -97,6 +123,21 @@ def execute_notebook(nb_path, working_dir=None):
                         traceback=err_msg.splitlines()
                     ))
                     raise e
+
+        # Set standard Jupyter kernelspec metadata
+        nb.metadata['kernelspec'] = {
+            'name': 'python3',
+            'display_name': 'Python 3 (ipykernel)',
+            'language': 'python'
+        }
+        nb.metadata['language_info'] = {
+            'name': 'python',
+            'version': '3.11.9',
+            'mimetype': 'text/x-python',
+            'codemirror_mode': {'name': 'ipython', 'version': 3},
+            'pygments_lexer': 'ipython3',
+            'file_extension': '.py'
+        }
 
         # Save executed notebook
         with open(nb_abs_path, 'w', encoding='utf-8') as f:
