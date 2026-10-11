@@ -1,6 +1,23 @@
 name: drivix-app-dev
 
 services:
+  ml-service:
+    build:
+      context: ../ml_service
+      dockerfile: Dockerfile
+    container_name: drivix-ml-service-dev
+    command: uvicorn main:app --app-dir api --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../ml_service/api:/app/api
+      - ../ml_service/src:/app/src
+      - ../ml_service/models:/app/models
+    environment:
+      - PORT=8000
+    networks:
+      - drivix-network
+
   backend:
     build:
       context: ./backend
@@ -14,6 +31,10 @@ services:
       - /app/node_modules
     env_file:
       - ./backend/.env
+    environment:
+      - ML_SERVICE_URL=http://ml-service:8000
+    depends_on:
+      - ml-service
     networks:
       - drivix-network
 

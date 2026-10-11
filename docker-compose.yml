@@ -1,0 +1,57 @@
+name: drivix-fullstack
+
+services:
+  # Python FastAPI ML Dynamic Pricing Inference Service
+  ml-service:
+    build:
+      context: ./ml_service
+      dockerfile: Dockerfile
+    container_name: drivix-ml-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    networks:
+      - drivix-network
+
+  # Node.js + Express Backend API Service
+  backend:
+    build:
+      context: ./WebApp/backend
+      dockerfile: Dockerfile
+    container_name: drivix-backend
+    restart: unless-stopped
+    ports:
+      - "5001:5000"
+    env_file:
+      - ./WebApp/backend/.env
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - ML_SERVICE_URL=http://ml-service:8000
+    depends_on:
+      - ml-service
+    networks:
+      - drivix-network
+
+  # React Vite Frontend SPA + Nginx Web Server
+  frontend:
+    build:
+      context: ./WebApp/frontend
+      dockerfile: Dockerfile
+    container_name: drivix-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "5174:80"
+    env_file:
+      - ./WebApp/frontend/.env
+    depends_on:
+      - backend
+    networks:
+      - drivix-network
+
+networks:
+  drivix-network:
+    driver: bridge

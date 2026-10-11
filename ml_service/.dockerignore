@@ -1,0 +1,16 @@
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.ipynb_checkpoints
+notebooks
+data
+reports
+.git
+.gitignore
+*.md
+build_*.py
+execute_notebooks.py

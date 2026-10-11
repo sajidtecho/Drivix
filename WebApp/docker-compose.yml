@@ -1,6 +1,20 @@
 name: drivix-app
 
 services:
+  # Python FastAPI ML Dynamic Pricing Inference Service
+  ml-service:
+    build:
+      context: ../ml_service
+      dockerfile: Dockerfile
+    container_name: drivix-ml-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    networks:
+      - drivix-network
+
   # Node.js + Express Backend API Service
   backend:
     build:
@@ -15,6 +29,9 @@ services:
     environment:
       - PORT=5000
       - NODE_ENV=production
+      - ML_SERVICE_URL=http://ml-service:8000
+    depends_on:
+      - ml-service
     networks:
       - drivix-network
 
