@@ -121,10 +121,10 @@ const AdminPricing = () => {
             <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.5px' }}>ML ENGINE STATUS</span>
           </div>
           <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text-primary)' }}>
-            XGBoost v1.0 Active
+            Drivix AI Engine Active
           </div>
           <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-            MAE: 0.0816 · Port 8000
+            Dynamic Pricing · Operational
           </p>
         </div>
 

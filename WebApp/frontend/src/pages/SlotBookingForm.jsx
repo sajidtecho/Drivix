@@ -751,9 +751,6 @@ const SlotBookingForm = () => {
                         {dynamicPricing.pricingAlert || 'Dynamic Pricing'}
                       </span>
                     </div>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                      {dynamicPricing.mlPowered ? 'XGBoost ML' : 'Rule Engine'}
-                    </span>
                   </div>
                 )}
 
