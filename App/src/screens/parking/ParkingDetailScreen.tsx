@@ -49,13 +49,15 @@ export const ParkingDetailScreen: React.FC<ParkingDetailScreenProps> = ({
     const fetchFloors = async () => {
       try {
         const floorData = await parkingApi.getFloorsForLocation(hub._id);
-        setFloors(floorData);
+        const validFloors = Array.isArray(floorData) ? floorData : [];
+        setFloors(validFloors);
         // Pre-select first floor if available
-        if (floorData.length > 0) {
-          selectFloor(floorData[0]);
+        if (validFloors.length > 0) {
+          selectFloor(validFloors[0]);
         }
       } catch (err) {
         console.warn('[ParkingDetailScreen] Error fetching floors:', err);
+        setFloors([]);
       } finally {
         setLoadingFloors(false);
       }
@@ -156,13 +158,13 @@ export const ParkingDetailScreen: React.FC<ParkingDetailScreenProps> = ({
         <View style={styles.floorSectionHeader}>
           <Text style={styles.sectionTitle}>Available Parking Floors</Text>
           <Text style={styles.floorCountText}>
-            {floors.length} Floors Configured
+            {(Array.isArray(floors) ? floors : []).length} Floors Configured
           </Text>
         </View>
 
         {loadingFloors ? (
           <ActivityIndicator size="small" color={Colors.primaryYellow} style={{ marginVertical: 24 }} />
-        ) : floors.length === 0 ? (
+        ) : (Array.isArray(floors) ? floors : []).length === 0 ? (
           <Card style={styles.noFloorsCard}>
             <Info size={20} color={Colors.textSecondary} />
             <Text style={styles.noFloorsText}>
@@ -170,7 +172,7 @@ export const ParkingDetailScreen: React.FC<ParkingDetailScreenProps> = ({
             </Text>
           </Card>
         ) : (
-          floors.map((fl) => (
+          (Array.isArray(floors) ? floors : []).map((fl) => (
             <Card key={fl._id} style={styles.floorCard}>
               <View style={styles.floorRow}>
                 <View style={styles.floorBadge}>

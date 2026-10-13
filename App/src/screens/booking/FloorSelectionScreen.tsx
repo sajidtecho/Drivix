@@ -45,12 +45,14 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
       setError('');
       try {
         const data = await parkingApi.getFloorsForLocation(selectedHub._id);
-        setFloors(data);
-        if (data.length > 0 && !selectedFloor) {
-          selectFloor(data[0]);
+        const validFloors = Array.isArray(data) ? data : [];
+        setFloors(validFloors);
+        if (validFloors.length > 0 && !selectedFloor) {
+          selectFloor(validFloors[0]);
         }
       } catch (err: any) {
         console.warn('[FloorSelectionScreen] Error fetching floors:', err);
+        setFloors([]);
         setError('Could not retrieve live floor capacity.');
       } finally {
         setLoading(false);
@@ -113,7 +115,7 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
             />
           </Card>
         ) : (
-          floors.map((floor) => {
+          (Array.isArray(floors) ? floors : []).map((floor) => {
             const isSelected = selectedFloor?._id === floor._id;
             const occupancyPct = floor.totalSlots > 0
               ? Math.round(((floor.totalSlots - floor.availableSlots) / floor.totalSlots) * 100)
