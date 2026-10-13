@@ -9,10 +9,19 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
-import { spacing } from '../../theme/spacing';
+import {
+  Building2,
+  MapPin,
+  Car,
+  RefreshCw,
+  Clock,
+  Layers,
+  ChevronRight,
+  Sparkles,
+} from 'lucide-react-native';
+import { Colors } from '../../theme/colors';
+import { Typography } from '../../theme/typography';
+import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -37,8 +46,10 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
     try {
       setError(null);
       const res = await bookingApi.getMyBookings();
-      if (res.success && res.data) {
-        setBookings(res.data);
+      if (Array.isArray(res)) {
+        setBookings(res);
+      } else if ((res as any)?.data && Array.isArray((res as any).data)) {
+        setBookings((res as any).data);
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Could not load your bookings. Pull down to retry.');
@@ -57,16 +68,21 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
     fetchBookings();
   };
 
-  // Categorize bookings
   const filteredBookings = bookings.filter((b) => {
-    const status = b.status?.toLowerCase();
+    const status = String(b.status || '').toLowerCase();
     switch (selectedTab) {
       case 'UPCOMING':
-        return status === 'confirmed' || status === 'pending';
+        return status === 'confirmed' || status === 'pending' || status === 'booked';
       case 'ACTIVE':
-        return status === 'active' || status === 'in_progress' || status === 'occupied';
+        return (
+          status === 'active' ||
+          status === 'in_progress' ||
+          status === 'occupied' ||
+          status === 'slot assigned' ||
+          status === 'checked in'
+        );
       case 'COMPLETED':
-        return status === 'completed' || status === 'checked out' || status === 'checked_out';
+        return status === 'completed' || status === 'checked out';
       case 'CANCELLED':
         return status === 'cancelled' || status === 'rejected' || status === 'expired';
       default:
@@ -74,17 +90,20 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
     }
   });
 
-  const getStatusBadge = (status: string) => {
-    const s = status?.toLowerCase();
-    if (s === 'confirmed') return <Badge text="CONFIRMED" variant="success" />;
-    if (s === 'active' || s === 'in_progress') return <Badge text="ACTIVE NOW" variant="warning" />;
-    if (s === 'completed' || s === 'checked out' || s === 'checked_out') return <Badge text="COMPLETED" variant="neutral" />;
-    if (s === 'cancelled') return <Badge text="CANCELLED" variant="danger" />;
-    return <Badge text={status?.toUpperCase() || 'UNKNOWN'} variant="neutral" />;
+  const getStatusBadge = (rawStatus: string) => {
+    const s = String(rawStatus || '').toLowerCase();
+    if (s === 'confirmed' || s === 'booked') return <Badge label="CONFIRMED" variant="available" />;
+    if (s === 'active' || s === 'in_progress' || s === 'slot assigned' || s === 'checked in')
+      return <Badge label="ACTIVE NOW" variant="reserved" />;
+    if (s === 'completed' || s === 'checked out')
+      return <Badge label="COMPLETED" variant="neutral" />;
+    if (s === 'cancelled' || s === 'expired')
+      return <Badge label="CANCELLED" variant="occupied" />;
+    return <Badge label={String(rawStatus || 'UNKNOWN').toUpperCase()} variant="neutral" />;
   };
 
   const formatDate = (dateStr?: string) => {
-    if (!dateStr) return 'N/A';
+    if (!dateStr) return 'Scheduled';
     try {
       const d = new Date(dateStr);
       return d.toLocaleDateString('en-IN', {
@@ -99,28 +118,48 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
     }
   };
 
+  const getHubName = (b: Booking): string => {
+    if (typeof b.parkingHubId === 'object' && b.parkingHubId?.parkingName) {
+      return b.parkingHubId.parkingName;
+    }
+    return b.locationName || b.hubName || 'Drivix Smart Facility';
+  };
+
+  const getHubAddress = (b: Booking): string => {
+    if (typeof b.parkingHubId === 'object' && b.parkingHubId?.address) {
+      return b.parkingHubId.address;
+    }
+    return 'Campus Smart Facility';
+  };
+
   const renderBookingCard = ({ item }: { item: Booking }) => {
-    const isUpcoming = item.status === 'confirmed' || item.status === 'pending';
-    const isActive = item.status === 'active' || item.status === 'in_progress' || item.status === 'occupied';
+    const s = String(item.status || '').toLowerCase();
+    const isUpcoming = s === 'confirmed' || s === 'pending' || s === 'booked';
+    const isActive =
+      s === 'active' ||
+      s === 'in_progress' ||
+      s === 'occupied' ||
+      s === 'slot assigned' ||
+      s === 'checked in';
 
     return (
       <Card style={styles.bookingCard}>
         {/* Header row: Hub name & Status */}
         <View style={styles.cardHeader}>
           <View style={styles.hubTitleWrap}>
-            <Ionicons name="business" size={18} color={colors.textPrimary} style={{ marginRight: 6 }} />
+            <Building2 size={18} color={Colors.textPrimary} style={{ marginRight: 6 }} />
             <Text style={styles.hubName} numberOfLines={1}>
-              {item.facilityId?.name || item.hubName || 'Drivix Smart Parking'}
+              {getHubName(item)}
             </Text>
           </View>
           {getStatusBadge(item.status)}
         </View>
 
-        {/* Reference & Location */}
+        {/* Location */}
         <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+          <MapPin size={13} color={Colors.textSecondary} />
           <Text style={styles.locationText} numberOfLines={1}>
-            {item.facilityId?.address?.locality || item.facilityId?.address?.city || 'Campus Smart Facility'}
+            {getHubAddress(item)}
           </Text>
         </View>
 
@@ -130,17 +169,25 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
         <View style={styles.infoGrid}>
           <View style={styles.infoCol}>
             <Text style={styles.infoLabel}>SCHEDULE</Text>
-            <Text style={styles.infoVal}>{formatDate(item.startTime)}</Text>
-            <Text style={styles.infoSub}>to {formatDate(item.endTime)}</Text>
+            <View style={styles.scheduleRow}>
+              <Clock size={12} color={Colors.textSecondary} style={{ marginRight: 4 }} />
+              <Text style={styles.infoVal}>
+                {formatDate(item.entryDate || item.startTime || item.bookingDate)}
+              </Text>
+            </View>
+            <Text style={styles.infoSub}>Duration: {item.duration || 2} Hours</Text>
           </View>
 
           <View style={styles.infoCol}>
             <Text style={styles.infoLabel}>ALLOCATION</Text>
-            <Text style={styles.infoVal}>
-              Floor: {item.floorName || item.floorNumber ? `Floor ${item.floorNumber}` : 'Capacity Reserved'}
-            </Text>
+            <View style={styles.scheduleRow}>
+              <Layers size={12} color={Colors.textSecondary} style={{ marginRight: 4 }} />
+              <Text style={styles.infoVal}>
+                {item.floor || item.floorName || (item.floorNumber ? `Floor ${item.floorNumber}` : 'Capacity Reserved')}
+              </Text>
+            </View>
             <Text style={styles.infoSub}>
-              Slot: {item.slotId?.slotNumber || item.slotNumber || (isActive ? 'Assigned' : 'On Arrival')}
+              Slot: {item.slotNumber || (typeof item.slotId === 'object' && item.slotId?.slotNumber) || (isActive ? 'Assigned' : 'On Arrival')}
             </Text>
           </View>
         </View>
@@ -148,12 +195,14 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
         {/* Vehicle & Price */}
         <View style={styles.bottomRow}>
           <View style={styles.vehiclePill}>
-            <Ionicons name="car-outline" size={14} color={colors.textPrimary} />
+            <Car size={13} color={Colors.textPrimary} />
             <Text style={styles.vehicleText}>{item.vehicleNumber || 'Vehicle'}</Text>
           </View>
           <View style={styles.priceWrap}>
             <Text style={styles.priceLabel}>Total:</Text>
-            <Text style={styles.priceVal}>₹{item.totalAmount ?? item.basePrice ?? 0}</Text>
+            <Text style={styles.priceVal}>
+              ₹{item.totalCost ?? item.totalAmount ?? item.basePrice ?? 0}
+            </Text>
           </View>
         </View>
 
@@ -164,14 +213,14 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
               <Button
                 title="View Pass & QR"
                 variant="outline"
-                size="small"
-                style={{ flex: 1, marginRight: spacing.xs }}
+                size="sm"
+                style={{ flex: 1, marginRight: Spacing.xs }}
                 onPress={() => navigation.navigate('BookingConfirmation', { booking: item })}
               />
               <Button
                 title="Navigate"
                 variant="primary"
-                size="small"
+                size="sm"
                 style={{ flex: 1 }}
                 onPress={() => navigation.navigate('Navigation', { booking: item })}
               />
@@ -183,14 +232,14 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
               <Button
                 title="Active Session"
                 variant="primary"
-                size="small"
-                style={{ flex: 1, marginRight: spacing.xs }}
+                size="sm"
+                style={{ flex: 1, marginRight: Spacing.xs }}
                 onPress={() => navigation.navigate('ActiveParking', { bookingId: item._id })}
               />
               <Button
                 title="Show QR"
                 variant="outline"
-                size="small"
+                size="sm"
                 style={{ flex: 1 }}
                 onPress={() => navigation.navigate('BookingConfirmation', { booking: item })}
               />
@@ -199,9 +248,9 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
 
           {!isUpcoming && !isActive && (
             <Button
-              title="View Details"
+              title="View Summary"
               variant="outline"
-              size="small"
+              size="sm"
               style={{ flex: 1 }}
               onPress={() => navigation.navigate('BookingConfirmation', { booking: item })}
             />
@@ -212,10 +261,28 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
   };
 
   const tabCounts = {
-    UPCOMING: bookings.filter((b) => b.status?.toLowerCase() === 'confirmed' || b.status?.toLowerCase() === 'pending').length,
-    ACTIVE: bookings.filter((b) => b.status?.toLowerCase() === 'active' || b.status?.toLowerCase() === 'in_progress').length,
-    COMPLETED: bookings.filter((b) => b.status?.toLowerCase() === 'completed' || b.status?.toLowerCase() === 'checked out').length,
-    CANCELLED: bookings.filter((b) => b.status?.toLowerCase() === 'cancelled' || b.status?.toLowerCase() === 'rejected').length,
+    UPCOMING: bookings.filter((b) => {
+      const s = String(b.status || '').toLowerCase();
+      return s === 'confirmed' || s === 'pending' || s === 'booked';
+    }).length,
+    ACTIVE: bookings.filter((b) => {
+      const s = String(b.status || '').toLowerCase();
+      return (
+        s === 'active' ||
+        s === 'in_progress' ||
+        s === 'occupied' ||
+        s === 'slot assigned' ||
+        s === 'checked in'
+      );
+    }).length,
+    COMPLETED: bookings.filter((b) => {
+      const s = String(b.status || '').toLowerCase();
+      return s === 'completed' || s === 'checked out';
+    }).length,
+    CANCELLED: bookings.filter((b) => {
+      const s = String(b.status || '').toLowerCase();
+      return s === 'cancelled' || s === 'rejected' || s === 'expired';
+    }).length,
   };
 
   return (
@@ -224,7 +291,7 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
       <View style={styles.header}>
         <Text style={styles.title}>My Bookings</Text>
         <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
-          <Ionicons name="refresh" size={20} color={colors.textPrimary} />
+          <RefreshCw size={18} color={Colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -257,13 +324,19 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
       {/* Content */}
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={colors.primaryYellow} />
+          <ActivityIndicator size="large" color={Colors.primaryYellow} />
           <Text style={styles.loadingText}>Loading bookings...</Text>
         </View>
       ) : error ? (
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <Button title="Retry" variant="primary" size="small" onPress={fetchBookings} style={{ marginTop: spacing.md }} />
+          <Button
+            title="Retry"
+            variant="primary"
+            size="sm"
+            onPress={fetchBookings}
+            style={{ marginTop: Spacing.md }}
+          />
         </View>
       ) : (
         <FlatList
@@ -271,7 +344,13 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
           keyExtractor={(item) => item._id || Math.random().toString()}
           renderItem={renderBookingCard}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primaryYellow]} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.primaryYellow]}
+            />
+          }
           ListEmptyComponent={
             <EmptyState
               title={`No ${selectedTab.toLowerCase()} bookings`}
@@ -293,81 +372,81 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
   },
   title: {
-    fontFamily: typography.fontBold,
-    fontSize: typography.fontSizes.xxl,
-    color: colors.textPrimary,
+    fontSize: 24,
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
   refreshBtn: {
-    padding: spacing.sm,
-    backgroundColor: colors.card,
-    borderRadius: 20,
+    padding: Spacing.sm,
+    backgroundColor: Colors.cardBackground,
+    borderRadius: BorderRadius.round,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: Colors.border,
   },
   tabContainer: {
     flexDirection: 'row',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.background,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,
   },
   tabButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    marginRight: spacing.xs,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    marginRight: Spacing.xs,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.cardBackgroundAlt,
   },
   activeTabButton: {
-    backgroundColor: colors.primaryYellow,
+    backgroundColor: Colors.primaryYellow,
   },
   tabText: {
-    fontFamily: typography.fontMedium,
-    fontSize: typography.fontSizes.sm,
-    color: colors.textSecondary,
+    fontWeight: '600',
+    fontSize: 12,
+    color: Colors.textSecondary,
   },
   activeTabText: {
-    fontFamily: typography.fontBold,
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
   badgeCount: {
-    backgroundColor: colors.border,
+    backgroundColor: Colors.border,
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 1,
     marginLeft: 4,
   },
   activeBadgeCount: {
-    backgroundColor: colors.textPrimary,
+    backgroundColor: Colors.textPrimary,
   },
   badgeText: {
     fontSize: 10,
-    fontFamily: typography.fontBold,
-    color: colors.textSecondary,
+    fontWeight: '700',
+    color: Colors.textSecondary,
   },
   activeBadgeText: {
-    color: colors.primaryYellow,
+    color: Colors.primaryYellow,
   },
   listContent: {
-    padding: spacing.lg,
+    padding: Spacing.lg,
   },
   bookingCard: {
-    marginBottom: spacing.md,
-    padding: spacing.md,
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -378,12 +457,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: spacing.sm,
+    marginRight: Spacing.sm,
   },
   hubName: {
-    fontFamily: typography.fontBold,
-    fontSize: typography.fontSizes.md,
-    color: colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 15,
+    color: Colors.textPrimary,
     flex: 1,
   },
   locationRow: {
@@ -392,15 +471,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   locationText: {
-    fontFamily: typography.fontRegular,
-    fontSize: typography.fontSizes.xs,
-    color: colors.textSecondary,
+    fontSize: 12,
+    color: Colors.textSecondary,
     marginLeft: 4,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.sm,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.sm,
   },
   infoGrid: {
     flexDirection: 'row',
@@ -410,44 +488,47 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoLabel: {
-    fontFamily: typography.fontBold,
+    fontWeight: '700',
     fontSize: 10,
-    color: colors.textMuted,
+    color: Colors.textMuted,
     letterSpacing: 0.5,
   },
-  infoVal: {
-    fontFamily: typography.fontMedium,
-    fontSize: typography.fontSizes.sm,
-    color: colors.textPrimary,
+  scheduleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 2,
   },
+  infoVal: {
+    fontWeight: '600',
+    fontSize: 13,
+    color: Colors.textPrimary,
+  },
   infoSub: {
-    fontFamily: typography.fontRegular,
-    fontSize: typography.fontSizes.xs,
-    color: colors.textSecondary,
+    fontSize: 11,
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.md,
-    paddingTop: spacing.xs,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.xs,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: Colors.border,
   },
   vehiclePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.sm,
+    backgroundColor: Colors.cardBackgroundAlt,
+    paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: BorderRadius.xs,
   },
   vehicleText: {
-    fontFamily: typography.fontMedium,
-    fontSize: typography.fontSizes.xs,
-    color: colors.textPrimary,
+    fontWeight: '600',
+    fontSize: 11,
+    color: Colors.textPrimary,
     marginLeft: 4,
   },
   priceWrap: {
@@ -455,36 +536,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   priceLabel: {
-    fontFamily: typography.fontRegular,
-    fontSize: typography.fontSizes.xs,
-    color: colors.textSecondary,
+    fontSize: 12,
+    color: Colors.textSecondary,
     marginRight: 4,
   },
   priceVal: {
-    fontFamily: typography.fontBold,
-    fontSize: typography.fontSizes.md,
-    color: colors.textPrimary,
+    fontWeight: '800',
+    fontSize: 16,
+    color: Colors.textPrimary,
   },
   actionRow: {
     flexDirection: 'row',
-    marginTop: spacing.md,
+    marginTop: Spacing.md,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    padding: Spacing.xl,
   },
   loadingText: {
-    marginTop: spacing.sm,
-    fontFamily: typography.fontRegular,
-    fontSize: typography.fontSizes.sm,
-    color: colors.textSecondary,
+    marginTop: Spacing.sm,
+    fontSize: 13,
+    color: Colors.textSecondary,
   },
   errorText: {
-    fontFamily: typography.fontRegular,
-    fontSize: typography.fontSizes.sm,
-    color: colors.error,
+    fontSize: 13,
+    color: Colors.error,
     textAlign: 'center',
   },
 });

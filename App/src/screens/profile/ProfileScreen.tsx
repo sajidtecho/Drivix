@@ -9,10 +9,21 @@ import {
   Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
-import { spacing } from '../../theme/spacing';
+import {
+  User as UserIcon,
+  Car,
+  Receipt,
+  Bell,
+  MapPin,
+  Headphones,
+  FileText,
+  ChevronRight,
+  LogOut,
+  ShieldCheck,
+} from 'lucide-react-native';
+import { Colors } from '../../theme/colors';
+import { Typography } from '../../theme/typography';
+import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { useAuth } from '../../store/AuthContext';
@@ -79,7 +90,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>{user.name || 'Drivix User'}</Text>
                 <Text style={styles.userEmail}>{user.email || 'user@drivix.io'}</Text>
-                {user.phone && <Text style={styles.userPhone}>{user.phone}</Text>}
+                {(user.phone || user.mobile) && (
+                  <Text style={styles.userPhone}>{user.phone || user.mobile}</Text>
+                )}
                 <View style={styles.roleBadge}>
                   <Text style={styles.roleBadgeText}>
                     {user.role === 'admin' ? 'SYSTEM ADMIN' : 'VERIFIED DRIVER'}
@@ -92,9 +105,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           <Card style={styles.guestCard}>
             <View style={styles.guestContent}>
               <View style={styles.guestIconWrap}>
-                <Ionicons name="person-circle-outline" size={36} color={colors.textPrimary} />
+                <UserIcon size={28} color={Colors.textPrimary} />
               </View>
-              <View style={{ flex: 1, marginLeft: spacing.md }}>
+              <View style={{ flex: 1, marginLeft: Spacing.md }}>
                 <Text style={styles.guestTitle}>Welcome to Drivix</Text>
                 <Text style={styles.guestSubtitle}>
                   Sign in to reserve parking spots, save vehicles, and access active tickets.
@@ -105,7 +118,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               title="Sign In / Register"
               variant="primary"
               onPress={() => navigation.navigate('Login')}
-              style={{ marginTop: spacing.md }}
+              style={{ marginTop: Spacing.md }}
             />
           </Card>
         )}
@@ -120,11 +133,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           >
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
-                <Ionicons name="receipt-outline" size={20} color={colors.textPrimary} />
+                <Receipt size={18} color={Colors.textPrimary} />
               </View>
               <Text style={styles.menuText}>Booking History & Passes</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+            <ChevronRight size={18} color={Colors.textSecondary} />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
@@ -146,11 +159,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           >
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
-                <Ionicons name="car-sport-outline" size={20} color={colors.textPrimary} />
+                <Car size={18} color={Colors.textPrimary} />
               </View>
               <Text style={styles.menuText}>Saved Vehicles</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+            <ChevronRight size={18} color={Colors.textSecondary} />
           </TouchableOpacity>
         </Card>
 
@@ -160,7 +173,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           <View style={styles.switchItem}>
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
-                <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+                <Bell size={18} color={Colors.textPrimary} />
               </View>
               <View>
                 <Text style={styles.menuText}>Slot & Ticket Alerts</Text>
@@ -170,8 +183,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: colors.border, true: colors.primaryYellow }}
-              thumbColor={colors.white}
+              trackColor={{ false: Colors.border, true: Colors.primaryYellow }}
+              thumbColor={Colors.background}
             />
           </View>
 
@@ -180,7 +193,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           <View style={styles.switchItem}>
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
-                <Ionicons name="location-outline" size={20} color={colors.textPrimary} />
+                <MapPin size={18} color={Colors.textPrimary} />
               </View>
               <View>
                 <Text style={styles.menuText}>Location Services</Text>
@@ -190,8 +203,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             <Switch
               value={locationEnabled}
               onValueChange={setLocationEnabled}
-              trackColor={{ false: colors.border, true: colors.primaryYellow }}
-              thumbColor={colors.white}
+              trackColor={{ false: Colors.border, true: Colors.primaryYellow }}
+              thumbColor={Colors.background}
             />
           </View>
         </Card>
@@ -202,11 +215,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           <TouchableOpacity style={styles.menuItem} onPress={handleSupport} activeOpacity={0.7}>
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
-                <Ionicons name="headset-outline" size={20} color={colors.textPrimary} />
+                <Headphones size={18} color={Colors.textPrimary} />
               </View>
               <Text style={styles.menuText}>24/7 Help & Support</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+            <ChevronRight size={18} color={Colors.textSecondary} />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
@@ -214,11 +227,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           <TouchableOpacity style={styles.menuItem} onPress={handleTerms} activeOpacity={0.7}>
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
-                <Ionicons name="document-text-outline" size={20} color={colors.textPrimary} />
+                <FileText size={18} color={Colors.textPrimary} />
               </View>
               <Text style={styles.menuText}>Terms & Privacy Policy</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+            <ChevronRight size={18} color={Colors.textSecondary} />
           </TouchableOpacity>
         </Card>
 
@@ -247,24 +260,24 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: Colors.background,
   },
   scrollContent: {
-    padding: spacing.lg,
+    padding: Spacing.lg,
   },
   header: {
-    marginBottom: spacing.md,
+    marginBottom: Spacing.md,
   },
   title: {
-    fontFamily: typography.fontBold,
-    fontSize: typography.fontSizes.xxl,
-    color: colors.textPrimary,
+    fontSize: 24,
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
   userCard: {
-    marginBottom: spacing.lg,
-    padding: spacing.lg,
-    backgroundColor: colors.lightYellow,
-    borderColor: colors.primaryYellow,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+    backgroundColor: Colors.accentYellowLight,
+    borderColor: Colors.primaryYellow,
     borderWidth: 1.5,
   },
   userRow: {
@@ -275,40 +288,38 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: colors.primaryYellow,
+    backgroundColor: Colors.primaryYellow,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.textPrimary,
+    borderColor: Colors.textPrimary,
   },
   avatarText: {
-    fontFamily: typography.fontBold,
+    fontWeight: '800',
     fontSize: 24,
-    color: colors.textPrimary,
+    color: Colors.textPrimary,
   },
   userInfo: {
-    marginLeft: spacing.md,
+    marginLeft: Spacing.md,
     flex: 1,
   },
   userName: {
-    fontFamily: typography.fontBold,
-    fontSize: typography.fontSizes.lg,
-    color: colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 18,
+    color: Colors.textPrimary,
   },
   userEmail: {
-    fontFamily: typography.fontRegular,
-    fontSize: typography.fontSizes.sm,
-    color: colors.textSecondary,
+    fontSize: 13,
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   userPhone: {
-    fontFamily: typography.fontRegular,
-    fontSize: typography.fontSizes.xs,
-    color: colors.textMuted,
+    fontSize: 12,
+    color: Colors.textMuted,
     marginTop: 1,
   },
   roleBadge: {
-    backgroundColor: colors.textPrimary,
+    backgroundColor: Colors.textPrimary,
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -316,14 +327,14 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   roleBadgeText: {
-    fontFamily: typography.fontBold,
+    fontWeight: '700',
     fontSize: 9,
-    color: colors.primaryYellow,
+    color: Colors.primaryYellow,
     letterSpacing: 0.5,
   },
   guestCard: {
-    marginBottom: spacing.lg,
-    padding: spacing.md,
+    marginBottom: Spacing.lg,
+    padding: Spacing.md,
   },
   guestContent: {
     flexDirection: 'row',
@@ -333,48 +344,47 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: colors.surface,
+    backgroundColor: Colors.cardBackgroundAlt,
     justifyContent: 'center',
     alignItems: 'center',
   },
   guestTitle: {
-    fontFamily: typography.fontBold,
-    fontSize: typography.fontSizes.md,
-    color: colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 16,
+    color: Colors.textPrimary,
   },
   guestSubtitle: {
-    fontFamily: typography.fontRegular,
-    fontSize: typography.fontSizes.xs,
-    color: colors.textSecondary,
+    fontSize: 12,
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   sectionHeader: {
-    fontFamily: typography.fontBold,
+    fontWeight: '700',
     fontSize: 11,
-    color: colors.textMuted,
+    color: Colors.textMuted,
     letterSpacing: 0.5,
-    marginBottom: spacing.xs,
-    marginTop: spacing.sm,
-    marginLeft: spacing.xs,
+    marginBottom: Spacing.xs,
+    marginTop: Spacing.sm,
+    marginLeft: Spacing.xs,
   },
   menuCard: {
     padding: 0,
-    marginBottom: spacing.md,
+    marginBottom: Spacing.md,
     overflow: 'hidden',
   },
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
   },
   switchItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
   },
   menuLeft: {
     flexDirection: 'row',
@@ -385,47 +395,45 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.surface,
+    backgroundColor: Colors.cardBackgroundAlt,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.md,
+    marginRight: Spacing.md,
   },
   menuText: {
-    fontFamily: typography.fontMedium,
-    fontSize: typography.fontSizes.sm,
-    color: colors.textPrimary,
+    fontWeight: '600',
+    fontSize: 14,
+    color: Colors.textPrimary,
   },
   menuSubtext: {
-    fontFamily: typography.fontRegular,
-    fontSize: typography.fontSizes.xs,
-    color: colors.textSecondary,
+    fontSize: 11,
+    color: Colors.textSecondary,
     marginTop: 2,
   },
   menuDivider: {
     height: 1,
-    backgroundColor: colors.border,
-    marginHorizontal: spacing.md,
+    backgroundColor: Colors.border,
+    marginHorizontal: Spacing.md,
   },
   logoutWrap: {
-    marginTop: spacing.md,
+    marginTop: Spacing.md,
   },
   logoutButton: {
-    borderColor: colors.error,
+    borderColor: Colors.error,
   },
   versionWrap: {
     alignItems: 'center',
-    marginTop: spacing.xl,
-    marginBottom: spacing.lg,
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   versionText: {
-    fontFamily: typography.fontMedium,
-    fontSize: typography.fontSizes.xs,
-    color: colors.textMuted,
+    fontWeight: '500',
+    fontSize: 11,
+    color: Colors.textMuted,
   },
   copyrightText: {
-    fontFamily: typography.fontRegular,
     fontSize: 10,
-    color: colors.textMuted,
+    color: Colors.textMuted,
     marginTop: 4,
   },
 });

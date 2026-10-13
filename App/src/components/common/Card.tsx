@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewProps, ViewStyle, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ViewProps, ViewStyle, StyleProp, TouchableOpacity } from 'react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Shadows } from '../../theme/shadows';
@@ -7,7 +7,7 @@ import { Shadows } from '../../theme/shadows';
 export interface CardProps extends ViewProps {
   selected?: boolean;
   onPress?: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   children: React.ReactNode;
 }
 
