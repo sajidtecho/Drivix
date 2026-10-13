@@ -27,6 +27,7 @@ import {
   SlidersHorizontal,
   ArrowRight,
   ShieldCheck,
+  AlertTriangle,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
@@ -35,6 +36,7 @@ import { parkingApi } from '../../api/parkingApi';
 import { useBooking } from '../../store/BookingContext';
 import { ParkingLocation } from '../../types';
 import { launchMobileLiveGpsNavigation } from '../../services/navigation';
+import { checkIsOnlineBookingAllowed } from '../../services/bookingEligibility';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -561,31 +563,58 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
                       </Text>
 
                       <View style={styles.drawerItemFooter}>
-                        <View
-                          style={[
-                            styles.slotPill,
-                            { backgroundColor: isAvailable ? 'rgba(22, 163, 74, 0.15)' : 'rgba(220, 38, 38, 0.15)' },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.slotPillText,
-                              { color: isAvailable ? '#16A34A' : '#DC2626' },
-                            ]}
-                          >
-                            {isAvailable ? `${item.availableSlots} free` : 'Full'}
-                          </Text>
-                        </View>
+                        {checkIsOnlineBookingAllowed(item) ? (
+                          <>
+                            <View
+                              style={[
+                                styles.slotPill,
+                                { backgroundColor: isAvailable ? 'rgba(22, 163, 74, 0.15)' : 'rgba(220, 38, 38, 0.15)' },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.slotPillText,
+                                  { color: isAvailable ? '#16A34A' : '#DC2626' },
+                                ]}
+                              >
+                                {isAvailable ? `${item.availableSlots} free` : 'Full'}
+                              </Text>
+                            </View>
 
-                        <Text style={styles.drawerPrice}>₹{item.hourlyPrice}/hr</Text>
+                            <Text style={styles.drawerPrice}>₹{item.hourlyPrice}/hr</Text>
 
-                        <TouchableOpacity
-                          style={styles.drawerBookBtn}
-                          onPress={() => handleBookParkingFromMap(item)}
-                        >
-                          <Text style={styles.drawerBookBtnText}>Book</Text>
-                          <ChevronRight size={12} color="#171717" />
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                              style={styles.drawerBookBtn}
+                              onPress={() => handleBookParkingFromMap(item)}
+                            >
+                              <Text style={styles.drawerBookBtnText}>Book</Text>
+                              <ChevronRight size={12} color="#171717" />
+                            </TouchableOpacity>
+                          </>
+                        ) : (
+                          <>
+                            <View
+                              style={[
+                                styles.slotPill,
+                                { backgroundColor: 'rgba(245, 158, 11, 0.15)' },
+                              ]}
+                            >
+                              <Text style={[styles.slotPillText, { color: '#FFAD00' }]}>
+                                Not Online Booking
+                              </Text>
+                            </View>
+
+                            <Text style={[styles.drawerPrice, { color: '#FFAD00' }]}>On-Site Only</Text>
+
+                            <TouchableOpacity
+                              style={[styles.drawerBookBtn, { backgroundColor: '#FFC928' }]}
+                              onPress={() => handleLaunchDirections(item)}
+                            >
+                              <NavigationIcon size={12} color="#171717" style={{ marginRight: 3 }} />
+                              <Text style={styles.drawerBookBtnText}>Navigate</Text>
+                            </TouchableOpacity>
+                          </>
+                        )}
                       </View>
                     </TouchableOpacity>
                   );
@@ -598,10 +627,28 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
           {selectedLocation && !isListDrawerOpen && (
             <View style={styles.selectedCard}>
               <View style={styles.selectedCardHeader}>
-                <View style={styles.selectedBadge}>
-                  <ShieldCheck size={12} color="#171717" style={{ marginRight: 4 }} />
-                  <Text style={styles.selectedBadgeText}>DRIVIX VERIFIED HUB</Text>
-                </View>
+                {checkIsOnlineBookingAllowed(selectedLocation) ? (
+                  <View style={styles.selectedBadge}>
+                    <ShieldCheck size={12} color="#171717" style={{ marginRight: 4 }} />
+                    <Text style={styles.selectedBadgeText}>DRIVIX VERIFIED HUB</Text>
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.selectedBadge,
+                      {
+                        backgroundColor: 'rgba(245, 158, 11, 0.18)',
+                        borderWidth: 1,
+                        borderColor: 'rgba(245, 158, 11, 0.5)',
+                      },
+                    ]}
+                  >
+                    <AlertTriangle size={12} color="#FFAD00" style={{ marginRight: 4 }} />
+                    <Text style={[styles.selectedBadgeText, { color: '#FFAD00' }]}>
+                      NOT ONLINE BOOKING
+                    </Text>
+                  </View>
+                )}
 
                 <TouchableOpacity onPress={() => setSelectedLocation(null)} style={styles.cardCloseBtn}>
                   <X size={16} color="#8a8d9b" />
@@ -616,65 +663,106 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
               </Text>
 
               {/* Status & Pricing Info */}
-              <View style={styles.metaRow}>
-                <View
-                  style={[
-                    styles.availBadge,
-                    {
-                      backgroundColor:
-                        (selectedLocation.availableSlots ?? 0) > 0
-                          ? 'rgba(22, 163, 74, 0.15)'
-                          : 'rgba(220, 38, 38, 0.15)',
-                    },
-                  ]}
-                >
-                  <Text
+              {checkIsOnlineBookingAllowed(selectedLocation) ? (
+                <View style={styles.metaRow}>
+                  <View
                     style={[
-                      styles.availBadgeText,
+                      styles.availBadge,
                       {
-                        color:
-                          (selectedLocation.availableSlots ?? 0) > 0 ? '#16A34A' : '#DC2626',
+                        backgroundColor:
+                          (selectedLocation.availableSlots ?? 0) > 0
+                            ? 'rgba(22, 163, 74, 0.15)'
+                            : 'rgba(220, 38, 38, 0.15)',
                       },
                     ]}
                   >
-                    {(selectedLocation.availableSlots ?? 0) > 0
-                      ? `${selectedLocation.availableSlots} of ${selectedLocation.totalSlots} slots free`
-                      : 'Facility Full'}
-                  </Text>
-                </View>
-
-                <View style={styles.priceBadge}>
-                  <Text style={styles.priceBadgeText}>₹{selectedLocation.hourlyPrice}/hr</Text>
-                </View>
-
-                {calculateDistance(selectedLocation.latitude, selectedLocation.longitude) && (
-                  <View style={styles.distBadge}>
-                    <Text style={styles.distBadgeText}>
-                      {calculateDistance(selectedLocation.latitude, selectedLocation.longitude)} km away
+                    <Text
+                      style={[
+                        styles.availBadgeText,
+                        {
+                          color:
+                            (selectedLocation.availableSlots ?? 0) > 0 ? '#16A34A' : '#DC2626',
+                        },
+                      ]}
+                    >
+                      {(selectedLocation.availableSlots ?? 0) > 0
+                        ? `${selectedLocation.availableSlots} of ${selectedLocation.totalSlots} slots free`
+                        : 'Facility Full'}
                     </Text>
                   </View>
-                )}
-              </View>
+
+                  <View style={styles.priceBadge}>
+                    <Text style={styles.priceBadgeText}>₹{selectedLocation.hourlyPrice}/hr</Text>
+                  </View>
+
+                  {calculateDistance(selectedLocation.latitude, selectedLocation.longitude) && (
+                    <View style={styles.distBadge}>
+                      <Text style={styles.distBadgeText}>
+                        {calculateDistance(selectedLocation.latitude, selectedLocation.longitude)} km away
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <>
+                  <View style={styles.modalNoBookingBanner}>
+                    <AlertTriangle size={13} color="#FFAD00" style={{ marginRight: 6, flexShrink: 0 }} />
+                    <Text style={styles.modalNoBookingBannerText}>
+                      <Text style={{ fontWeight: '800' }}>NOT ONLINE BOOKING: </Text>
+                      On-site entry only. Use Navigate for GPS directions.
+                    </Text>
+                  </View>
+
+                  <View style={styles.metaRow}>
+                    <View style={[styles.availBadge, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
+                      <Text style={[styles.availBadgeText, { color: '#FFAD00' }]}>0/0 slots</Text>
+                    </View>
+                    <View style={[styles.priceBadge, { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderColor: 'rgba(245, 158, 11, 0.3)' }]}>
+                      <Text style={[styles.priceBadgeText, { color: '#FFAD00' }]}>On-Site Only</Text>
+                    </View>
+                    {calculateDistance(selectedLocation.latitude, selectedLocation.longitude) && (
+                      <View style={styles.distBadge}>
+                        <Text style={styles.distBadgeText}>
+                          {calculateDistance(selectedLocation.latitude, selectedLocation.longitude)} km away
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </>
+              )}
 
               {/* Action Buttons: Book Spot & Directions */}
               <View style={styles.cardActionRow}>
-                <TouchableOpacity
-                  style={styles.directionsBtn}
-                  onPress={() => handleLaunchDirections(selectedLocation)}
-                  activeOpacity={0.85}
-                >
-                  <NavigationIcon size={16} color="#FFFFFF" />
-                  <Text style={styles.directionsBtnText}>Directions</Text>
-                </TouchableOpacity>
+                {checkIsOnlineBookingAllowed(selectedLocation) ? (
+                  <>
+                    <TouchableOpacity
+                      style={styles.directionsBtn}
+                      onPress={() => handleLaunchDirections(selectedLocation)}
+                      activeOpacity={0.85}
+                    >
+                      <NavigationIcon size={16} color="#FFFFFF" />
+                      <Text style={styles.directionsBtnText}>Directions</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.bookNowBtn}
-                  onPress={() => handleBookParkingFromMap(selectedLocation)}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.bookNowBtnText}>Book Parking Spot</Text>
-                  <ArrowRight size={16} color="#171717" style={{ marginLeft: 6 }} />
-                </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.bookNowBtn}
+                      onPress={() => handleBookParkingFromMap(selectedLocation)}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.bookNowBtnText}>Book Parking Spot</Text>
+                      <ArrowRight size={16} color="#171717" style={{ marginLeft: 6 }} />
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.bookNowBtn, { flex: 1, backgroundColor: '#FFC928', justifyContent: 'center' }]}
+                    onPress={() => handleLaunchDirections(selectedLocation)}
+                    activeOpacity={0.85}
+                  >
+                    <NavigationIcon size={16} color="#171717" style={{ marginRight: 6 }} />
+                    <Text style={styles.bookNowBtnText}>Navigate (GPS Directions)</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           )}
@@ -1077,5 +1165,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '900',
     color: '#171717',
+  },
+  modalNoBookingBanner: {
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    borderRadius: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  modalNoBookingBannerText: {
+    fontSize: 11.5,
+    color: '#FFAD00',
+    flex: 1,
+    lineHeight: 15,
   },
 });
