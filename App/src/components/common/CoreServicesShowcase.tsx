@@ -7,7 +7,6 @@ import {
   Linking,
   LayoutAnimation,
   Platform,
-  UIManager,
 } from 'react-native';
 import {
   Car,
@@ -23,11 +22,6 @@ import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Card } from './Card';
 import { Badge } from './Badge';
-
-// Enable LayoutAnimation on Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 export interface CoreServiceItem {
   id: string;
