@@ -12,17 +12,21 @@ export type BookingStatus =
 export interface User {
   _id: string;
   name: string;
+  fullName?: string;
   email: string;
   mobile?: string;
   phone?: string;
+  city?: string;
   role?: string;
   walletBalance?: number;
+  vehicles?: any[];
   documents?: Array<{
     type: string;
     documentNumber?: string;
     expiryDate?: string;
     verified?: boolean;
   }>;
+  isVerified?: boolean;
 }
 
 export interface Vehicle {

@@ -47,9 +47,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
     try {
       const res = await authApi.login(credentials);
-      await storage.saveToken(res.token);
-      setToken(res.token);
-      setUser(res.user);
+      const userObj: User = (res.user || res) as User;
+      if (res.token) {
+        await storage.saveToken(res.token);
+        setToken(res.token);
+      }
+      setUser(userObj);
     } finally {
       setIsLoading(false);
     }
@@ -59,9 +62,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
     try {
       const res = await authApi.register(data);
-      await storage.saveToken(res.token);
-      setToken(res.token);
-      setUser(res.user);
+      const userObj: User = (res.user || res) as User;
+      if (res.token) {
+        await storage.saveToken(res.token);
+        setToken(res.token);
+      }
+      setUser(userObj);
     } finally {
       setIsLoading(false);
     }

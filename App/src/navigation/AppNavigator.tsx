@@ -160,6 +160,25 @@ const ActiveParkingScreenAdapter = ({ navigation, route }: any) => {
   );
 };
 
+const LoginScreenAdapter = ({ navigation }: any) => {
+  return (
+    <LoginScreen
+      onSuccess={() => navigation.navigate('MainTabs')}
+      onNavigateToRegister={() => navigation.navigate('Register')}
+      onCancel={() => navigation.goBack()}
+    />
+  );
+};
+
+const RegisterScreenAdapter = ({ navigation }: any) => {
+  return (
+    <RegisterScreen
+      onSuccess={() => navigation.navigate('MainTabs')}
+      onNavigateToLogin={() => navigation.navigate('Login')}
+    />
+  );
+};
+
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -252,8 +271,8 @@ export const AppNavigator = () => {
       <Stack.Screen name="ActiveParking" component={ActiveParkingScreenAdapter} />
 
       {/* Auth */}
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="Login" component={LoginScreenAdapter} />
+      <Stack.Screen name="Register" component={RegisterScreenAdapter} />
     </Stack.Navigator>
   );
 };

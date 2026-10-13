@@ -26,7 +26,7 @@ export const Colors = {
   textOnYellow: '#171717',
 
   // Borders & Dividers
-  border: '#EEEEEE',
+  border: '#E5E5E5',
   borderStrong: '#E5E7EB',
   borderYellow: '#FFC928',
   borderGlass: 'rgba(0, 0, 0, 0.08)',
