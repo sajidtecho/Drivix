@@ -71,4 +71,9 @@ export const bookingApi = {
     const res = await apiClient.get(`/bookings/${bookingId}/calculate-bill`);
     return res.data;
   },
+
+  cancelBooking: async (bookingId: string): Promise<any> => {
+    const res = await apiClient.put(`/bookings/${bookingId}/cancel`, {});
+    return res.data;
+  },
 };

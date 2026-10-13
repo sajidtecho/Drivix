@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   Alert,
   Switch,
+  Modal,
+  ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -20,13 +23,27 @@ import {
   ChevronRight,
   LogOut,
   ShieldCheck,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  X,
+  Zap,
+  Send,
+  MessageSquare,
+  Clock,
+  Star,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
+import { Badge } from '../../components/common/Badge';
+import { Input } from '../../components/common/Input';
 import { useAuth } from '../../store/AuthContext';
+import { vehicleApi } from '../../api/vehicleApi';
+import { complaintApi, Complaint } from '../../api/complaintApi';
+import { Vehicle } from '../../types';
 
 interface ProfileScreenProps {
   navigation: any;
@@ -36,6 +53,169 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { user, isAuthenticated, logout } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
+
+  // ─── Vehicle Modal State ───────────────────────────────────────────
+  const [vehiclesModalVisible, setVehiclesModalVisible] = useState(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loadingVehicles, setLoadingVehicles] = useState(false);
+  const [showAddVehicleForm, setShowAddVehicleForm] = useState(false);
+  const [newPlate, setNewPlate] = useState('');
+  const [newModel, setNewModel] = useState('');
+  const [newType, setNewType] = useState<'Car' | 'SUV' | 'Bike' | 'EV'>('Car');
+  const [newIsEV, setNewIsEV] = useState(false);
+  const [isAddingVehicle, setIsAddingVehicle] = useState(false);
+
+  // ─── Support / Complaint Modal State ───────────────────────────────
+  const [supportModalVisible, setSupportModalVisible] = useState(false);
+  const [activeSupportTab, setActiveSupportTab] = useState<'new' | 'history'>('new');
+  const [complaintTitle, setComplaintTitle] = useState('');
+  const [complaintDescription, setComplaintDescription] = useState('');
+  const [complaintBookingId, setComplaintBookingId] = useState('');
+  const [isSubmittingComplaint, setIsSubmittingComplaint] = useState(false);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [loadingComplaints, setLoadingComplaints] = useState(false);
+
+  // Load vehicles when modal opens or authenticated
+  const loadUserVehicles = async () => {
+    if (!isAuthenticated) return;
+    setLoadingVehicles(true);
+    try {
+      const data = await vehicleApi.getUserVehicles();
+      setVehicles(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.warn('[ProfileScreen] Could not load vehicles:', err);
+    } finally {
+      setLoadingVehicles(false);
+    }
+  };
+
+  // Load complaints
+  const loadUserComplaints = async () => {
+    if (!isAuthenticated) return;
+    setLoadingComplaints(true);
+    try {
+      const data = await complaintApi.getMyComplaints();
+      setComplaints(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.warn('[ProfileScreen] Could not load complaints:', err);
+    } finally {
+      setLoadingComplaints(false);
+    }
+  };
+
+  const handleOpenVehicles = () => {
+    if (!isAuthenticated) {
+      navigation.navigate('Login');
+      return;
+    }
+    setVehiclesModalVisible(true);
+    loadUserVehicles();
+  };
+
+  const handleOpenSupport = () => {
+    if (!isAuthenticated) {
+      navigation.navigate('Login');
+      return;
+    }
+    setSupportModalVisible(true);
+    loadUserComplaints();
+  };
+
+  const handleAddVehicle = async () => {
+    const cleanPlate = newPlate.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const cleanModel = newModel.trim();
+
+    if (!cleanPlate || cleanPlate.length < 6) {
+      Alert.alert('Invalid Plate', 'Please enter a valid registration number (e.g. DL01AB1234).');
+      return;
+    }
+    if (!cleanModel) {
+      Alert.alert('Vehicle Model', 'Please specify your car model (e.g. Honda City).');
+      return;
+    }
+
+    setIsAddingVehicle(true);
+    try {
+      await vehicleApi.addVehicle({
+        plate: cleanPlate,
+        model: cleanModel,
+        type: newType,
+        isEV: newIsEV,
+      });
+      setNewPlate('');
+      setNewModel('');
+      setShowAddVehicleForm(false);
+      await loadUserVehicles();
+      Alert.alert('Vehicle Added', `Vehicle ${cleanPlate} has been saved to your profile.`);
+    } catch (err: any) {
+      Alert.alert('Add Failed', err.response?.data?.message || err.message || 'Could not save vehicle.');
+    } finally {
+      setIsAddingVehicle(false);
+    }
+  };
+
+  const handleDeleteVehicle = (vehicleId: string, plate?: string) => {
+    Alert.alert(
+      'Delete Vehicle',
+      `Are you sure you want to remove vehicle ${plate || ''}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await vehicleApi.deleteVehicle(vehicleId);
+              await loadUserVehicles();
+            } catch (err: any) {
+              Alert.alert('Error', err.response?.data?.message || 'Could not delete vehicle.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSetPrimary = async (vehicleId: string) => {
+    try {
+      await vehicleApi.setPrimaryVehicle(vehicleId);
+      await loadUserVehicles();
+    } catch (err: any) {
+      Alert.alert('Notice', err.response?.data?.message || 'Could not update primary vehicle.');
+    }
+  };
+
+  const handleSubmitComplaint = async () => {
+    if (!complaintTitle.trim()) {
+      Alert.alert('Title Required', 'Please enter a brief subject/title for your ticket.');
+      return;
+    }
+    if (!complaintDescription.trim()) {
+      Alert.alert('Description Required', 'Please provide details about your issue.');
+      return;
+    }
+
+    setIsSubmittingComplaint(true);
+    try {
+      await complaintApi.createComplaint({
+        title: complaintTitle.trim(),
+        description: complaintDescription.trim(),
+        bookingId: complaintBookingId.trim() || undefined,
+        contact: user?.mobile || user?.phone || '',
+        email: user?.email || '',
+      });
+      setComplaintTitle('');
+      setComplaintDescription('');
+      setComplaintBookingId('');
+      Alert.alert('Ticket Submitted', 'Our customer support operations team has received your ticket and will assist you shortly.');
+      setActiveSupportTab('history');
+      await loadUserComplaints();
+    } catch (err: any) {
+      Alert.alert('Submission Error', err.response?.data?.message || 'Failed to submit complaint.');
+    } finally {
+      setIsSubmittingComplaint(false);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -54,18 +234,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     );
   };
 
-  const handleSupport = () => {
-    Alert.alert(
-      'Drivix 24/7 Support',
-      'Need assistance with a booking or parking facility?\n\nEmail: support@drivix.io\nHelpline: +91 800-DRIVIX (Toll Free)',
-      [{ text: 'OK' }]
-    );
-  };
-
   const handleTerms = () => {
     Alert.alert(
       'Terms & Privacy Policy',
-      'Drivix adheres to smart parking security, encrypted payments, and dynamic space management guidelines. Your personal and vehicle data is securely encrypted.',
+      'Drivix adheres to smart parking security, encrypted payments, and dynamic space management guidelines. Your personal and vehicle data is securely encrypted under Indian IT & data privacy frameworks.',
       [{ text: 'Close' }]
     );
   };
@@ -88,7 +260,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 </Text>
               </View>
               <View style={styles.userInfo}>
-                <Text style={styles.userName}>{user.name || 'Drivix User'}</Text>
+                <Text style={styles.userName}>{user.fullName || user.name || 'Drivix User'}</Text>
                 <Text style={styles.userEmail}>{user.email || 'user@drivix.io'}</Text>
                 {(user.phone || user.mobile) && (
                   <Text style={styles.userPhone}>{user.phone || user.mobile}</Text>
@@ -144,24 +316,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => {
-              if (isAuthenticated) {
-                Alert.alert(
-                  'Saved Vehicles',
-                  'You can manage and register vehicle number plates seamlessly during the booking flow.',
-                  [{ text: 'OK' }]
-                );
-              } else {
-                navigation.navigate('Login');
-              }
-            }}
+            onPress={handleOpenVehicles}
             activeOpacity={0.7}
           >
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
                 <Car size={18} color={Colors.textPrimary} />
               </View>
-              <Text style={styles.menuText}>Saved Vehicles</Text>
+              <View>
+                <Text style={styles.menuText}>Saved Vehicles</Text>
+                <Text style={styles.menuSubtext}>Manage plates, models & EV status</Text>
+              </View>
             </View>
             <ChevronRight size={18} color={Colors.textSecondary} />
           </TouchableOpacity>
@@ -212,12 +377,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         {/* Support & Legal */}
         <Text style={styles.sectionHeader}>SUPPORT & ABOUT</Text>
         <Card style={styles.menuCard}>
-          <TouchableOpacity style={styles.menuItem} onPress={handleSupport} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleOpenSupport} activeOpacity={0.7}>
             <View style={styles.menuLeft}>
               <View style={styles.iconCircle}>
                 <Headphones size={18} color={Colors.textPrimary} />
               </View>
-              <Text style={styles.menuText}>24/7 Help & Support</Text>
+              <View>
+                <Text style={styles.menuText}>24/7 Help Desk & Complaints</Text>
+                <Text style={styles.menuSubtext}>Submit issues & view resolution status</Text>
+              </View>
             </View>
             <ChevronRight size={18} color={Colors.textSecondary} />
           </TouchableOpacity>
@@ -248,11 +416,306 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         )}
 
         {/* App Version Info */}
-        <View style={styles.versionWrap}>
-          <Text style={styles.versionText}>Drivix Smart Parking • v1.0.0 (Production Build)</Text>
-          <Text style={styles.copyrightText}>Powered by Drivix AI Dynamic Space Allocation</Text>
+        <View style={styles.footer}>
+          <Text style={styles.versionText}>Drivix Mobile • v1.0.0 (Production API Sync)</Text>
+          <Text style={styles.copyrightText}>© 2026 Drivix Smart Mobility. All rights reserved.</Text>
         </View>
       </ScrollView>
+
+      {/* ─── SAVED VEHICLES MODAL ─────────────────────────────────────── */}
+      <Modal
+        visible={vehiclesModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setVehiclesModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Saved Vehicles</Text>
+                <Text style={styles.modalSubtitle}>Manage your registered cars and EV profiles</Text>
+              </View>
+              <TouchableOpacity onPress={() => setVehiclesModalVisible(false)} style={styles.closeBtn}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {loadingVehicles ? (
+                <View style={styles.modalLoading}>
+                  <ActivityIndicator size="small" color={Colors.primaryYellow} />
+                  <Text style={styles.loadingText}>Syncing vehicles with database...</Text>
+                </View>
+              ) : vehicles.length === 0 && !showAddVehicleForm ? (
+                <View style={styles.emptyVehicles}>
+                  <Car size={36} color={Colors.textMuted} />
+                  <Text style={styles.emptyVehiclesTitle}>No vehicles saved yet</Text>
+                  <Text style={styles.emptyVehiclesText}>
+                    Add your car license plate once and enjoy one-tap reservations.
+                  </Text>
+                  <Button
+                    title="Add Vehicle"
+                    variant="primary"
+                    onPress={() => setShowAddVehicleForm(true)}
+                    style={{ marginTop: Spacing.md }}
+                  />
+                </View>
+              ) : (
+                <>
+                  {!showAddVehicleForm && (
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setShowAddVehicleForm(true)}
+                      style={styles.addVehicleBar}
+                    >
+                      <Plus size={18} color="#171717" />
+                      <Text style={styles.addVehicleBarText}>Register New Vehicle</Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {showAddVehicleForm && (
+                    <Card style={styles.addVehicleCard}>
+                      <View style={styles.addCardHeader}>
+                        <Text style={styles.addCardTitle}>Vehicle Details</Text>
+                        <TouchableOpacity onPress={() => setShowAddVehicleForm(false)}>
+                          <Text style={styles.cancelLink}>Cancel</Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      <Input
+                        label="License Plate Number"
+                        placeholder="e.g. DL01AB1234"
+                        value={newPlate}
+                        onChangeText={setNewPlate}
+                        autoCapitalize="characters"
+                      />
+
+                      <Input
+                        label="Model / Make"
+                        placeholder="e.g. Honda City / Tata Nexon"
+                        value={newModel}
+                        onChangeText={setNewModel}
+                      />
+
+                      {/* Vehicle Type Chips */}
+                      <Text style={styles.chipLabel}>Vehicle Category</Text>
+                      <View style={styles.typeChipsRow}>
+                        {(['Car', 'SUV', 'Bike', 'EV'] as const).map((t) => (
+                          <TouchableOpacity
+                            key={t}
+                            onPress={() => {
+                              setNewType(t);
+                              if (t === 'EV') setNewIsEV(true);
+                            }}
+                            style={[styles.typeChip, newType === t && styles.typeChipSelected]}
+                          >
+                            <Text style={[styles.typeChipText, newType === t && styles.typeChipTextSelected]}>
+                              {t}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+
+                      {/* EV Switch */}
+                      <View style={styles.evSwitchRow}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.evSwitchTitle}>Electric Vehicle (EV)</Text>
+                          <Text style={styles.evSwitchSubtitle}>Filter EV charging parking spots</Text>
+                        </View>
+                        <Switch
+                          value={newIsEV}
+                          onValueChange={setNewIsEV}
+                          trackColor={{ false: Colors.border, true: Colors.primaryYellow }}
+                        />
+                      </View>
+
+                      <Button
+                        title="Save Vehicle to Profile"
+                        variant="primary"
+                        onPress={handleAddVehicle}
+                        loading={isAddingVehicle}
+                        style={{ marginTop: Spacing.md }}
+                      />
+                    </Card>
+                  )}
+
+                  {/* List of saved vehicles */}
+                  {vehicles.map((v) => (
+                    <Card key={v._id} style={styles.vehicleItemCard}>
+                      <View style={styles.vehicleItemRow}>
+                        <View style={styles.vehicleItemLeft}>
+                          <View style={styles.plateBadge}>
+                            <Text style={styles.plateBadgeText}>
+                              {v.plate || v.vehicleNumber}
+                            </Text>
+                          </View>
+                          <Text style={styles.vehicleItemModel}>{v.model || 'Registered Vehicle'}</Text>
+                          <View style={styles.vehicleTagsRow}>
+                            {v.isEV && (
+                              <View style={styles.evMiniBadge}>
+                                <Zap size={10} color="#15803D" />
+                                <Text style={styles.evMiniText}>EV</Text>
+                              </View>
+                            )}
+                            {v.isPrimary && (
+                              <View style={styles.primaryMiniBadge}>
+                                <Text style={styles.primaryMiniText}>PRIMARY</Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+
+                        <View style={styles.vehicleItemActions}>
+                          {!v.isPrimary && (
+                            <TouchableOpacity
+                              onPress={() => handleSetPrimary(v._id)}
+                              style={styles.setPrimaryBtn}
+                            >
+                              <Text style={styles.setPrimaryBtnText}>Make Primary</Text>
+                            </TouchableOpacity>
+                          )}
+                          <TouchableOpacity
+                            onPress={() => handleDeleteVehicle(v._id, v.plate || v.vehicleNumber)}
+                            style={styles.deleteVehicleBtn}
+                          >
+                            <Trash2 size={16} color={Colors.error} />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </Card>
+                  ))}
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── 24/7 SUPPORT & COMPLAINTS MODAL ─────────────────────────── */}
+      <Modal
+        visible={supportModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSupportModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Help Desk & Complaints</Text>
+                <Text style={styles.modalSubtitle}>Direct resolution line to Drivix Operations</Text>
+              </View>
+              <TouchableOpacity onPress={() => setSupportModalVisible(false)} style={styles.closeBtn}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Tab switch: New Ticket vs History */}
+            <View style={styles.supportTabRow}>
+              <TouchableOpacity
+                onPress={() => setActiveSupportTab('new')}
+                style={[styles.supportTab, activeSupportTab === 'new' && styles.supportTabActive]}
+              >
+                <Text style={[styles.supportTabText, activeSupportTab === 'new' && styles.supportTabTextActive]}>
+                  Submit Ticket
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setActiveSupportTab('history');
+                  loadUserComplaints();
+                }}
+                style={[styles.supportTab, activeSupportTab === 'history' && styles.supportTabActive]}
+              >
+                <Text style={[styles.supportTabText, activeSupportTab === 'history' && styles.supportTabTextActive]}>
+                  My Tickets ({complaints.length})
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {activeSupportTab === 'new' ? (
+                <View style={styles.ticketForm}>
+                  <Input
+                    label="Subject / Topic"
+                    placeholder="e.g. Overcharged on exit / Barrier not lifting"
+                    value={complaintTitle}
+                    onChangeText={setComplaintTitle}
+                  />
+
+                  <Input
+                    label="Booking Reference (Optional)"
+                    placeholder="e.g. DRX-109283"
+                    value={complaintBookingId}
+                    onChangeText={setComplaintBookingId}
+                  />
+
+                  <Text style={styles.chipLabel}>Issue Description</Text>
+                  <TextInput
+                    style={styles.textArea}
+                    placeholder="Provide details about the incident, parking hub name, and time..."
+                    placeholderTextColor={Colors.textMuted}
+                    value={complaintDescription}
+                    onChangeText={setComplaintDescription}
+                    multiline
+                    numberOfLines={4}
+                  />
+
+                  <Button
+                    title="Submit Support Request"
+                    variant="primary"
+                    onPress={handleSubmitComplaint}
+                    loading={isSubmittingComplaint}
+                    style={{ marginTop: Spacing.lg }}
+                  />
+
+                  <View style={styles.tollFreeCard}>
+                    <Headphones size={18} color="#171717" />
+                    <View style={{ flex: 1, marginLeft: 10 }}>
+                      <Text style={styles.tollFreeTitle}>Emergency Toll-Free Line</Text>
+                      <Text style={styles.tollFreeNumber}>+91 1800-DRIVIX (24/7 Available)</Text>
+                    </View>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.ticketsList}>
+                  {loadingComplaints ? (
+                    <ActivityIndicator size="small" color={Colors.primaryYellow} style={{ marginTop: 20 }} />
+                  ) : complaints.length === 0 ? (
+                    <View style={styles.emptyTickets}>
+                      <MessageSquare size={32} color={Colors.textMuted} />
+                      <Text style={styles.emptyTicketsText}>No support tickets filed yet.</Text>
+                    </View>
+                  ) : (
+                    complaints.map((c) => (
+                      <Card key={c._id} style={styles.complaintCard}>
+                        <View style={styles.complaintTopRow}>
+                          <Text style={styles.complaintTitle}>{c.title}</Text>
+                          <Badge
+                            label={c.complaintStatus.toUpperCase()}
+                            variant={c.complaintStatus === 'resolved' ? 'available' : 'reserved'}
+                          />
+                        </View>
+                        <Text style={styles.complaintDesc}>{c.description}</Text>
+                        <View style={styles.complaintMeta}>
+                          <Clock size={12} color={Colors.textMuted} />
+                          <Text style={styles.complaintDate}>
+                            {new Date(c.createdAt).toLocaleDateString()}
+                          </Text>
+                          {c.bookingId && (
+                            <Text style={styles.complaintBookingTag}>Ref: {c.bookingId}</Text>
+                          )}
+                        </View>
+                      </Card>
+                    ))
+                  )}
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -263,22 +726,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scrollContent: {
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xxl,
   },
   header: {
-    marginBottom: Spacing.md,
+    paddingVertical: Spacing.md,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
+    ...Typography.h1,
     color: Colors.textPrimary,
   },
   userCard: {
-    marginBottom: Spacing.lg,
     padding: Spacing.lg,
-    backgroundColor: Colors.accentYellowLight,
-    borderColor: Colors.primaryYellow,
-    borderWidth: 1.5,
+    marginBottom: Spacing.xl,
+    borderRadius: BorderRadius.lg,
   },
   userRow: {
     flexDirection: 'row',
@@ -291,99 +752,94 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryYellow,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.textPrimary,
+    marginRight: Spacing.md,
   },
   avatarText: {
-    fontWeight: '800',
     fontSize: 24,
+    fontWeight: '800',
     color: Colors.textPrimary,
   },
   userInfo: {
-    marginLeft: Spacing.md,
     flex: 1,
   },
   userName: {
-    fontWeight: '700',
     fontSize: 18,
+    fontWeight: '800',
     color: Colors.textPrimary,
+    marginBottom: 2,
   },
   userEmail: {
     fontSize: 13,
     color: Colors.textSecondary,
-    marginTop: 2,
+    marginBottom: 2,
   },
   userPhone: {
-    fontSize: 12,
-    color: Colors.textMuted,
-    marginTop: 1,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 6,
   },
   roleBadge: {
-    backgroundColor: Colors.textPrimary,
-    alignSelf: 'flex-start',
+    backgroundColor: '#F3F4F6',
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-    marginTop: 6,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.round,
+    alignSelf: 'flex-start',
   },
   roleBadgeText: {
-    fontWeight: '700',
-    fontSize: 9,
-    color: Colors.primaryYellow,
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.textPrimary,
     letterSpacing: 0.5,
   },
   guestCard: {
-    marginBottom: Spacing.lg,
-    padding: Spacing.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.cardBackgroundSelected,
+    borderColor: Colors.borderYellow,
   },
   guestContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   guestIconWrap: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: Colors.cardBackgroundAlt,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.primaryYellow,
     justifyContent: 'center',
     alignItems: 'center',
   },
   guestTitle: {
-    fontWeight: '700',
     fontSize: 16,
+    fontWeight: '800',
     color: Colors.textPrimary,
   },
   guestSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.textSecondary,
     marginTop: 2,
+    lineHeight: 18,
   },
   sectionHeader: {
-    fontWeight: '700',
-    fontSize: 11,
-    color: Colors.textMuted,
-    letterSpacing: 0.5,
-    marginBottom: Spacing.xs,
-    marginTop: Spacing.sm,
-    marginLeft: Spacing.xs,
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.textSecondary,
+    letterSpacing: 0.8,
+    marginBottom: Spacing.sm,
+    marginLeft: 4,
   },
   menuCard: {
+    marginBottom: Spacing.xl,
     padding: 0,
-    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.lg,
     overflow: 'hidden',
   },
   menuItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
-  },
-  switchItem: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
+    paddingVertical: 14,
     paddingHorizontal: Spacing.md,
   },
   menuLeft: {
@@ -395,45 +851,400 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.cardBackgroundAlt,
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
   },
   menuText: {
-    fontWeight: '600',
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   menuSubtext: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.textSecondary,
-    marginTop: 2,
+    marginTop: 1,
   },
   menuDivider: {
     height: 1,
     backgroundColor: Colors.border,
-    marginHorizontal: Spacing.md,
+    marginLeft: 56,
+  },
+  switchItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.md,
   },
   logoutWrap: {
-    marginTop: Spacing.md,
-  },
-  logoutButton: {
-    borderColor: Colors.error,
-  },
-  versionWrap: {
-    alignItems: 'center',
-    marginTop: Spacing.xl,
+    marginTop: Spacing.sm,
     marginBottom: Spacing.lg,
   },
+  logoutButton: {
+    borderColor: '#DC2626',
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+  },
   versionText: {
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  copyrightText: {
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginTop: 4,
+  },
+
+  /* ─── Modal Styles ─────────────────────────────────────────── */
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '85%',
+    paddingBottom: Spacing.xl,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  closeBtn: {
+    padding: 4,
+  },
+  modalBody: {
+    padding: Spacing.lg,
+  },
+  modalLoading: {
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  emptyVehicles: {
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  emptyVehiclesTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginTop: 12,
+  },
+  emptyVehiclesText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 260,
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  addVehicleBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primaryYellow,
+    paddingVertical: 12,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+  },
+  addVehicleBarText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#171717',
+    marginLeft: 8,
+  },
+  addVehicleCard: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.lg,
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  addCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  addCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  cancelLink: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.error,
+  },
+  chipLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 6,
+  },
+  typeChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: Spacing.md,
+  },
+  typeChip: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: '#FFFFFF',
+  },
+  typeChipSelected: {
+    borderColor: Colors.primaryYellow,
+    backgroundColor: Colors.cardBackgroundSelected,
+  },
+  typeChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  typeChipTextSelected: {
+    color: '#171717',
+  },
+  evSwitchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    padding: 10,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  evSwitchTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  evSwitchSubtitle: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+  },
+  vehicleItemCard: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: 10,
+  },
+  vehicleItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  vehicleItemLeft: {
+    flex: 1,
+  },
+  plateBadge: {
+    backgroundColor: '#171717',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  plateBadgeText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+  vehicleItemModel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  vehicleTagsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
+  },
+  evMiniBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  evMiniText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#15803D',
+    marginLeft: 2,
+  },
+  primaryMiniBadge: {
+    backgroundColor: Colors.cardBackgroundSelected,
+    borderWidth: 1,
+    borderColor: Colors.borderYellow,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  primaryMiniText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#171717',
+  },
+  vehicleItemActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  setPrimaryBtn: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 4,
+  },
+  setPrimaryBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  deleteVehicleBtn: {
+    padding: 6,
+  },
+
+  /* ─── Support Modal Styles ─────────────────────────────────── */
+  supportTabRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  supportTab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  supportTabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primaryYellow,
+  },
+  supportTabText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  supportTabTextActive: {
+    color: Colors.textPrimary,
+  },
+  ticketForm: {
+    paddingBottom: 20,
+  },
+  textArea: {
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    fontSize: 14,
+    color: Colors.textPrimary,
+    minHeight: 90,
+    textAlignVertical: 'top',
+  },
+  tollFreeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.cardBackgroundSelected,
+    borderWidth: 1,
+    borderColor: Colors.borderYellow,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.xl,
+  },
+  tollFreeTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  tollFreeNumber: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+    marginTop: 2,
+  },
+  ticketsList: {
+    paddingBottom: 20,
+  },
+  emptyTickets: {
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  emptyTicketsText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginTop: 8,
+  },
+  complaintCard: {
+    padding: Spacing.md,
+    marginBottom: 10,
+    borderRadius: BorderRadius.md,
+  },
+  complaintTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  complaintTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    flex: 1,
+    marginRight: 8,
+  },
+  complaintDesc: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  complaintMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  complaintDate: {
     fontSize: 11,
     color: Colors.textMuted,
   },
-  copyrightText: {
-    fontSize: 10,
-    color: Colors.textMuted,
-    marginTop: 4,
+  complaintBookingTag: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    marginLeft: 6,
   },
 });

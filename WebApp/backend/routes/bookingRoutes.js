@@ -6,6 +6,7 @@ import {
   vacateBooking,
   calculateBill,
   extendBooking,
+  cancelBooking,
   deleteBookingAdmin,
   deleteAllBookingsAdmin,
   assignSlot,
@@ -26,6 +27,8 @@ router.get('/:id/calculate-bill', calculateBill);
 router.put('/:id/vacate', vacateBooking);
 router.put('/:id/extend', extendBooking);
 router.post('/extend', extendBooking); // direct post format support
+router.put('/:id/cancel', cancelBooking);
+router.post('/cancel', cancelBooking);
 
 // Slot assignment and arrival confirmation endpoints
 router.post('/assign-slot', assignSlot);

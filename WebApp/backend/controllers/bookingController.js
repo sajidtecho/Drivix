@@ -629,6 +629,73 @@ export const extendBooking = async (req, res) => {
   }
 };
 
+// @desc    Cancel a user's booking (prior to check-in)
+// @route   PUT /api/v1/bookings/:id/cancel
+// @access  Private
+export const cancelBooking = async (req, res) => {
+  const bookingId = req.params.id || req.body.bookingId;
+
+  try {
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // Verify ownership (unless admin)
+    if (booking.userId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to cancel this booking' });
+    }
+
+    if (booking.status === 'Checked In' || booking.status === 'Checked Out' || booking.status === 'completed') {
+      return res.status(400).json({ message: `Cannot cancel booking with status "${booking.status}". Please vacate slot instead.` });
+    }
+
+    if (booking.status === 'Cancelled') {
+      return res.status(400).json({ message: 'Booking is already cancelled' });
+    }
+
+    // 1. Update status
+    booking.status = 'Cancelled';
+    await booking.save();
+
+    // 2. Release slot if one was assigned
+    if (booking.slotId) {
+      const slot = await Slot.findOne({ facilityId: booking.locationId, id: booking.slotId });
+      if (slot) {
+        slot.status = 'available';
+        slot.CurrentStatus = 'Available';
+        await slot.save();
+
+        const io = req.app.get('socketio');
+        if (io) {
+          io.emit('slotStatusUpdated', {
+            facilityId: booking.locationId.toString(),
+            id: booking.slotId,
+            status: 'available',
+            reservationExpiresAt: null,
+            reservedBy: null
+          });
+        }
+      }
+    }
+
+    // 3. Update floor and location capacities
+    await updateFloorCounters(booking.parkingHubId, booking.floorId);
+
+    // 4. Send cancellation notification
+    await sendBookingNotification({
+      userId: booking.userId,
+      title: 'Booking Cancelled',
+      message: `Your booking ${booking.bookingId} at ${booking.locationName} has been cancelled successfully. Capacity has been released.`,
+      type: 'booking'
+    });
+
+    res.json({ message: 'Booking cancelled successfully', booking });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Delete a specific booking (Admin only)
 // @route   DELETE /api/v1/bookings/admin/:id
 // @access  Private/Admin

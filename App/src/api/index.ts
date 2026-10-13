@@ -3,3 +3,4 @@ export { authApi, LoginParams, RegisterParams, AuthResponse } from './authApi';
 export { parkingApi } from './parkingApi';
 export { bookingApi, CreateBookingPayload } from './bookingApi';
 export { vehicleApi } from './vehicleApi';
+export { complaintApi, Complaint, CreateComplaintPayload } from './complaintApi';
