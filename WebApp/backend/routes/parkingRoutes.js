@@ -12,7 +12,8 @@ import {
   releaseSlot,
   getPricingRecommendation,
   getFloorLiveCapacity,
-  getFloorAvailability
+  getFloorAvailability,
+  getFloorsByLocation
 } from '../controllers/parkingController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -27,6 +28,9 @@ router.route('/floor/live-capacity')
 
 router.route('/floors/:floorId/availability')
   .get(getFloorAvailability);
+
+router.route('/:facilityId/floors')
+  .get(getFloorsByLocation);
 
 router.route('/:id')
   .delete(protect, deleteLocation)

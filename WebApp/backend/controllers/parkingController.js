@@ -571,3 +571,47 @@ export const getFloorAvailability = async (req, res) => {
   }
 };
 
+// @desc    Get all floors for a parking facility
+// @route   GET /api/v1/parking/:facilityId/floors
+// @access  Public
+export const getFloorsByLocation = async (req, res) => {
+  try {
+    const hubId = req.params.facilityId || req.query.parkingHubId;
+    if (!hubId) {
+      return res.status(400).json({ message: 'facilityId is required' });
+    }
+
+    let floors = await ParkingFloor.find({ parkingHubId: hubId });
+    if (!floors || floors.length === 0) {
+      const loc = await ParkingLocation.findById(hubId);
+      if (loc) {
+        const totalFloors = loc.totalFloors || 1;
+        const totalCapacity = loc.totalSlots || 60;
+        const slotsPerFloor = Math.max(10, Math.floor(totalCapacity / totalFloors));
+        const freePerFloor = Math.max(0, Math.floor((loc.availableSlots || totalCapacity) / totalFloors));
+
+        const generated = [];
+        for (let i = 0; i < totalFloors; i++) {
+          const name = i === 0 ? 'Ground' : `L${i}`;
+          generated.push({
+            _id: `${loc._id}_fl_${i}`,
+            parkingHubId: loc._id,
+            floorName: name,
+            totalSlots: slotsPerFloor,
+            availableSlots: freePerFloor,
+            evSlots: 2,
+            accessibilitySlots: 1,
+            active: true
+          });
+        }
+        return res.json(generated);
+      }
+      return res.json([]);
+    }
+
+    res.json(floors);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
