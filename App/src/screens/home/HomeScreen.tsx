@@ -289,7 +289,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         onProceedToBooking={(hub) => {
           setIsMapModalVisible(false);
           selectHub(hub);
-          onNavigateToDetail(hub);
+          if (onSelectHub) {
+            onSelectHub(hub);
+          } else {
+            onNavigateToDiscovery();
+          }
         }}
       />
     </SafeAreaView>

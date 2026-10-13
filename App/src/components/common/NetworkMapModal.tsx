@@ -258,7 +258,7 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
       try {
         const liveHubs = await parkingApi.getLocations();
         if (Array.isArray(liveHubs) && liveHubs.length > 0) {
-          const validLive = liveHubs
+          const validLive: ParkingLocation[] = liveHubs
             .filter((h) => h.latitude && h.longitude)
             .map((h, idx) => ({
               ...h,
@@ -271,7 +271,7 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
             }));
 
           // Merge without duplicate names
-          const merged = [...validLive];
+          const merged: ParkingLocation[] = [...validLive];
           DEFAULT_NETWORK_LOCATIONS.forEach((defLoc) => {
             if (!merged.some((m) => m.parkingName.toLowerCase() === defLoc.parkingName.toLowerCase())) {
               merged.push(defLoc);
@@ -466,7 +466,7 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
         <View style={styles.mapContainer}>
           <MapView
             ref={mapRef}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
             initialRegion={DEFAULT_REGION}
             customMapStyle={DARK_GOOGLE_MAP_STYLES}

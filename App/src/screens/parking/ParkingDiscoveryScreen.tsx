@@ -22,7 +22,7 @@ import {
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Typography } from '../../theme/typography';
-import { Card, Button, Badge, Input, EmptyState } from '../../components/common';
+import { Card, Button, Badge, Input, EmptyState, NetworkMapModal } from '../../components/common';
 import { parkingApi } from '../../api/parkingApi';
 import { useBooking } from '../../store/BookingContext';
 import { ParkingLocation } from '../../types';
@@ -43,6 +43,7 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'ev' | 'available' | 'budget'>('all');
   const [sortOption, setSortOption] = useState<SortOption>('relevance');
+  const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -117,10 +118,22 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Find Parking Hubs</Text>
-        <Text style={styles.headerSubtitle}>
-          Real-time occupancy & multi-floor smart reservations
-        </Text>
+        <View style={styles.headerTopRow}>
+          <View style={styles.headerTitleWrap}>
+            <Text style={styles.headerTitle}>Find Parking Hubs</Text>
+            <Text style={styles.headerSubtitle}>
+              Real-time occupancy & multi-floor reservations
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.mapToggleBtn}
+            onPress={() => setIsMapModalVisible(true)}
+            activeOpacity={0.85}
+          >
+            <MapPin size={15} color="#171717" style={{ marginRight: 4 }} />
+            <Text style={styles.mapToggleBtnText}>Map</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Search Input */}
         <Input
@@ -270,6 +283,13 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
           </Card>
         )}
       />
+
+      {/* ─── Interactive Drivix Network Map Modal ─── */}
+      <NetworkMapModal
+        visible={isMapModalVisible}
+        onClose={() => setIsMapModalVisible(false)}
+        onProceedToBooking={onSelectHub}
+      />
     </SafeAreaView>
   );
 };
@@ -286,9 +306,31 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  headerTitleWrap: {
+    flex: 1,
+  },
+  mapToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryYellow,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: BorderRadius.md,
+  },
+  mapToggleBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#171717',
+  },
   headerTitle: {
     ...Typography.h2,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   headerSubtitle: {
     ...Typography.subtitle,
