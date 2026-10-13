@@ -3,11 +3,12 @@ import joblib
 import numpy as np
 import pandas as pd
 from feature_engineering import FEATURE_COLUMNS_RAW
+from online_learner import get_online_learner
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "drivix_price_model.pkl")
 
 class DrivixPricingInferenceEngine:
-    def __init__(self, model_path=None):
+    def __init__(self, model_path=None, enable_online_learning=True):
         if model_path is None:
             model_path = MODEL_PATH
         if not os.path.exists(model_path):
@@ -15,13 +16,22 @@ class DrivixPricingInferenceEngine:
             if os.path.exists(alt):
                 model_path = alt
         
+        self.enable_online_learning = enable_online_learning
         if os.path.exists(model_path):
             self.pipeline = joblib.load(model_path)
         else:
             self.pipeline = None
             print(f"Warning: Model artifact not found at {model_path}. Run training first.")
 
-    def calculate_price_policy(self, predicted_occupancy, base_hourly_rate=60, duration_hours=2):
+    def calculate_price_policy(
+        self,
+        predicted_occupancy,
+        base_hourly_rate=60,
+        duration_hours=2,
+        online_applied=False,
+        online_residual=0.0,
+        base_occupancy=None
+    ):
         """
         Translates predicted occupancy score to Drivix bounded pricing policy.
         """
@@ -58,12 +68,16 @@ class DrivixPricingInferenceEngine:
             'alert_label': alert_label,
             'is_surge_active': surge_active,
             'recommended_hourly_price': int(hourly_price),
-            'total_quoted_cost': int(total_estimated_cost)
+            'total_quoted_cost': int(total_estimated_cost),
+            'online_learning_applied': bool(online_applied),
+            'online_residual': round(float(online_residual), 4),
+            'base_occupancy_rate': round(float(base_occupancy if base_occupancy is not None else occ), 4)
         }
 
-    def predict_single(self, feature_dict, base_hourly_rate=60):
+    def predict_single(self, feature_dict, base_hourly_rate=60, use_online: bool = True):
         """
-        Predicts demand and dynamic pricing for a single quote request.
+        Predicts demand and dynamic pricing for a single quote request,
+        incorporating continuous online learning corrections if enabled.
         """
         if self.pipeline is None:
             raise RuntimeError("Model pipeline is not loaded. Train and serialize model first.")
@@ -75,11 +89,32 @@ class DrivixPricingInferenceEngine:
             if col not in df_input.columns:
                 df_input[col] = np.nan
 
-        pred_occ = float(self.pipeline.predict(df_input[FEATURE_COLUMNS_RAW])[0])
-        pred_occ = np.clip(pred_occ, 0.0, 1.0)
+        pred_occ_base = float(self.pipeline.predict(df_input[FEATURE_COLUMNS_RAW])[0])
+        pred_occ = pred_occ_base
+        online_applied = False
+        online_residual = 0.0
+
+        if self.enable_online_learning and use_online:
+            try:
+                learner = get_online_learner()
+                if learner.is_initialized:
+                    res_array = learner.predict_residual(df_input[FEATURE_COLUMNS_RAW])
+                    online_residual = float(res_array[0])
+                    blend = learner.blend_weight
+                    pred_occ = np.clip(pred_occ_base + (blend * online_residual), 0.0, 1.0)
+                    online_applied = True
+            except Exception as e:
+                print(f"[Inference Engine] Online correction fallback: {e}")
 
         duration = int(feature_dict.get('f_requested_duration_h', 2))
-        return self.calculate_price_policy(pred_occ, base_hourly_rate=base_hourly_rate, duration_hours=duration)
+        return self.calculate_price_policy(
+            pred_occ,
+            base_hourly_rate=base_hourly_rate,
+            duration_hours=duration,
+            online_applied=online_applied,
+            online_residual=online_residual,
+            base_occupancy=pred_occ_base
+        )
 
 # Global singleton helper
 _engine = None

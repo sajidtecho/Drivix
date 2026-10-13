@@ -12,3 +12,4 @@ onnx>=1.12.0
 skl2onnx>=1.11.0
 fastapi>=0.75.0
 uvicorn>=0.17.0
+pymongo>=4.0.0

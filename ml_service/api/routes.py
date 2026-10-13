@@ -2,7 +2,7 @@ import os
 import sys
 import json
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 
@@ -15,6 +15,9 @@ from predict import get_inference_engine, FEATURE_COLUMNS_RAW
 from inference_logger import log_inference_event
 from drift_detector import generate_drift_report
 from retrain_pipeline import DrivixRetrainingPipeline
+from online_learner import get_online_learner
+from db_connector import DrivixDatabaseConnector
+from db_sync_worker import sync_online_learning_with_db
 
 router = APIRouter()
 
@@ -48,6 +51,8 @@ class PricingQuoteResponse(BaseModel):
     duration_hours: float
     total_quoted_cost: int
     model_version: str
+    online_learning_applied: Optional[bool] = False
+    online_residual: Optional[float] = 0.0
 
 class BatchPricingRequest(BaseModel):
     quotes: List[PricingQuoteRequest]
@@ -58,6 +63,27 @@ class BatchPricingResponse(BaseModel):
 
 class RetrainRequest(BaseModel):
     force_promote: bool = Field(default=False, description="Promote challenger model even if margin is flat")
+
+class OnlineSyncRequest(BaseModel):
+    limit: int = Field(default=100, ge=1, le=1000, description="Max bookings to ingest in this sync")
+    force_full_sync: bool = Field(default=False, description="Sync from the beginning, ignoring saved watermark")
+
+class OnlineEventRequest(BaseModel):
+    booking_id: Optional[str] = Field(default=None, description="Unique booking ID or reference")
+    location_name: str = Field(default="Connaught Place", description="Parking location name")
+    total_capacity: int = Field(default=100, ge=1, description="Total lot capacity")
+    available_slots: Optional[int] = Field(default=None, ge=0, description="Available slots at time of event")
+    duration_hours: float = Field(default=2.0, gt=0.0, le=72.0, description="Parking duration in hours")
+    base_hourly_rate: float = Field(default=60.0, gt=0.0, description="Base hourly rate in INR")
+    total_cost: Optional[float] = Field(default=None, description="Total booking fee paid/charged")
+    realized_occupancy_rate: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Actual realized lot occupancy fraction if known")
+    entry_hour: Optional[int] = Field(default=None, ge=0, le=23, description="Entry hour")
+    entry_dow: Optional[int] = Field(default=None, ge=0, le=6, description="Day of week (0=Mon, 6=Sun)")
+
+class OnlineConfigRequest(BaseModel):
+    blend_weight: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Weight of online residual [0.0 = pure offline XGBoost, 1.0 = heavy online]")
+    enable_online_learning: Optional[bool] = Field(default=None, description="Toggle online learning in inference engine")
+    max_residual_clamp: Optional[float] = Field(default=None, ge=0.05, le=0.50, description="Max allowed residual correction")
 
 # -------------------------------------------------------------
 # Helper: Feature Mapper
@@ -109,7 +135,8 @@ def map_request_to_features(req: PricingQuoteRequest) -> dict:
 def predict_price_quote(request: PricingQuoteRequest, background_tasks: BackgroundTasks):
     """
     Returns AI-driven occupancy prediction and bounded surge/discount pricing
-    recommendations for a parking reservation request.
+    recommendations for a parking reservation request, combining offline XGBoost
+    with continuous online residual corrections.
     """
     try:
         engine = get_inference_engine()
@@ -130,7 +157,9 @@ def predict_price_quote(request: PricingQuoteRequest, background_tasks: Backgrou
             recommended_hourly_price=quote['recommended_hourly_price'],
             duration_hours=request.duration_hours,
             total_quoted_cost=quote['total_quoted_cost'],
-            model_version="xgboost-v1.0"
+            model_version="xgboost-online-v1.0",
+            online_learning_applied=quote.get('online_learning_applied', False),
+            online_residual=quote.get('online_residual', 0.0)
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
@@ -158,11 +187,146 @@ def predict_price_batch(batch_req: BatchPricingRequest, background_tasks: Backgr
                 recommended_hourly_price=quote['recommended_hourly_price'],
                 duration_hours=req.duration_hours,
                 total_quoted_cost=quote['total_quoted_cost'],
-                model_version="xgboost-v1.0"
+                model_version="xgboost-online-v1.0",
+                online_learning_applied=quote.get('online_learning_applied', False),
+                online_residual=quote.get('online_residual', 0.0)
             ))
         return BatchPricingResponse(count=len(results), results=results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Batch inference error: {str(e)}")
+
+# -------------------------------------------------------------
+# Online Learning & Database Sync Endpoints
+# -------------------------------------------------------------
+@router.get("/online-learning/status", tags=["Online Learning System"])
+def get_online_learning_status():
+    """
+    Returns real-time status of the Online Learning system, including
+    MongoDB connection status, total bookings in database, samples trained online,
+    running loss metrics, and active blend hyperparameters.
+    """
+    try:
+        learner = get_online_learner()
+        connector = DrivixDatabaseConnector()
+        db_connected = connector.is_connected()
+        total_db_bookings = connector.get_total_bookings_count() if db_connected else 0
+        engine = get_inference_engine()
+
+        return {
+            "online_learning_enabled": engine.enable_online_learning,
+            "database_connected": db_connected,
+            "total_bookings_in_database": total_db_bookings,
+            "learner_telemetry": learner.get_status(),
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting online learning status: {str(e)}")
+
+@router.post("/online-learning/sync-db", tags=["Online Learning System"])
+def trigger_database_online_sync(req: OnlineSyncRequest = OnlineSyncRequest()):
+    """
+    Connects directly to the operational MongoDB database, extracts newly created
+    or completed bookings since the last watermark, and updates the online adaptive
+    model parameters incrementally via SGD partial_fit.
+    """
+    try:
+        res = sync_online_learning_with_db(limit=req.limit, force_full_sync=req.force_full_sync)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database online sync error: {str(e)}")
+
+@router.post("/online-learning/learn-event", tags=["Online Learning System"])
+def ingest_streaming_event(event: OnlineEventRequest):
+    """
+    Allows the Node.js backend or external gateway to push an individual booking,
+    check-in, or check-out event in real-time for immediate single-step online learning.
+    """
+    try:
+        learner = get_online_learner()
+        engine = get_inference_engine()
+
+        # Calculate occupancy fraction
+        if event.realized_occupancy_rate is not None:
+            actual_occ = event.realized_occupancy_rate
+        elif event.available_slots is not None and event.total_capacity > 0:
+            actual_occ = max(0.0, min(1.0, (event.total_capacity - event.available_slots) / float(event.total_capacity)))
+        else:
+            actual_occ = 0.55
+
+        now = datetime.now()
+        hour = event.entry_hour if event.entry_hour is not None else now.hour
+        dow = event.entry_dow if event.entry_dow is not None else now.weekday()
+
+        features = {
+            'f_location': event.location_name,
+            'f_capacity': float(event.total_capacity),
+            'f_entry_hour': int(hour),
+            'f_entry_dow': int(dow),
+            'f_is_weekend': 1 if dow in [5, 6] else 0,
+            'f_lead_time_min': 15.0,
+            'f_requested_duration_h': float(event.duration_hours),
+            'f_occ_entry_at_quote': float(actual_occ),
+            'f_busy_frac_window_at_quote': float(actual_occ),
+            'f_requests_last_60min_location': 12.0,
+            'f_occ_same_hour_last_week': float(actual_occ)
+        }
+
+        def champion_predict(X):
+            if engine.pipeline is not None:
+                return engine.pipeline.predict(X)
+            return None
+
+        update_res = learner.update_from_single_event(
+            features_dict=features,
+            actual_occupancy=actual_occ,
+            champion_predict_fn=champion_predict
+        )
+
+        return {
+            "success": True,
+            "booking_id": event.booking_id,
+            "learned_occupancy": actual_occ,
+            "online_update": update_res
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error ingesting online learning event: {str(e)}")
+
+@router.post("/online-learning/configure", tags=["Online Learning System"])
+def configure_online_learner(config: OnlineConfigRequest):
+    """
+    Adjusts online learning hyperparameters (blend weight, max residual clamp,
+    or enables/disables online corrections in inference engine).
+    """
+    learner = get_online_learner()
+    engine = get_inference_engine()
+
+    if config.blend_weight is not None:
+        learner.blend_weight = config.blend_weight
+    if config.max_residual_clamp is not None:
+        learner.max_residual_clamp = config.max_residual_clamp
+    if config.enable_online_learning is not None:
+        engine.enable_online_learning = config.enable_online_learning
+
+    learner.save_state()
+
+    return {
+        "success": True,
+        "blend_weight": learner.blend_weight,
+        "max_residual_clamp": learner.max_residual_clamp,
+        "enable_online_learning": engine.enable_online_learning
+    }
+
+@router.post("/online-learning/reset", tags=["Online Learning System"])
+def reset_online_learner():
+    """
+    Resets the online adaptive learner weights and watermarks back to zero.
+    """
+    learner = get_online_learner()
+    learner.reset()
+    return {
+        "success": True,
+        "message": "Online learner weights and watermark successfully reset."
+    }
 
 # -------------------------------------------------------------
 # MLOps Monitoring & Retraining Endpoints
