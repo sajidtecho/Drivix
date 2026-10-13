@@ -23,7 +23,7 @@ import {
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Typography } from '../../theme/typography';
-import { Card, Button, Badge, Input, EmptyState } from '../../components/common';
+import { Card, Button, Badge, Input, EmptyState, CoreServicesShowcase } from '../../components/common';
 import { useAuth } from '../../store/AuthContext';
 import { useBooking } from '../../store/BookingContext';
 import { parkingApi } from '../../api/parkingApi';
@@ -257,6 +257,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </View>
           </Card>
         )}
+
+        {/* ─── Core Services Showcase (Webapp Parity) ─── */}
+        <CoreServicesShowcase
+          onBookParking={onNavigateToDiscovery}
+          onViewMap={onNavigateToDiscovery}
+        />
 
         {/* ─── 5. Featured / Nearby Parking Hubs ─── */}
         <View style={styles.sectionHeader}>
