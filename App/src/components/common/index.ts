@@ -8,3 +8,4 @@ export { Header } from './Header';
 export { EmptyState } from './EmptyState';
 export { LoadingOverlay } from './LoadingOverlay';
 export { CoreServicesShowcase, CoreServicesShowcaseProps } from './CoreServicesShowcase';
+export { NetworkMapModal, NetworkMapModalProps } from './NetworkMapModal';
