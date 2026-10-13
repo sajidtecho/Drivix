@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-10-13T22:21:56.990642",
+  "reference_sample_size": 7704,
+  "production_sample_size": 100,
+  "is_drift_detected": false,
+  "drifted_features_count": 0,
+  "drifted_features": [],
+  "recommendation": "MODEL_STABLE",
+  "features": {
+    "f_occ_entry_at_quote": {
+      "type": "numerical",
+      "ks_statistic": 0.0528,
+      "ks_pvalue": 0.9322,
+      "psi": 0.1117,
+      "drift_detected": false,
+      "severity": "MODERATE"
+    },
+    "f_lead_time_min": {
+      "type": "numerical",
+      "ks_statistic": 0.0523,
+      "ks_pvalue": 0.93639,
+      "psi": 0.0689,
+      "drift_detected": false,
+      "severity": "STABLE"
+    },
+    "f_capacity": {
+      "type": "numerical",
+      "ks_statistic": 0.0402,
+      "ks_pvalue": 0.99534,
+      "psi": 0.0171,
+      "drift_detected": false,
+      "severity": "STABLE"
+    },
+    "f_entry_hour": {
+      "type": "numerical",
+      "ks_statistic": 0.0632,
+      "ks_pvalue": 0.80078,
+      "psi": 0.0593,
+      "drift_detected": false,
+      "severity": "STABLE"
+    },
+    "f_entry_dow": {
+      "type": "numerical",
+      "ks_statistic": 0.0627,
+      "ks_pvalue": 0.80923,
+      "psi": 0.0576,
+      "drift_detected": false,
+      "severity": "STABLE"
+    },
+    "f_requests_last_60min_location": {
+      "type": "numerical",
+      "ks_statistic": 0.0635,
+      "ks_pvalue": 0.7971,
+      "psi": 0.1132,
+      "drift_detected": false,
+      "severity": "MODERATE"
+    },
+    "f_busy_frac_window_at_quote": {
+      "type": "numerical",
+      "ks_statistic": 0.041,
+      "ks_pvalue": 0.99405,
+      "psi": 0.0311,
+      "drift_detected": false,
+      "severity": "STABLE"
+    },
+    "f_location": {
+      "type": "categorical",
+      "max_category_shift": 0.0482,
+      "drift_detected": false,
+      "severity": "STABLE"
+    }
+  }
+}

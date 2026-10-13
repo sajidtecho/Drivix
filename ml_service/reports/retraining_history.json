@@ -58,5 +58,25 @@
     "training_samples_count": 7713,
     "validation_samples_count": 2130,
     "archived_model": "champion_20261011_141815.pkl"
+  },
+  {
+    "retraining_id": "retrain_20261013_222158",
+    "timestamp": "2026-10-13T22:21:58.720048",
+    "duration_seconds": 1.42,
+    "status": "COMPLETED",
+    "promotion_status": "PROMOTED_CHAMPION",
+    "champion_metrics": {
+      "mae": 0.0808,
+      "rmse": 0.1166,
+      "r2": 0.7834
+    },
+    "challenger_metrics": {
+      "mae": 0.0814,
+      "rmse": 0.1172,
+      "r2": 0.7809
+    },
+    "training_samples_count": 7718,
+    "validation_samples_count": 2130,
+    "archived_model": "champion_20261013_222158.pkl"
   }
 ]
