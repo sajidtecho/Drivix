@@ -136,6 +136,52 @@ test('Vacate & Checkout: Successfully transitions to Checked Out', () => {
   assert.strictEqual(booking.status, 'Checked Out');
 });
 
+// ─── 5. Online Booking Allowance & GPS Navigation Tests ───
+const checkIsOnlineBookingAllowed = (location) => {
+  if (!location) return false;
+  if (location.allowOnlineBooking === false || location.isOnlineBooking === false) return false;
+  if (!location.totalSlots || location.totalSlots <= 0) return false;
+  if (location.status === 'Inactive') return false;
+  const name = (location.parkingName || location.name || '').toLowerCase();
+  if (name.includes('knowledge park ii metro') || name.includes('knowledge park 2 metro')) return false;
+  if (Array.isArray(location.amenities) && location.amenities.some((a) => typeof a === 'string' && a.toLowerCase().includes('offline'))) return false;
+  return true;
+};
+
+test('Online Booking: Blocks Knowledge Park II Metro Station from online booking', () => {
+  const kp2 = {
+    parkingName: 'Knowledge Park II Metro Station',
+    address: 'Knowledge Park II, Greater Noida',
+    totalSlots: 0,
+    availableSlots: 0,
+    allowOnlineBooking: false,
+    status: 'Inactive'
+  };
+  assert.strictEqual(checkIsOnlineBookingAllowed(kp2), false);
+});
+
+test('Online Booking: Allows active verified facilities to proceed with online booking', () => {
+  const sharda = {
+    parkingName: 'Sharda University Parking Hub (Campus-wide)',
+    address: 'Plot 32-34, Knowledge Park III, Greater Noida',
+    totalSlots: 1000,
+    availableSlots: 450,
+    allowOnlineBooking: true,
+    status: 'Active'
+  };
+  assert.strictEqual(checkIsOnlineBookingAllowed(sharda), true);
+});
+
+test('Online Booking: Blocks facilities with 0 or unverified slots', () => {
+  const zeroSlots = {
+    parkingName: 'GNIDA Circular Parking',
+    totalSlots: 0,
+    availableSlots: 0,
+    status: 'Active'
+  };
+  assert.strictEqual(checkIsOnlineBookingAllowed(zeroSlots), false);
+});
+
 console.log(`\n========================================================`);
 console.log(`  RESULTS: ${passedTests}/${totalTests} Tests Passed successfully!`);
 console.log(`========================================================\n`);

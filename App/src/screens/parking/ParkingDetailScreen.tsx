@@ -20,6 +20,7 @@ import {
   ArrowRight,
   Info,
   CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
@@ -28,6 +29,7 @@ import { Header, Card, Button, Badge } from '../../components/common';
 import { parkingApi } from '../../api/parkingApi';
 import { useBooking } from '../../store/BookingContext';
 import { ParkingLocation, ParkingFloor } from '../../types';
+import { checkIsOnlineBookingAllowed } from '../../services/bookingEligibility';
 
 export interface ParkingDetailScreenProps {
   hub: ParkingLocation;
@@ -96,18 +98,35 @@ export const ParkingDetailScreen: React.FC<ParkingDetailScreenProps> = ({
         {/* ─── Hero Overview Card ─── */}
         <Card style={styles.heroCard}>
           <View style={styles.heroHeader}>
-            <View>
+            <View style={{ flex: 1, marginRight: 8 }}>
               <Text style={styles.heroHubName}>{hub.parkingName}</Text>
               <View style={styles.addressRow}>
                 <MapPin size={14} color={Colors.textSecondary} />
                 <Text style={styles.heroAddressText}>{hub.address}</Text>
               </View>
             </View>
-            <Badge
-              label={hub.availableSlots > 0 ? `${hub.availableSlots} Slots Free` : 'Lot Full'}
-              variant={hub.availableSlots > 0 ? 'available' : 'occupied'}
-            />
+            {checkIsOnlineBookingAllowed(hub) ? (
+              <Badge
+                label={hub.availableSlots > 0 ? `${hub.availableSlots} Slots Free` : 'Lot Full'}
+                variant={hub.availableSlots > 0 ? 'available' : 'occupied'}
+              />
+            ) : (
+              <View style={styles.noBookingBadgeDetail}>
+                <AlertTriangle size={11} color="#FFAD00" style={{ marginRight: 4 }} />
+                <Text style={styles.noBookingBadgeDetailText}>NOT ONLINE BOOKING</Text>
+              </View>
+            )}
           </View>
+
+          {!checkIsOnlineBookingAllowed(hub) && (
+            <View style={styles.noBookingBanner}>
+              <AlertTriangle size={15} color="#FFAD00" style={{ marginRight: 6, flexShrink: 0 }} />
+              <Text style={styles.noBookingBannerText}>
+                <Text style={{ fontWeight: '800' }}>NOT ONLINE BOOKING: </Text>
+                On-site entry only. Use Navigate for GPS directions.
+              </Text>
+            </View>
+          )}
 
           {/* Pricing Highlight Box */}
           <View style={styles.pricingBox}>
@@ -195,9 +214,14 @@ export const ParkingDetailScreen: React.FC<ParkingDetailScreenProps> = ({
 
         {/* Notice on Drivix Booking Policy */}
         <View style={styles.policyNotice}>
-          <CheckCircle2 size={16} color={Colors.available} />
+          <CheckCircle2
+            size={16}
+            color={checkIsOnlineBookingAllowed(hub) ? Colors.available : '#FFAD00'}
+          />
           <Text style={styles.policyText}>
-            Reserve floor capacity instantly now. Your optimal physical slot is automatically assigned upon arrival via smart ANPR gate logic.
+            {checkIsOnlineBookingAllowed(hub)
+              ? 'Reserve floor capacity instantly now. Your optimal physical slot is automatically assigned upon arrival via smart ANPR gate logic.'
+              : 'This facility operates on physical on-site entry. Tap Navigate below to open GPS maps directly for live turn-by-turn directions.'}
           </Text>
         </View>
       </ScrollView>
@@ -205,17 +229,32 @@ export const ParkingDetailScreen: React.FC<ParkingDetailScreenProps> = ({
       {/* ─── Bottom CTA Bar ─── */}
       <View style={styles.bottomBar}>
         <View style={styles.bottomPriceCol}>
-          <Text style={styles.bottomPriceText}>₹{hub.hourlyPrice}</Text>
-          <Text style={styles.bottomSubtext}>base hourly rate</Text>
+          <Text style={styles.bottomPriceText}>
+            {hub.hourlyPrice > 0 ? `₹${hub.hourlyPrice}` : 'On-Site'}
+          </Text>
+          <Text style={styles.bottomSubtext}>
+            {checkIsOnlineBookingAllowed(hub) ? 'base hourly rate' : 'entry on-site'}
+          </Text>
         </View>
-        <Button
-          title="Select Floor & Reserve"
-          variant="primary"
-          icon={<ArrowRight size={18} color="#171717" />}
-          iconPosition="right"
-          onPress={onProceedToFloorSelection}
-          style={styles.proceedBtn}
-        />
+        {checkIsOnlineBookingAllowed(hub) ? (
+          <Button
+            title="Select Floor & Reserve"
+            variant="primary"
+            icon={<ArrowRight size={18} color="#171717" />}
+            iconPosition="right"
+            onPress={onProceedToFloorSelection}
+            style={styles.proceedBtn}
+          />
+        ) : (
+          <Button
+            title="Navigate to Location"
+            variant="primary"
+            icon={<Navigation size={18} color="#171717" />}
+            iconPosition="right"
+            onPress={openInMaps}
+            style={styles.proceedBtn}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -454,5 +493,38 @@ const styles = StyleSheet.create({
   proceedBtn: {
     flex: 1,
     maxWidth: 240,
+  },
+  noBookingBadgeDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.45)',
+  },
+  noBookingBadgeDetailText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FFAD00',
+    letterSpacing: 0.5,
+  },
+  noBookingBanner: {
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    borderRadius: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    marginBottom: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  noBookingBannerText: {
+    fontSize: 12,
+    color: '#FFAD00',
+    flex: 1,
+    lineHeight: 16,
   },
 });
