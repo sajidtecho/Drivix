@@ -23,7 +23,7 @@ export const Shadows: Record<string, ViewStyle> = {
     elevation: 6,
   },
   yellowGlow: {
-    shadowColor: '#FFC928',
+    shadowColor: '#FFAE0E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,

@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   paymentOptionSelected: {
-    backgroundColor: '#FFF9E6',
+    backgroundColor: Colors.accentYellowLight,
     borderColor: Colors.primaryYellow,
     borderWidth: 2,
   },

@@ -378,12 +378,12 @@ const styles = StyleSheet.create({
   },
   priceContainer: {
     alignItems: 'flex-end',
-    backgroundColor: '#FFF9E6',
+    backgroundColor: Colors.accentYellowLight,
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: '#FEF08A',
+    borderColor: Colors.accentYellowMuted,
   },
   priceValue: {
     fontSize: 18,

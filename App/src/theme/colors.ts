@@ -11,12 +11,12 @@ export const Colors = {
   cardBackgroundAlt: '#F9FAFB',
   modalBackground: '#FFFFFF',
 
-  // Brand Accents
-  primaryYellow: '#FFC928',
-  secondaryYellow: '#FFD84D',
-  accentYellowLight: '#FFF9E6',
-  accentYellowMuted: '#FEF08A',
-  accentGlow: 'rgba(255, 201, 40, 0.35)',
+  // Brand Accents - Matching Website Deep Gold (--accent-secondary #FFAE0E & --accent-primary #FFCE00)
+  primaryYellow: '#FFAE0E', // Website Deep Gold (Rich dark golden amber)
+  secondaryYellow: '#FFCE00', // Website Primary Gold
+  accentYellowLight: '#FFF6DF', // Warm golden surface tint
+  accentYellowMuted: '#FDE68A',
+  accentGlow: 'rgba(255, 174, 14, 0.35)',
 
   // Typography
   textPrimary: '#171717',
@@ -28,13 +28,13 @@ export const Colors = {
   // Borders & Dividers
   border: '#EEEEEE',
   borderStrong: '#E5E7EB',
-  borderYellow: '#FFC928',
+  borderYellow: '#FFAE0E',
   borderGlass: 'rgba(0, 0, 0, 0.08)',
 
   // Parking Availability Status Colors
   available: '#218838', // Green: Available
   occupied: '#D93025',  // Red: Occupied
-  reserved: '#FFC928',  // Yellow: Reserved / Pending
+  reserved: '#FFAE0E',  // Deep Gold: Reserved / Pending
   disabled: '#999999',  // Gray: Unavailable / Out of order
 
   // Semantic Feedback
@@ -50,7 +50,7 @@ export const Colors = {
   // Surges & Highlights
   surgeBadge: '#D93025',
   discountBadge: '#218838',
-  highlight: '#FFC928'
+  highlight: '#FFAE0E'
 } as const;
 
 export type ColorKey = keyof typeof Colors;
