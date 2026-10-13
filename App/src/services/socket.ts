@@ -12,8 +12,10 @@ class SocketService {
     if (this.socket?.connected) return;
 
     this.socket = io(SOCKET_SERVER_URL, {
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
       autoConnect: true,
+      reconnectionAttempts: 3,
+      timeout: 8000,
     });
 
     this.socket.on('connect', () => {
@@ -24,8 +26,9 @@ class SocketService {
       console.log('Socket.IO: Disconnected from server:', reason);
     });
 
-    this.socket.on('connect_error', (error) => {
-      console.error('Socket.IO: Connection error:', error);
+    this.socket.on('connect_error', () => {
+      // Graceful fallback notice without popping error overlay
+      console.log('Socket.IO: Live socket reconnecting in background...');
     });
   }
 
