@@ -1,60 +1,69 @@
 import { Platform, TextStyle } from 'react-native';
 
-export const Typography: Record<string, TextStyle> = {
+const fontBold = Platform.select({ ios: 'System', android: 'Roboto' }) || 'System';
+const fontMedium = Platform.select({ ios: 'System', android: 'Roboto' }) || 'System';
+const fontRegular = Platform.select({ ios: 'System', android: 'Roboto' }) || 'System';
+
+export const Typography = {
   h1: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '800' as const,
     lineHeight: 34,
     color: '#171717',
-    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+    fontFamily: fontBold,
   },
   h2: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     lineHeight: 28,
     color: '#171717',
-    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+    fontFamily: fontBold,
   },
   h3: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     lineHeight: 24,
     color: '#171717',
-    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+    fontFamily: fontBold,
   },
   subtitle: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '500' as const,
     lineHeight: 20,
     color: '#666666',
+    fontFamily: fontMedium,
   },
   body: {
     fontSize: 14,
-    fontWeight: '400',
+    fontWeight: '400' as const,
     lineHeight: 20,
     color: '#171717',
+    fontFamily: fontRegular,
   },
   bodyBold: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     lineHeight: 20,
     color: '#171717',
+    fontFamily: fontBold,
   },
   caption: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '500' as const,
     lineHeight: 16,
     color: '#666666',
+    fontFamily: fontRegular,
   },
   button: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     color: '#171717',
     letterSpacing: 0.2,
+    fontFamily: fontBold,
   },
-  fontBold: Platform.select({ ios: 'System', android: 'Roboto' }),
-  fontMedium: Platform.select({ ios: 'System', android: 'Roboto' }),
-  fontRegular: Platform.select({ ios: 'System', android: 'Roboto' }),
+  fontBold,
+  fontMedium,
+  fontRegular,
   fontSizes: {
     xs: 11,
     sm: 13,
@@ -65,4 +74,4 @@ export const Typography: Record<string, TextStyle> = {
   },
 };
 
-export const typography = Typography as any;
+export const typography = Typography;

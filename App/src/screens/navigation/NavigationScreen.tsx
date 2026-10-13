@@ -45,7 +45,7 @@ export const NavigationScreen: React.FC<NavigationScreenProps> = ({
   const [isAllocating, setIsAllocating] = useState<boolean>(false);
   const [allocationResult, setAllocationResult] = useState<SlotAllocationResult | null>(null);
 
-  const hubName = currentBooking.locationName;
+  const hubName = currentBooking.locationName || (typeof currentBooking.parkingHubId === 'object' && currentBooking.parkingHubId?.parkingName) || 'Drivix Parking Hub';
   const address = typeof currentBooking.parkingHubId === 'object' && currentBooking.parkingHubId !== null
     ? (currentBooking.parkingHubId as any).address || ''
     : '';

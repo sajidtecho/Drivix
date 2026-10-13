@@ -42,7 +42,7 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
 }) => {
   const [currentBooking, setCurrentBooking] = useState<Booking>(booking);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(() => {
-    return Math.max(0, currentBooking.duration * 3600);
+    return Math.max(0, (currentBooking.duration || 2) * 3600);
   });
   const [extendModalVisible, setExtendModalVisible] = useState<boolean>(false);
   const [extensionHours, setExtensionHours] = useState<number>(1);

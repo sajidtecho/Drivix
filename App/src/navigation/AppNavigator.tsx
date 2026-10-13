@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
-import { spacing } from '../theme/spacing';
+import { Home, Search, Receipt, User } from 'lucide-react-native';
+import { Colors } from '../theme/colors';
+import { useBooking } from '../store/BookingContext';
 
 // Screens
 import { HomeScreen } from '../screens/home/HomeScreen';
@@ -36,7 +35,7 @@ export type RootStackParamList = {
   BookingReview: undefined;
   BookingConfirmation: { booking: Booking };
   Navigation: { booking: Booking };
-  ActiveParking: { bookingId: string };
+  ActiveParking: { bookingId: string; booking?: Booking };
   Login: undefined;
   Register: undefined;
 };
@@ -48,6 +47,119 @@ export type BottomTabParamList = {
   Profile: undefined;
 };
 
+// ─── Screen Adapters for Native Stack Navigation ─────────────────────────────
+
+const HomeScreenAdapter = ({ navigation }: any) => {
+  const { setSelectedHub } = useBooking();
+  return (
+    <HomeScreen
+      onNavigateToDiscovery={() => navigation.navigate('Find Parking')}
+      onSelectHub={(hub) => {
+        setSelectedHub(hub);
+        navigation.navigate('ParkingDetail', { facility: hub });
+      }}
+      onNavigateToBookingDetail={(id) => navigation.navigate('ActiveParking', { bookingId: id })}
+      onNavigateToActiveParking={(id) => navigation.navigate('ActiveParking', { bookingId: id })}
+      onNavigateToProfile={() => navigation.navigate('Profile')}
+    />
+  );
+};
+
+const ParkingDiscoveryScreenAdapter = ({ navigation }: any) => {
+  const { setSelectedHub } = useBooking();
+  return (
+    <ParkingDiscoveryScreen
+      onSelectHub={(hub) => {
+        setSelectedHub(hub);
+        navigation.navigate('ParkingDetail', { facility: hub });
+      }}
+    />
+  );
+};
+
+const ParkingDetailScreenAdapter = ({ navigation, route }: any) => {
+  const { selectedHub } = useBooking();
+  const hub = route?.params?.facility || selectedHub;
+  return (
+    <ParkingDetailScreen
+      hub={hub}
+      onBack={() => navigation.goBack()}
+      onProceedToFloorSelection={() => navigation.navigate('FloorSelection')}
+    />
+  );
+};
+
+const FloorSelectionScreenAdapter = ({ navigation }: any) => {
+  return (
+    <FloorSelectionScreen
+      onBack={() => navigation.goBack()}
+      onProceed={() => navigation.navigate('DurationSelection')}
+    />
+  );
+};
+
+const DurationSelectionScreenAdapter = ({ navigation }: any) => {
+  return (
+    <DurationSelectionScreen
+      onBack={() => navigation.goBack()}
+      onProceed={() => navigation.navigate('VehicleSelection')}
+    />
+  );
+};
+
+const VehicleSelectionScreenAdapter = ({ navigation }: any) => {
+  return (
+    <VehicleSelectionScreen
+      onBack={() => navigation.goBack()}
+      onProceed={() => navigation.navigate('BookingReview')}
+    />
+  );
+};
+
+const BookingReviewScreenAdapter = ({ navigation }: any) => {
+  return (
+    <BookingReviewScreen
+      onBack={() => navigation.goBack()}
+      onBookingSuccess={(booking) => navigation.navigate('BookingConfirmation', { booking })}
+      onRequireAuth={() => navigation.navigate('Login')}
+    />
+  );
+};
+
+const BookingConfirmationScreenAdapter = ({ navigation, route }: any) => {
+  const booking = route?.params?.booking;
+  return (
+    <BookingConfirmationScreen
+      booking={booking}
+      onNavigateToHub={() => navigation.navigate('Navigation', { booking })}
+      onGoHome={() => navigation.navigate('MainTabs')}
+      onViewMyBookings={() => navigation.navigate('My Bookings')}
+    />
+  );
+};
+
+const NavigationScreenAdapter = ({ navigation, route }: any) => {
+  const booking = route?.params?.booking;
+  return (
+    <NavigationScreen
+      booking={booking}
+      onBack={() => navigation.goBack()}
+      onProceedToActiveParking={(b) => navigation.navigate('ActiveParking', { bookingId: b._id, booking: b })}
+    />
+  );
+};
+
+const ActiveParkingScreenAdapter = ({ navigation, route }: any) => {
+  const booking = route?.params?.booking || { _id: route?.params?.bookingId };
+  return (
+    <ActiveParkingScreen
+      booking={booking}
+      onBack={() => navigation.goBack()}
+      onCheckoutSuccess={() => navigation.navigate('MainTabs')}
+    />
+  );
+};
+
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -57,40 +169,32 @@ const BottomTabNavigator = () => {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: colors.textPrimary,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: Colors.textPrimary,
+        tabBarInactiveTintColor: Colors.textSecondary,
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,
       }}
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeScreenAdapter}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ focused, color, size }) => (
+          tabBarIcon: ({ focused, color }) => (
             <View style={[styles.tabIconWrap, focused && styles.activeTabIconWrap]}>
-              <Ionicons
-                name={focused ? 'home' : 'home-outline'}
-                size={20}
-                color={focused ? colors.textPrimary : color}
-              />
+              <Home size={18} color={focused ? Colors.textPrimary : color} />
             </View>
           ),
         }}
       />
       <Tab.Screen
         name="Find Parking"
-        component={ParkingDiscoveryScreen}
+        component={ParkingDiscoveryScreenAdapter}
         options={{
           tabBarLabel: 'Find Parking',
-          tabBarIcon: ({ focused, color, size }) => (
+          tabBarIcon: ({ focused, color }) => (
             <View style={[styles.tabIconWrap, focused && styles.activeTabIconWrap]}>
-              <Ionicons
-                name={focused ? 'search' : 'search-outline'}
-                size={20}
-                color={focused ? colors.textPrimary : color}
-              />
+              <Search size={18} color={focused ? Colors.textPrimary : color} />
             </View>
           ),
         }}
@@ -100,13 +204,9 @@ const BottomTabNavigator = () => {
         component={BookingHistoryScreen}
         options={{
           tabBarLabel: 'My Bookings',
-          tabBarIcon: ({ focused, color, size }) => (
+          tabBarIcon: ({ focused, color }) => (
             <View style={[styles.tabIconWrap, focused && styles.activeTabIconWrap]}>
-              <Ionicons
-                name={focused ? 'receipt' : 'receipt-outline'}
-                size={20}
-                color={focused ? colors.textPrimary : color}
-              />
+              <Receipt size={18} color={focused ? Colors.textPrimary : color} />
             </View>
           ),
         }}
@@ -116,13 +216,9 @@ const BottomTabNavigator = () => {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ focused, color, size }) => (
+          tabBarIcon: ({ focused, color }) => (
             <View style={[styles.tabIconWrap, focused && styles.activeTabIconWrap]}>
-              <Ionicons
-                name={focused ? 'person' : 'person-outline'}
-                size={20}
-                color={focused ? colors.textPrimary : color}
-              />
+              <User size={18} color={focused ? Colors.textPrimary : color} />
             </View>
           ),
         }}
@@ -137,24 +233,24 @@ export const AppNavigator = () => {
       initialRouteName="MainTabs"
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
+        contentStyle: { backgroundColor: Colors.background },
         animation: 'slide_from_right',
       }}
     >
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
-      
+
       {/* Parking Discovery & Booking Flow */}
-      <Stack.Screen name="ParkingDetail" component={ParkingDetailScreen} />
-      <Stack.Screen name="FloorSelection" component={FloorSelectionScreen} />
-      <Stack.Screen name="DurationSelection" component={DurationSelectionScreen} />
-      <Stack.Screen name="VehicleSelection" component={VehicleSelectionScreen} />
-      <Stack.Screen name="BookingReview" component={BookingReviewScreen} />
-      <Stack.Screen name="BookingConfirmation" component={BookingConfirmationScreen} />
-      
+      <Stack.Screen name="ParkingDetail" component={ParkingDetailScreenAdapter} />
+      <Stack.Screen name="FloorSelection" component={FloorSelectionScreenAdapter} />
+      <Stack.Screen name="DurationSelection" component={DurationSelectionScreenAdapter} />
+      <Stack.Screen name="VehicleSelection" component={VehicleSelectionScreenAdapter} />
+      <Stack.Screen name="BookingReview" component={BookingReviewScreenAdapter} />
+      <Stack.Screen name="BookingConfirmation" component={BookingConfirmationScreenAdapter} />
+
       {/* Navigation, Check-in & Active Parking */}
-      <Stack.Screen name="Navigation" component={NavigationScreen} />
-      <Stack.Screen name="ActiveParking" component={ActiveParkingScreen} />
-      
+      <Stack.Screen name="Navigation" component={NavigationScreenAdapter} />
+      <Stack.Screen name="ActiveParking" component={ActiveParkingScreenAdapter} />
+
       {/* Auth */}
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
@@ -172,8 +268,8 @@ export const DrivixRootNavigator = () => {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: colors.white,
-    borderTopColor: colors.border,
+    backgroundColor: Colors.background,
+    borderTopColor: Colors.border,
     borderTopWidth: 1,
     height: Platform.OS === 'ios' ? 88 : 64,
     paddingTop: 6,
@@ -185,8 +281,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   tabBarLabel: {
-    fontFamily: typography.fontMedium,
     fontSize: 11,
+    fontWeight: '600',
     marginTop: 2,
   },
   tabIconWrap: {
@@ -197,6 +293,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTabIconWrap: {
-    backgroundColor: colors.primaryYellow,
+    backgroundColor: Colors.primaryYellow,
   },
 });

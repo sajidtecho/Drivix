@@ -74,8 +74,8 @@ export const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({
     setErrorMsg('');
     try {
       const created = await confirmBooking(paymentMode, {
-        name: user.name,
-        mobile: user.mobile,
+        name: user.name || 'Drivix User',
+        mobile: user.mobile || user.phone || '',
       });
       onBookingSuccess(created);
     } catch (err: any) {

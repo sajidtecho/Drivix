@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { socketService } from '@/services/socket';
@@ -19,10 +18,10 @@ function RootLayoutContent() {
   }, []);
 
   return (
-    <ThemeProvider value={DefaultTheme}>
+    <>
       <AnimatedSplashOverlay />
       <DrivixRootNavigator />
-    </ThemeProvider>
+    </>
   );
 }
 
