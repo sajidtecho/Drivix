@@ -164,7 +164,7 @@ export const AppNavigator = () => {
 
 export const DrivixRootNavigator = () => {
   return (
-    <NavigationContainer independent={true}>
+    <NavigationContainer>
       <AppNavigator />
     </NavigationContainer>
   );
