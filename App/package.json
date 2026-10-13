@@ -65,7 +65,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "node ./scripts/test-booking-flow.js"
+    "test": "node ./scripts/test-booking-flow.js && node ./scripts/test-auth-integration.js",
+    "test:auth": "node ./scripts/test-auth-integration.js"
   },
   "private": true
 }
