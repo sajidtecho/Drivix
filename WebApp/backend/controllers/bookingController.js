@@ -470,7 +470,23 @@ export const vacateBooking = async (req, res) => {
   const { paymentMethod } = req.body; // 'wallet' or 'cash' or 'card'
 
   try {
-    const booking = await Booking.findById(req.params.id);
+    let bookingIdParam = req.params.id || req.body.bookingId;
+    if (typeof bookingIdParam === 'object' && bookingIdParam !== null) {
+      bookingIdParam = bookingIdParam._id || bookingIdParam.id || String(bookingIdParam);
+    }
+
+    if (!bookingIdParam || bookingIdParam === '[object Object]') {
+      return res.status(400).json({ message: 'Invalid booking reference ID' });
+    }
+
+    let booking = null;
+    if (mongoose.Types.ObjectId.isValid(bookingIdParam)) {
+      booking = await Booking.findById(bookingIdParam);
+    }
+    if (!booking) {
+      booking = await Booking.findOne({ bookingId: bookingIdParam });
+    }
+
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
@@ -583,7 +599,23 @@ export const extendBooking = async (req, res) => {
   const { additionalHours, additionalCost } = req.body;
 
   try {
-    const booking = await Booking.findById(req.params.id);
+    let bookingIdParam = req.params.id || req.body.bookingId;
+    if (typeof bookingIdParam === 'object' && bookingIdParam !== null) {
+      bookingIdParam = bookingIdParam._id || bookingIdParam.id || String(bookingIdParam);
+    }
+
+    if (!bookingIdParam || bookingIdParam === '[object Object]') {
+      return res.status(400).json({ message: 'Invalid booking reference ID' });
+    }
+
+    let booking = null;
+    if (mongoose.Types.ObjectId.isValid(bookingIdParam)) {
+      booking = await Booking.findById(bookingIdParam);
+    }
+    if (!booking) {
+      booking = await Booking.findOne({ bookingId: bookingIdParam });
+    }
+
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
