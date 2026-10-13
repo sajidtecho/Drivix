@@ -33,7 +33,7 @@ import { ParkingLocation, Booking, Vehicle } from '../../types';
 
 export interface HomeScreenProps {
   onNavigateToDiscovery: () => void;
-  onSelectHub: (hub: ParkingLocation) => void;
+  onSelectHub?: (hub: ParkingLocation) => void;
   onNavigateToBookingDetail: (booking: Booking) => void;
   onNavigateToActiveParking: (booking: Booking) => void;
   onNavigateToProfile: () => void;
@@ -100,19 +100,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     setRefreshing(true);
     loadDashboardData();
   };
-
-  // Filter locations if search typed on home
-  const filteredLocations = locations.filter((loc) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      loc.parkingName.toLowerCase().includes(q) ||
-      loc.address.toLowerCase().includes(q) ||
-      (loc.city && loc.city.toLowerCase().includes(q))
-    );
-  });
-
-  const featuredHubs = filteredLocations.slice(0, 4);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -264,79 +251,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           onViewMap={onNavigateToDiscovery}
         />
 
-        {/* ─── 5. Featured / Nearby Parking Hubs ─── */}
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle}>Featured Parking Hubs</Text>
-            <Text style={styles.sectionSubtitle}>
-              Live real-time floor capacity & dynamic quotes
-            </Text>
-          </View>
-          <TouchableOpacity activeOpacity={0.7} onPress={onNavigateToDiscovery}>
-            <Text style={styles.viewAllText}>View All</Text>
-          </TouchableOpacity>
-        </View>
-
-        {featuredHubs.length === 0 ? (
-          <EmptyState
-            title="No parking hubs found"
-            description="Could not load parking facilities. Pull down to refresh."
-            actionTitle="Find Nearby"
-            onAction={onNavigateToDiscovery}
-          />
-        ) : (
-          featuredHubs.map((hub) => (
-            <Card key={hub._id} style={styles.hubCard}>
-              <View style={styles.hubHeaderRow}>
-                <View style={styles.hubTitleCol}>
-                  <Text style={styles.hubName}>{hub.parkingName}</Text>
-                  <View style={styles.addressRow}>
-                    <MapPin size={14} color={Colors.textSecondary} />
-                    <Text style={styles.addressText} numberOfLines={1}>
-                      {hub.address}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.priceCol}>
-                  <Text style={styles.priceAmount}>₹{hub.hourlyPrice}</Text>
-                  <Text style={styles.pricePeriod}>/hour</Text>
-                </View>
-              </View>
-
-              {/* Floor & Capacity Summary */}
-              <View style={styles.capacityRow}>
-                <Badge
-                  label={`${hub.availableSlots} / ${hub.totalSlots} Slots Free`}
-                  variant={hub.availableSlots > 10 ? 'available' : hub.availableSlots > 0 ? 'reserved' : 'occupied'}
-                />
-                {hub.amenities && hub.amenities.includes('EV Charging') && (
-                  <View style={styles.amenityChip}>
-                    <Zap size={12} color="#15803D" />
-                    <Text style={styles.amenityChipText}>EV Fast Charging</Text>
-                  </View>
-                )}
-                {hub.status === 'Active' && (
-                  <View style={styles.amenityChip}>
-                    <ShieldCheck size={12} color="#000000" />
-                    <Text style={styles.amenityChipText}>24/7 Monitored</Text>
-                  </View>
-                )}
-              </View>
-
-              <Button
-                title="View Parking & Reserve"
-                variant="primary"
-                onPress={() => {
-                  selectHub(hub);
-                  onSelectHub(hub);
-                }}
-                style={styles.hubReserveBtn}
-              />
-            </Card>
-          ))
-        )}
-
-        {/* ─── 6. Recent Bookings Preview ─── */}
+        {/* ─── Recent Bookings Preview ─── */}
         {isAuthenticated && recentBookings.length > 0 && (
           <View style={styles.recentSection}>
             <Text style={styles.sectionTitle}>Recent Bookings</Text>
