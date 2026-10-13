@@ -1,11 +1,12 @@
 {
-  "total_samples_trained": 49,
-  "running_mae": 0.43624,
-  "last_sync_timestamp": "2026-10-11T07:33:45.837000",
-  "last_updated_at": "2026-10-13T22:25:32.598196",
-  "blend_weight": 0.35,
+  "total_samples_trained": 11,
+  "running_mae": 0.11732,
+  "last_sync_timestamp": "2026-07-13T19:33:46.058000",
+  "last_updated_at": "2026-10-13T22:29:32.667454",
+  "blend_weight": 0.45,
   "is_initialized": true,
   "recent_losses": [
-    0.43624
+    0.13402,
+    0.02267
   ]
 }

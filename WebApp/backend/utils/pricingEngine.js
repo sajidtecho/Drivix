@@ -171,3 +171,34 @@ export const calculateDynamicPrice = async ({
     nearbyEvent
   });
 };
+
+/**
+ * Streams real-time booking and checkout events to the ML Online Learning subsystem
+ * for instant incremental SGD weight updates (fire-and-forget, non-blocking).
+ */
+export const notifyMlOnlineLearner = (eventData) => {
+  const mlServiceUrl = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000';
+  try {
+    const payload = {
+      booking_id: eventData.bookingId,
+      location_name: eventData.locationName || 'Connaught Place',
+      total_capacity: Number(eventData.totalCapacity) || 100,
+      available_slots: Number(eventData.availableSlots) >= 0 ? Number(eventData.availableSlots) : 50,
+      duration_hours: Number(eventData.durationHours) || 2,
+      base_hourly_rate: Number(eventData.baseHourlyRate) || 60,
+      total_cost: Number(eventData.totalCost) || 0
+    };
+
+    fetch(`${mlServiceUrl}/api/v1/online-learning/learn-event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(1200)
+    }).catch(() => {
+      // Suppress network errors in fire-and-forget mode
+    });
+  } catch (_) {
+    // Non-fatal
+  }
+};
+

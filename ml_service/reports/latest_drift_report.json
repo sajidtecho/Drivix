@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-13T22:21:57.219043",
+  "timestamp": "2026-10-13T22:29:30.841088",
   "reference_sample_size": 7704,
-  "production_sample_size": 14,
+  "production_sample_size": 18,
   "is_drift_detected": true,
   "drifted_features_count": 8,
   "drifted_features": [
@@ -18,16 +18,16 @@
   "features": {
     "f_occ_entry_at_quote": {
       "type": "numerical",
-      "ks_statistic": 0.4816,
-      "ks_pvalue": 0.0016689,
-      "psi": 6.2506,
+      "ks_statistic": 0.4737,
+      "ks_pvalue": 0.0003215,
+      "psi": 6.2375,
       "drift_detected": true,
       "severity": "CRITICAL"
     },
     "f_lead_time_min": {
       "type": "numerical",
       "ks_statistic": 0.5427,
-      "ks_pvalue": 0.001474,
+      "ks_pvalue": 0.0002205,
       "psi": 7.7746,
       "drift_detected": true,
       "severity": "CRITICAL"
@@ -35,46 +35,46 @@
     "f_capacity": {
       "type": "numerical",
       "ks_statistic": 1.0,
-      "ks_pvalue": 6.6297e-44,
+      "ks_pvalue": 1.3704e-54,
       "psi": 2.7658,
       "drift_detected": true,
       "severity": "CRITICAL"
     },
     "f_entry_hour": {
       "type": "numerical",
-      "ks_statistic": 0.3679,
-      "ks_pvalue": 0.076862,
-      "psi": 5.3574,
+      "ks_statistic": 0.4062,
+      "ks_pvalue": 0.013469,
+      "psi": 5.3178,
       "drift_detected": true,
       "severity": "CRITICAL"
     },
     "f_entry_dow": {
       "type": "numerical",
-      "ks_statistic": 0.5465,
-      "ks_pvalue": 0.001326,
-      "psi": 5.9928,
+      "ks_statistic": 0.3906,
+      "ks_pvalue": 0.019724,
+      "psi": 5.9562,
       "drift_detected": true,
       "severity": "CRITICAL"
     },
     "f_requests_last_60min_location": {
       "type": "numerical",
       "ks_statistic": 0.9938,
-      "ks_pvalue": 3.9043e-24,
+      "ks_pvalue": 1.9279e-30,
       "psi": 8.5909,
       "drift_detected": true,
       "severity": "CRITICAL"
     },
     "f_busy_frac_window_at_quote": {
       "type": "numerical",
-      "ks_statistic": 0.5704,
-      "ks_pvalue": 0.00065756,
-      "psi": 5.8885,
+      "ks_statistic": 0.5769,
+      "ks_pvalue": 6.1468e-05,
+      "psi": 5.9317,
       "drift_detected": true,
       "severity": "CRITICAL"
     },
     "f_location": {
       "type": "categorical",
-      "max_category_shift": 0.3641,
+      "max_category_shift": 0.372,
       "drift_detected": true,
       "severity": "MODERATE"
     }

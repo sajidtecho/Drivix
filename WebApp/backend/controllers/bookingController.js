@@ -5,7 +5,7 @@ import ParkingFloor from '../models/ParkingFloor.js';
 import User from '../models/User.js';
 import Vehicle from '../models/Vehicle.js';
 import mongoose from 'mongoose';
-import { calculateDynamicPrice } from '../utils/pricingEngine.js';
+import { calculateDynamicPrice, notifyMlOnlineLearner } from '../utils/pricingEngine.js';
 import { sendBookingNotification } from '../utils/notificationService.js';
 import { SlotAllocationService, checkIfEVRequired, checkIfAccessibilityRequired, getSlotDistance, RuleBasedSlotScoringStrategy, mapVehicleType } from '../services/SlotAllocationService.js';
 import { invalidateFloorCache } from '../config/redis.js';
@@ -373,6 +373,17 @@ export const createBooking = async (req, res) => {
       type: 'booking'
     });
 
+    // Stream event to ML Online Learning subsystem (non-blocking)
+    notifyMlOnlineLearner({
+      bookingId: booking.bookingId,
+      locationName: resolvedLocationName,
+      totalCapacity: location.totalSlots,
+      availableSlots: location.availableSlots,
+      durationHours: durationNum,
+      baseHourlyRate: location.hourlyPrice,
+      totalCost: booking.totalCost
+    });
+
     res.status(201).json(booking);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -546,6 +557,17 @@ export const vacateBooking = async (req, res) => {
       title: 'Checkout Completed',
       message: `Successfully checked out of ${location ? location.parkingName : 'parking hub'}.${booking.slotId ? ` Slot ${booking.slotId} is now vacated.` : ''}`,
       type: 'payment'
+    });
+
+    // Stream checkout completion to ML Online Learning subsystem
+    notifyMlOnlineLearner({
+      bookingId: booking.bookingId,
+      locationName: location ? location.parkingName : booking.locationName,
+      totalCapacity: location ? location.totalSlots : 100,
+      availableSlots: location ? location.availableSlots : 50,
+      durationHours: booking.duration,
+      baseHourlyRate: location ? location.hourlyPrice : 60,
+      totalCost: booking.finalCost || booking.totalCost
     });
 
     res.json({ message: 'Checked out and slot vacated successfully', booking });
