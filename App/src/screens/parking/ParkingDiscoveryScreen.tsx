@@ -18,7 +18,11 @@ import {
   Shield,
   Layers,
   ChevronRight,
+  AlertTriangle,
+  Navigation,
+  Car,
 } from 'lucide-react-native';
+import * as Location from 'expo-location';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Typography } from '../../theme/typography';
@@ -26,6 +30,8 @@ import { Card, Button, Badge, Input, EmptyState, NetworkMapModal } from '../../c
 import { parkingApi } from '../../api/parkingApi';
 import { useBooking } from '../../store/BookingContext';
 import { ParkingLocation } from '../../types';
+import { launchMobileLiveGpsNavigation } from '../../services/navigation';
+import { checkIsOnlineBookingAllowed } from '../../services/bookingEligibility';
 
 export interface ParkingDiscoveryScreenProps {
   onSelectHub: (hub: ParkingLocation) => void;
