@@ -58,8 +58,16 @@ const HomeScreenAdapter = ({ navigation }: any) => {
         selectHub(hub);
         navigation.navigate('ParkingDetail', { facility: hub });
       }}
-      onNavigateToBookingDetail={(id) => navigation.navigate('ActiveParking', { bookingId: id })}
-      onNavigateToActiveParking={(id) => navigation.navigate('ActiveParking', { bookingId: id })}
+      onNavigateToBookingDetail={(bOrId: any) => {
+        const booking = typeof bOrId === 'object' && bOrId !== null ? bOrId : undefined;
+        const bookingId = typeof bOrId === 'string' ? bOrId : (bOrId?._id || bOrId?.id);
+        navigation.navigate('ActiveParking', { booking, bookingId });
+      }}
+      onNavigateToActiveParking={(bOrId: any) => {
+        const booking = typeof bOrId === 'object' && bOrId !== null ? bOrId : undefined;
+        const bookingId = typeof bOrId === 'string' ? bOrId : (bOrId?._id || bOrId?.id);
+        navigation.navigate('ActiveParking', { booking, bookingId });
+      }}
       onNavigateToProfile={() => navigation.navigate('Profile')}
     />
   );
@@ -150,10 +158,27 @@ const NavigationScreenAdapter = ({ navigation, route }: any) => {
 };
 
 const ActiveParkingScreenAdapter = ({ navigation, route }: any) => {
-  const booking = route?.params?.booking || { _id: route?.params?.bookingId };
+  const params = route?.params || {};
+  let booking = params.booking;
+  let bookingId = params.bookingId;
+
+  // If bookingId was passed as an object
+  if (typeof bookingId === 'object' && bookingId !== null) {
+    if (!booking) booking = bookingId;
+    bookingId = bookingId._id || bookingId.id;
+  }
+
+  // If booking is an object but bookingId is missing
+  if (!bookingId && booking) {
+    bookingId = booking._id || booking.id;
+  }
+
+  const cleanId = typeof bookingId === 'string' ? bookingId : undefined;
+
   return (
     <ActiveParkingScreen
       booking={booking}
+      bookingId={cleanId}
       onBack={() => navigation.goBack()}
       onCheckoutSuccess={() => navigation.navigate('MainTabs')}
     />

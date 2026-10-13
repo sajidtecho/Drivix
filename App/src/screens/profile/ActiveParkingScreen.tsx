@@ -30,17 +30,42 @@ import { bookingApi } from '../../api/bookingApi';
 import { Booking } from '../../types';
 
 export interface ActiveParkingScreenProps {
-  booking: Booking;
+  booking?: Booking;
+  bookingId?: string;
   onBack: () => void;
   onCheckoutSuccess: () => void;
 }
 
+const getCleanBookingId = (b: any, idParam?: string): string => {
+  if (typeof idParam === 'string' && idParam && idParam !== '[object Object]') {
+    return idParam;
+  }
+  if (!b) return '';
+  if (typeof b === 'string' && b !== '[object Object]') return b;
+  if (typeof b._id === 'string' && b._id !== '[object Object]') return b._id;
+  if (typeof b.id === 'string' && b.id !== '[object Object]') return b.id;
+  if (typeof b._id === 'object' && b._id !== null) {
+    return b._id._id || b._id.id || '';
+  }
+  if (typeof b.bookingId === 'string' && b.bookingId !== '[object Object]') return b.bookingId;
+  return '';
+};
+
 export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
   booking,
+  bookingId,
   onBack,
   onCheckoutSuccess,
 }) => {
-  const [currentBooking, setCurrentBooking] = useState<Booking>(booking);
+  const initialBooking = React.useMemo(() => {
+    let b: any = booking;
+    if (b && typeof b._id === 'object' && b._id !== null) {
+      b = { ...b._id, ...b, _id: b._id._id || b._id.id };
+    }
+    return (b || {}) as Booking;
+  }, [booking]);
+
+  const [currentBooking, setCurrentBooking] = useState<Booking>(initialBooking);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(() => {
     return Math.max(0, (currentBooking.duration || 2) * 3600);
   });
@@ -58,7 +83,40 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  // Sync fresh booking data from backend API on mount
+  useEffect(() => {
+    const targetId = getCleanBookingId(currentBooking, bookingId);
+    if (!targetId) return;
+
+    const fetchLatestDetails = async () => {
+      try {
+        const myBookings = await bookingApi.getMyBookings();
+        if (Array.isArray(myBookings)) {
+          const match = myBookings.find(
+            (b) => b._id === targetId || b.bookingId === targetId || (b as any).id === targetId
+          );
+          if (match) {
+            setCurrentBooking(match);
+            if (match.duration) {
+              setSecondsRemaining(Math.max(0, match.duration * 3600));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('ActiveParkingScreen: Could not refresh fresh booking data:', err);
+      }
+    };
+
+    fetchLatestDetails();
+  }, [bookingId]);
+
   const handleCancelBooking = async () => {
+    const targetId = getCleanBookingId(currentBooking, bookingId);
+    if (!targetId || targetId === '[object Object]') {
+      Alert.alert('Cancellation Error', 'Invalid booking reference ID.');
+      return;
+    }
+
     Alert.alert(
       'Cancel Reservation',
       'Are you sure you want to cancel this booking? Reserved parking capacity will be immediately released.',
@@ -70,7 +128,7 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
           onPress: async () => {
             setIsCancelling(true);
             try {
-              await bookingApi.cancelBooking(currentBooking._id, 'User cancelled active pass');
+              await bookingApi.cancelBooking(targetId, 'User cancelled active pass');
               Alert.alert(
                 'Reservation Cancelled',
                 'Your booking has been cancelled and capacity released.',
@@ -96,9 +154,15 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
   };
 
   const handleExtendBooking = async () => {
+    const targetId = getCleanBookingId(currentBooking, bookingId);
+    if (!targetId || targetId === '[object Object]') {
+      Alert.alert('Extension Error', 'Invalid booking reference ID.');
+      return;
+    }
+
     setIsExtending(true);
     try {
-      const updated = await bookingApi.extendBooking(currentBooking._id, extensionHours);
+      const updated = await bookingApi.extendBooking(targetId, extensionHours);
       setCurrentBooking(updated);
       setSecondsRemaining((prev) => prev + extensionHours * 3600);
       setExtendModalVisible(false);
@@ -115,6 +179,12 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
   };
 
   const handleVacateAndCheckout = async () => {
+    const targetId = getCleanBookingId(currentBooking, bookingId);
+    if (!targetId || targetId === '[object Object]') {
+      Alert.alert('Checkout Error', 'Invalid booking reference ID.');
+      return;
+    }
+
     Alert.alert(
       'Confirm Exit & Checkout',
       'Are you vacating your parking slot now? Gate exit barrier will be prepared.',
@@ -126,7 +196,7 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
           onPress: async () => {
             setIsVacating(true);
             try {
-              const res = await bookingApi.vacateBooking(currentBooking._id, 'online');
+              const res = await bookingApi.vacateBooking(targetId, 'online');
               Alert.alert(
                 'Checkout Complete',
                 `Successfully checked out. Slot ${currentBooking.slotId || ''} vacated. Exit gate opened.`,
@@ -145,19 +215,21 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
   };
 
   const qrPayload = JSON.stringify({
-    bookingId: currentBooking.bookingId,
-    vehicleNumber: currentBooking.vehicleNumber,
-    slotId: currentBooking.slotId,
-    floor: currentBooking.floor,
-    locationName: currentBooking.locationName,
+    bookingId: currentBooking.bookingId || getCleanBookingId(currentBooking, bookingId),
+    vehicleNumber: currentBooking.vehicleNumber || 'VEHICLE',
+    slotId: currentBooking.slotId || 'GATE_ASSIGNMENT',
+    floor: currentBooking.floor || 'L1',
+    locationName: currentBooking.locationName || 'Drivix Facility',
     action: 'GATE_EXIT',
   });
+
+  const displayRef = currentBooking.bookingId || getCleanBookingId(currentBooking, bookingId) || 'Active Pass';
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <Header
         title="Active Parking Pass"
-        subtitle={`Booking Ref: ${currentBooking.bookingId}`}
+        subtitle={`Booking Ref: ${displayRef}`}
         onBack={onBack}
       />
 
@@ -184,12 +256,16 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
           <View style={styles.infoGrid}>
             <View style={styles.infoCol}>
               <Text style={styles.infoLabel}>LOCATION</Text>
-              <Text style={styles.infoVal} numberOfLines={1}>{currentBooking.locationName}</Text>
+              <Text style={styles.infoVal} numberOfLines={1}>
+                {currentBooking.locationName || (currentBooking as any).hubName || 'Drivix Smart Facility'}
+              </Text>
             </View>
             <View style={styles.infoDivider} />
             <View style={styles.infoCol}>
               <Text style={styles.infoLabel}>FLOOR</Text>
-              <Text style={styles.infoVal}>Floor {currentBooking.floor}</Text>
+              <Text style={styles.infoVal}>
+                {currentBooking.floor ? `Floor ${currentBooking.floor}` : 'Level Reserved'}
+              </Text>
             </View>
             <View style={styles.infoDivider} />
             <View style={styles.infoCol}>

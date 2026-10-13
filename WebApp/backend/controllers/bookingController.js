@@ -665,10 +665,24 @@ export const extendBooking = async (req, res) => {
 // @route   PUT /api/v1/bookings/:id/cancel
 // @access  Private
 export const cancelBooking = async (req, res) => {
-  const bookingId = req.params.id || req.body.bookingId;
+  let bookingId = req.params.id || req.body.bookingId;
+  if (typeof bookingId === 'object' && bookingId !== null) {
+    bookingId = bookingId._id || bookingId.id || String(bookingId);
+  }
+
+  if (!bookingId || bookingId === '[object Object]') {
+    return res.status(400).json({ message: 'Invalid booking reference ID' });
+  }
 
   try {
-    const booking = await Booking.findById(bookingId);
+    let booking = null;
+    if (mongoose.Types.ObjectId.isValid(bookingId)) {
+      booking = await Booking.findById(bookingId);
+    }
+    if (!booking) {
+      booking = await Booking.findOne({ bookingId: bookingId });
+    }
+
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
