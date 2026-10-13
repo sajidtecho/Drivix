@@ -9,8 +9,8 @@ export type BookingStatus =
   | 'completed'
   | 'booked';
 
-export type WizardStep = number | string;
-export type DocumentComplianceStatus = 'pending' | 'verified' | 'rejected' | string;
+export { WizardStep } from './booking';
+export { DocumentComplianceStatus } from './user';
 
 export interface User {
   _id: string;

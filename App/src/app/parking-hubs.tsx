@@ -560,7 +560,7 @@ export default function ParkingHubsScreen({ onBack, onBook }: ParkingHubsScreenP
             <ArrowLeft size={20} color={colors.text} />
           </ScalePressable>
         )}
-        <View style={[styles.searchContainer, { backgroundColor: colors.background === '#F8F9FA' ? 'rgba(0,0,0,0.05)' : '#15161e' }]}>
+        <View style={[styles.searchContainer, { backgroundColor: (colors.background as string) === '#F8F9FA' ? 'rgba(0,0,0,0.05)' : '#15161e' }]}>
           <Search size={16} color={colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             placeholder="Search destination, parking hub, mall..."

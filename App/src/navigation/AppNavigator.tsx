@@ -50,12 +50,12 @@ export type BottomTabParamList = {
 // ─── Screen Adapters for Native Stack Navigation ─────────────────────────────
 
 const HomeScreenAdapter = ({ navigation }: any) => {
-  const { setSelectedHub } = useBooking();
+  const { selectHub } = useBooking();
   return (
     <HomeScreen
       onNavigateToDiscovery={() => navigation.navigate('Find Parking')}
       onSelectHub={(hub) => {
-        setSelectedHub(hub);
+        selectHub(hub);
         navigation.navigate('ParkingDetail', { facility: hub });
       }}
       onNavigateToBookingDetail={(id) => navigation.navigate('ActiveParking', { bookingId: id })}
@@ -66,11 +66,11 @@ const HomeScreenAdapter = ({ navigation }: any) => {
 };
 
 const ParkingDiscoveryScreenAdapter = ({ navigation }: any) => {
-  const { setSelectedHub } = useBooking();
+  const { selectHub } = useBooking();
   return (
     <ParkingDiscoveryScreen
       onSelectHub={(hub) => {
-        setSelectedHub(hub);
+        selectHub(hub);
         navigation.navigate('ParkingDetail', { facility: hub });
       }}
     />
