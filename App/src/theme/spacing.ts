@@ -20,3 +20,5 @@ export const BorderRadius = {
   xl: 20,
   round: 9999,
 } as const;
+
+export const spacing = Spacing;

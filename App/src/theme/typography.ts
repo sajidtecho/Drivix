@@ -52,4 +52,17 @@ export const Typography: Record<string, TextStyle> = {
     color: '#171717',
     letterSpacing: 0.2,
   },
+  fontBold: Platform.select({ ios: 'System', android: 'Roboto' }),
+  fontMedium: Platform.select({ ios: 'System', android: 'Roboto' }),
+  fontRegular: Platform.select({ ios: 'System', android: 'Roboto' }),
+  fontSizes: {
+    xs: 11,
+    sm: 13,
+    md: 15,
+    lg: 18,
+    xl: 22,
+    xxl: 26,
+  },
 };
+
+export const typography = Typography as any;

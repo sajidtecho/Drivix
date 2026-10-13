@@ -9,7 +9,10 @@ export interface EmptyStateProps {
   title: string;
   description: string;
   actionTitle?: string;
+  actionText?: string;
+  buttonTitle?: string;
   onAction?: () => void;
+  onActionPress?: () => void;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
@@ -17,17 +20,23 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   description,
   actionTitle,
+  actionText,
+  buttonTitle,
   onAction,
+  onActionPress,
 }) => {
+  const finalActionTitle = actionTitle || actionText || buttonTitle;
+  const finalOnAction = onAction || onActionPress;
+
   return (
     <View style={styles.container}>
       {icon && <View style={styles.iconWrapper}>{icon}</View>}
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
-      {actionTitle && onAction && (
+      {finalActionTitle && finalOnAction && (
         <Button
-          title={actionTitle}
-          onPress={onAction}
+          title={finalActionTitle}
+          onPress={finalOnAction}
           variant="primary"
           style={styles.actionButton}
         />

@@ -15,7 +15,7 @@ import { Shadows } from '../../theme/shadows';
 export interface ButtonProps extends TouchableOpacityProps {
   title: string;
   variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'small' | 'large';
   loading?: boolean;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
@@ -26,7 +26,7 @@ export interface ButtonProps extends TouchableOpacityProps {
 export const Button: React.FC<ButtonProps> = ({
   title,
   variant = 'primary',
-  size = 'md',
+  size: rawSize = 'md',
   loading = false,
   disabled = false,
   icon,
@@ -35,6 +35,7 @@ export const Button: React.FC<ButtonProps> = ({
   textStyle,
   ...props
 }) => {
+  const size = rawSize === 'small' ? 'sm' : rawSize === 'large' ? 'lg' : rawSize;
   const getVariantStyle = (): ViewStyle => {
     switch (variant) {
       case 'primary':

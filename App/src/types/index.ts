@@ -13,7 +13,8 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  mobile: string;
+  mobile?: string;
+  phone?: string;
   role?: string;
   walletBalance?: number;
   documents?: Array<{
@@ -101,36 +102,44 @@ export interface DynamicPriceQuote {
 
 export interface Booking {
   _id: string;
-  bookingId: string;
-  userId: string;
-  name: string;
-  mobile: string;
-  vehicleNumber: string;
-  vehicleName: string;
-  parkingHubId: string | { _id: string; parkingName: string; address: string; latitude?: number; longitude?: number };
-  floorId: string | { _id: string; floorName: string };
-  floor: string;
+  bookingId?: string;
+  userId?: string;
+  name?: string;
+  mobile?: string;
+  vehicleNumber?: string;
+  vehicleName?: string;
+  parkingHubId?: string | { _id: string; parkingName: string; address: string; latitude?: number; longitude?: number };
+  facilityId?: any;
+  hubName?: string;
+  floorId?: string | { _id: string; floorName: string };
+  floor?: string;
+  floorName?: string;
+  floorNumber?: number;
   locationId?: string | { _id: string; parkingName: string; address: string };
-  locationName: string;
-  bookingDate: string;
-  entryDate: string;
-  startTime: string;
-  entryTime: string;
-  duration: number;
-  totalCost: number;
+  locationName?: string;
+  bookingDate?: string;
+  entryDate?: string;
+  startTime?: string;
+  endTime?: string;
+  entryTime?: string;
+  duration?: number;
+  totalCost?: number;
+  totalAmount?: number;
+  basePrice?: number;
   finalCost?: number;
-  status: BookingStatus;
-  slotId?: string | null;
+  status: BookingStatus | string;
+  slotId?: any;
   slotRefId?: string | null;
+  slotNumber?: string;
   qrToken?: string | null;
-  paymentMode: 'PAY_NOW' | 'PAY_AFTER_CHECKOUT';
-  paymentStatus: 'pending' | 'paid' | 'failed';
+  paymentMode?: 'PAY_NOW' | 'PAY_AFTER_CHECKOUT' | string;
+  paymentStatus?: 'pending' | 'paid' | 'failed' | string;
   prepaidAmount?: number;
   actualEntryTime?: string | null;
   actualExitTime?: string | null;
   additionalServices?: string[];
   servicesCost?: number;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface SlotAllocationResult {

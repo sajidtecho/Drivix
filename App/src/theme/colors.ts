@@ -54,3 +54,4 @@ export const Colors = {
 } as const;
 
 export type ColorKey = keyof typeof Colors;
+export const colors = Colors;

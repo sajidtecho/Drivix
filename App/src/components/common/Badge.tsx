@@ -4,25 +4,31 @@ import { Colors } from '../../theme/colors';
 import { BorderRadius } from '../../theme/spacing';
 
 export interface BadgeProps {
-  label: string;
-  variant?: 'available' | 'occupied' | 'reserved' | 'surge' | 'discount' | 'neutral';
+  label?: string;
+  text?: string;
+  variant?: 'available' | 'occupied' | 'reserved' | 'surge' | 'discount' | 'neutral' | 'success' | 'warning' | 'danger';
   style?: ViewStyle;
   textStyle?: TextStyle;
 }
 
 export const Badge: React.FC<BadgeProps> = ({
   label,
+  text,
   variant = 'neutral',
   style,
   textStyle,
 }) => {
+  const displayText = label || text || '';
   const getBadgeStyle = (): { bg: string; text: string; border?: string } => {
     switch (variant) {
       case 'available':
+      case 'success':
         return { bg: 'rgba(33, 136, 56, 0.12)', text: Colors.available, border: 'rgba(33, 136, 56, 0.3)' };
       case 'occupied':
+      case 'danger':
         return { bg: 'rgba(217, 48, 37, 0.10)', text: Colors.occupied, border: 'rgba(217, 48, 37, 0.25)' };
       case 'reserved':
+      case 'warning':
         return { bg: 'rgba(233, 168, 0, 0.14)', text: '#B45309', border: 'rgba(233, 168, 0, 0.3)' };
       case 'surge':
         return { bg: '#FEE2E2', text: '#DC2626', border: '#FCA5A5' };
@@ -48,7 +54,7 @@ export const Badge: React.FC<BadgeProps> = ({
       ]}
     >
       <Text style={[styles.badgeText, { color: styleConfig.text }, textStyle]}>
-        {label}
+        {displayText}
       </Text>
     </View>
   );
