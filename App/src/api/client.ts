@@ -1,15 +1,12 @@
 import axios, { AxiosError } from 'axios';
 import { storage } from '../services/storage';
+import { API_BASE_URL, ENV_CONFIG } from '../config';
 
-// Live production Render backend or environment URL
-export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'https://drivix-backend-0qvx.onrender.com/api/v1';
-
-console.log('🔌 Drivix API Base URL:', API_BASE_URL);
+export { API_BASE_URL };
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: ENV_CONFIG.timeoutMs,
   headers: {
     'Content-Type': 'application/json',
   },

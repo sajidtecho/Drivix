@@ -1,13 +1,12 @@
 import axios from 'axios';
 import { storage } from './storage';
+import { API_BASE_URL, ENV_CONFIG } from '../config';
 
-// Export API_BASE_URL pointing to the authoritative backend
-export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'https://drivix-backend-0qvx.onrender.com/api/v1';
+export { API_BASE_URL };
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: ENV_CONFIG.timeoutMs,
   headers: {
     'Content-Type': 'application/json',
   },

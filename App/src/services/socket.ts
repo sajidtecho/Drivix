@@ -1,8 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { AppState, AppStateStatus } from 'react-native';
-import { API_BASE_URL } from './api';
-
-const SOCKET_SERVER_URL = API_BASE_URL.replace('/api/v1', '');
+import { SOCKET_SERVER_URL } from '../config';
 
 class SocketService {
   private socket: Socket | null = null;
