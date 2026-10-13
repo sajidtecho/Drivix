@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
+import { Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { socketService } from '@/services/socket';
 import { AuthProvider } from '../store/AuthContext';
 import { BookingProvider } from '../store/BookingContext';
-import { DrivixRootNavigator } from '../navigation/AppNavigator';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,12 +20,12 @@ function RootLayoutContent() {
   return (
     <>
       <AnimatedSplashOverlay />
-      <DrivixRootNavigator />
+      <Slot />
     </>
   );
 }
 
-export default function TabLayout() {
+export default function RootLayout() {
   return (
     <AuthProvider>
       <BookingProvider>

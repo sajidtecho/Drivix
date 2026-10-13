@@ -9,9 +9,6 @@ export type BookingStatus =
   | 'completed'
   | 'booked';
 
-export { WizardStep } from './booking';
-export { DocumentComplianceStatus } from './user';
-
 export interface User {
   _id: string;
   name: string;
