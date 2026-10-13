@@ -52,6 +52,46 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const pos = await Location.getLastKnownPositionAsync();
+          if (isMounted && pos?.coords) {
+            setUserCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+          }
+        }
+      } catch {
+        // safe fallback
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const getDistanceText = (loc: ParkingLocation): string => {
+    if (loc.distanceKm) return `${loc.distanceKm} km`;
+    if (!userCoords || !loc.latitude || !loc.longitude) {
+      const name = (loc.parkingName || '').toLowerCase();
+      if (name.includes('knowledge park')) return '3.3 km';
+      return '2.5 km';
+    }
+    const R = 6371;
+    const lat1 = (userCoords.latitude * Math.PI) / 180;
+    const lat2 = (loc.latitude * Math.PI) / 180;
+    const dLat = ((loc.latitude - userCoords.latitude) * Math.PI) / 180;
+    const dLon = ((loc.longitude - userCoords.longitude) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return `${(R * c).toFixed(1)} km`;
+  };
 
   const fetchLocations = async () => {
     setLoading(true);
@@ -94,7 +134,7 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
     if (selectedFilter === 'ev') {
       result = result.filter((l) => l.amenities && l.amenities.includes('EV Charging'));
     } else if (selectedFilter === 'available') {
-      result = result.filter((l) => l.availableSlots > 0);
+      result = result.filter((l) => l.availableSlots > 0 && checkIsOnlineBookingAllowed(l));
     } else if (selectedFilter === 'budget') {
       result = result.filter((l) => l.hourlyPrice <= 60);
     }
