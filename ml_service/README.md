@@ -142,16 +142,64 @@ python ml_service/api/main.py
 
 ### 📡 API Endpoints
 
-- **`GET /health`** - Microservice health status and model load confirmation.
+- **`GET /health`** - Microservice health status, database connection, and model load confirmation.
 - **`GET /docs`** - Interactive Swagger UI documentation.
-- **`POST /api/v1/predict`** - Real-time occupancy prediction and dynamic price recommendation for a single booking quote.
+- **`POST /api/v1/predict`** - Real-time occupancy prediction and dynamic price recommendation for a single booking quote, combining champion XGBoost with online residual adaptations.
 - **`POST /api/v1/predict/batch`** - Concurrent predictions for multi-lot or multi-floor batches.
+- **`GET /api/v1/online-learning/status`** - Telemetry on online learner: MongoDB connectivity, total database bookings, online samples trained, running MAE, weights norm, and blend parameters.
+- **`POST /api/v1/online-learning/sync-db`** - Incrementally syncs new operational bookings from MongoDB Atlas and updates model parameters using Stochastic Gradient Descent (`partial_fit`).
+- **`POST /api/v1/online-learning/learn-event`** - Ingests single streaming booking or checkout event from Node.js backend for instant sub-second online learning.
+- **`POST /api/v1/online-learning/configure`** - Dynamically tunes blend weight ($\lambda$) or enables/disables online residual learning.
+- **`POST /api/v1/online-learning/reset`** - Resets online model weights and watermarks.
+
+---
+
+## ⚡ Online Streaming Learning Subsystem (MongoDB Connected)
+
+Drivix incorporates an **Online Continuous Learning Engine** (`online_learner.py`) connected directly to the operational MongoDB database (`bookings` & `parkinglocations` collections):
+
+```mermaid
+sequenceDiagram
+    participant DB as MongoDB Atlas (Bookings Collection)
+    participant Sync as DB Sync Worker / Event Hook
+    participant Online as Online SGD Learner (partial_fit)
+    participant Champ as Champion XGBoost Pipeline
+    participant API as FastAPI Inference Engine (/predict)
+
+    Note over DB,Sync: New customer booking created or checked out
+    DB->>Sync: Fetch new bookings since last watermark
+    Sync->>Champ: Predict base occupancy (y_base)
+    Sync->>Online: Calculate residual: r = y_actual - y_base
+    Online->>Online: SGD partial_fit(X_trans, r) -> online_learner.joblib
+    Note over Online,API: Real-time Hybrid Inference
+    API->>Champ: y_base = XGBoost(X)
+    API->>Online: r_hat = OnlineSGD(X)
+    API->>API: y_hybrid = clip(y_base + lambda * r_hat, 0.0, 1.0)
+    API-->>Client: Dynamic Price Quote + Surge Alert + Telemetry
+```
+
+### 🛠️ Running the Database Sync Worker Manually:
+
+```bash
+# Ingest up to 100 new bookings since last watermark checkpoint
+python ml_service/src/db_sync_worker.py --limit 100
+
+# Force full resynchronization of all database bookings
+python ml_service/src/db_sync_worker.py --force
+
+# Reset weights and synchronize afresh
+python ml_service/src/db_sync_worker.py --reset --force
+```
 
 ### 🔗 Node.js Backend Integration
 
 In `WebApp/backend/.env`:
 ```env
 ML_SERVICE_URL=http://localhost:8000
+MONGO_URI=mongodb+srv://.../drivix
 ```
 
-The Node.js dynamic pricing engine in `WebApp/backend/utils/pricingEngine.js` will automatically query this ML microservice with a 1.5-second timeout and seamless fallback to the local deterministic heuristic if the service is ever unavailable.
+The Node.js backend (`WebApp/backend/controllers/bookingController.js` via `WebApp/backend/utils/pricingEngine.js`):
+1. Queries `/api/v1/predict` before confirming a booking quote.
+2. Automatically triggers `notifyMlOnlineLearner()` on booking creation and checkout completion to push real-time streaming updates into `/api/v1/online-learning/learn-event` in a non-blocking fire-and-forget pattern.
+
