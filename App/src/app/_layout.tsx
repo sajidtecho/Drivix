@@ -1,20 +1,15 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import React, { useEffect } from 'react';
+import { DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useEffect } from 'react';
-
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
-import { AuthProvider, useAuth } from '@/context/AuthContext';
-import LoginBottomSheet from '@/components/LoginBottomSheet';
 import { socketService } from '@/services/socket';
+import { AuthProvider } from '../store/AuthContext';
+import { BookingProvider } from '../store/BookingContext';
+import { DrivixRootNavigator } from '../navigation/AppNavigator';
 
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
-  const colorScheme = useColorScheme();
-  const { isAuthenticated, isLoading, isLoginVisible, setLoginVisible } = useAuth();
-
   // Initialize Socket.IO real-time connection on app startup
   useEffect(() => {
     socketService.setupAppStateLifecycle();
@@ -23,18 +18,10 @@ function RootLayoutContent() {
     };
   }, []);
 
-  if (isLoading) {
-    return <AnimatedSplashOverlay />;
-  }
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DefaultTheme}>
       <AnimatedSplashOverlay />
-      <AppTabs />
-      <LoginBottomSheet
-        visible={isLoginVisible && !isAuthenticated}
-        onCancel={() => setLoginVisible(false)}
-      />
+      <DrivixRootNavigator />
     </ThemeProvider>
   );
 }
@@ -42,7 +29,9 @@ function RootLayoutContent() {
 export default function TabLayout() {
   return (
     <AuthProvider>
-      <RootLayoutContent />
+      <BookingProvider>
+        <RootLayoutContent />
+      </BookingProvider>
     </AuthProvider>
   );
 }
