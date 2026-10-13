@@ -36,7 +36,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
-      await storage.clearAuth();
+      await storage.removeToken();
     }
     return Promise.reject(error);
   }
