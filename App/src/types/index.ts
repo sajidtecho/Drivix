@@ -61,6 +61,8 @@ export interface ParkingLocation {
   images?: string[];
   floors?: string[];
   status?: 'Active' | 'Inactive' | 'Pending';
+  allowOnlineBooking?: boolean;
+  isOnlineBooking?: boolean;
   distanceKm?: number;
 }
 
