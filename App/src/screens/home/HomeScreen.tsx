@@ -23,7 +23,7 @@ import {
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Typography } from '../../theme/typography';
-import { Card, Button, Badge, Input, EmptyState, CoreServicesShowcase } from '../../components/common';
+import { Card, Button, Badge, Input, EmptyState, CoreServicesShowcase, NetworkMapModal } from '../../components/common';
 import { useAuth } from '../../store/AuthContext';
 import { useBooking } from '../../store/BookingContext';
 import { parkingApi } from '../../api/parkingApi';
@@ -54,6 +54,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [activeBooking, setLocalActiveBooking] = useState<Booking | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -248,7 +249,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         {/* ─── Core Services Showcase (Webapp Parity) ─── */}
         <CoreServicesShowcase
           onBookParking={onNavigateToDiscovery}
-          onViewMap={onNavigateToDiscovery}
+          onViewMap={() => setIsMapModalVisible(true)}
         />
 
         {/* ─── Recent Bookings Preview ─── */}
@@ -280,6 +281,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
         )}
       </ScrollView>
+
+      {/* ─── Interactive Drivix Network Map Modal (Webapp Parity) ─── */}
+      <NetworkMapModal
+        visible={isMapModalVisible}
+        onClose={() => setIsMapModalVisible(false)}
+        onProceedToBooking={(hub) => {
+          setIsMapModalVisible(false);
+          selectHub(hub);
+          onNavigateToDetail(hub);
+        }}
+      />
     </SafeAreaView>
   );
 };
