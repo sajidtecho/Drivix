@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -66,6 +67,30 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
   const onRefresh = () => {
     setRefreshing(true);
     fetchBookings();
+  };
+
+  const handleCancel = (item: Booking) => {
+    Alert.alert(
+      'Cancel Reservation',
+      `Are you sure you want to cancel booking ${item.bookingId || ''}? Capacity will be released.`,
+      [
+        { text: 'Keep Reservation', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await bookingApi.cancelBooking(item._id, 'User cancelled from history');
+              Alert.alert('Booking Cancelled', 'Your reservation was successfully cancelled.');
+              fetchBookings();
+            } catch (err: any) {
+              const msg = err?.response?.data?.message || err.message || 'Could not cancel booking.';
+              Alert.alert('Cancellation Error', msg);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const filteredBookings = bookings.filter((b) => {
@@ -211,7 +236,7 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
           {isUpcoming && (
             <>
               <Button
-                title="View Pass & QR"
+                title="Pass & QR"
                 variant="outline"
                 size="sm"
                 style={{ flex: 1, marginRight: Spacing.xs }}
@@ -221,8 +246,15 @@ export const BookingHistoryScreen: React.FC<BookingHistoryScreenProps> = ({ navi
                 title="Navigate"
                 variant="primary"
                 size="sm"
-                style={{ flex: 1 }}
+                style={{ flex: 1, marginRight: Spacing.xs }}
                 onPress={() => navigation.navigate('Navigation', { booking: item })}
+              />
+              <Button
+                title="Cancel"
+                variant="secondary"
+                size="sm"
+                style={{ flex: 0.8 }}
+                onPress={() => handleCancel(item)}
               />
             </>
           )}

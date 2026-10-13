@@ -48,6 +48,7 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
   const [extensionHours, setExtensionHours] = useState<number>(1);
   const [isExtending, setIsExtending] = useState<boolean>(false);
   const [isVacating, setIsVacating] = useState<boolean>(false);
+  const [isCancelling, setIsCancelling] = useState<boolean>(false);
 
   // Live countdown timer
   useEffect(() => {
@@ -56,6 +57,36 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleCancelBooking = async () => {
+    Alert.alert(
+      'Cancel Reservation',
+      'Are you sure you want to cancel this booking? Reserved parking capacity will be immediately released.',
+      [
+        { text: 'Keep Booking', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            setIsCancelling(true);
+            try {
+              await bookingApi.cancelBooking(currentBooking._id, 'User cancelled active pass');
+              Alert.alert(
+                'Reservation Cancelled',
+                'Your booking has been cancelled and capacity released.',
+                [{ text: 'OK', onPress: onCheckoutSuccess }]
+              );
+            } catch (err: any) {
+              const msg = err.response?.data?.message || err.message || 'Error cancelling reservation.';
+              Alert.alert('Cancellation Error', msg);
+            } finally {
+              setIsCancelling(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const formatTimer = (totalSeconds: number): string => {
     const hrs = Math.floor(totalSeconds / 3600);
@@ -204,6 +235,17 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
             onPress={handleVacateAndCheckout}
             style={styles.vacateBtn}
           />
+
+          {(currentBooking.status === 'Confirmed' || currentBooking.status === 'Slot Assigned') && (
+            <Button
+              title={isCancelling ? 'Cancelling...' : 'Cancel Reservation'}
+              variant="secondary"
+              loading={isCancelling}
+              icon={<AlertTriangle size={18} color="#E53935" />}
+              onPress={handleCancelBooking}
+              style={{ marginTop: Spacing.sm }}
+            />
+          )}
         </View>
       </ScrollView>
 

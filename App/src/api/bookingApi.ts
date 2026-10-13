@@ -72,8 +72,8 @@ export const bookingApi = {
     return res.data;
   },
 
-  cancelBooking: async (bookingId: string): Promise<any> => {
-    const res = await apiClient.put(`/bookings/${bookingId}/cancel`, {});
+  cancelBooking: async (bookingId: string, reason?: string): Promise<any> => {
+    const res = await apiClient.put(`/bookings/${bookingId}/cancel`, { reason });
     return res.data;
   },
 };
