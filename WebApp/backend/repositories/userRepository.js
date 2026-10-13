@@ -1,11 +1,27 @@
 import User from '../models/User.js';
 
 export const findByEmail = async (email) => {
-  return await User.findOne({ email });
+  if (!email) return null;
+  const normalized = email.toLowerCase().trim();
+  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return await User.findOne({
+    $or: [
+      { email: normalized },
+      { email: { $regex: new RegExp(`^${escaped}$`, 'i') } }
+    ]
+  });
 };
 
 export const findByEmailWithPassword = async (email) => {
-  return await User.findOne({ email }).select('+password');
+  if (!email) return null;
+  const normalized = email.toLowerCase().trim();
+  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return await User.findOne({
+    $or: [
+      { email: normalized },
+      { email: { $regex: new RegExp(`^${escaped}$`, 'i') } }
+    ]
+  }).select('+password');
 };
 
 export const findByMobile = async (mobile) => {

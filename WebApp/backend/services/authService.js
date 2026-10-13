@@ -12,20 +12,28 @@ const generateToken = (id) => {
 };
 
 export const registerUser = async ({ name, email, password, mobile, city }) => {
-  const userExists = await userRepository.findByEmail(email);
+  const normalizedEmail = email ? email.toLowerCase().trim() : '';
+  if (!normalizedEmail) {
+    throw new Error('Please provide an email address');
+  }
+  if (!password || password.length < 6) {
+    throw new Error('Password must be at least 6 characters');
+  }
+
+  const userExists = await userRepository.findByEmail(normalizedEmail);
   if (userExists) {
     throw new Error('User already exists');
   }
 
-  const role = email === 'drivixmobility@gmail.com' ? 'admin' : 'user';
+  const role = normalizedEmail === 'drivixmobility@gmail.com' ? 'admin' : 'user';
 
   const user = await userRepository.createUser({
     fullName: name || 'Drivix User',
     name: name || 'Drivix User',
-    email,
+    email: normalizedEmail,
     password,
-    mobile,
-    city,
+    mobile: mobile || '',
+    city: city || '',
     role,
     isVerified: true
   });
@@ -34,8 +42,10 @@ export const registerUser = async ({ name, email, password, mobile, city }) => {
     throw new Error('Invalid user data');
   }
 
-  return {
+  const token = generateToken(user._id);
+  const userPayload = {
     _id: user._id,
+    id: user._id,
     fullName: user.fullName,
     name: user.name,
     email: user.email,
@@ -48,13 +58,23 @@ export const registerUser = async ({ name, email, password, mobile, city }) => {
     membershipType: user.membershipType,
     isVerified: user.isVerified,
     preferences: user.preferences,
-    notifications: user.notifications,
-    token: generateToken(user._id)
+    notifications: user.notifications
+  };
+
+  return {
+    ...userPayload,
+    user: userPayload,
+    token
   };
 };
 
 export const loginUser = async ({ email, password }) => {
-  const user = await userRepository.findByEmailWithPassword(email);
+  const normalizedEmail = email ? email.toLowerCase().trim() : '';
+  if (!normalizedEmail || !password) {
+    throw new Error('Please enter both email and password');
+  }
+
+  const user = await userRepository.findByEmailWithPassword(normalizedEmail);
   if (!user || !(await user.matchPassword(password))) {
     throw new Error('Invalid email or password');
   }
@@ -65,8 +85,10 @@ export const loginUser = async ({ email, password }) => {
     await user.save();
   }
 
-  return {
+  const token = generateToken(user._id);
+  const userPayload = {
     _id: user._id,
+    id: user._id,
     fullName: user.fullName,
     name: user.name,
     email: user.email,
@@ -79,8 +101,13 @@ export const loginUser = async ({ email, password }) => {
     membershipType: user.membershipType,
     isVerified: user.isVerified,
     preferences: user.preferences,
-    notifications: user.notifications,
-    token: generateToken(user._id)
+    notifications: user.notifications
+  };
+
+  return {
+    ...userPayload,
+    user: userPayload,
+    token
   };
 };
 

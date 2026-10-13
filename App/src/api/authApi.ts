@@ -10,13 +10,19 @@ export interface LoginParams {
 export interface RegisterParams {
   name: string;
   email: string;
-  mobile: string;
+  mobile?: string;
   password?: string;
+  city?: string;
 }
 
 export interface AuthResponse {
   token: string;
-  user: User;
+  _id?: string;
+  name?: string;
+  fullName?: string;
+  email?: string;
+  mobile?: string;
+  user?: User;
   message?: string;
 }
 
