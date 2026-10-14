@@ -89,6 +89,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   // ─── Digital Vehicle Document Vault State ─────────────────────────
   const [vaultModalVisible, setVaultModalVisible] = useState(false);
   const [selectedVaultPlate, setSelectedVaultPlate] = useState<string>('');
+  // User-uploaded documents only (empty by default; never shows mock data)
+  const [userVaultDocumentsByPlate, setUserVaultDocumentsByPlate] = useState<Record<string, VehicleDocument[]>>({});
   const [vaultDocuments, setVaultDocuments] = useState<VehicleDocument[]>([]);
   const [showAddDocForm, setShowAddDocForm] = useState(false);
   const [newDocType, setNewDocType] = useState<'RC' | 'Insurance' | 'PUCC' | 'Driving License'>('Insurance');
@@ -103,15 +105,19 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     }
     const defaultPlate =
       plate ||
-      (vehicles.length > 0 ? vehicles[0].plate || vehicles[0].vehicleNumber || 'DL01AB1234' : 'DL01AB1234');
+      (vehicles.length > 0 ? vehicles[0].plate || vehicles[0].vehicleNumber || '' : '');
     setSelectedVaultPlate(defaultPlate);
-    setVaultDocuments(getDefaultVehicleDocuments(defaultPlate));
+    setShowAddDocForm(false);
+    // Strictly load only documents uploaded by the user for this plate
+    const docs = defaultPlate ? (userVaultDocumentsByPlate[defaultPlate] || []) : [];
+    setVaultDocuments(docs);
     setVaultModalVisible(true);
   };
 
   const handleSelectVaultPlate = (plate: string) => {
     setSelectedVaultPlate(plate);
-    setVaultDocuments(getDefaultVehicleDocuments(plate));
+    setShowAddDocForm(false);
+    setVaultDocuments(userVaultDocumentsByPlate[plate] || []);
   };
 
   const handleRenewDocument = (doc: VehicleDocument) => {
@@ -141,22 +147,55 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       Alert.alert('Missing Number', 'Please enter your document or policy registration number.');
       return;
     }
+    const targetPlate =
+      selectedVaultPlate ||
+      (vehicles.length > 0 ? vehicles[0].plate || vehicles[0].vehicleNumber || 'MY_CAR' : 'MY_CAR');
     const calc = calculateDocumentStatus(newDocExpiry || '2028-06-30');
     const createdDoc: VehicleDocument = {
       id: `doc_${Date.now()}`,
       type: newDocType,
       documentNumber: newDocNumber.trim().toUpperCase(),
       expiryDate: newDocExpiry.trim() || '2028-06-30',
-      issuer: newDocIssuer.trim() || 'Government Authority',
+      issuer: newDocIssuer.trim() || 'Official Authority',
       status: calc.status,
       daysRemaining: calc.daysRemaining,
     };
-    setVaultDocuments((prev) => [createdDoc, ...prev]);
+    const updatedDocs = [createdDoc, ...(userVaultDocumentsByPlate[targetPlate] || [])];
+    setUserVaultDocumentsByPlate((prev) => ({
+      ...prev,
+      [targetPlate]: updatedDocs,
+    }));
+    setVaultDocuments(updatedDocs);
     setShowAddDocForm(false);
     setNewDocNumber('');
     setNewDocExpiry('');
     setNewDocIssuer('');
-    Alert.alert('Document Vault Encrypted', `${newDocType} has been secured to ${selectedVaultPlate || 'your vehicle'}.`);
+    Alert.alert('Document Secured', `${newDocType} has been successfully added to your vault.`);
+  };
+
+  const handleDeleteDoc = (docId: string) => {
+    Alert.alert(
+      'Remove Document',
+      'Are you sure you want to delete this document from your vault?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            const targetPlate =
+              selectedVaultPlate ||
+              (vehicles.length > 0 ? vehicles[0].plate || vehicles[0].vehicleNumber || 'MY_CAR' : 'MY_CAR');
+            const updatedDocs = vaultDocuments.filter((d) => d.id !== docId);
+            setUserVaultDocumentsByPlate((prev) => ({
+              ...prev,
+              [targetPlate]: updatedDocs,
+            }));
+            setVaultDocuments(updatedDocs);
+          },
+        },
+      ]
+    );
   };
 
   // Load vehicles when modal opens or authenticated
