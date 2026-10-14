@@ -180,7 +180,7 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
         ) : (
           <>
             {/* Interactive 3D Building Digital Twin Visualizer */}
-            {viewFormat === '3D' && (
+            {viewFormat === '3D' ? (
               <ParkingBuilding3DVisualizer
                 floors={floors}
                 selectedFloor={selectedFloor}
@@ -189,18 +189,9 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
                 onSelectSlot={(slotId) => setSelectedSlotId(slotId)}
                 buildingName={selectedHub?.parkingName}
               />
-            )}
-
-            {/* List / Detailed Cards View */}
-            {(viewFormat === 'list' || viewFormat === '3D') && (
-              <View style={viewFormat === '3D' ? styles.compactListSection : null}>
-                {viewFormat === '3D' && (
-                  <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>All Level Capacities</Text>
-                    <Text style={styles.sectionSub}>Tap level to switch</Text>
-                  </View>
-                )}
-
+            ) : (
+              /* Traditional List View */
+              <View>
                 {(Array.isArray(floors) ? floors : []).map((floor) => {
                   const isSelected = selectedFloor?._id === floor._id;
                   const occupancyPct = floor.totalSlots > 0
@@ -320,6 +311,43 @@ const styles = StyleSheet.create({
   },
   bannerInfo: {
     marginBottom: Spacing.lg,
+  },
+  bannerTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  viewToggleGroup: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    borderRadius: BorderRadius.md,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  viewToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+  },
+  viewToggleBtnActive: {
+    backgroundColor: Colors.primaryYellow,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  viewToggleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  viewToggleTextActive: {
+    color: '#171717',
   },
   heading: {
     fontSize: 20,

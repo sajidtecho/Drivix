@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  ScrollView,
+  Animated,
 } from 'react-native';
 import Svg, {
   G,
@@ -24,15 +24,17 @@ import {
   Layers,
   Zap,
   Accessibility,
-  Eye,
   Maximize2,
   CheckCircle2,
-  AlertTriangle,
   RotateCw,
   Compass,
+  Car,
+  ShieldCheck,
+  ArrowUpRight,
+  Info,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
-import { ParkingFloor, ParkingSlot } from '../../types';
+import { ParkingFloor } from '../../types';
 
 interface ParkingBuilding3DVisualizerProps {
   floors: ParkingFloor[];
@@ -44,14 +46,15 @@ interface ParkingBuilding3DVisualizerProps {
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SVG_WIDTH = Math.min(SCREEN_WIDTH - 32, 420);
-const SVG_HEIGHT = 380;
-const CENTER_X = SVG_WIDTH / 2;
+const CANVAS_WIDTH = Math.min(SCREEN_WIDTH - 36, 400);
+const CANVAS_HEIGHT = 370;
+const CX = CANVAS_WIDTH / 2;
 
-// Isometric math constants
-const SLAB_W = SVG_WIDTH * 0.62; // width across
-const SLAB_D = SVG_WIDTH * 0.32; // depth
-const SLAB_H = 14; // thickness of slab
+// Isometric Deck Dimensions
+const DECK_W = CANVAS_WIDTH * 0.60;  // 240px wide
+const DECK_D = CANVAS_WIDTH * 0.28;  // 112px deep
+const DECK_H = 12;                   // 12px slab thickness
+const RAIL_H = 10;                   // 10px glass parapet height
 
 export const ParkingBuilding3DVisualizer: React.FC<ParkingBuilding3DVisualizerProps> = ({
   floors,
@@ -61,920 +64,1092 @@ export const ParkingBuilding3DVisualizer: React.FC<ParkingBuilding3DVisualizerPr
   onSelectSlot,
   buildingName,
 }) => {
-  const [viewMode, setViewMode] = useState<'stack' | 'exploded' | 'slots'>('stack');
-  const [activeAngle, setActiveAngle] = useState<'isometric' | 'steep'>('isometric');
+  const [activeTab, setActiveTab] = useState<'model' | 'slots' | 'specs'>('model');
+  const [isExploded, setIsExploded] = useState<boolean>(false);
 
-  // Sort floors from ground (0) to top
-  const sortedFloors = useMemo(() => {
+  // Sort floors logically from Ground (bottom) to Top
+  const floorList = useMemo(() => {
     if (!floors || floors.length === 0) return [];
-    return [...floors].reverse(); // Render from ground up (or top-down for correct SVG z-order)
+    // Ensure Ground/L1 is floor 0, Top floor is last index
+    return [...floors].reverse();
   }, [floors]);
 
-  // Total facility stats
+  // Overall building statistics
   const totalSlots = floors.reduce((acc, f) => acc + (f.totalSlots || 0), 0);
-  const totalAvailable = floors.reduce((acc, f) => acc + (f.availableSlots || 0), 0);
-  const totalOccupancyPct = totalSlots > 0 ? Math.round(((totalSlots - totalAvailable) / totalSlots) * 100) : 0;
+  const totalFree = floors.reduce((acc, f) => acc + (f.availableSlots || 0), 0);
+  const facilityOccupancy = totalSlots > 0 ? Math.round(((totalSlots - totalFree) / totalSlots) * 100) : 0;
 
-  // Floor layout slots mock generator for drill-down view
-  const currentFloorSlots = useMemo(() => {
+  // Floor layout bays mock generator
+  const interactiveSlots = useMemo(() => {
     if (!selectedFloor) return [];
-    const count = 12; // 12 visual interactive slots for the floor
-    const freeCount = Math.min(count, Math.max(2, Math.round((selectedFloor.availableSlots / (selectedFloor.totalSlots || 1)) * count)));
-    const evSlots = selectedFloor.evSlots || 1;
-    
-    const slots = [];
+    const count = 10; // 10 spacious interactive slots
+    const freeSlotsCount = Math.min(count, Math.max(2, Math.round((selectedFloor.availableSlots / (selectedFloor.totalSlots || 1)) * count)));
+    const evSlotsCount = selectedFloor.evSlots || 2;
+
+    const list = [];
     for (let i = 1; i <= count; i++) {
-      const isEv = i <= evSlots;
-      const isAvailable = i <= freeCount;
       const code = `${selectedFloor.floorName?.charAt(0) || 'L'}-${String(i).padStart(2, '0')}`;
-      slots.push({
+      list.push({
         id: code,
         slotNumber: code,
-        isAvailable,
-        isEv,
+        isAvailable: i <= freeSlotsCount,
+        isEV: i <= evSlotsCount,
         isAccessible: i === count,
       });
     }
-    return slots;
+    return list;
   }, [selectedFloor]);
 
-  // Compute vertical baseline for each floor
-  const floorSpacing = viewMode === 'exploded' ? 72 : 46;
-  const baseY = SVG_HEIGHT - 65;
+  const spacing = isExploded ? 68 : 44;
+  const baseY = CANVAS_HEIGHT - 65;
 
   return (
-    <View style={styles.container}>
-      {/* Visualizer Header with Mode Toggles */}
-      <View style={styles.headerRow}>
-        <View style={styles.titleCol}>
-          <View style={styles.liveIndicator}>
-            <View style={styles.pulseDot} />
-            <Text style={styles.liveTagText}>3D DIGITAL TWIN</Text>
+    <View style={styles.cardWrapper}>
+      {/* Top Futuristic Header */}
+      <View style={styles.topBar}>
+        <View style={styles.headerTitleGroup}>
+          <View style={styles.tagBadge}>
+            <View style={styles.radarDot} />
+            <Text style={styles.tagText}>ARCHITECTURAL TWIN</Text>
           </View>
-          <Text style={styles.buildingTitle} numberOfLines={1}>
-            {buildingName || 'Multi-Level Parking Facility'}
+          <Text style={styles.hubTitle} numberOfLines={1}>
+            {buildingName || 'Multi-Level Smart Hub'}
           </Text>
         </View>
 
-        {/* View Mode Segmented Switch */}
-        <View style={styles.segmentControls}>
+        {/* View Switcher Chips */}
+        <View style={styles.tabPillGroup}>
           <TouchableOpacity
-            style={[styles.segmentBtn, viewMode === 'stack' && styles.segmentBtnActive]}
-            onPress={() => setViewMode('stack')}
-            activeOpacity={0.7}
+            style={[styles.tabPill, activeTab === 'model' && styles.tabPillActive]}
+            onPress={() => setActiveTab('model')}
+            activeOpacity={0.75}
           >
-            <Layers size={14} color={viewMode === 'stack' ? '#171717' : Colors.textSecondary} />
-            <Text style={[styles.segmentBtnText, viewMode === 'stack' && styles.segmentBtnTextActive]}>
-              3D
+            <Layers size={13} color={activeTab === 'model' ? '#171717' : '#94A3B8'} />
+            <Text style={[styles.tabPillText, activeTab === 'model' && styles.tabPillTextActive]}>
+              3D Hub
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.segmentBtn, viewMode === 'exploded' && styles.segmentBtnActive]}
-            onPress={() => setViewMode('exploded')}
-            activeOpacity={0.7}
+            style={[styles.tabPill, activeTab === 'slots' && styles.tabPillActive]}
+            onPress={() => setActiveTab('slots')}
+            activeOpacity={0.75}
           >
-            <Maximize2 size={14} color={viewMode === 'exploded' ? '#171717' : Colors.textSecondary} />
-            <Text style={[styles.segmentBtnText, viewMode === 'exploded' && styles.segmentBtnTextActive]}>
-              Expand
+            <Car size={13} color={activeTab === 'slots' ? '#171717' : '#94A3B8'} />
+            <Text style={[styles.tabPillText, activeTab === 'slots' && styles.tabPillTextActive]}>
+              Deck Plan
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.segmentBtn, viewMode === 'slots' && styles.segmentBtnActive]}
-            onPress={() => setViewMode('slots')}
-            activeOpacity={0.7}
+            style={[styles.tabPill, activeTab === 'specs' && styles.tabPillActive]}
+            onPress={() => setActiveTab('specs')}
+            activeOpacity={0.75}
           >
-            <Eye size={14} color={viewMode === 'slots' ? '#171717' : Colors.textSecondary} />
-            <Text style={[styles.segmentBtnText, viewMode === 'slots' && styles.segmentBtnTextActive]}>
-              Slots
+            <Info size={13} color={activeTab === 'specs' ? '#171717' : '#94A3B8'} />
+            <Text style={[styles.tabPillText, activeTab === 'specs' && styles.tabPillTextActive]}>
+              Specs
             </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Main 3D Canvas Container */}
-      <View style={styles.canvasContainer}>
-        {viewMode === 'slots' ? (
-          /* =======================================================
-             DETAILED ISOMETRIC FLOOR SLOT MAP (Interactive Bays)
-             ======================================================= */
-          <Svg width={SVG_WIDTH} height={SVG_HEIGHT} viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}>
-            <Defs>
-              <LinearGradient id="floorGridGrad" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0%" stopColor="#1E232E" stopOpacity="0.95" />
-                <Stop offset="100%" stopColor="#11151D" stopOpacity="0.98" />
-              </LinearGradient>
-              <LinearGradient id="driveLaneGrad" x1="0" y1="0" x2="1" y2="0">
-                <Stop offset="0%" stopColor="#2A3040" />
-                <Stop offset="50%" stopColor="#353E52" />
-                <Stop offset="100%" stopColor="#2A3040" />
-              </LinearGradient>
-              <LinearGradient id="carBodyGrad" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0%" stopColor="#E2E8F0" />
-                <Stop offset="100%" stopColor="#64748B" />
-              </LinearGradient>
-              <LinearGradient id="evCarGrad" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0%" stopColor="#38BDF8" />
-                <Stop offset="100%" stopColor="#0284C7" />
-              </LinearGradient>
-            </Defs>
+      {/* Interactive Canvas Viewport */}
+      <View style={styles.viewport}>
+        {activeTab === 'model' ? (
+          /* ============================================================
+             1. ISOMETRIC 3D ARCHITECTURAL MULTI-STOREY BUILDING MODEL
+             ============================================================ */
+          <View style={styles.svgContainer}>
+            <Svg width={CANVAS_WIDTH} height={CANVAS_HEIGHT} viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}>
+              <Defs>
+                {/* Deck Gradients */}
+                <LinearGradient id="deckConcreteGrad" x1="0" y1="0" x2="1" y2="1">
+                  <Stop offset="0%" stopColor="#252D3D" />
+                  <Stop offset="50%" stopColor="#1E2430" />
+                  <Stop offset="100%" stopColor="#161B24" />
+                </LinearGradient>
+                <LinearGradient id="deckSelectedGrad" x1="0" y1="0" x2="1" y2="1">
+                  <Stop offset="0%" stopColor="#3B3213" />
+                  <Stop offset="60%" stopColor="#2A230A" />
+                  <Stop offset="100%" stopColor="#1C1705" />
+                </LinearGradient>
+                <LinearGradient id="leftFacetGrad" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor="#19202C" />
+                  <Stop offset="100%" stopColor="#0F141C" />
+                </LinearGradient>
+                <LinearGradient id="rightFacetGrad" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor="#131822" />
+                  <Stop offset="100%" stopColor="#0A0D14" />
+                </LinearGradient>
+                {/* Structural Glass Gradients */}
+                <LinearGradient id="glassRailGrad" x1="0" y1="0" x2="1" y2="1">
+                  <Stop offset="0%" stopColor="rgba(56, 189, 248, 0.35)" />
+                  <Stop offset="100%" stopColor="rgba(14, 165, 233, 0.12)" />
+                </LinearGradient>
+                <LinearGradient id="elevatorGlassGrad" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor="rgba(56, 189, 248, 0.45)" />
+                  <Stop offset="100%" stopColor="rgba(15, 23, 42, 0.9)" />
+                </LinearGradient>
+                {/* Gold Highlight Glow */}
+                <RadialGradient id="selectionAura" cx="50%" cy="50%" r="50%">
+                  <Stop offset="0%" stopColor="#FFC928" stopOpacity="0.4" />
+                  <Stop offset="80%" stopColor="#FFC928" stopOpacity="0.05" />
+                  <Stop offset="100%" stopColor="#FFC928" stopOpacity="0" />
+                </RadialGradient>
+              </Defs>
 
-            {/* Background Ground Grid / Floor Slab */}
-            {/* Floor Isometric Base */}
-            <Polygon
-              points={`
-                ${CENTER_X},${45}
-                ${CENTER_X + SLAB_W * 0.72},${45 + SLAB_D * 0.8}
-                ${CENTER_X},${45 + SLAB_D * 1.6}
-                ${CENTER_X - SLAB_W * 0.72},${45 + SLAB_D * 0.8}
-              `}
-              fill="url(#floorGridGrad)"
-              stroke="#FFC928"
-              strokeWidth="2"
-            />
-
-            {/* Front Extrusion of the Floor */}
-            <Polygon
-              points={`
-                ${CENTER_X - SLAB_W * 0.72},${45 + SLAB_D * 0.8}
-                ${CENTER_X},${45 + SLAB_D * 1.6}
-                ${CENTER_X},${45 + SLAB_D * 1.6 + 18}
-                ${CENTER_X - SLAB_W * 0.72},${45 + SLAB_D * 0.8 + 18}
-              `}
-              fill="#0D1117"
-            />
-            <Polygon
-              points={`
-                ${CENTER_X},${45 + SLAB_D * 1.6}
-                ${CENTER_X + SLAB_W * 0.72},${45 + SLAB_D * 0.8}
-                ${CENTER_X + SLAB_W * 0.72},${45 + SLAB_D * 0.8 + 18}
-                ${CENTER_X},${45 + SLAB_D * 1.6 + 18}
-              `}
-              fill="#161B22"
-            />
-
-            {/* Central Drive Lane with Arrows */}
-            <Polygon
-              points={`
-                ${CENTER_X - 18},${70}
-                ${CENTER_X + 18},${70}
-                ${CENTER_X + 22},${45 + SLAB_D * 1.4}
-                ${CENTER_X - 22},${45 + SLAB_D * 1.4}
-              `}
-              fill="url(#driveLaneGrad)"
-            />
-
-            {/* Driveway Direction Arrows */}
-            <Path
-              d={`M ${CENTER_X} ${100} L ${CENTER_X - 6} ${112} L ${CENTER_X + 6} ${112} Z`}
-              fill="#FFC928"
-              opacity="0.85"
-            />
-            <Path
-              d={`M ${CENTER_X} ${145} L ${CENTER_X - 6} ${157} L ${CENTER_X + 6} ${157} Z`}
-              fill="#FFC928"
-              opacity="0.85"
-            />
-            <Path
-              d={`M ${CENTER_X} ${190} L ${CENTER_X - 6} ${202} L ${CENTER_X + 6} ${202} Z`}
-              fill="#FFC928"
-              opacity="0.85"
-            />
-
-            {/* Left Row of Parking Bays */}
-            {currentFloorSlots.slice(0, 6).map((slot, index) => {
-              const yOffset = 78 + index * 26;
-              const xOffset = CENTER_X - 35 - (index * 13);
-              const isSelected = selectedSlot === slot.id;
-
-              return (
-                <G
-                  key={slot.id}
-                  onPress={() => slot.isAvailable && onSelectSlot && onSelectSlot(slot.id)}
-                >
-                  {/* Slot Bay Outline */}
-                  <Polygon
-                    points={`
-                      ${xOffset},${yOffset}
-                      ${xOffset - 42},${yOffset + 14}
-                      ${xOffset - 42},${yOffset + 32}
-                      ${xOffset},${yOffset + 18}
-                    `}
-                    fill={
-                      isSelected
-                        ? '#FFC928'
-                        : slot.isAvailable
-                        ? 'rgba(34, 197, 94, 0.22)'
-                        : 'rgba(239, 68, 68, 0.2)'
-                    }
-                    stroke={
-                      isSelected
-                        ? '#FFC928'
-                        : slot.isAvailable
-                        ? '#22C55E'
-                        : '#EF4444'
-                    }
-                    strokeWidth={isSelected ? '2' : '1'}
-                  />
-
-                  {/* Slot Status Car or Code */}
-                  {slot.isAvailable ? (
-                    <SvgText
-                      x={xOffset - 22}
-                      y={yOffset + 24}
-                      fill={isSelected ? '#171717' : '#22C55E'}
-                      fontSize="9"
-                      fontWeight="bold"
-                      textAnchor="middle"
-                    >
-                      {slot.slotNumber}
-                    </SvgText>
-                  ) : (
-                    /* Low-poly Parked Isometric Car */
-                    <G>
-                      <Polygon
-                        points={`
-                          ${xOffset - 8},${yOffset + 14}
-                          ${xOffset - 32},${yOffset + 22}
-                          ${xOffset - 28},${yOffset + 28}
-                          ${xOffset - 4},${yOffset + 20}
-                        `}
-                        fill={slot.isEv ? 'url(#evCarGrad)' : 'url(#carBodyGrad)'}
-                      />
-                      {/* Car windshield */}
-                      <Polygon
-                        points={`
-                          ${xOffset - 14},${yOffset + 16}
-                          ${xOffset - 26},${yOffset + 20}
-                          ${xOffset - 24},${yOffset + 24}
-                          ${xOffset - 12},${yOffset + 20}
-                        `}
-                        fill="#0F172A"
-                      />
-                    </G>
-                  )}
-                </G>
-              );
-            })}
-
-            {/* Right Row of Parking Bays */}
-            {currentFloorSlots.slice(6, 12).map((slot, index) => {
-              const yOffset = 78 + index * 26;
-              const xOffset = CENTER_X + 35 + (index * 13);
-              const isSelected = selectedSlot === slot.id;
-
-              return (
-                <G
-                  key={slot.id}
-                  onPress={() => slot.isAvailable && onSelectSlot && onSelectSlot(slot.id)}
-                >
-                  {/* Slot Bay Outline */}
-                  <Polygon
-                    points={`
-                      ${xOffset},${yOffset}
-                      ${xOffset + 42},${yOffset + 14}
-                      ${xOffset + 42},${yOffset + 32}
-                      ${xOffset},${yOffset + 18}
-                    `}
-                    fill={
-                      isSelected
-                        ? '#FFC928'
-                        : slot.isAvailable
-                        ? 'rgba(34, 197, 94, 0.22)'
-                        : 'rgba(239, 68, 68, 0.2)'
-                    }
-                    stroke={
-                      isSelected
-                        ? '#FFC928'
-                        : slot.isAvailable
-                        ? '#22C55E'
-                        : '#EF4444'
-                    }
-                    strokeWidth={isSelected ? '2' : '1'}
-                  />
-
-                  {slot.isAvailable ? (
-                    <SvgText
-                      x={xOffset + 22}
-                      y={yOffset + 24}
-                      fill={isSelected ? '#171717' : '#22C55E'}
-                      fontSize="9"
-                      fontWeight="bold"
-                      textAnchor="middle"
-                    >
-                      {slot.slotNumber}
-                    </SvgText>
-                  ) : (
-                    /* Parked Isometric Car */
-                    <G>
-                      <Polygon
-                        points={`
-                          ${xOffset + 8},${yOffset + 14}
-                          ${xOffset + 32},${yOffset + 22}
-                          ${xOffset + 28},${yOffset + 28}
-                          ${xOffset + 4},${yOffset + 20}
-                        `}
-                        fill={slot.isEv ? 'url(#evCarGrad)' : 'url(#carBodyGrad)'}
-                      />
-                      <Polygon
-                        points={`
-                          ${xOffset + 14},${yOffset + 16}
-                          ${xOffset + 26},${yOffset + 20}
-                          ${xOffset + 24},${yOffset + 24}
-                          ${xOffset + 12},${yOffset + 20}
-                        `}
-                        fill="#0F172A"
-                      />
-                    </G>
-                  )}
-                </G>
-              );
-            })}
-
-            {/* Floor Name Plaque Header */}
-            <Rect
-              x={CENTER_X - 70}
-              y={240}
-              width={140}
-              height={26}
-              rx={13}
-              fill="#171717"
-              stroke="#FFC928"
-              strokeWidth="1.5"
-            />
-            <SvgText
-              x={CENTER_X}
-              y={257}
-              fill="#FFC928"
-              fontSize="12"
-              fontWeight="bold"
-              textAnchor="middle"
-            >
-              {selectedFloor?.floorName || 'Floor'} Layout
-            </SvgText>
-          </Svg>
-        ) : (
-          /* =======================================================
-             3D ISOMETRIC BUILDING STACK (Floors & Architectural Slabs)
-             ======================================================= */
-          <Svg width={SVG_WIDTH} height={SVG_HEIGHT} viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}>
-            <Defs>
-              <LinearGradient id="groundGrad" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0%" stopColor="#1E232E" />
-                <Stop offset="100%" stopColor="#0B0E14" />
-              </LinearGradient>
-              <LinearGradient id="slabTopGrad" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0%" stopColor="#283040" />
-                <Stop offset="100%" stopColor="#19202C" />
-              </LinearGradient>
-              <LinearGradient id="slabSelectedTopGrad" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0%" stopColor="#3F3715" />
-                <Stop offset="100%" stopColor="#241E09" />
-              </LinearGradient>
-              <LinearGradient id="pillarGrad" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0%" stopColor="#64748B" />
-                <Stop offset="100%" stopColor="#334155" />
-              </LinearGradient>
-              <RadialGradient id="selectionGlow" cx="50%" cy="50%" r="50%">
-                <Stop offset="0%" stopColor="#FFC928" stopOpacity="0.45" />
-                <Stop offset="100%" stopColor="#FFC928" stopOpacity="0" />
-              </RadialGradient>
-            </Defs>
-
-            {/* Base Apron / Ground Driveway */}
-            <Polygon
-              points={`
-                ${CENTER_X},${baseY - 12}
-                ${CENTER_X + SLAB_W * 0.65},${baseY + SLAB_D * 0.58}
-                ${CENTER_X},${baseY + SLAB_D * 1.15}
-                ${CENTER_X - SLAB_W * 0.65},${baseY + SLAB_D * 0.58}
-              `}
-              fill="url(#groundGrad)"
-              stroke="rgba(255, 255, 255, 0.12)"
-              strokeWidth="1.5"
-            />
-
-            {/* Ground Entrance Barrier Gate */}
-            <G>
-              {/* Barrier stand */}
-              <Rect
-                x={CENTER_X - SLAB_W * 0.42}
-                y={baseY + SLAB_D * 0.5 - 16}
-                width={7}
-                height={16}
-                fill="#FFC928"
-                rx={1}
+              {/* 1. Ground Apron & Entrance Roadway */}
+              <Polygon
+                points={`
+                  ${CX},${baseY - 10}
+                  ${CX + DECK_W * 0.65},${baseY + DECK_D * 0.55}
+                  ${CX},${baseY + DECK_D * 1.15}
+                  ${CX - DECK_W * 0.65},${baseY + DECK_D * 0.55}
+                `}
+                fill="#121620"
+                stroke="rgba(255, 255, 255, 0.1)"
+                strokeWidth="1.5"
               />
-              {/* Gate barrier arm */}
-              <Line
-                x1={CENTER_X - SLAB_W * 0.42 + 7}
-                y1={baseY + SLAB_D * 0.5 - 12}
-                x2={CENTER_X - SLAB_W * 0.42 + 32}
-                y2={baseY + SLAB_D * 0.5 - 4}
-                stroke="#EF4444"
-                strokeWidth={3}
-                strokeDasharray="4, 4"
-              />
-              {/* LED signal indicator */}
-              <Circle
-                cx={CENTER_X - SLAB_W * 0.42 + 3.5}
-                y={baseY + SLAB_D * 0.5 - 19}
-                r={3}
-                fill="#22C55E"
-              />
-            </G>
 
-            {/* Structural Connecting Pillars */}
-            {sortedFloors.length > 1 && (
+              {/* Ground Entrance Driveway Chevron Arrows */}
+              <Path
+                d={`M ${CX - 15} ${baseY + DECK_D * 0.75} L ${CX} ${baseY + DECK_D * 0.65} L ${CX + 15} ${baseY + DECK_D * 0.75}`}
+                stroke="#FFC928"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.8"
+              />
+              <Path
+                d={`M ${CX - 15} ${baseY + DECK_D * 0.9} L ${CX} ${baseY + DECK_D * 0.8} L ${CX + 15} ${baseY + DECK_D * 0.9}`}
+                stroke="#FFC928"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.5"
+              />
+
+              {/* Ground ANPR Gate & Barrier Arm */}
               <G>
-                {/* Back Left Pillar */}
-                <Line
-                  x1={CENTER_X - SLAB_W * 0.38}
-                  y1={baseY - (sortedFloors.length - 1) * floorSpacing}
-                  x2={CENTER_X - SLAB_W * 0.38}
-                  y2={baseY + 10}
-                  stroke="url(#pillarGrad)"
-                  strokeWidth="3.5"
+                {/* Barrier Stand */}
+                <Rect
+                  x={CX - DECK_W * 0.45}
+                  y={baseY + DECK_D * 0.45 - 14}
+                  width={8}
+                  height={15}
+                  fill="#FFC928"
+                  rx={2}
                 />
-                {/* Back Right Pillar */}
+                {/* Boom Arm */}
                 <Line
-                  x1={CENTER_X + SLAB_W * 0.38}
-                  y1={baseY - (sortedFloors.length - 1) * floorSpacing}
-                  x2={CENTER_X + SLAB_W * 0.38}
-                  y2={baseY + 10}
-                  stroke="url(#pillarGrad)"
-                  strokeWidth="3.5"
+                  x1={CX - DECK_W * 0.45 + 8}
+                  y1={baseY + DECK_D * 0.45 - 9}
+                  x2={CX - DECK_W * 0.45 + 34}
+                  y2={baseY + DECK_D * 0.45 - 2}
+                  stroke="#EF4444"
+                  strokeWidth="3"
+                  strokeDasharray="4, 3"
+                />
+                {/* Signal Light */}
+                <Circle
+                  cx={CX - DECK_W * 0.45 + 4}
+                  y={baseY + DECK_D * 0.45 - 18}
+                  r={3.5}
+                  fill="#22C55E"
                 />
               </G>
-            )}
 
-            {/* Render Each Floor Slab */}
-            {sortedFloors.map((floor, index) => {
-              const isSelected = selectedFloor?._id === floor._id;
-              const isFull = floor.availableSlots <= 0;
-              const occupancy = floor.totalSlots > 0
-                ? Math.round(((floor.totalSlots - floor.availableSlots) / floor.totalSlots) * 100)
-                : 0;
+              {/* 2. Glass Elevator Shaft Core (Left Tower) */}
+              {floorList.length > 0 && (
+                <G>
+                  {/* Vertical Elevator Column */}
+                  <Rect
+                    x={CX - DECK_W * 0.5 - 20}
+                    y={baseY - (floorList.length - 1) * spacing - 24}
+                    width={16}
+                    height={(floorList.length - 1) * spacing + DECK_D * 0.5 + 24}
+                    fill="url(#elevatorGlassGrad)"
+                    stroke="#0284C7"
+                    strokeWidth="1.2"
+                    rx={3}
+                  />
+                  {/* Elevator Cab (Glowing Yellow / Cyan) */}
+                  <Rect
+                    x={CX - DECK_W * 0.5 - 18}
+                    y={baseY - ((selectedFloor ? floorList.findIndex(f => f._id === selectedFloor._id) : 0) * spacing) - 10}
+                    width={12}
+                    height={16}
+                    fill="#FFC928"
+                    rx={2}
+                  />
+                  {/* Elevator Cable */}
+                  <Line
+                    x1={CX - DECK_W * 0.5 - 12}
+                    y1={baseY - (floorList.length - 1) * spacing - 24}
+                    x2={CX - DECK_W * 0.5 - 12}
+                    y2={baseY}
+                    stroke="rgba(255, 255, 255, 0.3)"
+                    strokeWidth="1"
+                  />
+                  {/* Tower Finial */}
+                  <Circle
+                    cx={CX - DECK_W * 0.5 - 12}
+                    y={baseY - (floorList.length - 1) * spacing - 28}
+                    r={3}
+                    fill="#38BDF8"
+                  />
+                </G>
+              )}
 
-              // Color coding based on capacity
-              const glowColor = isSelected
-                ? '#FFC928'
-                : isFull
-                ? '#EF4444'
-                : occupancy > 80
-                ? '#F59E0B'
-                : '#22C55E';
+              {/* 3. Spiral Ramp / Helical Access Drive (Right Side) */}
+              {floorList.length > 1 && (
+                <G>
+                  {floorList.map((_, i) => {
+                    if (i === floorList.length - 1) return null;
+                    const y1 = baseY - i * spacing;
+                    const y2 = baseY - (i + 1) * spacing;
+                    const rx = CX + DECK_W * 0.48;
+                    return (
+                      <Path
+                        key={`ramp_${i}`}
+                        d={`M ${rx} ${y1} Q ${rx + 22} ${(y1 + y2) / 2} ${rx} ${y2}`}
+                        stroke="#FFC928"
+                        strokeWidth="3.5"
+                        fill="none"
+                        strokeLinecap="round"
+                        opacity="0.8"
+                      />
+                    );
+                  })}
+                </G>
+              )}
 
-              // Vertical position with elevation when selected
-              const elevationLift = isSelected ? 18 : 0;
-              const curY = baseY - index * floorSpacing - elevationLift;
+              {/* 4. Structural Columns connecting decks */}
+              {floorList.length > 1 && (
+                <G>
+                  <Line
+                    x1={CX - DECK_W * 0.35}
+                    y1={baseY - (floorList.length - 1) * spacing}
+                    x2={CX - DECK_W * 0.35}
+                    y2={baseY + 5}
+                    stroke="#475569"
+                    strokeWidth="3"
+                  />
+                  <Line
+                    x1={CX + DECK_W * 0.35}
+                    y1={baseY - (floorList.length - 1) * spacing}
+                    x2={CX + DECK_W * 0.35}
+                    y2={baseY + 5}
+                    stroke="#334155"
+                    strokeWidth="3"
+                  />
+                </G>
+              )}
 
-              // Slab coordinates
-              const topP = `${CENTER_X},${curY - SLAB_D / 2}`;
-              const rightP = `${CENTER_X + SLAB_W / 2},${curY}`;
-              const bottomP = `${CENTER_X},${curY + SLAB_D / 2}`;
-              const leftP = `${CENTER_X - SLAB_W / 2},${curY}`;
+              {/* 5. Render Floor Slabs (Bottom-to-Top in correct Isometric Z-Order) */}
+              {floorList.map((floor, index) => {
+                const isSelected = selectedFloor?._id === floor._id;
+                const isFull = floor.availableSlots <= 0;
+                const occ = floor.totalSlots > 0
+                  ? Math.round(((floor.totalSlots - floor.availableSlots) / floor.totalSlots) * 100)
+                  : 0;
 
-              return (
-                <G
-                  key={floor._id}
-                  onPress={() => !isFull && onSelectFloor(floor)}
-                >
-                  {/* Selection Glow Aura */}
-                  {isSelected && (
+                // Color accents
+                const glow = isSelected
+                  ? '#FFC928'
+                  : isFull
+                  ? '#EF4444'
+                  : occ > 80
+                  ? '#F59E0B'
+                  : '#22C55E';
+
+                // Elevation lift when selected
+                const elevation = isSelected ? 16 : 0;
+                const curY = baseY - index * spacing - elevation;
+
+                // Key points for isometric deck
+                const pTop = `${CX},${curY - DECK_D / 2}`;
+                const pRight = `${CX + DECK_W / 2},${curY}`;
+                const pBottom = `${CX},${curY + DECK_D / 2}`;
+                const pLeft = `${CX - DECK_W / 2},${curY}`;
+
+                return (
+                  <G
+                    key={floor._id}
+                    onPress={() => !isFull && onSelectFloor(floor)}
+                  >
+                    {/* Floating Selection Spotlight Aura */}
+                    {isSelected && (
+                      <Polygon
+                        points={`
+                          ${CX},${curY - DECK_D / 2 - 10}
+                          ${CX + DECK_W / 2 + 15},${curY}
+                          ${CX},${curY + DECK_D / 2 + 10}
+                          ${CX - DECK_W / 2 - 15},${curY}
+                        `}
+                        fill="url(#selectionAura)"
+                      />
+                    )}
+
+                    {/* Left Front Facet (Concrete Slab Thickness) */}
                     <Polygon
                       points={`
-                        ${CENTER_X},${curY - SLAB_D / 2 - 8}
-                        ${CENTER_X + SLAB_W / 2 + 12},${curY}
-                        ${CENTER_X},${curY + SLAB_D / 2 + 8}
-                        ${CENTER_X - SLAB_W / 2 - 12},${curY}
+                        ${pLeft}
+                        ${pBottom}
+                        ${CX},${curY + DECK_D / 2 + DECK_H}
+                        ${CX - DECK_W / 2},${curY + DECK_H}
                       `}
-                      fill="url(#selectionGlow)"
+                      fill={isSelected ? '#71530A' : 'url(#leftFacetGrad)'}
+                      stroke={glow}
+                      strokeWidth={isSelected ? '1.5' : '0.8'}
                     />
-                  )}
 
-                  {/* Left Facet (Trapezoid) */}
-                  <Polygon
-                    points={`
-                      ${leftP}
-                      ${bottomP}
-                      ${CENTER_X},${curY + SLAB_D / 2 + SLAB_H}
-                      ${CENTER_X - SLAB_W / 2},${curY + SLAB_H}
-                    `}
-                    fill={isSelected ? '#71530A' : '#141822'}
-                    stroke={glowColor}
-                    strokeWidth={isSelected ? '1.5' : '0.8'}
-                  />
+                    {/* Right Front Facet (Concrete Slab Thickness) */}
+                    <Polygon
+                      points={`
+                        ${pBottom}
+                        ${pRight}
+                        ${CX + DECK_W / 2},${curY + DECK_H}
+                        ${CX},${curY + DECK_D / 2 + DECK_H}
+                      `}
+                      fill={isSelected ? '#543F07' : 'url(#rightFacetGrad)'}
+                      stroke={glow}
+                      strokeWidth={isSelected ? '1.5' : '0.8'}
+                    />
 
-                  {/* Right Facet (Trapezoid) */}
-                  <Polygon
-                    points={`
-                      ${bottomP}
-                      ${rightP}
-                      ${CENTER_X + SLAB_W / 2},${curY + SLAB_H}
-                      ${CENTER_X},${curY + SLAB_D / 2 + SLAB_H}
-                    `}
-                    fill={isSelected ? '#543F07' : '#1E2534'}
-                    stroke={glowColor}
-                    strokeWidth={isSelected ? '1.5' : '0.8'}
-                  />
+                    {/* Top Deck Surface */}
+                    <Polygon
+                      points={`${pTop} ${pRight} ${pBottom} ${pLeft}`}
+                      fill={isSelected ? 'url(#deckSelectedGrad)' : 'url(#deckConcreteGrad)'}
+                      stroke={glow}
+                      strokeWidth={isSelected ? '2.5' : '1.2'}
+                    />
 
-                  {/* Top Slab Surface (Rhombus) */}
-                  <Polygon
-                    points={`${topP} ${rightP} ${bottomP} ${leftP}`}
-                    fill={isSelected ? 'url(#slabSelectedTopGrad)' : 'url(#slabTopGrad)'}
-                    stroke={glowColor}
-                    strokeWidth={isSelected ? '2.5' : '1.2'}
-                  />
+                    {/* Glass Parapet Safety Railing (Front Rim) */}
+                    <Polygon
+                      points={`
+                        ${pLeft}
+                        ${pBottom}
+                        ${CX},${curY + DECK_D / 2 - RAIL_H}
+                        ${CX - DECK_W / 2},${curY - RAIL_H}
+                      `}
+                      fill="url(#glassRailGrad)"
+                      stroke={glow}
+                      strokeWidth="0.7"
+                      opacity="0.8"
+                    />
+                    <Polygon
+                      points={`
+                        ${pBottom}
+                        ${pRight}
+                        ${CX + DECK_W / 2},${curY - RAIL_H}
+                        ${CX},${curY + DECK_D / 2 - RAIL_H}
+                      `}
+                      fill="url(#glassRailGrad)"
+                      stroke={glow}
+                      strokeWidth="0.7"
+                      opacity="0.8"
+                    />
 
-                  {/* Grid Lines on Floor Surface for Parking Bays */}
-                  <Line
-                    x1={CENTER_X - SLAB_W * 0.28}
-                    y1={curY - SLAB_D * 0.14}
-                    x2={CENTER_X + SLAB_W * 0.18}
-                    y2={curY + SLAB_D * 0.22}
-                    stroke="rgba(255, 255, 255, 0.18)"
-                    strokeDasharray="4, 4"
-                    strokeWidth="1"
-                  />
-                  <Line
-                    x1={CENTER_X - SLAB_W * 0.18}
-                    y1={curY + SLAB_D * 0.22}
-                    x2={CENTER_X + SLAB_W * 0.28}
-                    y2={curY - SLAB_D * 0.14}
-                    stroke="rgba(255, 255, 255, 0.18)"
-                    strokeDasharray="4, 4"
-                    strokeWidth="1"
-                  />
+                    {/* Painted Parking Stall Lines on Deck */}
+                    <Line
+                      x1={CX - DECK_W * 0.24}
+                      y1={curY - DECK_D * 0.12}
+                      x2={CX - DECK_W * 0.08}
+                      y2={curY + DECK_D * 0.18}
+                      stroke="rgba(255, 255, 255, 0.25)"
+                      strokeDasharray="3, 3"
+                      strokeWidth="1"
+                    />
+                    <Line
+                      x1={CX + DECK_W * 0.08}
+                      y1={curY + DECK_D * 0.18}
+                      x2={CX + DECK_W * 0.24}
+                      y2={curY - DECK_D * 0.12}
+                      stroke="rgba(255, 255, 255, 0.25)"
+                      strokeDasharray="3, 3"
+                      strokeWidth="1"
+                    />
 
-                  {/* Micro Parked Car on Available Floors */}
-                  {!isFull && (
+                    {/* Micro Parked Car on Deck */}
+                    {!isFull && (
+                      <G>
+                        <Polygon
+                          points={`
+                            ${CX - 14},${curY - 1}
+                            ${CX},${curY + 7}
+                            ${CX + 14},${curY}
+                            ${CX},${curY - 8}
+                          `}
+                          fill={floor.evSlots ? '#38BDF8' : '#E2E8F0'}
+                        />
+                        {/* Windshield */}
+                        <Polygon
+                          points={`
+                            ${CX - 8},${curY - 2}
+                            ${CX},${curY + 3}
+                            ${CX + 6},${curY - 1}
+                            ${CX},${curY - 6}
+                          `}
+                          fill="#0F172A"
+                        />
+                      </G>
+                    )}
+
+                    {/* Clean Horizontal Floor Level Badge on Right */}
                     <G>
-                      <Polygon
-                        points={`
-                          ${CENTER_X - 18},${curY - 2}
-                          ${CENTER_X - 2},${curY + 6}
-                          ${CENTER_X + 12},${curY - 1}
-                          ${CENTER_X - 4},${curY - 9}
-                        `}
-                        fill={floor.evSlots ? '#38BDF8' : '#F1F5F9'}
+                      <Rect
+                        x={CX + DECK_W / 2 + 10}
+                        y={curY - 13}
+                        width={78}
+                        height={24}
+                        rx={6}
+                        fill={isSelected ? '#FFC928' : '#171E2B'}
+                        stroke={glow}
+                        strokeWidth={isSelected ? '1.8' : '1'}
                       />
-                      {/* Car glass */}
-                      <Polygon
-                        points={`
-                          ${CENTER_X - 12},${curY - 3}
-                          ${CENTER_X - 4},${curY + 2}
-                          ${CENTER_X + 4},${curY - 2}
-                          ${CENTER_X - 4},${curY - 7}
-                        `}
-                        fill="#0F172A"
-                      />
-                    </G>
-                  )}
-
-                  {/* Floor Level Floating Tag on Right Side */}
-                  <G>
-                    {/* Tag Background Pill */}
-                    <Rect
-                      x={CENTER_X + SLAB_W / 2 + 12}
-                      y={curY - 14}
-                      width={86}
-                      height={26}
-                      rx={13}
-                      fill={isSelected ? '#FFC928' : '#171717'}
-                      stroke={glowColor}
-                      strokeWidth={isSelected ? '2' : '1'}
-                    />
-                    {/* Floor Label */}
-                    <SvgText
-                      x={CENTER_X + SLAB_W / 2 + 24}
-                      y={curY + 3}
-                      fill={isSelected ? '#171717' : '#FFFFFF'}
-                      fontSize="11"
-                      fontWeight="bold"
-                    >
-                      {floor.floorName}
-                    </SvgText>
-                    {/* Capacity Indicator Dot */}
-                    <Circle
-                      cx={CENTER_X + SLAB_W / 2 + 82}
-                      cy={curY - 1}
-                      r={4}
-                      fill={glowColor}
-                    />
-                  </G>
-
-                  {/* EV Lightning icon indicator on left */}
-                  {Boolean(floor.evSlots) && (
-                    <G>
+                      <SvgText
+                        x={CX + DECK_W / 2 + 20}
+                        y={curY + 3}
+                        fill={isSelected ? '#171717' : '#FFFFFF'}
+                        fontSize="10"
+                        fontWeight="bold"
+                      >
+                        {floor.floorName}
+                      </SvgText>
+                      {/* Status indicator dot */}
                       <Circle
-                        cx={CENTER_X - SLAB_W / 2 - 16}
-                        cy={curY}
-                        r={11}
-                        fill="#0284C7"
-                      />
-                      <Path
-                        d={`
-                          M ${CENTER_X - SLAB_W / 2 - 14} ${curY - 6}
-                          L ${CENTER_X - SLAB_W / 2 - 18} ${curY + 1}
-                          L ${CENTER_X - SLAB_W / 2 - 15} ${curY + 1}
-                          L ${CENTER_X - SLAB_W / 2 - 18} ${curY + 6}
-                          L ${CENTER_X - SLAB_W / 2 - 12} ${curY - 1}
-                          L ${CENTER_X - SLAB_W / 2 - 15} ${curY - 1}
-                          Z
-                        `}
-                        fill="#FFFFFF"
+                        cx={CX + DECK_W / 2 + 75}
+                        cy={curY - 1}
+                        r={3.5}
+                        fill={glow}
                       />
                     </G>
-                  )}
-                </G>
-              );
-            })}
-          </Svg>
-        )}
-      </View>
 
-      {/* Interactive Selected Floor Detail Inspection Bar */}
-      {selectedFloor && (
-        <View style={styles.floorDetailCard}>
-          <View style={styles.floorDetailHeader}>
-            <View style={styles.detailBadgeRow}>
-              <View style={styles.detailLevelBadge}>
-                <Text style={styles.detailLevelBadgeText}>{selectedFloor.floorName}</Text>
+                    {/* EV Charging Icon Badge on Left if applicable */}
+                    {Boolean(floor.evSlots) && (
+                      <G>
+                        <Circle
+                          cx={CX - DECK_W * 0.5 - 35}
+                          cy={curY}
+                          r={9}
+                          fill="#0284C7"
+                        />
+                        <SvgText
+                          x={CX - DECK_W * 0.5 - 35}
+                          y={curY + 3}
+                          fill="#FFFFFF"
+                          fontSize="9"
+                          fontWeight="bold"
+                          textAnchor="middle"
+                        >
+                          ⚡
+                        </SvgText>
+                      </G>
+                    )}
+                  </G>
+                );
+              })}
+            </Svg>
+
+            {/* Explode / Expand Mode Toggle Button */}
+            <TouchableOpacity
+              style={[styles.floatingActionBtn, isExploded && styles.floatingActionBtnActive]}
+              onPress={() => setIsExploded(!isExploded)}
+              activeOpacity={0.8}
+            >
+              <Maximize2 size={13} color={isExploded ? '#171717' : '#FFFFFF'} />
+              <Text style={[styles.floatingActionText, isExploded && styles.floatingActionTextActive]}>
+                {isExploded ? 'Collapse' : 'Expand'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : activeTab === 'slots' ? (
+          /* ============================================================
+             2. ISOMETRIC FLOOR DECK PLAN (Individual Clickable Slots)
+             ============================================================ */
+          <View style={styles.svgContainer}>
+            <Svg width={CANVAS_WIDTH} height={CANVAS_HEIGHT} viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}>
+              {/* Floor Base Slab */}
+              <Polygon
+                points={`
+                  ${CX},${40}
+                  ${CX + DECK_W * 0.72},${40 + DECK_D * 0.8}
+                  ${CX},${40 + DECK_D * 1.6}
+                  ${CX - DECK_W * 0.72},${40 + DECK_D * 0.8}
+                `}
+                fill="#1E2430"
+                stroke="#FFC928"
+                strokeWidth="2"
+              />
+
+              {/* Central Driveway */}
+              <Polygon
+                points={`
+                  ${CX - 20},${65}
+                  ${CX + 20},${65}
+                  ${CX + 24},${40 + DECK_D * 1.4}
+                  ${CX - 24},${40 + DECK_D * 1.4}
+                `}
+                fill="#2D3546"
+              />
+              {/* Direction Arrows */}
+              <Path
+                d={`M ${CX} ${90} L ${CX - 6} ${102} L ${CX + 6} ${102} Z`}
+                fill="#FFC928"
+              />
+              <Path
+                d={`M ${CX} ${140} L ${CX - 6} ${152} L ${CX + 6} ${152} Z`}
+                fill="#FFC928"
+              />
+              <Path
+                d={`M ${CX} ${190} L ${CX - 6} ${202} L ${CX + 6} ${202} Z`}
+                fill="#FFC928"
+              />
+
+              {/* Left Row of Parking Bays */}
+              {interactiveSlots.slice(0, 5).map((slot, idx) => {
+                const y = 75 + idx * 28;
+                const x = CX - 32 - idx * 14;
+                const isPicked = selectedSlot === slot.id;
+
+                return (
+                  <G
+                    key={slot.id}
+                    onPress={() => slot.isAvailable && onSelectSlot && onSelectSlot(slot.id)}
+                  >
+                    <Polygon
+                      points={`
+                        ${x},${y}
+                        ${x - 42},${y + 14}
+                        ${x - 42},${y + 32}
+                        ${x},${y + 18}
+                      `}
+                      fill={
+                        isPicked
+                          ? '#FFC928'
+                          : slot.isAvailable
+                          ? 'rgba(34, 197, 94, 0.2)'
+                          : 'rgba(239, 68, 68, 0.2)'
+                      }
+                      stroke={
+                        isPicked
+                          ? '#FFC928'
+                          : slot.isAvailable
+                          ? '#22C55E'
+                          : '#EF4444'
+                      }
+                      strokeWidth={isPicked ? '2' : '1'}
+                    />
+
+                    {slot.isAvailable ? (
+                      <SvgText
+                        x={x - 21}
+                        y={y + 24}
+                        fill={isPicked ? '#171717' : '#22C55E'}
+                        fontSize="9"
+                        fontWeight="bold"
+                        textAnchor="middle"
+                      >
+                        {slot.slotNumber}
+                      </SvgText>
+                    ) : (
+                      /* Low-Poly Car */
+                      <Polygon
+                        points={`
+                          ${x - 6},${y + 14}
+                          ${x - 30},${y + 22}
+                          ${x - 26},${y + 28}
+                          ${x - 2},${y + 20}
+                        `}
+                        fill="#94A3B8"
+                      />
+                    )}
+                  </G>
+                );
+              })}
+
+              {/* Right Row of Parking Bays */}
+              {interactiveSlots.slice(5, 10).map((slot, idx) => {
+                const y = 75 + idx * 28;
+                const x = CX + 32 + idx * 14;
+                const isPicked = selectedSlot === slot.id;
+
+                return (
+                  <G
+                    key={slot.id}
+                    onPress={() => slot.isAvailable && onSelectSlot && onSelectSlot(slot.id)}
+                  >
+                    <Polygon
+                      points={`
+                        ${x},${y}
+                        ${x + 42},${y + 14}
+                        ${x + 42},${y + 32}
+                        ${x},${y + 18}
+                      `}
+                      fill={
+                        isPicked
+                          ? '#FFC928'
+                          : slot.isAvailable
+                          ? 'rgba(34, 197, 94, 0.2)'
+                          : 'rgba(239, 68, 68, 0.2)'
+                      }
+                      stroke={
+                        isPicked
+                          ? '#FFC928'
+                          : slot.isAvailable
+                          ? '#22C55E'
+                          : '#EF4444'
+                      }
+                      strokeWidth={isPicked ? '2' : '1'}
+                    />
+
+                    {slot.isAvailable ? (
+                      <SvgText
+                        x={x + 21}
+                        y={y + 24}
+                        fill={isPicked ? '#171717' : '#22C55E'}
+                        fontSize="9"
+                        fontWeight="bold"
+                        textAnchor="middle"
+                      >
+                        {slot.slotNumber}
+                      </SvgText>
+                    ) : (
+                      <Polygon
+                        points={`
+                          ${x + 6},${y + 14}
+                          ${x + 30},${y + 22}
+                          ${x + 26},${y + 28}
+                          ${x + 2},${y + 20}
+                        `}
+                        fill="#64748B"
+                      />
+                    )}
+                  </G>
+                );
+              })}
+
+              {/* Center Deck Plaque */}
+              <Rect
+                x={CX - 75}
+                y={240}
+                width={150}
+                height={26}
+                rx={13}
+                fill="#171717"
+                stroke="#FFC928"
+                strokeWidth="1.5"
+              />
+              <SvgText
+                x={CX}
+                y={257}
+                fill="#FFC928"
+                fontSize="12"
+                fontWeight="bold"
+                textAnchor="middle"
+              >
+                Level {selectedFloor?.floorName || '1'} Slots
+              </SvgText>
+            </Svg>
+          </View>
+        ) : (
+          /* ============================================================
+             3. FACILITY & LEVEL SPECIFICATIONS TAB
+             ============================================================ */
+          <View style={styles.specsContainer}>
+            <View style={styles.specRow}>
+              <View style={styles.specBox}>
+                <Text style={styles.specLabel}>Total Capacity</Text>
+                <Text style={styles.specValue}>{totalSlots} Slots</Text>
               </View>
-              <View>
-                <Text style={styles.detailTitle}>Level {selectedFloor.floorName}</Text>
-                <Text style={styles.detailCapacitySub}>
-                  {selectedFloor.availableSlots} of {selectedFloor.totalSlots} Slots Free
-                </Text>
+              <View style={styles.specBox}>
+                <Text style={styles.specLabel}>Available Now</Text>
+                <Text style={[styles.specValue, { color: '#22C55E' }]}>{totalFree} Free</Text>
               </View>
             </View>
 
-            <View style={[
-              styles.occupancyStatusPill,
-              selectedFloor.availableSlots <= 0
-                ? styles.pillFull
-                : selectedFloor.availableSlots > 10
-                ? styles.pillAvailable
-                : styles.pillBusy
-            ]}>
-              <Text style={[
-                styles.occupancyStatusText,
-                selectedFloor.availableSlots <= 0
-                  ? styles.textFull
-                  : selectedFloor.availableSlots > 10
-                  ? styles.textAvailable
-                  : styles.textBusy
-              ]}>
-                {selectedFloor.availableSlots <= 0
-                  ? 'FULL'
-                  : `${Math.round(((selectedFloor.totalSlots - selectedFloor.availableSlots) / (selectedFloor.totalSlots || 1)) * 100)}% OCCUPIED`}
+            <View style={styles.specRow}>
+              <View style={styles.specBox}>
+                <Text style={styles.specLabel}>Selected Deck</Text>
+                <Text style={[styles.specValue, { color: '#FFC928' }]}>
+                  Level {selectedFloor?.floorName || 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.specBox}>
+                <Text style={styles.specLabel}>Clearance Height</Text>
+                <Text style={styles.specValue}>2.2 Meters</Text>
+              </View>
+            </View>
+
+            <View style={styles.featurePillsWrap}>
+              <View style={styles.featurePill}>
+                <ShieldCheck size={14} color="#16A34A" />
+                <Text style={styles.featurePillText}>24/7 CCTV & Security Guard</Text>
+              </View>
+              <View style={styles.featurePill}>
+                <Zap size={14} color="#0284C7" />
+                <Text style={styles.featurePillText}>60kW DC Fast EV Chargers</Text>
+              </View>
+              <View style={styles.featurePill}>
+                <Accessibility size={14} color="#3B82F6" />
+                <Text style={styles.featurePillText}>Elevator Access at Barrier</Text>
+              </View>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* Structured Level Selector Bar (Below 3D Viewport) */}
+      <View style={styles.floorQuickStrip}>
+        <Text style={styles.stripLabel}>SELECT LEVEL:</Text>
+        <View style={styles.stripChipsRow}>
+          {floorList.map((f) => {
+            const isSelected = selectedFloor?._id === f._id;
+            const isFull = f.availableSlots <= 0;
+            return (
+              <TouchableOpacity
+                key={f._id}
+                style={[
+                  styles.floorChip,
+                  isSelected && styles.floorChipSelected,
+                  isFull && styles.floorChipFull,
+                ]}
+                onPress={() => !isFull && onSelectFloor(f)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.floorChipText, isSelected && styles.floorChipTextSelected]}>
+                  {f.floorName}
+                </Text>
+                <View
+                  style={[
+                    styles.chipDot,
+                    {
+                      backgroundColor: isFull
+                        ? '#EF4444'
+                        : f.availableSlots > 10
+                        ? '#22C55E'
+                        : '#F59E0B',
+                    },
+                  ]}
+                />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Selected Floor Live Status Capsule */}
+      {selectedFloor && (
+        <View style={styles.statusCapsule}>
+          <View style={styles.capsuleLeft}>
+            <View style={styles.capsuleBadge}>
+              <Text style={styles.capsuleBadgeText}>{selectedFloor.floorName}</Text>
+            </View>
+            <View>
+              <Text style={styles.capsuleTitle}>Floor {selectedFloor.floorName}</Text>
+              <Text style={styles.capsuleSub}>
+                {selectedFloor.availableSlots} of {selectedFloor.totalSlots} Slots Free
               </Text>
             </View>
           </View>
 
-          {/* Quick Metrics Chips */}
-          <View style={styles.metricsRow}>
-            {Boolean(selectedFloor.evSlots) && (
-              <View style={styles.metricChip}>
-                <Zap size={13} color="#0284C7" />
-                <Text style={styles.metricChipText}>{selectedFloor.evSlots} EV Fast Bays</Text>
-              </View>
-            )}
-            {Boolean(selectedFloor.accessibilitySlots) && (
-              <View style={styles.metricChip}>
-                <Accessibility size={13} color="#1E40AF" />
-                <Text style={styles.metricChipText}>Accessible Bays</Text>
-              </View>
-            )}
-            <View style={styles.metricChip}>
-              <CheckCircle2 size={13} color="#16A34A" />
-              <Text style={styles.metricChipText}>Auto-Assigned at Barrier</Text>
+          <View style={styles.capsuleRight}>
+            <View style={[
+              styles.statePill,
+              selectedFloor.availableSlots <= 0
+                ? styles.statePillFull
+                : styles.statePillFree
+            ]}>
+              <Text style={[
+                styles.statePillText,
+                selectedFloor.availableSlots <= 0
+                  ? styles.stateTextFull
+                  : styles.stateTextFree
+              ]}>
+                {selectedFloor.availableSlots <= 0 ? 'FULL' : 'AVAILABLE'}
+              </Text>
             </View>
           </View>
         </View>
       )}
-
-      {/* Visualizer Legend Footer */}
-      <View style={styles.legendRow}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#22C55E' }]} />
-          <Text style={styles.legendText}>Available</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
-          <Text style={styles.legendText}>Filling</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
-          <Text style={styles.legendText}>Full</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <Zap size={11} color="#0284C7" />
-          <Text style={styles.legendText}>EV Ready</Text>
-        </View>
-      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#0F1219',
+  cardWrapper: {
+    backgroundColor: '#0C1017',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 201, 40, 0.25)',
-    padding: 16,
-    marginBottom: 20,
+    borderColor: 'rgba(255, 201, 40, 0.28)',
+    padding: 14,
+    marginBottom: 18,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 9,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  titleCol: {
-    flex: 1,
-    marginRight: 10,
-  },
-  liveIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 3,
-  },
-  pulseDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#22C55E',
-  },
-  liveTagText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#FFC928',
-    letterSpacing: 0.8,
-  },
-  buildingTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  segmentControls: {
-    flexDirection: 'row',
-    backgroundColor: '#1C2230',
-    borderRadius: 12,
-    padding: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  segmentBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 9,
-  },
-  segmentBtnActive: {
-    backgroundColor: '#FFC928',
-  },
-  segmentBtnText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#9CA3AF',
-  },
-  segmentBtnTextActive: {
-    color: '#171717',
-  },
-  canvasContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0A0D13',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-    overflow: 'hidden',
-  },
-  floorDetailCard: {
-    marginTop: 14,
-    backgroundColor: '#161B26',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 201, 40, 0.3)',
-  },
-  floorDetailHeader: {
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
   },
-  detailBadgeRow: {
+  headerTitleGroup: {
+    flex: 1,
+    marginRight: 8,
+  },
+  tagBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  radarDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22C55E',
+  },
+  tagText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#FFC928',
+    letterSpacing: 0.8,
+  },
+  hubTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  tabPillGroup: {
+    flexDirection: 'row',
+    backgroundColor: '#161E2C',
+    borderRadius: 10,
+    padding: 2.5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  tabPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  tabPillActive: {
+    backgroundColor: '#FFC928',
+  },
+  tabPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94A3B8',
+  },
+  tabPillTextActive: {
+    color: '#171717',
+  },
+  viewport: {
+    backgroundColor: '#070A0F',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  svgContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  floatingActionBtn: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(30, 41, 59, 0.85)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  floatingActionBtnActive: {
+    backgroundColor: '#FFC928',
+    borderColor: '#FFC928',
+  },
+  floatingActionText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  floatingActionTextActive: {
+    color: '#171717',
+  },
+  specsContainer: {
+    padding: 18,
+    minHeight: 280,
+    justifyContent: 'center',
+  },
+  specRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  specBox: {
+    flex: 1,
+    backgroundColor: '#121824',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  specLabel: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  specValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  featurePillsWrap: {
+    gap: 8,
+    marginTop: 6,
+  },
+  featurePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#121824',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  featurePillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#E2E8F0',
+  },
+  floorQuickStrip: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  stripLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94A3B8',
+    letterSpacing: 0.5,
+  },
+  stripChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    flex: 1,
+  },
+  floorChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#161F2E',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  floorChipSelected: {
+    backgroundColor: '#FFC928',
+    borderColor: '#FFC928',
+  },
+  floorChipFull: {
+    opacity: 0.45,
+  },
+  floorChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#E2E8F0',
+  },
+  floorChipTextSelected: {
+    color: '#171717',
+  },
+  chipDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusCapsule: {
+    marginTop: 12,
+    backgroundColor: '#131A26',
+    borderRadius: 14,
+    padding: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 201, 40, 0.25)',
+  },
+  capsuleLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  detailLevelBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+  capsuleBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
     backgroundColor: '#FFC928',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  detailLevelBadgeText: {
-    fontSize: 15,
-    fontWeight: '800',
+  capsuleBadgeText: {
+    fontSize: 14,
+    fontWeight: '900',
     color: '#171717',
   },
-  detailTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+  capsuleTitle: {
+    fontSize: 14,
+    fontWeight: '800',
     color: '#FFFFFF',
   },
-  detailCapacitySub: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 1,
+  capsuleSub: {
+    fontSize: 11,
+    color: '#94A3B8',
   },
-  occupancyStatusPill: {
-    paddingHorizontal: 10,
+  capsuleRight: {
+    alignItems: 'flex-end',
+  },
+  statePill: {
+    paddingHorizontal: 9,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  pillAvailable: {
+  statePillFree: {
     backgroundColor: 'rgba(34, 197, 94, 0.15)',
     borderColor: '#22C55E',
   },
-  pillBusy: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    borderColor: '#F59E0B',
-  },
-  pillFull: {
+  statePillFull: {
     backgroundColor: 'rgba(239, 68, 68, 0.15)',
     borderColor: '#EF4444',
   },
-  occupancyStatusText: {
-    fontSize: 10,
+  statePillText: {
+    fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
-  textAvailable: {
+  stateTextFree: {
     color: '#22C55E',
   },
-  textBusy: {
-    color: '#F59E0B',
-  },
-  textFull: {
+  stateTextFull: {
     color: '#EF4444',
-  },
-  metricsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  metricChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  metricChipText: {
-    fontSize: 11,
-    color: '#D1D5DB',
-    fontWeight: '500',
-  },
-  legendRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-    marginTop: 12,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendText: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    fontWeight: '500',
   },
 });
