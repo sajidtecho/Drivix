@@ -16,8 +16,7 @@
 ### Phase 3: System Optimization & Codebase Refinement
 - [x] Streamlined codebase by removing obsolete AI Assistant and AI Alert System components (`copilot`, `geminiService`, `VoiceAssistantModal`, `safetyRoutes`, `AI_Alert_System`).
 - [x] Map UX Refinement: Replaced bulky full-width bottom sheet overlay on map with a compact centered 360px floating popover card (`NetworkMapModal.jsx`).
-- [x] Direct Live GPS Turn-by-Turn Navigation: Implemented `launchLiveGpsNavigation()` (Web) and `launchMobileLiveGpsNavigation()` (Mobile) for instant turn-by-turn driving routing from user's live position (Rapido/Uber style).
-- [x] Mobile 3D Building & Floor Visualizer: Implemented ultra-lightweight isometric 3D digital twin stack (`ParkingBuilding3DVisualizer.tsx`) in `FloorSelectionScreen.tsx` with zero bundle bloat using `react-native-svg`. Supports 3D stacked mode, exploded expansion view, and interactive floor slot grid inspection.
+- [x] Mobile Interactive Deck Plan Visualizer: Implemented realistic top-down parking deck layout (`ParkingDeckPlanVisualizer.tsx`) in `FloorSelectionScreen.tsx` with zero bundle bloat using `react-native-svg`. Features central drive aisle with navigation arrows, rubber tire stoppers, overhead smart LED sensors (🟢 Green = Free, 🔴 Red = Taken), top-down parked vehicles, EV bays, and 1-tap slot reservation.
 
 ---
 

@@ -37,11 +37,15 @@
   - Mobile (`navigation.ts`): Uses `expo-location` and launches iOS Apple Maps (`maps://...`) or Android Navigation Intent (`google.navigation:q=...`).
   - Completely eliminates manual starting point input prompts.
 
-### 2.6 Lightweight Isometric 3D Building & Floor Visualizer
-- Implemented `ParkingBuilding3DVisualizer.tsx` in `FloorSelectionScreen.tsx` using native SVG vector math (`react-native-svg`):
-  - Adds **0 MB bundle bloat** (avoids heavy WebGL/Three.js engine overhead and GL context drops).
-  - Displays multi-floor isometric architectural slabs with structural pillars, barrier gates, parked micro-cars, and real-time occupancy neon borders (Green <70%, Amber 70-90%, Red Full).
-  - Features dynamic layer elevation on floor selection, an "Exploded" perspective expansion view, and a detailed isometric slot grid drill-down with interactive slot reservation.
+### 2.6 Lightweight Interactive Parking Deck Plan Visualizer
+- Implemented `ParkingDeckPlanVisualizer.tsx` in `FloorSelectionScreen.tsx` using native SVG vector math (`react-native-svg`):
+  - Adds **0 MB bundle bloat** (eliminates bulky 3D engine overhead).
+  - Replaces external building exterior models with an **authentic top-down parking deck layout**:
+    - Central driving lane with directional traffic arrows, yellow dashed divider, and pedestrian crosswalk.
+    - Two parallel rows of angled parking bays equipped with yellow/black rubber wheel stops.
+    - Overhead smart sensor LEDs indicating bay status (🟢 Green = Free, 🔴 Red = Taken, ⚡ Cyan = EV Charger).
+    - Realistic top-down parked vehicles (windshield, roof, headlights, taillights) in occupied stalls.
+    - 1-tap interactive slot picking with live Drivix gold selection highlights and dynamic booking payload sync.
 
 ---
 
