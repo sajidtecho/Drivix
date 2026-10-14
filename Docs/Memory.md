@@ -35,7 +35,14 @@
 - Replaced standard search-query Google Maps URLs with direct live GPS turn-by-turn driving navigation:
   - Web (`navigationUtils.js`): Fetches live GPS coordinates and constructs `https://www.google.com/maps/dir/?api=1&origin={LIVE_GPS}&destination={DEST}&travelmode=driving`.
   - Mobile (`navigation.ts`): Uses `expo-location` and launches iOS Apple Maps (`maps://...`) or Android Navigation Intent (`google.navigation:q=...`).
-  - Completely eliminates manual starting point input prompts.
+### 2.6 Mobile HomeScreen Streamlining
+- Refactored `HomeScreen.tsx` into a clean, fresh, and clutter-free layout by removing Daily Commute Radar, Expressway Toll calculator, FASTag top-up widgets, and horizontal nearby hubs carousel.
+- Refocused the interface around:
+  - Driver greeting & search bar.
+  - My Vehicle Command Center (Challan Radar, Document Vault, In-Bay Car Care).
+  - High-frequency 6-icon Quick Services grid (🅿️ Book Spot, 🚨 Challans, 🧼 Wash, 🛡️ Doc Vault, 🔌 EV Hubs, 🆘 24/7 SOS).
+  - Prominent Active Parking Session pass (when a booking is active).
+  - Live Parking Network Map launcher banner and recent bookings list.
 
 ---
 
