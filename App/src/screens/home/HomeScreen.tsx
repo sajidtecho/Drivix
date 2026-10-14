@@ -54,14 +54,19 @@ import { bookingApi } from '../../api/bookingApi';
 import { vehicleApi } from '../../api/vehicleApi';
 import { ParkingLocation, Booking, Vehicle } from '../../types';
 import {
-  NCR_FUEL_RATES,
   getInitialFASTagAccount,
   fetchChallansForPlate,
   ROADSIDE_SERVICES,
   FASTagAccount,
   ChallanItem,
 } from '../../services/vehicleUtilities';
+import {
+  SUPPORTED_INDIAN_CITIES,
+  fetchLiveFuelRates,
+  CityFuelInfo,
+} from '../../services/fuelRateService';
 import { IN_HUB_VEHICLE_SERVICES } from '../../services/vehicleCareServices';
+
 
 export interface HomeScreenProps {
   onNavigateToDiscovery: () => void;
