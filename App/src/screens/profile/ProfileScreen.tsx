@@ -38,6 +38,7 @@ import {
   UploadCloud,
   RefreshCw,
   FileCheck,
+  Coins,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';

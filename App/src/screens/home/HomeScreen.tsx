@@ -533,36 +533,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <ChevronRight size={16} color={Colors.textSecondary} />
         </TouchableOpacity>
 
-        {/* ─── FEATURE 1: Drivix Miles & Cashback Rewards Bar ─── */}
-        <View style={styles.milesCard}>
-          <View style={styles.milesLeftCol}>
-            <View style={styles.milesCoinBadge}>
-              <Coins size={16} color="#B45309" />
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={styles.milesTitle}>{userMiles} Drivix Miles</Text>
-                <View style={styles.milesCashTag}>
-                  <Text style={styles.milesCashTagText}>Worth ₹{Math.floor(userMiles / 7)}</Text>
-                </View>
-              </View>
-              <Text style={styles.milesSub} numberOfLines={1}>
-                {redeemedMiles
-                  ? '✓ ₹50 voucher active for next pass checkout'
-                  : 'Earn 50 miles on every parking & car wash'}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleRedeemMiles}
-            style={[styles.redeemBtn, redeemedMiles && styles.redeemBtnActive]}
-          >
-            <Text style={[styles.redeemBtnText, redeemedMiles && styles.redeemBtnTextActive]}>
-              {redeemedMiles ? 'Applied ✓' : 'Redeem'}
-            </Text>
-          </TouchableOpacity>
-        </View>
 
         {/* ─── FEATURE 2: Expressway Toll & FASTag Trip Calculator ─── */}
         <Card style={styles.tollCard}>
@@ -2213,78 +2183,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 
-  /* ─── 3 New Features Styles (Mobile Screen Strictly Bounded) ─── */
-  /* Feature 1: Miles Rewards Card */
-  milesCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFBEB',
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-    borderRadius: BorderRadius.md,
-    padding: 12,
-    marginBottom: Spacing.md,
-    overflow: 'hidden',
-  },
-  milesLeftCol: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-    minWidth: 0,
-  },
-  milesCoinBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FEF3C7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  milesTitle: {
-    fontSize: 13,
-    fontWeight: '900',
-    color: '#92400E',
-  },
-  milesCashTag: {
-    backgroundColor: '#FEF08A',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  milesCashTagText: {
-    fontSize: 9,
-    fontWeight: '900',
-    color: '#854D0E',
-  },
-  milesSub: {
-    fontSize: 10,
-    color: '#78350F',
-    marginTop: 1,
-  },
-  redeemBtn: {
-    backgroundColor: '#1E2333',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 6,
-    flexShrink: 0,
-    marginLeft: 8,
-  },
-  redeemBtnActive: {
-    backgroundColor: '#15803D',
-  },
-  redeemBtnText: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: Colors.primaryYellow,
-  },
-  redeemBtnTextActive: {
-    color: '#FFFFFF',
-  },
-
-  /* Feature 2: Expressway Toll Calculator */
+  /* ─── Expressway Toll & Nearby Hubs Features (Mobile Strictly Bounded) ─── */
+  /* Expressway Toll Calculator */
   tollCard: {
     backgroundColor: '#151926',
     borderWidth: 1,
