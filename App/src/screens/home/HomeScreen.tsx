@@ -36,7 +36,6 @@ import {
   Compass,
   Check,
   Flame,
-  Coins,
   Navigation,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
@@ -119,36 +118,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [sosModalVisible, setSosModalVisible] = useState(false);
   const [carCareModalVisible, setCarCareModalVisible] = useState(false);
 
-  // ─── 3 New Features State: Toll Calculator, Miles Rewards, Hubs ───
+  // ─── Features State: Toll Calculator, Hubs ───
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0);
   const [isRoundTrip, setIsRoundTrip] = useState(false);
-  const [userMiles, setUserMiles] = useState(350);
-  const [redeemedMiles, setRedeemedMiles] = useState(false);
-
-  const handleRedeemMiles = () => {
-    if (redeemedMiles) {
-      Alert.alert('Reward Active', 'Promo code "DRIVIX50" is already active on your account for ₹50 off.');
-      return;
-    }
-    Alert.alert(
-      'Redeem 350 Drivix Miles 🪙',
-      'Convert 350 miles into an instant ₹50 voucher applicable on your next parking reservation or in-bay car wash?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Apply ₹50 Discount',
-          onPress: () => {
-            setRedeemedMiles(true);
-            setUserMiles((prev) => Math.max(0, prev - 350));
-            Alert.alert(
-              '🎉 ₹50 Voucher Unlocked!',
-              'Voucher code "DRIVIX50" is activated! ₹50 will be auto-deducted from your checkout pass.'
-            );
-          },
-        },
-      ]
-    );
-  };
 
   const handleSwitchCityFuel = async (cityKey: string) => {
     setIsSyncingFuel(true);
