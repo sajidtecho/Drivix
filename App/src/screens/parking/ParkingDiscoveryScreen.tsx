@@ -270,7 +270,7 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
               ? cleanAmenities.slice(0, 3)
               : ['CCTV', 'Covered'];
 
-          // ─── OFFLINE / ON-SITE ONLY CARD (Reference from screenshot) ───
+          // ─── OFFLINE / ON-SITE ONLY CARD ───
           if (!isOnline) {
             return (
               <TouchableOpacity
@@ -304,38 +304,31 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
 
                   <View style={styles.headerRightCol}>
                     <View style={styles.noBookingBadge}>
-                      <AlertTriangle size={11} color="#FFAD00" style={{ marginRight: 3 }} />
-                      <Text style={styles.noBookingBadgeText}>NOT ONLINE BOOKING</Text>
+                      <AlertTriangle size={10} color="#FFAD00" style={{ marginRight: 3 }} />
+                      <Text style={styles.noBookingBadgeText}>ON-SITE ONLY</Text>
                     </View>
                     <Text style={styles.distanceText}>{distText}</Text>
                   </View>
                 </View>
 
-                {/* NOT ONLINE BOOKING BANNER */}
-                <View style={styles.noBookingBanner}>
-                  <AlertTriangle size={14} color="#FFAD00" style={{ marginRight: 6, flexShrink: 0 }} />
-                  <Text style={styles.noBookingBannerText}>
-                    <Text style={styles.noBookingBannerBold}>NOT ONLINE BOOKING: </Text>
-                    On-site entry only. Use Navigate for GPS directions.
-                  </Text>
-                </View>
-
                 {/* Availability Row */}
                 <View style={styles.availabilityRow}>
-                  <Text style={styles.availabilityLabel}>Availability</Text>
+                  <Text style={styles.availabilityLabel}>Capacity</Text>
                   <Text style={styles.availabilityValueNoBooking}>
                     {item.totalSlots !== null && item.totalSlots !== undefined && item.totalSlots > 0 && item.availableSlots !== null && item.availableSlots !== undefined
-                      ? `${item.availableSlots}/${item.totalSlots} slots (On-Site)`
-                      : (item.totalSlots ? `${item.totalSlots} Total Slots (On-Site)` : 'Offline / Unverified')}
+                      ? `${item.availableSlots}/${item.totalSlots} Slots`
+                      : (item.totalSlots ? `${item.totalSlots} Slots` : 'Verified On-Site')}
                   </Text>
                 </View>
 
-                {/* Bottom Row: Features & Action */}
+                {/* Bottom Row: Clean Tags & Navigate Button */}
                 <View style={styles.cardFooterDark}>
                   <View style={styles.featuresRow}>
-                    {displayAmenities.map((feat, idx) => (
+                    {displayAmenities.slice(0, 2).map((feat, idx) => (
                       <View key={idx} style={styles.featurePillDark}>
-                        <Text style={styles.featurePillTextDark}>{feat}</Text>
+                        <Text style={styles.featurePillTextDark} numberOfLines={1}>
+                          {feat}
+                        </Text>
                       </View>
                     ))}
                   </View>
@@ -352,7 +345,7 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
                     activeOpacity={0.85}
                   >
                     <Navigation size={13} color="#000000" fill="#000000" style={{ marginRight: 4 }} />
-                    <Text style={styles.navigateBtnText}>Navigate</Text>
+                    <Text style={styles.navigateBtnText}>Directions</Text>
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>
@@ -404,8 +397,8 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
 
               {/* Availability & Rate Row */}
               <View style={styles.availabilityRow}>
-                <Text style={styles.availabilityLabel}>Availability</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Text style={styles.availabilityLabel}>Live Availability</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Text style={styles.availabilityValueOnline}>
                     {item.availableSlots}/{item.totalSlots} slots
                   </Text>
@@ -416,9 +409,11 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
               {/* Bottom Row: Features & Actions */}
               <View style={styles.cardFooterDark}>
                 <View style={styles.featuresRow}>
-                  {displayAmenities.map((feat, idx) => (
+                  {displayAmenities.slice(0, 2).map((feat, idx) => (
                     <View key={idx} style={styles.featurePillDark}>
-                      <Text style={styles.featurePillTextDark}>{feat}</Text>
+                      <Text style={styles.featurePillTextDark} numberOfLines={1}>
+                        {feat}
+                      </Text>
                     </View>
                   ))}
                   {item.totalFloors ? (
@@ -428,7 +423,7 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
                   ) : null}
                 </View>
 
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                   <TouchableOpacity
                     style={styles.secondaryNavBtn}
                     onPress={() => {
@@ -731,13 +726,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 6,
   },
   featuresRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
+    marginRight: 8,
+    overflow: 'hidden',
   },
   featurePillDark: {
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
