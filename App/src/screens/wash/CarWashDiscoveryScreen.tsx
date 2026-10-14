@@ -30,7 +30,7 @@ import { Typography } from '../../theme/typography';
 import { Input, EmptyState } from '../../components/common';
 import { washApi } from '../../api/washApi';
 import { CarWashCenter } from '../../types';
-import { launchMobileLiveGpsNavigation } from '../../services/gpsNavigationService';
+import { launchMobileLiveGpsNavigation } from '../../services/navigation';
 import { getUserLiveLocation, UserCoordinates } from '../../services/locationService';
 
 export interface CarWashDiscoveryScreenProps {
