@@ -110,8 +110,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [isCheckingChallan, setIsCheckingChallan] = useState(false);
 
   const [fuelModalVisible, setFuelModalVisible] = useState(false);
+  const [selectedCityFuel, setSelectedCityFuel] = useState<CityFuelInfo>(SUPPORTED_INDIAN_CITIES[0]);
+  const [isSyncingFuel, setIsSyncingFuel] = useState(false);
   const [sosModalVisible, setSosModalVisible] = useState(false);
   const [carCareModalVisible, setCarCareModalVisible] = useState(false);
+
+  const handleSwitchCityFuel = async (cityKey: string) => {
+    setIsSyncingFuel(true);
+    try {
+      const res = await fetchLiveFuelRates(cityKey);
+      setSelectedCityFuel(res);
+    } finally {
+      setIsSyncingFuel(false);
+    }
+  };
 
   const activeVehicle = vehicles[selectedVehicleIdx] || null;
   const currentPlate = activeVehicle?.plate || activeVehicle?.vehicleNumber || 'DL01AB1234';
@@ -497,10 +509,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <View style={styles.fuelFlameCircle}>
               <Fuel size={14} color="#D97706" />
             </View>
-            <View>
-              <Text style={styles.fuelTickerTitle}>DAILY COMMUTE RADAR (NCR)</Text>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={styles.fuelTickerTitle}>
+                  DAILY COMMUTE RADAR ({selectedCityFuel.cityName.toUpperCase()})
+                </Text>
+                <View style={styles.fuelLiveTag}>
+                  <Text style={styles.fuelLiveTagText}>LIVE SYNC</Text>
+                </View>
+              </View>
               <Text style={styles.fuelTickerRates}>
-                Petrol: ₹{NCR_FUEL_RATES.petrol} • Diesel: ₹{NCR_FUEL_RATES.diesel} • CNG: ₹{NCR_FUEL_RATES.cng}
+                Petrol: ₹{selectedCityFuel.rates.petrol} • Diesel: ₹{selectedCityFuel.rates.diesel} • CNG: ₹{selectedCityFuel.rates.cng} • EV: ₹{selectedCityFuel.rates.evFastDC}/u
               </Text>
             </View>
           </View>
@@ -812,42 +831,139 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         onRequestClose={() => setFuelModalVisible(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { maxHeight: '90%' }]}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Daily Fuel & EV Radar</Text>
-                <Text style={styles.modalSub}>{NCR_FUEL_RATES.city} • Verified Today</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.modalTitle}>Daily Fuel & EV Radar</Text>
+                  <View style={styles.fuelLiveTag}>
+                    <Text style={styles.fuelLiveTagText}>GOOGLE & OMC</Text>
+                  </View>
+                </View>
+                <Text style={styles.modalSub}>Official OMC retail prices • Revised daily at 06:00 AM IST</Text>
               </View>
               <TouchableOpacity onPress={() => setFuelModalVisible(false)}>
                 <X size={20} color={Colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
+            {/* City Switcher Row */}
+            <View style={styles.fuelCitySelector}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {SUPPORTED_INDIAN_CITIES.map((c) => {
+                  const isSelected = selectedCityFuel.cityKey === c.cityKey;
+                  return (
+                    <TouchableOpacity
+                      key={c.cityKey}
+                      activeOpacity={0.8}
+                      onPress={() => handleSwitchCityFuel(c.cityKey)}
+                      style={[
+                        styles.fuelCityPill,
+                        isSelected && styles.fuelCityPillSelected,
+                      ]}
+                    >
+                      <MapPin size={11} color={isSelected ? '#171717' : Colors.textSecondary} />
+                      <Text
+                        style={[
+                          styles.fuelCityPillText,
+                          isSelected && styles.fuelCityPillTextSelected,
+                        ]}
+                      >
+                        {c.cityName}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Sync Status Bar */}
+            <View style={styles.fuelSyncRow}>
+              <Text style={styles.fuelSyncText}>
+                {isSyncingFuel ? 'Syncing live market rates...' : selectedCityFuel.rates.lastUpdated}
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleSwitchCityFuel(selectedCityFuel.cityKey)}
+                disabled={isSyncingFuel}
+                style={styles.fuelRefreshBtn}
+              >
+                <RefreshCw size={12} color={Colors.textPrimary} />
+                <Text style={styles.fuelRefreshText}>Sync</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 3-Col Fuel Grid */}
             <View style={styles.fuelRateGrid}>
               <View style={styles.fuelRateCol}>
                 <Text style={styles.fuelRateType}>PETROL</Text>
-                <Text style={styles.fuelRateNum}>₹{NCR_FUEL_RATES.petrol}</Text>
+                <Text style={styles.fuelRateNum}>₹{selectedCityFuel.rates.petrol}</Text>
                 <Text style={styles.fuelRateUnit}>per Litre</Text>
               </View>
               <View style={styles.fuelRateCol}>
                 <Text style={styles.fuelRateType}>DIESEL</Text>
-                <Text style={styles.fuelRateNum}>₹{NCR_FUEL_RATES.diesel}</Text>
+                <Text style={styles.fuelRateNum}>₹{selectedCityFuel.rates.diesel}</Text>
                 <Text style={styles.fuelRateUnit}>per Litre</Text>
               </View>
               <View style={styles.fuelRateCol}>
                 <Text style={styles.fuelRateType}>CNG</Text>
-                <Text style={styles.fuelRateNum}>₹{NCR_FUEL_RATES.cng}</Text>
+                <Text style={styles.fuelRateNum}>₹{selectedCityFuel.rates.cng}</Text>
                 <Text style={styles.fuelRateUnit}>per Kg</Text>
               </View>
             </View>
 
-            <View style={styles.evBannerCard}>
-              <Zap size={18} color="#15803D" />
-              <View style={{ flex: 1, marginLeft: 8 }}>
-                <Text style={styles.evBannerTitle}>Drivix Hub EV Fast Charging</Text>
-                <Text style={styles.evBannerSub}>Standardized tariff: ₹{NCR_FUEL_RATES.evRatePerKWh}/kWh at all verified smart hubs</Text>
+            {/* Detailed EV Tariffs Breakdown */}
+            <View style={styles.evTariffSection}>
+              <Text style={styles.evTariffTitle}>⚡ EV CHARGING TARIFF RADAR ({selectedCityFuel.state})</Text>
+
+              {/* 1. Fast DC */}
+              <View style={styles.evTariffCard}>
+                <View style={styles.evTariffIconWrap}>
+                  <Zap size={16} color="#15803D" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.evTariffLabel}>DC Ultra-Fast Charging (50-120 kW)</Text>
+                  <Text style={styles.evTariffSub}>Tata Power EZ, Statiq, Jio-bp in smart hubs & malls</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.evTariffPrice}>₹{selectedCityFuel.rates.evFastDC}</Text>
+                  <Text style={styles.evTariffUnit}>/ kWh</Text>
+                </View>
+              </View>
+
+              {/* 2. Slow AC */}
+              <View style={styles.evTariffCard}>
+                <View style={[styles.evTariffIconWrap, { backgroundColor: '#EDE9FE' }]}>
+                  <Zap size={16} color="#7C3AED" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.evTariffLabel}>AC Moderate Charging (7.4-22 kW)</Text>
+                  <Text style={styles.evTariffSub}>Hub parking bays & destination overnight chargers</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.evTariffPrice}>₹{selectedCityFuel.rates.evSlowAC}</Text>
+                  <Text style={styles.evTariffUnit}>/ kWh</Text>
+                </View>
+              </View>
+
+              {/* 3. DISCOM Base */}
+              <View style={[styles.evTariffCard, { backgroundColor: '#F8FAFC' }]}>
+                <View style={[styles.evTariffIconWrap, { backgroundColor: '#E2E8F0' }]}>
+                  <ShieldCheck size={16} color="#475569" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.evTariffLabel}>State DISCOM Base EV Tariff</Text>
+                  <Text style={styles.evTariffSub}>Govt regulated single-delivery EV connection rate</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={[styles.evTariffPrice, { color: '#475569' }]}>₹{selectedCityFuel.rates.discomBase}</Text>
+                  <Text style={styles.evTariffUnit}>/ kWh</Text>
+                </View>
               </View>
             </View>
+
+            <Text style={styles.fuelSourceText}>
+              Official Source: {selectedCityFuel.rates.source} • Synced via Google & OMC Portals
+            </Text>
 
             <Button
               title="Find Nearby EV & Fuel Stations"
@@ -856,7 +972,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 setFuelModalVisible(false);
                 onNavigateToDiscovery();
               }}
-              style={{ marginTop: Spacing.md }}
+              style={{ marginTop: Spacing.sm }}
             />
           </View>
         </View>
@@ -1732,5 +1848,133 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.primaryYellow,
     letterSpacing: 0.5,
+  },
+
+  /* Dynamic Fuel Modal Styles */
+  fuelLiveTag: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+  },
+  fuelLiveTagText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#15803D',
+    letterSpacing: 0.5,
+  },
+  fuelCitySelector: {
+    marginBottom: 10,
+  },
+  fuelCityPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.md,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  fuelCityPillSelected: {
+    backgroundColor: Colors.accentYellowLight,
+    borderColor: Colors.primaryYellow,
+  },
+  fuelCityPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  fuelCityPillTextSelected: {
+    fontWeight: '900',
+    color: '#171717',
+  },
+  fuelSyncRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+  },
+  fuelSyncText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  fuelRefreshBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E2E8F0',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  fuelRefreshText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  evTariffSection: {
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.xs,
+    gap: 8,
+  },
+  evTariffTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: Colors.textSecondary,
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  evTariffCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+    padding: 10,
+    gap: 8,
+  },
+  evTariffIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  evTariffLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  evTariffSub: {
+    fontSize: 10,
+    color: Colors.textSecondary,
+    marginTop: 1,
+  },
+  evTariffPrice: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#15803D',
+  },
+  evTariffUnit: {
+    fontSize: 9,
+    color: Colors.textMuted,
+  },
+  fuelSourceText: {
+    fontSize: 9,
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 4,
   },
 });
