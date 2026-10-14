@@ -17,14 +17,14 @@ import {
   AlertCircle,
   Navigation,
   AlertTriangle,
-  Box,
+  LayoutGrid,
   ListFilter,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Typography } from '../../theme/typography';
 import { Header, Card, Button, Badge, StepIndicator } from '../../components/common';
-import { ParkingBuilding3DVisualizer } from '../../components/parking';
+import { ParkingDeckPlanVisualizer } from '../../components/parking';
 import { useBooking } from '../../store/BookingContext';
 import { parkingApi } from '../../api/parkingApi';
 import { ParkingFloor } from '../../types';
@@ -44,7 +44,7 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
   const [floors, setFloors] = useState<ParkingFloor[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const [viewFormat, setViewFormat] = useState<'3D' | 'list'>('3D');
+  const [viewFormat, setViewFormat] = useState<'deck' | 'list'>('deck');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <Header
-        title="Select Parking Floor"
+        title="Select Parking Floor & Bay"
         subtitle={selectedHub ? selectedHub.parkingName : 'Step 2 of 5'}
         onBack={onBack}
       />
@@ -89,22 +89,22 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
         <View style={styles.bannerInfo}>
           <View style={styles.bannerTitleRow}>
             <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={styles.heading}>Choose Your Level</Text>
+              <Text style={styles.heading}>Interactive Deck Plan</Text>
               <Text style={styles.subheading}>
-                Interactive 3D building visualizer with real-time floor capacity.
+                Tap any vacant stall (🟢 FREE) to reserve your designated bay.
               </Text>
             </View>
 
             {floors.length > 0 && (
               <View style={styles.viewToggleGroup}>
                 <TouchableOpacity
-                  style={[styles.viewToggleBtn, viewFormat === '3D' && styles.viewToggleBtnActive]}
-                  onPress={() => setViewFormat('3D')}
+                  style={[styles.viewToggleBtn, viewFormat === 'deck' && styles.viewToggleBtnActive]}
+                  onPress={() => setViewFormat('deck')}
                   activeOpacity={0.7}
                 >
-                  <Box size={14} color={viewFormat === '3D' ? '#171717' : Colors.textSecondary} />
-                  <Text style={[styles.viewToggleText, viewFormat === '3D' && styles.viewToggleTextActive]}>
-                    3D Twin
+                  <LayoutGrid size={14} color={viewFormat === 'deck' ? '#171717' : Colors.textSecondary} />
+                  <Text style={[styles.viewToggleText, viewFormat === 'deck' && styles.viewToggleTextActive]}>
+                    Deck Plan
                   </Text>
                 </TouchableOpacity>
 
@@ -179,9 +179,9 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
           </Card>
         ) : (
           <>
-            {/* Interactive 3D Building Digital Twin Visualizer */}
-            {viewFormat === '3D' ? (
-              <ParkingBuilding3DVisualizer
+            {/* Real Smart Deck Plan Visualizer */}
+            {viewFormat === 'deck' ? (
+              <ParkingDeckPlanVisualizer
                 floors={floors}
                 selectedFloor={selectedFloor}
                 onSelectFloor={(floor) => selectFloor(floor)}
@@ -269,7 +269,13 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
       <View style={styles.footerContainer}>
         {checkIsOnlineBookingAllowed(selectedHub) ? (
           <Button
-            title={selectedFloor ? `Proceed with Floor ${selectedFloor.floorName}` : 'Select a Floor'}
+            title={
+              selectedFloor
+                ? selectedSlotId
+                  ? `Proceed: Spot ${selectedSlotId} (${selectedFloor.floorName})`
+                  : `Proceed with Floor ${selectedFloor.floorName}`
+                : 'Select a Floor'
+            }
             variant="primary"
             disabled={!selectedFloor || selectedFloor.availableSlots <= 0}
             icon={<ArrowRight size={18} color="#171717" />}
