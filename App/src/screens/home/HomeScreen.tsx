@@ -341,32 +341,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
         </Card>
 
-        {/* ─── 3B. Vehicle Compliance & Instant Insurance Renewal Banner (High Ancillary Commission) ─── */}
-        <TouchableOpacity
-          activeOpacity={0.88}
-          onPress={() => setInsuranceModalVisible(true)}
-          style={styles.insuranceComplianceBanner}
-        >
-          <View style={styles.insuranceIconBox}>
-            <ShieldCheck size={20} color="#D97706" />
-          </View>
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={styles.insuranceBannerTitle}>Insurance Due in 14 Days</Text>
-              <View style={styles.ncbBadge}>
-                <Text style={styles.ncbBadgeText}>SAVE 50% NCB</Text>
-              </View>
-            </View>
-            <Text style={styles.insuranceBannerSub}>
-              Zero-depreciation instant quotes from ₹2,099/yr • Paperless
-            </Text>
-          </View>
-          <View style={styles.insuranceRenewBtn}>
-            <Text style={styles.insuranceRenewBtnText}>Renew</Text>
-            <ChevronRight size={13} color="#171717" />
-          </View>
-        </TouchableOpacity>
-
         {/* ─── 4. Quick Mobility Services (Fresh 2x3 Grid) ─── */}
         <View style={styles.quickGridContainer}>
           <View style={styles.sectionTitleRow}>
@@ -407,7 +381,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.gridLabel}>Challans</Text>
             </TouchableOpacity>
 
-            {/* 3. Car Wash / Care (Updated with GoMechanic 360-degree spa) */}
+            {/* 3. Car Wash / Care (GoMechanic 360-degree spa) */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setCarCareModalVisible(true)}
@@ -434,16 +408,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.gridLabel}>Doc Vault</Text>
             </TouchableOpacity>
 
-            {/* 5. Commuter Passes (Direct Access) */}
+            {/* 5. EV Hubs */}
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => setCommuterPassModalVisible(true)}
+              onPress={onNavigateToDiscovery}
               style={styles.gridActionItem}
             >
-              <View style={[styles.gridIconCircle, { backgroundColor: '#FEF3C7' }]}>
-                <Text style={styles.gridEmoji}>🎟️</Text>
+              <View style={[styles.gridIconCircle, { backgroundColor: '#ECFCCB' }]}>
+                <Text style={styles.gridEmoji}>🔌</Text>
               </View>
-              <Text style={styles.gridLabel}>Commuter Pass</Text>
+              <Text style={styles.gridLabel}>EV Hubs</Text>
             </TouchableOpacity>
 
             {/* 6. Roadside SOS */}
@@ -459,100 +433,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* ─── 4B. Monthly Commuter Pass & Multi-Visit Bundle Card (High ARR / Predictable Revenue) ─── */}
-        <Card style={styles.commuterPassCard}>
-          <View style={styles.commuterHeaderRow}>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                <Ticket size={16} color="#FFC928" />
-                <Text style={styles.commuterTitle}>DAILY COMMUTER PASS</Text>
-                <View style={styles.commuterSaveBadge}>
-                  <Text style={styles.commuterSaveBadgeText}>SAVE 35%</Text>
-                </View>
-              </View>
-              <Text style={styles.commuterSubtitle}>
-                Hassle-free daily parking at top tech parks & metro hubs.
-              </Text>
-            </View>
-          </View>
-
-          {/* Plan Chips */}
-          <View style={styles.commuterPlansRow}>
-            <TouchableOpacity
-              onPress={() => setSelectedPassPlan('10_days')}
-              style={[
-                styles.commuterPlanChip,
-                selectedPassPlan === '10_days' && styles.commuterPlanChipActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.commuterPlanChipDays,
-                  selectedPassPlan === '10_days' && styles.commuterPlanChipActiveText,
-                ]}
-              >
-                10-Entry Flexi
-              </Text>
-              <Text
-                style={[
-                  styles.commuterPlanChipPrice,
-                  selectedPassPlan === '10_days' && styles.commuterPlanChipActivePrice,
-                ]}
-              >
-                ₹799
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setSelectedPassPlan('monthly')}
-              style={[
-                styles.commuterPlanChip,
-                selectedPassPlan === 'monthly' && styles.commuterPlanChipActive,
-              ]}
-            >
-              <View style={styles.popularMiniTag}>
-                <Text style={styles.popularMiniTagText}>BEST VALUE</Text>
-              </View>
-              <Text
-                style={[
-                  styles.commuterPlanChipDays,
-                  selectedPassPlan === 'monthly' && styles.commuterPlanChipActiveText,
-                ]}
-              >
-                1 Month Unlimited
-              </Text>
-              <Text
-                style={[
-                  styles.commuterPlanChipPrice,
-                  selectedPassPlan === 'monthly' && styles.commuterPlanChipActivePrice,
-                ]}
-              >
-                ₹1,999/mo
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Pass Features Row */}
-          <View style={styles.commuterBenefitsRow}>
-            <View style={styles.benefitItem}>
-              <Check size={12} color="#15803D" />
-              <Text style={styles.benefitText}>ANPR Auto-Barrier Entry</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <Check size={12} color="#15803D" />
-              <Text style={styles.benefitText}>Zero Surge Pricing</Text>
-            </View>
-          </View>
-
-          <Button
-            title="Get Commuter Pass Now"
-            variant="primary"
-            size="sm"
-            onPress={() => setCommuterPassModalVisible(true)}
-            style={{ marginTop: 10 }}
-          />
-        </Card>
 
         {/* ─── 5. Active Booking Banner (If Any) ─── */}
         {activeBooking && (
