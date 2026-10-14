@@ -162,6 +162,78 @@ export const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({
           </View>
         </Card>
 
+        {/* ─── While-You-Park Vehicle Care Add-ons ─── */}
+        <View style={styles.servicesHeaderContainer}>
+          <View style={styles.servicesTitleRowHeader}>
+            <View style={styles.servicesIconGlow}>
+              <Sparkles size={16} color={Colors.primaryYellow} />
+            </View>
+            <View>
+              <Text style={styles.servicesSectionMainTitle}>While-You-Park Vehicle Care</Text>
+              <Text style={styles.servicesSectionSub}>Serviced right in your assigned parking bay</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.servicesListContainer}>
+          {IN_HUB_VEHICLE_SERVICES.map((service) => {
+            const isSelected = selectedServices.some((s) => s.id === service.id);
+            return (
+              <TouchableOpacity
+                key={service.id}
+                activeOpacity={0.88}
+                onPress={() => toggleService(service)}
+                style={[
+                  styles.serviceCardBox,
+                  isSelected && styles.serviceCardBoxSelected,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.serviceIconContainer,
+                    isSelected && styles.serviceIconContainerSelected,
+                  ]}
+                >
+                  {service.category === 'wash' && <Sparkles size={18} color={isSelected ? '#171717' : Colors.primaryYellow} />}
+                  {service.category === 'detail' && <Wind size={18} color={isSelected ? '#171717' : '#38BDF8'} />}
+                  {service.category === 'maintenance' && <Gauge size={18} color={isSelected ? '#171717' : '#F59E0B'} />}
+                  {service.category === 'ev' && <Zap size={18} color={isSelected ? '#171717' : '#10B981'} />}
+                </View>
+
+                <View style={styles.serviceTextColumn}>
+                  <View style={styles.serviceHeadingRow}>
+                    <Text style={[styles.serviceCardTitle, isSelected && styles.serviceCardTitleSelected]}>
+                      {service.name}
+                    </Text>
+                    {service.popular && (
+                      <View style={styles.popularBadgeWrap}>
+                        <Text style={styles.popularBadgeLabel}>POPULAR</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.serviceTaglineText} numberOfLines={2}>
+                    {service.tagline}
+                  </Text>
+                  <Text style={styles.serviceDurationLabel}>⚡ Est. time: ~{service.durationMinutes} mins</Text>
+                </View>
+
+                <View style={styles.serviceRightPriceCol}>
+                  <Text style={[styles.servicePriceDigit, isSelected && styles.servicePriceDigitSelected]}>
+                    +₹{service.price}
+                  </Text>
+                  <View style={[styles.serviceCheckToggle, isSelected && styles.serviceCheckToggleActive]}>
+                    {isSelected ? (
+                      <Check size={13} color="#171717" strokeWidth={3} />
+                    ) : (
+                      <Plus size={13} color={Colors.textSecondary} />
+                    )}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         {/* ─── Price & Cost Breakdown Card ─── */}
         <Card style={styles.pricingCard}>
           <View style={styles.pricingHeaderRow}>
@@ -172,7 +244,7 @@ export const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.priceRowLabel}>Base Rate</Text>
+            <Text style={styles.priceRowLabel}>Base Parking Rate</Text>
             <Text style={styles.priceRowValue}>₹{selectedHub?.hourlyPrice || 60}/hr</Text>
           </View>
 
@@ -184,16 +256,20 @@ export const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.priceRowLabel}>Quoted Rate</Text>
-            <Text style={styles.priceRowValue}>
-              ₹{pricingQuote ? pricingQuote.recommendedPrice : selectedHub?.hourlyPrice || 60}/hr
-            </Text>
-          </View>
-
-          <View style={styles.priceRow}>
             <Text style={styles.priceRowLabel}>Duration</Text>
             <Text style={styles.priceRowValue}>{durationHours} hours</Text>
           </View>
+
+          {selectedServices.length > 0 && (
+            <View style={styles.priceRow}>
+              <Text style={[styles.priceRowLabel, { color: Colors.primaryYellow, fontWeight: '700' }]}>
+                In-Bay Care ({selectedServices.length} {selectedServices.length === 1 ? 'service' : 'services'})
+              </Text>
+              <Text style={[styles.priceRowValue, { color: Colors.primaryYellow, fontWeight: '800' }]}>
+                +₹{servicesCost}
+              </Text>
+            </View>
+          )}
 
           <View style={styles.dividerBold} />
 
@@ -499,5 +575,132 @@ const styles = StyleSheet.create({
   confirmBtn: {
     flex: 1,
     maxWidth: 220,
+  },
+  servicesHeaderContainer: {
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  servicesTitleRowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  servicesIconGlow: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 201, 40, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 201, 40, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  servicesSectionMainTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  servicesSectionSub: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  servicesListContainer: {
+    gap: 10,
+    marginBottom: Spacing.lg,
+  },
+  serviceCardBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E2333',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    gap: 12,
+  },
+  serviceCardBoxSelected: {
+    backgroundColor: '#262D42',
+    borderColor: Colors.primaryYellow,
+    shadowColor: Colors.primaryYellow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  serviceIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serviceIconContainerSelected: {
+    backgroundColor: Colors.primaryYellow,
+  },
+  serviceTextColumn: {
+    flex: 1,
+  },
+  serviceHeadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  serviceCardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  serviceCardTitleSelected: {
+    color: Colors.primaryYellow,
+  },
+  popularBadgeWrap: {
+    backgroundColor: 'rgba(255, 201, 40, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  popularBadgeLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: Colors.primaryYellow,
+    letterSpacing: 0.5,
+  },
+  serviceTaglineText: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    lineHeight: 15,
+  },
+  serviceDurationLabel: {
+    fontSize: 10,
+    color: '#A1A1AA',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  serviceRightPriceCol: {
+    alignItems: 'flex-end',
+    gap: 6,
+  },
+  servicePriceDigit: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  servicePriceDigitSelected: {
+    color: Colors.primaryYellow,
+  },
+  serviceCheckToggle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serviceCheckToggleActive: {
+    backgroundColor: Colors.primaryYellow,
   },
 });
