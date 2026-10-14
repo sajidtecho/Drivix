@@ -6,7 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Image,
+  Modal,
+  Alert,
+  TextInput,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -19,17 +22,47 @@ import {
   Clock,
   Sparkles,
   Layers,
+  Fuel,
+  AlertTriangle,
+  CreditCard,
+  FileText,
+  CheckCircle2,
+  PhoneCall,
+  X,
+  ChevronRight,
+  RefreshCw,
+  ExternalLink,
+  Wrench,
+  Compass,
+  Check,
+  Flame,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Typography } from '../../theme/typography';
-import { Card, Button, Badge, Input, EmptyState, CoreServicesShowcase, NetworkMapModal } from '../../components/common';
+import {
+  Card,
+  Button,
+  Badge,
+  Input,
+  CoreServicesShowcase,
+  NetworkMapModal,
+} from '../../components/common';
 import { useAuth } from '../../store/AuthContext';
 import { useBooking } from '../../store/BookingContext';
 import { parkingApi } from '../../api/parkingApi';
 import { bookingApi } from '../../api/bookingApi';
 import { vehicleApi } from '../../api/vehicleApi';
 import { ParkingLocation, Booking, Vehicle } from '../../types';
+import {
+  NCR_FUEL_RATES,
+  getInitialFASTagAccount,
+  fetchChallansForPlate,
+  ROADSIDE_SERVICES,
+  FASTagAccount,
+  ChallanItem,
+} from '../../services/vehicleUtilities';
+import { IN_HUB_VEHICLE_SERVICES } from '../../services/vehicleCareServices';
 
 export interface HomeScreenProps {
   onNavigateToDiscovery: () => void;
@@ -49,14 +82,35 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const { user, isAuthenticated } = useAuth();
   const { selectHub, setActiveBooking } = useBooking();
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [locations, setLocations] = useState<ParkingLocation[]>([]);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [activeBooking, setLocalActiveBooking] = useState<Booking | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicleIdx, setSelectedVehicleIdx] = useState(0);
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // ─── Park+ Parity Interactive Utilities State ───────────────────────
+  const [fastagAccount, setFastagAccount] = useState<FASTagAccount>(
+    getInitialFASTagAccount('DL01AB1234')
+  );
+  const [fastagModalVisible, setFastagModalVisible] = useState(false);
+  const [rechargePill, setRechargePill] = useState(500);
+  const [isRecharging, setIsRecharging] = useState(false);
+
+  const [challanModalVisible, setChallanModalVisible] = useState(false);
+  const [challanPlate, setChallanPlate] = useState('UP16AB1234');
+  const [challanResults, setChallanResults] = useState<ChallanItem[]>([]);
+  const [hasCheckedChallans, setHasCheckedChallans] = useState(false);
+  const [isCheckingChallan, setIsCheckingChallan] = useState(false);
+
+  const [fuelModalVisible, setFuelModalVisible] = useState(false);
+  const [sosModalVisible, setSosModalVisible] = useState(false);
+  const [carCareModalVisible, setCarCareModalVisible] = useState(false);
+
+  const activeVehicle = vehicles[selectedVehicleIdx] || null;
+  const currentPlate = activeVehicle?.plate || activeVehicle?.vehicleNumber || 'DL01AB1234';
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -68,9 +122,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         try {
           const userBookings = await bookingApi.getMyBookings();
           setRecentBookings(userBookings.slice(0, 3));
-          
+
           const active = userBookings.find(
-            (b) => b.status === 'Confirmed' || b.status === 'Slot Assigned' || b.status === 'Checked In'
+            (b) =>
+              b.status === 'Confirmed' ||
+              b.status === 'Slot Assigned' ||
+              b.status === 'Checked In'
           );
           if (active) {
             setLocalActiveBooking(active);
@@ -83,6 +140,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         try {
           const userVehicles = await vehicleApi.getUserVehicles();
           setVehicles(userVehicles);
+          if (userVehicles.length > 0) {
+            const p = userVehicles[0].plate || userVehicles[0].vehicleNumber || 'DL01AB1234';
+            setFastagAccount(getInitialFASTagAccount(p));
+            setChallanPlate(p);
+          }
         } catch (_) {}
       }
     } catch (err) {
@@ -100,6 +162,58 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const onRefresh = () => {
     setRefreshing(true);
     loadDashboardData();
+  };
+
+  // ─── FASTag Top-up Handler ───
+  const handleRechargeFASTag = () => {
+    setIsRecharging(true);
+    setTimeout(() => {
+      setFastagAccount((prev) => ({
+        ...prev,
+        balance: prev.balance + rechargePill,
+        lastRecharged: 'Just now',
+        status: 'active',
+      }));
+      setIsRecharging(false);
+      setFastagModalVisible(false);
+      Alert.alert(
+        'FASTag Recharged Successfully! ⚡',
+        `₹${rechargePill} has been added to your ${fastagAccount.bank} wallet for ${currentPlate}. Current Balance: ₹${fastagAccount.balance + rechargePill}.`
+      );
+    }, 1200);
+  };
+
+  // ─── E-Challan Search Handler ───
+  const handleCheckChallans = () => {
+    setIsCheckingChallan(true);
+    setTimeout(() => {
+      const results = fetchChallansForPlate(challanPlate);
+      setChallanResults(results);
+      setHasCheckedChallans(true);
+      setIsCheckingChallan(false);
+    }, 800);
+  };
+
+  const handlePayChallan = (challan: ChallanItem) => {
+    Alert.alert(
+      'Pay E-Challan',
+      `Clear violation "${challan.violation}" for ₹${challan.amount}?\n\nChallan ID: ${challan.challanNumber}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Pay via UPI',
+          onPress: () => {
+            setChallanResults((prev) =>
+              prev.map((c) => (c.id === challan.id ? { ...c, status: 'settled' } : c))
+            );
+            Alert.alert(
+              'Challan Settled! ✓',
+              `Payment of ₹${challan.amount} confirmed with RTO Traffic Police. Official disposal receipt generated.`
+            );
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -123,7 +237,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <View style={styles.logoBadge}>
                 <Text style={styles.logoText}>DRIVIX</Text>
               </View>
-              <Text style={styles.appTitle}>Smart Parking</Text>
+              <View style={styles.cityPill}>
+                <MapPin size={11} color="#15803D" />
+                <Text style={styles.cityPillText}>Delhi NCR • Noida</Text>
+              </View>
             </View>
             <Text style={styles.greetingText}>
               {isAuthenticated && user
@@ -161,7 +278,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           >
             <Search size={20} color={Colors.textSecondary} />
             <Text style={styles.searchPlaceholder}>
-              {searchQuery || 'Where do you want to park?'}
+              Search smart hubs, metro, malls...
             </Text>
             <View style={styles.searchIconBtn}>
               <ArrowRight size={16} color="#171717" />
@@ -169,7 +286,224 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* ─── 3. Active Booking Banner (If Any) ─── */}
+        {/* ─── 3. My Vehicle Command Center (Park+ Super-Widget) ─── */}
+        <Card style={styles.commandCenterCard}>
+          <View style={styles.commandCenterHeader}>
+            <View style={styles.carPlateRow}>
+              <View style={styles.plateNumberTag}>
+                <Text style={styles.plateNumberText}>{currentPlate}</Text>
+              </View>
+              <Text style={styles.carModelText} numberOfLines={1}>
+                {activeVehicle?.model || 'Primary Car'}
+                {activeVehicle?.isEV ? ' • EV' : ''}
+              </Text>
+            </View>
+
+            {vehicles.length > 1 && (
+              <TouchableOpacity
+                onPress={() =>
+                  setSelectedVehicleIdx((prev) => (prev + 1) % vehicles.length)
+                }
+                style={styles.switchCarBtn}
+              >
+                <Text style={styles.switchCarText}>Switch</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* 3 Status Modules Row */}
+          <View style={styles.commandModulesRow}>
+            {/* Module 1: FASTag Balance */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setFastagModalVisible(true)}
+              style={styles.commandModuleItem}
+            >
+              <View style={styles.moduleTopRow}>
+                <CreditCard size={14} color={Colors.primaryYellow} />
+                <Text style={styles.moduleLabel}>FASTag</Text>
+              </View>
+              <Text style={styles.moduleValue}>₹{fastagAccount.balance}</Text>
+              <View style={styles.moduleSubRow}>
+                <View style={styles.statusDotActive} />
+                <Text style={styles.moduleSubText}>+ Top Up</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.moduleDivider} />
+
+            {/* Module 2: E-Challan Radar */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                setChallanPlate(currentPlate);
+                setChallanModalVisible(true);
+                handleCheckChallans();
+              }}
+              style={styles.commandModuleItem}
+            >
+              <View style={styles.moduleTopRow}>
+                <AlertTriangle size={14} color="#F59E0B" />
+                <Text style={styles.moduleLabel}>Challans</Text>
+              </View>
+              <Text style={[styles.moduleValue, { color: '#15803D' }]}>0 Fines</Text>
+              <Text style={styles.moduleSubText}>Check RTO</Text>
+            </TouchableOpacity>
+
+            <View style={styles.moduleDivider} />
+
+            {/* Module 3: Document Vault Expiry */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={onNavigateToProfile}
+              style={styles.commandModuleItem}
+            >
+              <View style={styles.moduleTopRow}>
+                <ShieldCheck size={14} color="#10B981" />
+                <Text style={styles.moduleLabel}>Doc Vault</Text>
+              </View>
+              <Text style={styles.moduleValue}>Protected</Text>
+              <Text style={styles.moduleSubText}>RC • PUC • Ins</Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
+
+        {/* ─── 4. High-Frequency 8-Icon Quick Action Grid (2x4) ─── */}
+        <View style={styles.quickGridContainer}>
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionHeaderTitle}>QUICK MOBILITY SERVICES</Text>
+            <View style={styles.parkPlusBadge}>
+              <Sparkles size={11} color="#171717" />
+              <Text style={styles.parkPlusBadgeText}>ALL-IN-ONE</Text>
+            </View>
+          </View>
+
+          <View style={styles.iconGridRow}>
+            {/* 1. Book Parking */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onNavigateToDiscovery}
+              style={styles.gridActionItem}
+            >
+              <View style={[styles.gridIconCircle, { backgroundColor: '#FEF08A' }]}>
+                <Text style={styles.gridEmoji}>🅿️</Text>
+              </View>
+              <Text style={styles.gridLabel}>Book Spot</Text>
+            </TouchableOpacity>
+
+            {/* 2. FASTag */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setFastagModalVisible(true)}
+              style={styles.gridActionItem}
+            >
+              <View style={[styles.gridIconCircle, { backgroundColor: '#E0F2FE' }]}>
+                <Text style={styles.gridEmoji}>⚡</Text>
+              </View>
+              <Text style={styles.gridLabel}>FASTag</Text>
+            </TouchableOpacity>
+
+            {/* 3. E-Challans */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                setChallanPlate(currentPlate);
+                setChallanModalVisible(true);
+                handleCheckChallans();
+              }}
+              style={styles.gridActionItem}
+            >
+              <View style={[styles.gridIconCircle, { backgroundColor: '#FEE2E2' }]}>
+                <Text style={styles.gridEmoji}>🚨</Text>
+              </View>
+              <Text style={styles.gridLabel}>Challans</Text>
+            </TouchableOpacity>
+
+            {/* 4. Car Wash / Care */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setCarCareModalVisible(true)}
+              style={styles.gridActionItem}
+            >
+              <View style={[styles.gridIconCircle, { backgroundColor: '#EDE9FE' }]}>
+                <Text style={styles.gridEmoji}>🧼</Text>
+              </View>
+              <Text style={styles.gridLabel}>In-Bay Wash</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.iconGridRow, { marginTop: 14 }]}>
+            {/* 5. Document Vault */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onNavigateToProfile}
+              style={styles.gridActionItem}
+            >
+              <View style={[styles.gridIconCircle, { backgroundColor: '#DCFCE7' }]}>
+                <Text style={styles.gridEmoji}>🛡️</Text>
+              </View>
+              <Text style={styles.gridLabel}>Doc Vault</Text>
+            </TouchableOpacity>
+
+            {/* 6. EV Fast Charging */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onNavigateToDiscovery}
+              style={styles.gridActionItem}
+            >
+              <View style={[styles.gridIconCircle, { backgroundColor: '#ECFCCB' }]}>
+                <Text style={styles.gridEmoji}>🔌</Text>
+              </View>
+              <Text style={styles.gridLabel}>EV Hubs</Text>
+            </TouchableOpacity>
+
+            {/* 7. Fuel Rates */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setFuelModalVisible(true)}
+              style={styles.gridActionItem}
+            >
+              <View style={[styles.gridIconCircle, { backgroundColor: '#FEF3C7' }]}>
+                <Text style={styles.gridEmoji}>⛽</Text>
+              </View>
+              <Text style={styles.gridLabel}>Fuel Rates</Text>
+            </TouchableOpacity>
+
+            {/* 8. Roadside SOS */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setSosModalVisible(true)}
+              style={styles.gridActionItem}
+            >
+              <View style={[styles.gridIconCircle, { backgroundColor: '#FFE4E6' }]}>
+                <Text style={styles.gridEmoji}>🆘</Text>
+              </View>
+              <Text style={styles.gridLabel}>24/7 SOS</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ─── 5. Daily Live City Fuel & EV Price Ticker (Park+ Hook) ─── */}
+        <TouchableOpacity
+          activeOpacity={0.88}
+          onPress={() => setFuelModalVisible(true)}
+          style={styles.fuelTickerCard}
+        >
+          <View style={styles.fuelTickerLeft}>
+            <View style={styles.fuelFlameCircle}>
+              <Fuel size={14} color="#D97706" />
+            </View>
+            <View>
+              <Text style={styles.fuelTickerTitle}>DAILY COMMUTE RADAR (NCR)</Text>
+              <Text style={styles.fuelTickerRates}>
+                Petrol: ₹{NCR_FUEL_RATES.petrol} • Diesel: ₹{NCR_FUEL_RATES.diesel} • CNG: ₹{NCR_FUEL_RATES.cng}
+              </Text>
+            </View>
+          </View>
+          <ChevronRight size={16} color={Colors.textSecondary} />
+        </TouchableOpacity>
+
+        {/* ─── 6. Active Booking Banner (If Any) ─── */}
         {activeBooking && (
           <TouchableOpacity
             activeOpacity={0.9}
@@ -179,7 +513,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <View style={styles.activeBookingHeader}>
                 <View style={styles.activeTagRow}>
                   <View style={styles.pulsingDot} />
-                  <Text style={styles.activeTagText}>ACTIVE RESERVATION</Text>
+                  <Text style={styles.activeTagText}>ACTIVE PARKING SESSION</Text>
                 </View>
                 <Badge
                   label={activeBooking.status}
@@ -198,7 +532,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   <Layers size={14} color={Colors.textSecondary} />
                   <Text style={styles.activeMetaText}>
                     Floor {activeBooking.floor}
-                    {activeBooking.slotId ? ` • Slot ${activeBooking.slotId}` : ' • Capacity Reserved'}
+                    {activeBooking.slotId ? ` • Slot ${activeBooking.slotId}` : ' • Level Reserved'}
                   </Text>
                 </View>
                 <View style={styles.activeMetaItem}>
@@ -210,7 +544,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </View>
 
               <Button
-                title="View Pass & Navigation"
+                title="Open Gate Pass & Scanner"
                 variant="primary"
                 size="sm"
                 onPress={() => onNavigateToActiveParking(activeBooking)}
@@ -220,42 +554,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </TouchableOpacity>
         )}
 
-        {/* ─── 4. Quick Vehicle Info Card ─── */}
-        {isAuthenticated && vehicles.length > 0 && (
-          <Card style={styles.vehicleQuickCard}>
-            <View style={styles.vehicleRow}>
-              <View style={styles.vehicleIconBadge}>
-                <Car size={20} color="#171717" />
-              </View>
-              <View style={styles.vehicleInfoCol}>
-                <Text style={styles.vehiclePlate}>
-                  {vehicles[0].plate || vehicles[0].vehicleNumber}
-                </Text>
-                <Text style={styles.vehicleModel}>
-                  {vehicles[0].model || 'Primary Vehicle'}
-                  {vehicles[0].isEV ? ' • Electric EV' : ''}
-                </Text>
-              </View>
-              {vehicles[0].isEV && (
-                <View style={styles.evBadge}>
-                  <Zap size={14} color="#15803D" />
-                  <Text style={styles.evText}>EV Ready</Text>
-                </View>
-              )}
-            </View>
-          </Card>
-        )}
-
-        {/* ─── Core Services Showcase (Webapp Parity) ─── */}
+        {/* ─── 7. Core Services Showcase (Webapp Parity) ─── */}
         <CoreServicesShowcase
           onBookParking={onNavigateToDiscovery}
           onViewMap={() => setIsMapModalVisible(true)}
         />
 
-        {/* ─── Recent Bookings Preview ─── */}
+        {/* ─── 8. Recent Bookings Preview ─── */}
         {isAuthenticated && recentBookings.length > 0 && (
           <View style={styles.recentSection}>
-            <Text style={styles.sectionTitle}>Recent Bookings</Text>
+            <Text style={styles.sectionHeaderTitle}>RECENT BOOKINGS</Text>
             {recentBookings.map((b) => (
               <Card key={b._id} style={styles.recentCard}>
                 <View style={styles.recentRow}>
@@ -281,6 +589,316 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
         )}
       </ScrollView>
+
+      {/* ─── MODAL 1: FASTAG INSTANT RECHARGE (Park+ Parity) ─── */}
+      <Modal
+        visible={fastagModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFastagModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.modalTitle}>FASTag Recharge</Text>
+                  <View style={styles.netcBadge}>
+                    <Text style={styles.netcBadgeText}>NETC NPCI</Text>
+                  </View>
+                </View>
+                <Text style={styles.modalSub}>Instant toll pass top-up for {currentPlate}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setFastagModalVisible(false)}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.fastagBalanceBox}>
+              <Text style={styles.fastagBalLabel}>CURRENT FASTAG BALANCE</Text>
+              <Text style={styles.fastagBalValue}>₹{fastagAccount.balance}.00</Text>
+              <Text style={styles.fastagBankTag}>{fastagAccount.bank} • Linked Tag</Text>
+            </View>
+
+            <Text style={styles.chipHeaderLabel}>Select Recharge Amount</Text>
+            <View style={styles.rechargePillsRow}>
+              {[200, 500, 1000, 2000].map((amt) => (
+                <TouchableOpacity
+                  key={amt}
+                  activeOpacity={0.8}
+                  onPress={() => setRechargePill(amt)}
+                  style={[
+                    styles.rechargePill,
+                    rechargePill === amt && styles.rechargePillSelected,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.rechargePillText,
+                      rechargePill === amt && styles.rechargePillTextSelected,
+                    ]}
+                  >
+                    +₹{amt}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Button
+              title={isRecharging ? 'Processing Recharge...' : `Pay ₹${rechargePill} via UPI`}
+              variant="primary"
+              loading={isRecharging}
+              onPress={handleRechargeFASTag}
+              style={{ marginTop: Spacing.lg }}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 2: E-CHALLAN LOOKUP & SETTLEMENT ─── */}
+      <Modal
+        visible={challanModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setChallanModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalContent, { maxHeight: '90%' }]}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>E-Challan Radar</Text>
+                <Text style={styles.modalSub}>Check & settle traffic fines across India</Text>
+              </View>
+              <TouchableOpacity onPress={() => setChallanModalVisible(false)}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.challanSearchRow}>
+              <TextInput
+                style={styles.challanInput}
+                placeholder="Enter Plate (e.g. UP16AB1234)"
+                value={challanPlate}
+                onChangeText={(t) => setChallanPlate(t.toUpperCase())}
+                autoCapitalize="characters"
+              />
+              <TouchableOpacity
+                onPress={handleCheckChallans}
+                style={styles.challanSearchBtn}
+              >
+                <Text style={styles.challanSearchBtnText}>
+                  {isCheckingChallan ? '...' : 'Check'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 12 }}>
+              {hasCheckedChallans && challanResults.length === 0 ? (
+                <View style={styles.cleanRecordBox}>
+                  <CheckCircle2 size={36} color="#15803D" />
+                  <Text style={styles.cleanRecordTitle}>No Pending Challans!</Text>
+                  <Text style={styles.cleanRecordSub}>
+                    Zero outstanding traffic fines detected for {challanPlate}. Your driving record is completely clean.
+                  </Text>
+                </View>
+              ) : (
+                challanResults.map((ch) => (
+                  <Card key={ch.id} style={styles.challanItemCard}>
+                    <View style={styles.challanItemTop}>
+                      <Text style={styles.challanNum}>{ch.challanNumber}</Text>
+                      <Badge
+                        label={ch.status === 'settled' ? 'Settled ✓' : 'Pending Fine'}
+                        variant={ch.status === 'settled' ? 'available' : 'surge'}
+                      />
+                    </View>
+                    <Text style={styles.challanViolation}>{ch.violation}</Text>
+                    <Text style={styles.challanLocation}>📍 {ch.location}</Text>
+                    <Text style={styles.challanDate}>Issued: {ch.date}</Text>
+
+                    <View style={styles.challanPayRow}>
+                      <Text style={styles.challanAmount}>Fine: ₹{ch.amount}</Text>
+                      {ch.status === 'pending' && (
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => handlePayChallan(ch)}
+                          style={styles.payChallanBtn}
+                        >
+                          <Text style={styles.payChallanBtnText}>Clear Fine Now</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </Card>
+                ))
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 3: 24/7 ROADSIDE SOS ─── */}
+      <Modal
+        visible={sosModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSosModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>24/7 Roadside Assistance</Text>
+                <Text style={styles.modalSub}>Emergency patrol dispatched to your GPS location</Text>
+              </View>
+              <TouchableOpacity onPress={() => setSosModalVisible(false)}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => Linking.openURL('tel:18002004848').catch(() => {})}
+              style={styles.sosCallBanner}
+            >
+              <PhoneCall size={22} color="#FFFFFF" />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.sosCallTitle}>Instant SOS Dispatch Hotline</Text>
+                <Text style={styles.sosCallSub}>Toll-Free: 1800-200-4848 (24x7 Priority)</Text>
+              </View>
+              <Text style={styles.sosCallBtnTag}>CALL</Text>
+            </TouchableOpacity>
+
+            <Text style={[styles.chipHeaderLabel, { marginTop: 16 }]}>Assistance Services</Text>
+            <View style={{ gap: 10 }}>
+              {ROADSIDE_SERVICES.map((srv) => (
+                <View key={srv.id} style={styles.sosServiceRow}>
+                  <View style={styles.sosIconBox}>
+                    <Wrench size={16} color={Colors.primaryYellow} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.sosServiceName}>{srv.title}</Text>
+                    <Text style={styles.sosServiceSub}>{srv.subtitle}</Text>
+                  </View>
+                  <Text style={styles.sosEtaBadge}>ETA: {srv.eta}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 4: FUEL & EV CHARGING RADAR ─── */}
+      <Modal
+        visible={fuelModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFuelModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Daily Fuel & EV Radar</Text>
+                <Text style={styles.modalSub}>{NCR_FUEL_RATES.city} • Verified Today</Text>
+              </View>
+              <TouchableOpacity onPress={() => setFuelModalVisible(false)}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.fuelRateGrid}>
+              <View style={styles.fuelRateCol}>
+                <Text style={styles.fuelRateType}>PETROL</Text>
+                <Text style={styles.fuelRateNum}>₹{NCR_FUEL_RATES.petrol}</Text>
+                <Text style={styles.fuelRateUnit}>per Litre</Text>
+              </View>
+              <View style={styles.fuelRateCol}>
+                <Text style={styles.fuelRateType}>DIESEL</Text>
+                <Text style={styles.fuelRateNum}>₹{NCR_FUEL_RATES.diesel}</Text>
+                <Text style={styles.fuelRateUnit}>per Litre</Text>
+              </View>
+              <View style={styles.fuelRateCol}>
+                <Text style={styles.fuelRateType}>CNG</Text>
+                <Text style={styles.fuelRateNum}>₹{NCR_FUEL_RATES.cng}</Text>
+                <Text style={styles.fuelRateUnit}>per Kg</Text>
+              </View>
+            </View>
+
+            <View style={styles.evBannerCard}>
+              <Zap size={18} color="#15803D" />
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={styles.evBannerTitle}>Drivix Hub EV Fast Charging</Text>
+                <Text style={styles.evBannerSub}>Standardized tariff: ₹{NCR_FUEL_RATES.evRatePerKWh}/kWh at all verified smart hubs</Text>
+              </View>
+            </View>
+
+            <Button
+              title="Find Nearby EV & Fuel Stations"
+              variant="primary"
+              onPress={() => {
+                setFuelModalVisible(false);
+                onNavigateToDiscovery();
+              }}
+              style={{ marginTop: Spacing.md }}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 5: IN-BAY CAR CARE DETAIL ─── */}
+      <Modal
+        visible={carCareModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCarCareModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalContent, { maxHeight: '85%' }]}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>While-You-Park Car Care</Text>
+                <Text style={styles.modalSub}>Professional detailing done while your car is parked</Text>
+              </View>
+              <TouchableOpacity onPress={() => setCarCareModalVisible(false)}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {IN_HUB_VEHICLE_SERVICES.map((srv) => (
+                <Card key={srv.id} style={styles.carCareItemCard}>
+                  <View style={styles.carCareItemRow}>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={styles.carCareItemTitle}>{srv.name}</Text>
+                        {srv.popular && (
+                          <View style={styles.popularTag}>
+                            <Text style={styles.popularTagText}>POPULAR</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.carCareItemTagline}>{srv.tagline}</Text>
+                      <Text style={styles.carCareDuration}>⏱️ Approx {srv.durationMinutes} mins in-bay</Text>
+                    </View>
+                    <View style={styles.carCarePriceCol}>
+                      <Text style={styles.carCarePriceText}>₹{srv.price}</Text>
+                    </View>
+                  </View>
+                </Card>
+              ))}
+            </ScrollView>
+
+            <Button
+              title="Book Spot with Car Care"
+              variant="primary"
+              onPress={() => {
+                setCarCareModalVisible(false);
+                onNavigateToDiscovery();
+              }}
+              style={{ marginTop: Spacing.md }}
+            />
+          </View>
+        </View>
+      </Modal>
 
       {/* ─── Interactive Drivix Network Map Modal (Webapp Parity) ─── */}
       <NetworkMapModal
@@ -314,19 +932,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 4,
+    gap: 8,
   },
   logoBadge: {
     backgroundColor: Colors.primaryYellow,
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 6,
-    marginRight: 8,
   },
   logoText: {
     fontSize: 12,
@@ -334,16 +952,23 @@ const styles = StyleSheet.create({
     color: '#171717',
     letterSpacing: 1.5,
   },
-  appTitle: {
-    fontSize: 13,
+  cityPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+    gap: 3,
+  },
+  cityPillText: {
+    fontSize: 10,
     fontWeight: '700',
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: '#15803D',
   },
   greetingText: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '900',
     color: Colors.textPrimary,
   },
   avatarButton: {
@@ -362,7 +987,7 @@ const styles = StyleSheet.create({
     color: '#171717',
   },
   searchSection: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.md,
   },
   searchBarTouch: {
     flexDirection: 'row',
@@ -371,24 +996,229 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.border,
     borderRadius: BorderRadius.lg,
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 16,
   },
   searchPlaceholder: {
     flex: 1,
     marginLeft: 12,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
   searchIconBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: Colors.primaryYellow,
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  /* ─── Vehicle Command Center Widget ─── */
+  commandCenterCard: {
+    backgroundColor: '#151926',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.25)',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  commandCenterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    paddingBottom: 8,
+  },
+  carPlateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  plateNumberTag: {
+    backgroundColor: Colors.primaryYellow,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  plateNumberText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#111827',
+    letterSpacing: 0.5,
+  },
+  carModelText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#E5E7EB',
+    flex: 1,
+  },
+  switchCarBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  switchCarText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.primaryYellow,
+  },
+  commandModulesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  commandModuleItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  moduleTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 2,
+  },
+  moduleLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#9CA3AF',
+  },
+  moduleValue: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    fontVariant: ['tabular-nums'],
+  },
+  moduleSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  statusDotActive: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#15803D',
+  },
+  moduleSubText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.primaryYellow,
+  },
+  moduleDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+
+  /* ─── 8-Icon Core Services Grid ─── */
+  quickGridContainer: {
+    marginBottom: Spacing.lg,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sectionHeaderTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: Colors.textSecondary,
+    letterSpacing: 0.8,
+  },
+  parkPlusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.primaryYellow,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  parkPlusBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#171717',
+    letterSpacing: 0.5,
+  },
+  iconGridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  gridActionItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  gridIconCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+  },
+  gridEmoji: {
+    fontSize: 22,
+  },
+  gridLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+  },
+
+  /* ─── Fuel Radar Ticker Banner ─── */
+  fuelTickerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: Spacing.lg,
+  },
+  fuelTickerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  fuelFlameCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FEF3C7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fuelTickerTitle: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#92400E',
+    letterSpacing: 0.5,
+  },
+  fuelTickerRates: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#171717',
+    marginTop: 1,
+  },
+
+  /* ─── Active Booking Card ─── */
   activeBookingCard: {
     backgroundColor: '#FFFDF0',
     borderColor: Colors.primaryYellow,
@@ -399,183 +1229,51 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   activeTagRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
   },
   pulsingDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#D93025',
-    marginRight: 6,
+    backgroundColor: '#15803D',
   },
   activeTagText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#B45309',
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#15803D',
     letterSpacing: 0.5,
   },
   activeHubTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 8,
+    marginBottom: Spacing.xs,
   },
   activeMetaRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: 16,
     marginBottom: Spacing.md,
   },
   activeMetaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   activeMetaText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
+    fontSize: 12,
     fontWeight: '600',
+    color: Colors.textSecondary,
   },
   activeCtaBtn: {
-    marginTop: 4,
+    width: '100%',
   },
-  vehicleQuickCard: {
-    marginBottom: Spacing.lg,
-    paddingVertical: 12,
-  },
-  vehicleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  vehicleIconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: Colors.accentYellowLight,
-    borderWidth: 1,
-    borderColor: Colors.accentYellowMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  vehicleInfoCol: {
-    flex: 1,
-  },
-  vehiclePlate: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: 0.5,
-  },
-  vehicleModel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  evBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#DCFCE7',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    gap: 4,
-  },
-  evText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#15803D',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: Spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  viewAllText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#171717',
-    textDecorationLine: 'underline',
-  },
-  hubCard: {
-    marginBottom: Spacing.md,
-  },
-  hubHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
-  },
-  hubTitleCol: {
-    flex: 1,
-    marginRight: 12,
-  },
-  hubName: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  addressText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    flex: 1,
-  },
-  priceCol: {
-    alignItems: 'flex-end',
-  },
-  priceAmount: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-  },
-  pricePeriod: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-  },
-  capacityRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    alignItems: 'center',
-    marginVertical: Spacing.sm,
-  },
-  amenityChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    gap: 4,
-  },
-  amenityChipText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
-  hubReserveBtn: {
-    marginTop: Spacing.sm,
-  },
+
+  /* ─── Recent Section ─── */
   recentSection: {
     marginTop: Spacing.lg,
   },
@@ -592,13 +1290,384 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   recentHubName: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
     color: Colors.textPrimary,
     marginBottom: 2,
   },
   recentTimeText: {
     fontSize: 12,
     color: Colors.textSecondary,
+  },
+
+  /* ─── Modals Styles (Backdrop & Content) ─── */
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    paddingBottom: 36,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+  },
+  modalSub: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  netcBadge: {
+    backgroundColor: '#1E2333',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  netcBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: Colors.primaryYellow,
+  },
+  fastagBalanceBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  fastagBalLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.textSecondary,
+    letterSpacing: 0.5,
+  },
+  fastagBalValue: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+    marginVertical: 4,
+    fontVariant: ['tabular-nums'],
+  },
+  fastagBankTag: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0284C7',
+  },
+  chipHeaderLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+  rechargePillsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  rechargePill: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  rechargePillSelected: {
+    backgroundColor: Colors.accentYellowLight,
+    borderColor: Colors.primaryYellow,
+  },
+  rechargePillText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  rechargePillTextSelected: {
+    fontWeight: '900',
+    color: '#171717',
+  },
+
+  /* Challan Modal */
+  challanSearchRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  challanInput: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  challanSearchBtn: {
+    backgroundColor: Colors.primaryYellow,
+    paddingHorizontal: 16,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  challanSearchBtnText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#171717',
+  },
+  cleanRecordBox: {
+    alignItems: 'center',
+    paddingVertical: 30,
+    paddingHorizontal: 16,
+  },
+  cleanRecordTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#15803D',
+    marginTop: 8,
+  },
+  cleanRecordSub: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  challanItemCard: {
+    padding: Spacing.md,
+    marginBottom: 10,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    borderColor: '#FCA5A5',
+    backgroundColor: '#FEF2F2',
+  },
+  challanItemTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  challanNum: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+  },
+  challanViolation: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#991B1B',
+    marginBottom: 4,
+  },
+  challanLocation: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+  },
+  challanDate: {
+    fontSize: 10,
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
+  challanPayRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
+  },
+  challanAmount: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#171717',
+  },
+  payChallanBtn: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  payChallanBtnText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+
+  /* SOS Modal */
+  sosCallBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DC2626',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  sosCallTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  sosCallSub: {
+    fontSize: 11,
+    color: '#FEE2E2',
+    marginTop: 2,
+  },
+  sosCallBtnTag: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#DC2626',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  sosServiceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    padding: 10,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 8,
+  },
+  sosIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#1E2333',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sosServiceName: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  sosServiceSub: {
+    fontSize: 10,
+    color: Colors.textSecondary,
+    marginTop: 1,
+  },
+  sosEtaBadge: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0284C7',
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+
+  /* Fuel Modal */
+  fuelRateGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: Spacing.md,
+  },
+  fuelRateCol: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 10,
+    alignItems: 'center',
+  },
+  fuelRateType: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: Colors.textSecondary,
+    letterSpacing: 0.5,
+  },
+  fuelRateNum: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+    marginVertical: 4,
+  },
+  fuelRateUnit: {
+    fontSize: 9,
+    color: Colors.textMuted,
+  },
+  evBannerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFCCB',
+    borderRadius: BorderRadius.md,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#BEF264',
+    marginBottom: Spacing.sm,
+  },
+  evBannerTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#15803D',
+  },
+  evBannerSub: {
+    fontSize: 10,
+    color: '#365314',
+    marginTop: 1,
+  },
+
+  /* Car Care Modal */
+  carCareItemCard: {
+    padding: Spacing.md,
+    marginBottom: 8,
+  },
+  carCareItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  carCareItemTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  popularTag: {
+    backgroundColor: Colors.primaryYellow,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  popularTagText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#171717',
+  },
+  carCareItemTagline: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  carCareDuration: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#059669',
+    marginTop: 4,
+  },
+  carCarePriceCol: {
+    marginLeft: 12,
+  },
+  carCarePriceText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: Colors.textPrimary,
   },
 });
