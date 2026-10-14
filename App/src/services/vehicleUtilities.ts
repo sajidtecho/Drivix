@@ -127,3 +127,62 @@ export const ROADSIDE_SERVICES = [
     icon: 'Key',
   },
 ];
+
+export interface ExpresswayRoute {
+  id: string;
+  name: string;
+  fromTo: string;
+  oneWayToll: number;
+  roundTripToll: number;
+  distanceKm: number;
+  plazas: string;
+}
+
+export const NCR_EXPRESSWAY_ROUTES: ExpresswayRoute[] = [
+  {
+    id: 'yamuna_exp',
+    name: 'Yamuna Expressway',
+    fromTo: 'Gr. Noida ⇄ Jewar / Agra',
+    oneWayToll: 340,
+    roundTripToll: 540,
+    distanceKm: 165,
+    plazas: 'Jewar, Mathura, Khandauli',
+  },
+  {
+    id: 'delhi_meerut_exp',
+    name: 'Delhi-Meerut Expressway',
+    fromTo: 'Akshardham ⇄ Dasna / Meerut',
+    oneWayToll: 160,
+    roundTripToll: 255,
+    distanceKm: 82,
+    plazas: 'Chhajarsi, Kashi',
+  },
+  {
+    id: 'eastern_peripheral',
+    name: 'Eastern Peripheral (EPE)',
+    fromTo: 'Kundli ⇄ Palwal via Noida',
+    oneWayToll: 220,
+    roundTripToll: 350,
+    distanceKm: 135,
+    plazas: 'Duhai, Bilaspur, Dadri',
+  },
+  {
+    id: 'delhi_gurgaon',
+    name: 'Delhi-Gurugram Expressway',
+    fromTo: 'Dhaula Kuan ⇄ Manesar',
+    oneWayToll: 80,
+    roundTripToll: 125,
+    distanceKm: 38,
+    plazas: 'Kherki Daula Plaza',
+  },
+  {
+    id: 'noida_gr_noida',
+    name: 'Noida-Gr. Noida Expressway',
+    fromTo: 'Sec 15 ⇄ Pari Chowk',
+    oneWayToll: 0,
+    roundTripToll: 0,
+    distanceKm: 24,
+    plazas: 'Toll-Free Express Corridor',
+  },
+];
+
