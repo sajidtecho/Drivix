@@ -37,16 +37,6 @@
   - Mobile (`navigation.ts`): Uses `expo-location` and launches iOS Apple Maps (`maps://...`) or Android Navigation Intent (`google.navigation:q=...`).
   - Completely eliminates manual starting point input prompts.
 
-### 2.6 Lightweight Interactive Parking Deck Plan Visualizer
-- Implemented `ParkingDeckPlanVisualizer.tsx` in `FloorSelectionScreen.tsx` using native SVG vector math (`react-native-svg`):
-  - Adds **0 MB bundle bloat** (eliminates bulky 3D engine overhead).
-  - Replaces external building exterior models with an **authentic top-down parking deck layout**:
-    - Central driving lane with directional traffic arrows, yellow dashed divider, and pedestrian crosswalk.
-    - Two parallel rows of angled parking bays equipped with yellow/black rubber wheel stops.
-    - Overhead smart sensor LEDs indicating bay status (🟢 Green = Free, 🔴 Red = Taken, ⚡ Cyan = EV Charger).
-    - Realistic top-down parked vehicles (windshield, roof, headlights, taillights) in occupied stalls.
-    - 1-tap interactive slot picking with live Drivix gold selection highlights and dynamic booking payload sync.
-
 ---
 
 ## 3. Active Subsystems & Component Map
