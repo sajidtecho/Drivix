@@ -17,11 +17,14 @@ import {
   AlertCircle,
   Navigation,
   AlertTriangle,
+  Box,
+  ListFilter,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
 import { Typography } from '../../theme/typography';
 import { Header, Card, Button, Badge, StepIndicator } from '../../components/common';
+import { ParkingBuilding3DVisualizer } from '../../components/parking';
 import { useBooking } from '../../store/BookingContext';
 import { parkingApi } from '../../api/parkingApi';
 import { ParkingFloor } from '../../types';
@@ -41,6 +44,8 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
   const [floors, setFloors] = useState<ParkingFloor[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [viewFormat, setViewFormat] = useState<'3D' | 'list'>('3D');
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedHub) return;
