@@ -86,6 +86,79 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loadingComplaints, setLoadingComplaints] = useState(false);
 
+  // ─── Digital Vehicle Document Vault State ─────────────────────────
+  const [vaultModalVisible, setVaultModalVisible] = useState(false);
+  const [selectedVaultPlate, setSelectedVaultPlate] = useState<string>('');
+  const [vaultDocuments, setVaultDocuments] = useState<VehicleDocument[]>([]);
+  const [showAddDocForm, setShowAddDocForm] = useState(false);
+  const [newDocType, setNewDocType] = useState<'RC' | 'Insurance' | 'PUCC' | 'Driving License'>('Insurance');
+  const [newDocNumber, setNewDocNumber] = useState('');
+  const [newDocExpiry, setNewDocExpiry] = useState('');
+  const [newDocIssuer, setNewDocIssuer] = useState('');
+
+  const handleOpenVault = (plate?: string) => {
+    if (!isAuthenticated) {
+      navigation.navigate('Login');
+      return;
+    }
+    const defaultPlate =
+      plate ||
+      (vehicles.length > 0 ? vehicles[0].plate || vehicles[0].vehicleNumber || 'DL01AB1234' : 'DL01AB1234');
+    setSelectedVaultPlate(defaultPlate);
+    setVaultDocuments(getDefaultVehicleDocuments(defaultPlate));
+    setVaultModalVisible(true);
+  };
+
+  const handleSelectVaultPlate = (plate: string) => {
+    setSelectedVaultPlate(plate);
+    setVaultDocuments(getDefaultVehicleDocuments(plate));
+  };
+
+  const handleRenewDocument = (doc: VehicleDocument) => {
+    Alert.alert(
+      `Instant Renewal: ${doc.type}`,
+      `Connecting to certified Parivahan / Insurance partner for ${doc.issuer || doc.type} (${doc.documentNumber}).\n\nYour renewal status will reflect in Drivix upon completion.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Open Renewal Link',
+          onPress: () => {
+            const url =
+              doc.type === 'Insurance'
+                ? 'https://www.policybazaar.com/motor-insurance/'
+                : 'https://parivahan.gov.in/parivahan/';
+            Linking.openURL(url).catch(() => {
+              Alert.alert('Notice', 'Web portal opened in demo preview.');
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSaveNewDoc = () => {
+    if (!newDocNumber.trim()) {
+      Alert.alert('Missing Number', 'Please enter your document or policy registration number.');
+      return;
+    }
+    const calc = calculateDocumentStatus(newDocExpiry || '2028-06-30');
+    const createdDoc: VehicleDocument = {
+      id: `doc_${Date.now()}`,
+      type: newDocType,
+      documentNumber: newDocNumber.trim().toUpperCase(),
+      expiryDate: newDocExpiry.trim() || '2028-06-30',
+      issuer: newDocIssuer.trim() || 'Government Authority',
+      status: calc.status,
+      daysRemaining: calc.daysRemaining,
+    };
+    setVaultDocuments((prev) => [createdDoc, ...prev]);
+    setShowAddDocForm(false);
+    setNewDocNumber('');
+    setNewDocExpiry('');
+    setNewDocIssuer('');
+    Alert.alert('Document Vault Encrypted', `${newDocType} has been secured to ${selectedVaultPlate || 'your vehicle'}.`);
+  };
+
   // Load vehicles when modal opens or authenticated
   const loadUserVehicles = async () => {
     if (!isAuthenticated) return;
@@ -341,6 +414,30 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             </View>
             <ChevronRight size={18} color={Colors.textSecondary} />
           </TouchableOpacity>
+
+          <View style={styles.menuDivider} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => handleOpenVault()}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <View style={[styles.iconCircle, styles.vaultIconCircle]}>
+                <ShieldCheck size={18} color={Colors.primaryYellow} />
+              </View>
+              <View>
+                <View style={styles.menuItemRow}>
+                  <Text style={styles.menuText}>Digital Document Vault</Text>
+                  <View style={styles.featurePill}>
+                    <Text style={styles.featurePillText}>CARE</Text>
+                  </View>
+                </View>
+                <Text style={styles.menuSubtext}>RC, Insurance & PUCC with expiry alerts</Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={Colors.textSecondary} />
+          </TouchableOpacity>
         </Card>
 
         {/* Preferences */}
@@ -578,6 +675,16 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                         </View>
 
                         <View style={styles.vehicleItemActions}>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setVehiclesModalVisible(false);
+                              handleOpenVault(v.plate || v.vehicleNumber);
+                            }}
+                            style={styles.viewDocsBtn}
+                          >
+                            <ShieldCheck size={14} color="#171717" />
+                            <Text style={styles.viewDocsBtnText}>Vault</Text>
+                          </TouchableOpacity>
                           {!v.isPrimary && (
                             <TouchableOpacity
                               onPress={() => handleSetPrimary(v._id)}
@@ -598,6 +705,237 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   ))}
                 </>
               )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── DIGITAL VEHICLE DOCUMENT VAULT MODAL ────────────────── */}
+      <Modal
+        visible={vaultModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setVaultModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalContent, { maxHeight: '90%' }]}>
+            {/* Vault Header */}
+            <View style={styles.modalHeader}>
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.modalTitle}>Document Vault</Text>
+                  <View style={styles.vaultSecurityBadge}>
+                    <ShieldCheck size={12} color="#15803D" />
+                    <Text style={styles.vaultSecurityText}>ENCRYPTED</Text>
+                  </View>
+                </View>
+                <Text style={styles.modalSubtitle}>RC, Insurance & PUCC with 1-tap renewal & expiry guard</Text>
+              </View>
+              <TouchableOpacity onPress={() => setVaultModalVisible(false)} style={styles.closeBtn}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {/* Vehicle Switcher Bar */}
+              <View style={styles.vaultPlateBar}>
+                <Text style={styles.vaultPlateLabel}>VEHICLE:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                  {(vehicles.length > 0 ? vehicles : [{ plate: 'DL01AB1234', model: 'My Vehicle' }]).map((veh: any, idx: number) => {
+                    const plate = veh.plate || veh.vehicleNumber || 'DL01AB1234';
+                    const isSelected = selectedVaultPlate === plate || (!selectedVaultPlate && idx === 0);
+                    return (
+                      <TouchableOpacity
+                        key={plate + idx}
+                        activeOpacity={0.8}
+                        onPress={() => handleSelectVaultPlate(plate)}
+                        style={[styles.vaultPlateChip, isSelected && styles.vaultPlateChipSelected]}
+                      >
+                        <Car size={13} color={isSelected ? '#171717' : Colors.textSecondary} />
+                        <Text style={[styles.vaultPlateChipText, isSelected && styles.vaultPlateChipTextSelected]}>
+                          {plate}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+
+              {/* Parivahan Compliance Info Banner */}
+              <View style={styles.vaultBanner}>
+                <ShieldCheck size={20} color={Colors.primaryYellow} style={{ marginRight: 8, flexShrink: 0 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.vaultBannerTitle}>DigiLocker & MoRTH Parivahan Ready</Text>
+                  <Text style={styles.vaultBannerSubtitle}>
+                    Stored with 256-bit encryption. Accepted at all Drivix smart hub entry checkpoints and traffic audits.
+                  </Text>
+                </View>
+              </View>
+
+              {/* Status Overview Metric Chips */}
+              <View style={styles.vaultMetricsRow}>
+                <View style={styles.vaultMetricCard}>
+                  <Text style={styles.vaultMetricVal}>{vaultDocuments.length}</Text>
+                  <Text style={styles.vaultMetricLabel}>Documents</Text>
+                </View>
+                <View style={styles.vaultMetricCard}>
+                  <Text style={[styles.vaultMetricVal, { color: '#15803D' }]}>
+                    {vaultDocuments.filter((d) => d.status === 'valid').length}
+                  </Text>
+                  <Text style={styles.vaultMetricLabel}>Active / Valid</Text>
+                </View>
+                <View style={styles.vaultMetricCard}>
+                  <Text style={[styles.vaultMetricVal, { color: '#D97706' }]}>
+                    {vaultDocuments.filter((d) => d.status === 'expiring_soon' || d.status === 'expired').length}
+                  </Text>
+                  <Text style={styles.vaultMetricLabel}>Alert / Expiring</Text>
+                </View>
+              </View>
+
+              {/* Add Custom Document Form or Action Bar */}
+              {!showAddDocForm ? (
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setShowAddDocForm(true)}
+                  style={styles.addDocBar}
+                >
+                  <Plus size={16} color="#171717" />
+                  <Text style={styles.addDocBarText}>Upload / Register Policy Document</Text>
+                </TouchableOpacity>
+              ) : (
+                <Card style={styles.addDocCard}>
+                  <View style={styles.addCardHeader}>
+                    <Text style={styles.addCardTitle}>Register New Document</Text>
+                    <TouchableOpacity onPress={() => setShowAddDocForm(false)}>
+                      <Text style={styles.cancelLink}>Cancel</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={styles.chipLabel}>Document Category</Text>
+                  <View style={styles.typeChipsRow}>
+                    {(['Insurance', 'PUCC', 'RC', 'Driving License'] as const).map((t) => (
+                      <TouchableOpacity
+                        key={t}
+                        onPress={() => setNewDocType(t)}
+                        style={[styles.typeChip, newDocType === t && styles.typeChipSelected]}
+                      >
+                        <Text style={[styles.typeChipText, newDocType === t && styles.typeChipTextSelected]}>
+                          {t}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <Input
+                    label="Document / Policy Number"
+                    placeholder="e.g. POL-881920-BAJAJ"
+                    value={newDocNumber}
+                    onChangeText={setNewDocNumber}
+                    autoCapitalize="characters"
+                  />
+
+                  <Input
+                    label="Issuing Authority / Company"
+                    placeholder="e.g. ICICI Lombard / RTO Delhi"
+                    value={newDocIssuer}
+                    onChangeText={setNewDocIssuer}
+                  />
+
+                  <Input
+                    label="Expiry Date (YYYY-MM-DD)"
+                    placeholder="e.g. 2027-12-31"
+                    value={newDocExpiry}
+                    onChangeText={setNewDocExpiry}
+                  />
+
+                  <Button
+                    title="Encrypt & Save to Vault"
+                    variant="primary"
+                    onPress={handleSaveNewDoc}
+                    style={{ marginTop: Spacing.sm }}
+                  />
+                </Card>
+              )}
+
+              {/* Document List */}
+              <View style={styles.docListSection}>
+                {vaultDocuments.map((doc) => {
+                  const isExpiring = doc.status === 'expiring_soon';
+                  const isExpired = doc.status === 'expired';
+
+                  return (
+                    <Card
+                      key={doc.id}
+                      style={[
+                        styles.docCard,
+                        isExpiring && styles.docCardExpiring,
+                        isExpired && styles.docCardExpired,
+                      ]}
+                    >
+                      <View style={styles.docCardHeader}>
+                        <View style={styles.docTypeBadge}>
+                          <FileText size={16} color={isExpiring ? '#D97706' : isExpired ? '#DC2626' : Colors.textPrimary} />
+                          <Text style={styles.docTypeText}>{doc.type}</Text>
+                        </View>
+
+                        <View
+                          style={[
+                            styles.docStatusBadge,
+                            isExpiring && styles.docStatusExpiring,
+                            isExpired && styles.docStatusExpired,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.docStatusText,
+                              isExpiring && styles.docStatusTextExpiring,
+                              isExpired && styles.docStatusTextExpired,
+                            ]}
+                          >
+                            {isExpired
+                              ? 'EXPIRED'
+                              : isExpiring
+                              ? `EXPIRES IN ${doc.daysRemaining}D`
+                              : `VALID (${doc.daysRemaining}d left)`}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.docBody}>
+                        <Text style={styles.docNumberText}>{doc.documentNumber}</Text>
+                        <Text style={styles.docIssuerText}>Issuer: {doc.issuer || 'Official Authority'}</Text>
+                        <Text style={styles.docExpiryText}>Valid Thru: {doc.expiryDate}</Text>
+                      </View>
+
+                      <View style={styles.docActionsRow}>
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => handleRenewDocument(doc)}
+                          style={[styles.renewBtn, (isExpiring || isExpired) && styles.renewBtnUrgent]}
+                        >
+                          <ExternalLink size={13} color={(isExpiring || isExpired) ? '#171717' : Colors.textPrimary} />
+                          <Text style={[styles.renewBtnText, (isExpiring || isExpired) && styles.renewBtnTextUrgent]}>
+                            {isExpiring || isExpired ? '1-Tap Renew Now' : 'Check Policy / Renew'}
+                          </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() =>
+                            Alert.alert(
+                              'Verified Document',
+                              `${doc.type} (${doc.documentNumber})\nIssued by: ${doc.issuer}\nExpiry: ${doc.expiryDate}\n\nStatus: Encrypted in Drivix Cloud Vault.`
+                            )
+                          }
+                          style={styles.docDetailsBtn}
+                        >
+                          <Text style={styles.docDetailsBtnText}>Details</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </Card>
+                  );
+                })}
+              </View>
             </ScrollView>
           </View>
         </View>
@@ -1257,5 +1595,287 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textSecondary,
     marginLeft: 6,
+  },
+
+  /* ─── Document Vault & Expiry Styles ────────────────────────── */
+  vaultIconCircle: {
+    backgroundColor: 'rgba(255, 235, 59, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  menuItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  featurePill: {
+    backgroundColor: '#1E2333',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: Colors.primaryYellow,
+  },
+  featurePillText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: Colors.primaryYellow,
+    letterSpacing: 0.5,
+  },
+  viewDocsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.primaryYellow,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 4,
+  },
+  viewDocsBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#171717',
+  },
+  vaultSecurityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  vaultSecurityText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#15803D',
+    letterSpacing: 0.5,
+  },
+  vaultPlateBar: {
+    marginBottom: Spacing.md,
+  },
+  vaultPlateLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.textSecondary,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  vaultPlateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.md,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  vaultPlateChipSelected: {
+    backgroundColor: Colors.accentYellowLight,
+    borderColor: Colors.primaryYellow,
+  },
+  vaultPlateChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  vaultPlateChipTextSelected: {
+    color: '#171717',
+    fontWeight: '900',
+  },
+  vaultBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E2333',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.25)',
+  },
+  vaultBannerTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  vaultBannerSubtitle: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    marginTop: 2,
+    lineHeight: 14,
+  },
+  vaultMetricsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: Spacing.md,
+  },
+  vaultMetricCard: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  vaultMetricVal: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+  },
+  vaultMetricLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  addDocBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.accentYellowLight,
+    borderWidth: 1.5,
+    borderColor: Colors.primaryYellow,
+    borderStyle: 'dashed',
+    borderRadius: BorderRadius.md,
+    paddingVertical: 10,
+    marginBottom: Spacing.md,
+  },
+  addDocBarText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#171717',
+  },
+  addDocCard: {
+    marginBottom: Spacing.md,
+    borderWidth: 1.5,
+    borderColor: Colors.primaryYellow,
+    backgroundColor: '#FFFEF5',
+  },
+  docListSection: {
+    gap: 10,
+    paddingBottom: 20,
+  },
+  docCard: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  docCardExpiring: {
+    borderColor: '#F59E0B',
+    borderWidth: 1.5,
+    backgroundColor: '#FFFBEB',
+  },
+  docCardExpired: {
+    borderColor: '#EF4444',
+    borderWidth: 1.5,
+    backgroundColor: '#FEF2F2',
+  },
+  docCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  docTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  docTypeText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+  },
+  docStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: '#DCFCE7',
+  },
+  docStatusExpiring: {
+    backgroundColor: '#FEF3C7',
+  },
+  docStatusExpired: {
+    backgroundColor: '#FEE2E2',
+  },
+  docStatusText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#15803D',
+  },
+  docStatusTextExpiring: {
+    color: '#B45309',
+  },
+  docStatusTextExpired: {
+    color: '#B91C1C',
+  },
+  docBody: {
+    marginBottom: 10,
+  },
+  docNumberText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    fontVariant: ['tabular-nums'],
+    letterSpacing: 0.5,
+  },
+  docIssuerText: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  docExpiryText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginTop: 2,
+  },
+  docActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
+    paddingTop: 8,
+  },
+  renewBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: '#F3F4F6',
+    borderRadius: BorderRadius.md,
+    paddingVertical: 7,
+  },
+  renewBtnUrgent: {
+    backgroundColor: Colors.primaryYellow,
+  },
+  renewBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  renewBtnTextUrgent: {
+    color: '#171717',
+    fontWeight: '900',
+  },
+  docDetailsBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: BorderRadius.md,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  docDetailsBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textSecondary,
   },
 });
