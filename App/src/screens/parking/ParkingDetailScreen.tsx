@@ -28,6 +28,7 @@ import { Typography } from '../../theme/typography';
 import { Header, Card, Button, Badge } from '../../components/common';
 import { parkingApi } from '../../api/parkingApi';
 import { useBooking } from '../../store/BookingContext';
+import { ParkingLocation, ParkingFloor } from '../../types';
 import { checkIsOnlineBookingAllowed } from '../../services/bookingEligibility';
 import { launchMobileLiveGpsNavigation } from '../../services/navigation';
 import {
