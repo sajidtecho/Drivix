@@ -341,6 +341,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
         </Card>
 
+        {/* ─── 3B. Vehicle Compliance & Instant Insurance Renewal Banner (High Ancillary Commission) ─── */}
+        <TouchableOpacity
+          activeOpacity={0.88}
+          onPress={() => setInsuranceModalVisible(true)}
+          style={styles.insuranceComplianceBanner}
+        >
+          <View style={styles.insuranceIconBox}>
+            <ShieldCheck size={20} color="#D97706" />
+          </View>
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.insuranceBannerTitle}>Insurance Due in 14 Days</Text>
+              <View style={styles.ncbBadge}>
+                <Text style={styles.ncbBadgeText}>SAVE 50% NCB</Text>
+              </View>
+            </View>
+            <Text style={styles.insuranceBannerSub}>
+              Zero-depreciation instant quotes from ₹2,099/yr • Paperless
+            </Text>
+          </View>
+          <View style={styles.insuranceRenewBtn}>
+            <Text style={styles.insuranceRenewBtnText}>Renew</Text>
+            <ChevronRight size={13} color="#171717" />
+          </View>
+        </TouchableOpacity>
+
         {/* ─── 4. Quick Mobility Services (Fresh 2x3 Grid) ─── */}
         <View style={styles.quickGridContainer}>
           <View style={styles.sectionTitleRow}>
@@ -381,7 +407,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.gridLabel}>Challans</Text>
             </TouchableOpacity>
 
-            {/* 3. Car Wash / Care */}
+            {/* 3. Car Wash / Care (Updated with GoMechanic 360-degree spa) */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setCarCareModalVisible(true)}
@@ -408,16 +434,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.gridLabel}>Doc Vault</Text>
             </TouchableOpacity>
 
-            {/* 5. EV Fast Charging */}
+            {/* 5. Commuter Passes (Direct Access) */}
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={onNavigateToDiscovery}
+              onPress={() => setCommuterPassModalVisible(true)}
               style={styles.gridActionItem}
             >
-              <View style={[styles.gridIconCircle, { backgroundColor: '#ECFCCB' }]}>
-                <Text style={styles.gridEmoji}>🔌</Text>
+              <View style={[styles.gridIconCircle, { backgroundColor: '#FEF3C7' }]}>
+                <Text style={styles.gridEmoji}>🎟️</Text>
               </View>
-              <Text style={styles.gridLabel}>EV Hubs</Text>
+              <Text style={styles.gridLabel}>Commuter Pass</Text>
             </TouchableOpacity>
 
             {/* 6. Roadside SOS */}
@@ -433,6 +459,100 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* ─── 4B. Monthly Commuter Pass & Multi-Visit Bundle Card (High ARR / Predictable Revenue) ─── */}
+        <Card style={styles.commuterPassCard}>
+          <View style={styles.commuterHeaderRow}>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <Ticket size={16} color="#FFC928" />
+                <Text style={styles.commuterTitle}>DAILY COMMUTER PASS</Text>
+                <View style={styles.commuterSaveBadge}>
+                  <Text style={styles.commuterSaveBadgeText}>SAVE 35%</Text>
+                </View>
+              </View>
+              <Text style={styles.commuterSubtitle}>
+                Hassle-free daily parking at top tech parks & metro hubs.
+              </Text>
+            </View>
+          </View>
+
+          {/* Plan Chips */}
+          <View style={styles.commuterPlansRow}>
+            <TouchableOpacity
+              onPress={() => setSelectedPassPlan('10_days')}
+              style={[
+                styles.commuterPlanChip,
+                selectedPassPlan === '10_days' && styles.commuterPlanChipActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.commuterPlanChipDays,
+                  selectedPassPlan === '10_days' && styles.commuterPlanChipActiveText,
+                ]}
+              >
+                10-Entry Flexi
+              </Text>
+              <Text
+                style={[
+                  styles.commuterPlanChipPrice,
+                  selectedPassPlan === '10_days' && styles.commuterPlanChipActivePrice,
+                ]}
+              >
+                ₹799
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setSelectedPassPlan('monthly')}
+              style={[
+                styles.commuterPlanChip,
+                selectedPassPlan === 'monthly' && styles.commuterPlanChipActive,
+              ]}
+            >
+              <View style={styles.popularMiniTag}>
+                <Text style={styles.popularMiniTagText}>BEST VALUE</Text>
+              </View>
+              <Text
+                style={[
+                  styles.commuterPlanChipDays,
+                  selectedPassPlan === 'monthly' && styles.commuterPlanChipActiveText,
+                ]}
+              >
+                1 Month Unlimited
+              </Text>
+              <Text
+                style={[
+                  styles.commuterPlanChipPrice,
+                  selectedPassPlan === 'monthly' && styles.commuterPlanChipActivePrice,
+                ]}
+              >
+                ₹1,999/mo
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Pass Features Row */}
+          <View style={styles.commuterBenefitsRow}>
+            <View style={styles.benefitItem}>
+              <Check size={12} color="#15803D" />
+              <Text style={styles.benefitText}>ANPR Auto-Barrier Entry</Text>
+            </View>
+            <View style={styles.benefitItem}>
+              <Check size={12} color="#15803D" />
+              <Text style={styles.benefitText}>Zero Surge Pricing</Text>
+            </View>
+          </View>
+
+          <Button
+            title="Get Commuter Pass Now"
+            variant="primary"
+            size="sm"
+            onPress={() => setCommuterPassModalVisible(true)}
+            style={{ marginTop: 10 }}
+          />
+        </Card>
 
         {/* ─── 5. Active Booking Banner (If Any) ─── */}
         {activeBooking && (
@@ -718,6 +838,192 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               }}
               style={{ marginTop: Spacing.md }}
             />
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 4: INSTANT INSURANCE RENEWAL & QUOTE ─── */}
+      <Modal
+        visible={insuranceModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setInsuranceModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalContent, { maxHeight: '90%' }]}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Instant Insurance Renewal</Text>
+                <Text style={styles.modalSub}>Policy #{currentPlate} • Due in 14 days</Text>
+              </View>
+              <TouchableOpacity onPress={() => setInsuranceModalVisible(false)}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Savings Highlight */}
+              <View style={styles.insQuoteHero}>
+                <View style={styles.insQuoteHeroTag}>
+                  <Award size={13} color="#15803D" />
+                  <Text style={styles.insQuoteHeroTagText}>50% No-Claim Bonus (NCB) Applied</Text>
+                </View>
+                <Text style={styles.insQuoteHeroTitle}>Comprehensive Motor Cover</Text>
+                <Text style={styles.insQuoteHeroSub}>
+                  Includes Zero-Depreciation, Engine Gearbox Protect & 24x7 Roadside Assistance
+                </Text>
+              </View>
+
+              <Text style={[styles.chipHeaderLabel, { marginTop: 14 }]}>Compare Verified Quotes</Text>
+
+              {/* Quote 1: HDFC ERGO */}
+              <Card style={styles.insurancePlanCard}>
+                <View style={styles.insRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.insProviderName}>HDFC ERGO General</Text>
+                    <Text style={styles.insCoverageText}>Zero-Dep • 98.4% Settlement Rate</Text>
+                    <Text style={styles.insCashlessText}>✓ 7,800+ Cashless Garages</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.insPriceText}>₹2,099</Text>
+                    <Text style={styles.insYearText}>/year + GST</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.insSelectBtn}
+                  onPress={() => {
+                    setInsuranceModalVisible(false);
+                    Alert.alert(
+                      'Policy Renewed! ✓',
+                      `HDFC ERGO Comprehensive Policy for ${currentPlate} has been renewed. Policy document has been synced to your Doc Vault.`
+                    );
+                  }}
+                >
+                  <Text style={styles.insSelectBtnText}>Renew in 1-Click with UPI</Text>
+                </TouchableOpacity>
+              </Card>
+
+              {/* Quote 2: GoDigit */}
+              <Card style={styles.insurancePlanCard}>
+                <View style={styles.insRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.insProviderName}>Digit Smart Cover</Text>
+                    <Text style={styles.insCoverageText}>Engine Protect + Consumables included</Text>
+                    <Text style={styles.insCashlessText}>✓ Paperless claim approval in 15 mins</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.insPriceText}>₹2,349</Text>
+                    <Text style={styles.insYearText}>/year + GST</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.insSelectBtn}
+                  onPress={() => {
+                    setInsuranceModalVisible(false);
+                    Alert.alert(
+                      'Policy Renewed! ✓',
+                      `Digit Policy for ${currentPlate} has been renewed. Document saved to Doc Vault.`
+                    );
+                  }}
+                >
+                  <Text style={styles.insSelectBtnText}>Renew in 1-Click with UPI</Text>
+                </TouchableOpacity>
+              </Card>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 5: COMMUTER PASS ACTIVATION ─── */}
+      <Modal
+        visible={commuterPassModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCommuterPassModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalContent, { maxHeight: '90%' }]}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Daily Commuter Smart Pass</Text>
+                <Text style={styles.modalSub}>Seamless multi-entry parking at tech parks & hubs</Text>
+              </View>
+              <TouchableOpacity onPress={() => setCommuterPassModalVisible(false)}>
+                <X size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.passSelectRow}>
+                {/* 10-Entry Pass */}
+                <TouchableOpacity
+                  style={[
+                    styles.passOptionCard,
+                    selectedPassPlan === '10_days' && styles.passOptionCardActive,
+                  ]}
+                  onPress={() => setSelectedPassPlan('10_days')}
+                >
+                  <Text style={styles.passOptionTitle}>10-Entry Flexi</Text>
+                  <Text style={styles.passOptionSubtitle}>Valid 30 Days • Any Hub</Text>
+                  <Text style={styles.passOptionPrice}>₹799</Text>
+                  <Text style={styles.passOptionSubtext}>₹79.90 / visit</Text>
+                </TouchableOpacity>
+
+                {/* 1-Month Unlimited Pass */}
+                <TouchableOpacity
+                  style={[
+                    styles.passOptionCard,
+                    selectedPassPlan === 'monthly' && styles.passOptionCardActive,
+                  ]}
+                  onPress={() => setSelectedPassPlan('monthly')}
+                >
+                  <View style={styles.popularMiniTagAbsolute}>
+                    <Text style={styles.popularMiniTagText}>POPULAR</Text>
+                  </View>
+                  <Text style={styles.passOptionTitle}>Monthly Unlimited</Text>
+                  <Text style={styles.passOptionSubtitle}>30 Days Unlimited In/Out</Text>
+                  <Text style={styles.passOptionPrice}>₹1,999</Text>
+                  <Text style={styles.passOptionSubtext}>Zero surge fees</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Pass Highlights */}
+              <View style={styles.passFeaturesList}>
+                <View style={styles.passFeatureItem}>
+                  <CheckCircle2 size={16} color="#15803D" />
+                  <Text style={styles.passFeatureText}>
+                    Barrier opens automatically via ANPR License Plate Scan
+                  </Text>
+                </View>
+                <View style={styles.passFeatureItem}>
+                  <CheckCircle2 size={16} color="#15803D" />
+                  <Text style={styles.passFeatureText}>
+                    Guaranteed floor parking capacity even during rush hours
+                  </Text>
+                </View>
+                <View style={styles.passFeatureItem}>
+                  <CheckCircle2 size={16} color="#15803D" />
+                  <Text style={styles.passFeatureText}>
+                    Free cancellation & prorated refund within 7 days
+                  </Text>
+                </View>
+              </View>
+
+              <Button
+                title={`Activate ${
+                  selectedPassPlan === '10_days' ? '10-Entry Pass (₹799)' : 'Monthly Pass (₹1,999)'
+                }`}
+                variant="primary"
+                onPress={() => {
+                  setCommuterPassModalVisible(false);
+                  Alert.alert(
+                    'Commuter Pass Activated! 🎉',
+                    `Your pass has been bound to plate ${currentPlate}. You can now drive straight into any Drivix Smart Hub without paying at the gate.`
+                  );
+                }}
+                style={{ marginTop: Spacing.md }}
+              />
+            </ScrollView>
           </View>
         </View>
       </Modal>
