@@ -19,6 +19,11 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
+  Wind,
+  Gauge,
+  Zap,
+  Check,
+  Plus,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
@@ -27,6 +32,7 @@ import { Header, Card, Button, Badge, StepIndicator } from '../../components/com
 import { useBooking } from '../../store/BookingContext';
 import { useAuth } from '../../store/AuthContext';
 import { Booking } from '../../types';
+import { IN_HUB_VEHICLE_SERVICES } from '../../services/vehicleCareServices';
 
 export interface BookingReviewScreenProps {
   onBack: () => void;
@@ -50,6 +56,9 @@ export const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({
     vehicleName,
     pricingQuote,
     totalCost,
+    selectedServices,
+    servicesCost,
+    toggleService,
     confirmBooking,
     isSubmittingBooking,
   } = useBooking();

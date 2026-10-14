@@ -29,6 +29,27 @@ export interface User {
   isVerified?: boolean;
 }
 
+export interface VehicleDocument {
+  id: string;
+  type: 'RC' | 'Insurance' | 'PUCC' | 'Driving License';
+  documentNumber: string;
+  expiryDate: string; // YYYY-MM-DD
+  issuer?: string;
+  status: 'valid' | 'expiring_soon' | 'expired';
+  daysRemaining?: number;
+}
+
+export interface VehicleCareService {
+  id: string;
+  name: string;
+  tagline: string;
+  price: number;
+  durationMinutes: number;
+  category: 'wash' | 'detail' | 'maintenance' | 'ev';
+  icon: string;
+  popular?: boolean;
+}
+
 export interface Vehicle {
   _id: string;
   userId?: string;
@@ -39,6 +60,7 @@ export interface Vehicle {
   type?: 'Car' | 'Bike' | 'SUV' | 'EV';
   isPrimary?: boolean;
   isEV?: boolean;
+  documents?: VehicleDocument[];
 }
 
 export interface ParkingLocation {
@@ -145,6 +167,11 @@ export interface Booking {
   actualExitTime?: string | null;
   additionalServices?: string[];
   servicesCost?: number;
+  serviceStatus?: Array<{
+    name: string;
+    status: 'Requested' | 'Assigned' | 'In Progress' | 'Completed';
+    completedAt?: string;
+  }>;
   createdAt?: string;
 }
 

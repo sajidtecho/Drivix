@@ -14,6 +14,8 @@ interface BookingContextType {
   vehicleId: string | null;
   pricingQuote: DynamicPriceQuote | null;
   totalCost: number;
+  selectedServices: Array<{ id: string; name: string; price: number; icon: string; tagline: string }>;
+  servicesCost: number;
   isCalculatingPrice: boolean;
   isSubmittingBooking: boolean;
   confirmedBooking: Booking | null;
@@ -24,6 +26,8 @@ interface BookingContextType {
   selectFloor: (floor: ParkingFloor) => void;
   setTimeAndDuration: (date: string, time: string, duration: number) => void;
   setVehicleInfo: (number: string, name: string, id?: string | null) => void;
+  toggleService: (service: { id: string; name: string; price: number; icon: string; tagline: string }) => void;
+  clearServices: () => void;
   refreshPriceQuote: () => Promise<void>;
   confirmBooking: (paymentMode: 'PAY_NOW' | 'PAY_AFTER_CHECKOUT', userDetails: { name: string; mobile: string }) => Promise<Booking>;
   setActiveBooking: (booking: Booking | null) => void;
@@ -53,6 +57,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [vehicleNumber, setVehicleNumber] = useState<string>('');
   const [vehicleName, setVehicleName] = useState<string>('');
   const [vehicleId, setVehicleId] = useState<string | null>(null);
+  const [selectedServices, setSelectedServices] = useState<Array<{ id: string; name: string; price: number; icon: string; tagline: string }>>([]);
   const [pricingQuote, setPricingQuote] = useState<DynamicPriceQuote | null>(null);
   const [isCalculatingPrice, setIsCalculatingPrice] = useState<boolean>(false);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState<boolean>(false);
@@ -80,6 +85,22 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     setVehicleName(name);
     if (id !== undefined) setVehicleId(id);
   };
+
+  const toggleService = (service: { id: string; name: string; price: number; icon: string; tagline: string }) => {
+    setSelectedServices((prev) => {
+      const exists = prev.some((s) => s.id === service.id);
+      if (exists) {
+        return prev.filter((s) => s.id !== service.id);
+      }
+      return [...prev, service];
+    });
+  };
+
+  const clearServices = () => {
+    setSelectedServices([]);
+  };
+
+  const servicesCost = selectedServices.reduce((sum, s) => sum + s.price, 0);
 
   const refreshPriceQuote = async () => {
     if (!selectedHub) return;
@@ -110,13 +131,13 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const calculateTotalCost = (): number => {
+    let parkingBase = 60 * durationHours;
     if (pricingQuote) {
-      return pricingQuote.recommendedPrice * durationHours;
+      parkingBase = pricingQuote.recommendedPrice * durationHours;
+    } else if (selectedHub) {
+      parkingBase = selectedHub.hourlyPrice * durationHours;
     }
-    if (selectedHub) {
-      return selectedHub.hourlyPrice * durationHours;
-    }
-    return 60 * durationHours;
+    return Math.round(parkingBase + servicesCost);
   };
 
   const confirmBooking = async (
@@ -148,6 +169,8 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         duration: durationHours,
         totalCost: calculatedCost,
         paymentMode,
+        additionalServices: selectedServices.map((s) => s.name),
+        servicesCost,
       };
 
       const booking = await bookingApi.createBooking(payload);
@@ -185,6 +208,8 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         vehicleId,
         pricingQuote,
         totalCost: calculateTotalCost(),
+        selectedServices,
+        servicesCost,
         isCalculatingPrice,
         isSubmittingBooking,
         confirmedBooking,
@@ -193,6 +218,8 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         selectFloor,
         setTimeAndDuration,
         setVehicleInfo,
+        toggleService,
+        clearServices,
         refreshPriceQuote,
         confirmBooking,
         setActiveBooking,
