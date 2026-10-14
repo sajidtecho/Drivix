@@ -1,9 +1,10 @@
 import { Platform, Linking, Alert } from 'react-native';
 import * as Location from 'expo-location';
+import { resolveHubCoordinates } from './locationService';
 
 interface NavigationParams {
-  latitude: number;
-  longitude: number;
+  latitude?: number | null;
+  longitude?: number | null;
   locationName?: string;
 }
 
@@ -12,8 +13,13 @@ interface NavigationParams {
  * to the destination parking facility on mobile, eliminating location search prompts.
  */
 export const launchMobileLiveGpsNavigation = async ({ latitude, longitude, locationName }: NavigationParams) => {
-  const lat = latitude || 28.4727;
-  const lon = longitude || 77.4827;
+  const resolved = resolveHubCoordinates({
+    latitude: latitude || undefined,
+    longitude: longitude || undefined,
+    parkingName: locationName,
+  });
+  const lat = resolved.latitude;
+  const lon = resolved.longitude;
 
   let originStr = 'Current+Location';
 

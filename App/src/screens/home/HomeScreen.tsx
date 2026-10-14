@@ -69,6 +69,13 @@ import {
   CityFuelInfo,
 } from '../../services/fuelRateService';
 import { IN_HUB_VEHICLE_SERVICES } from '../../services/vehicleCareServices';
+import { launchMobileLiveGpsNavigation } from '../../services/navigation';
+import {
+  getUserLiveLocation,
+  calculateAccurateDistance,
+  sortHubsByProximity,
+  UserCoordinates,
+} from '../../services/locationService';
 
 
 export interface HomeScreenProps {
@@ -121,6 +128,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   // ─── Features State: Toll Calculator, Hubs ───
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0);
   const [isRoundTrip, setIsRoundTrip] = useState(false);
+  const [userCoords, setUserCoords] = useState<UserCoordinates | null>(null);
 
   const handleSwitchCityFuel = async (cityKey: string) => {
     setIsSyncingFuel(true);
@@ -138,6 +146,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const loadDashboardData = async () => {
     setLoading(true);
     try {
+      // 1. Fetch live GPS coordinates for accurate distance calculation
+      getUserLiveLocation().then((coords) => {
+        if (coords) setUserCoords(coords);
+      }).catch(() => {});
+
       const locData = await parkingApi.getLocations();
       setLocations(locData);
 
@@ -658,9 +671,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingRight: 8 }}
           >
-            {(locations.length > 0 ? locations.slice(0, 5) : []).map((hub) => {
+            {(locations.length > 0 ? sortHubsByProximity(locations, userCoords).slice(0, 6) : []).map((hub) => {
               const isSharda = hub.parkingName?.toLowerCase().includes('sharda');
               const isOnlineAllowed = hub.allowOnlineBooking === true || isSharda;
+              const distInfo = calculateAccurateDistance(userCoords, hub);
 
               return (
                 <Card key={hub._id} style={styles.nearbyHubCard}>
@@ -680,14 +694,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         {isOnlineAllowed ? 'ONLINE BOOKING' : 'ON-SITE ONLY'}
                       </Text>
                     </View>
-                    <Text style={styles.hubDistanceText}>1.2 km</Text>
+                    <Text style={styles.hubDistanceText}>{distInfo.distanceText}</Text>
                   </View>
 
                   <Text style={styles.hubCardTitle} numberOfLines={1}>
                     {hub.parkingName}
                   </Text>
                   <Text style={styles.hubCardAddress} numberOfLines={1}>
-                    📍 {hub.address}
+                    📍 {hub.address} • ~{distInfo.etaText}
                   </Text>
 
                   <View style={styles.hubCardStatsRow}>
@@ -706,9 +720,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   <TouchableOpacity
                     activeOpacity={0.88}
                     onPress={() => {
-                      selectHub(hub);
-                      if (onSelectHub) onSelectHub(hub);
-                      else onNavigateToDiscovery();
+                      if (isOnlineAllowed) {
+                        selectHub(hub);
+                        if (onSelectHub) onSelectHub(hub);
+                        else onNavigateToDiscovery();
+                      } else {
+                        launchMobileLiveGpsNavigation({
+                          latitude: hub.latitude,
+                          longitude: hub.longitude,
+                          locationName: hub.parkingName,
+                        });
+                      }
                     }}
                     style={[
                       styles.hubActionBtn,
