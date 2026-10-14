@@ -30,6 +30,10 @@ import {
   ChevronRight,
   Wrench,
   Compass,
+  Ticket,
+  Tag,
+  Check,
+  Award,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
@@ -91,6 +95,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   // SOS & Car Care Modals
   const [sosModalVisible, setSosModalVisible] = useState(false);
   const [carCareModalVisible, setCarCareModalVisible] = useState(false);
+  const [insuranceModalVisible, setInsuranceModalVisible] = useState(false);
+  const [commuterPassModalVisible, setCommuterPassModalVisible] = useState(false);
+  const [selectedPassPlan, setSelectedPassPlan] = useState<'10_days' | 'monthly' | 'fleet'>('monthly');
   const [userCoords, setUserCoords] = useState<UserCoordinates | null>(null);
 
   const activeVehicle = vehicles[selectedVehicleIdx] || null;
