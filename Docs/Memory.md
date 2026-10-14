@@ -37,6 +37,12 @@
   - Mobile (`navigation.ts`): Uses `expo-location` and launches iOS Apple Maps (`maps://...`) or Android Navigation Intent (`google.navigation:q=...`).
   - Completely eliminates manual starting point input prompts.
 
+### 2.6 Lightweight Isometric 3D Building & Floor Visualizer
+- Implemented `ParkingBuilding3DVisualizer.tsx` in `FloorSelectionScreen.tsx` using native SVG vector math (`react-native-svg`):
+  - Adds **0 MB bundle bloat** (avoids heavy WebGL/Three.js engine overhead and GL context drops).
+  - Displays multi-floor isometric architectural slabs with structural pillars, barrier gates, parked micro-cars, and real-time occupancy neon borders (Green <70%, Amber 70-90%, Red Full).
+  - Features dynamic layer elevation on floor selection, an "Exploded" perspective expansion view, and a detailed isometric slot grid drill-down with interactive slot reservation.
+
 ---
 
 ## 3. Active Subsystems & Component Map
