@@ -45,7 +45,6 @@ import {
   Button,
   Badge,
   Input,
-  CoreServicesShowcase,
   NetworkMapModal,
 } from '../../components/common';
 import { useAuth } from '../../store/AuthContext';
@@ -554,11 +553,25 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </TouchableOpacity>
         )}
 
-        {/* ─── 7. Core Services Showcase (Webapp Parity) ─── */}
-        <CoreServicesShowcase
-          onBookParking={onNavigateToDiscovery}
-          onViewMap={() => setIsMapModalVisible(true)}
-        />
+        {/* ─── 7. Compact Live Parking Network Map Launcher ─── */}
+        <TouchableOpacity
+          activeOpacity={0.88}
+          onPress={() => setIsMapModalVisible(true)}
+          style={styles.networkMapBanner}
+        >
+          <View style={styles.networkMapIconWrap}>
+            <Compass size={18} color="#171717" />
+          </View>
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={styles.networkMapTitle}>Live Parking Network Map</Text>
+            <Text style={styles.networkMapSub}>
+              Explore 28+ verified Delhi NCR smart hubs & real-time capacity
+            </Text>
+          </View>
+          <View style={styles.networkMapBadge}>
+            <Text style={styles.networkMapBadgeText}>MAP</Text>
+          </View>
+        </TouchableOpacity>
 
         {/* ─── 8. Recent Bookings Preview ─── */}
         {isAuthenticated && recentBookings.length > 0 && (
@@ -1669,5 +1682,50 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
     color: Colors.textPrimary,
+  },
+
+  /* Network Map Compact Banner */
+  networkMapBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E2333',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.25)',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: Spacing.md,
+  },
+  networkMapIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primaryYellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  networkMapTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  networkMapSub: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  networkMapBadge: {
+    backgroundColor: 'rgba(255, 215, 0, 0.15)',
+    borderWidth: 1,
+    borderColor: Colors.primaryYellow,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  networkMapBadgeText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: Colors.primaryYellow,
+    letterSpacing: 0.5,
   },
 });
