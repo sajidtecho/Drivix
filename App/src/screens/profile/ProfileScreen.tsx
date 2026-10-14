@@ -776,29 +776,31 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              {/* Vehicle Switcher Bar */}
-              <View style={styles.vaultPlateBar}>
-                <Text style={styles.vaultPlateLabel}>VEHICLE:</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                  {(vehicles.length > 0 ? vehicles : [{ plate: 'DL01AB1234', model: 'My Vehicle' }]).map((veh: any, idx: number) => {
-                    const plate = veh.plate || veh.vehicleNumber || 'DL01AB1234';
-                    const isSelected = selectedVaultPlate === plate || (!selectedVaultPlate && idx === 0);
-                    return (
-                      <TouchableOpacity
-                        key={plate + idx}
-                        activeOpacity={0.8}
-                        onPress={() => handleSelectVaultPlate(plate)}
-                        style={[styles.vaultPlateChip, isSelected && styles.vaultPlateChipSelected]}
-                      >
-                        <Car size={13} color={isSelected ? '#171717' : Colors.textSecondary} />
-                        <Text style={[styles.vaultPlateChipText, isSelected && styles.vaultPlateChipTextSelected]}>
-                          {plate}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </View>
+              {/* Vehicle Switcher Bar - only shown if user has saved vehicles */}
+              {vehicles.length > 0 && (
+                <View style={styles.vaultPlateBar}>
+                  <Text style={styles.vaultPlateLabel}>VEHICLE:</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                    {vehicles.map((veh: any, idx: number) => {
+                      const plate = veh.plate || veh.vehicleNumber || 'Vehicle';
+                      const isSelected = selectedVaultPlate === plate || (!selectedVaultPlate && idx === 0);
+                      return (
+                        <TouchableOpacity
+                          key={plate + idx}
+                          activeOpacity={0.8}
+                          onPress={() => handleSelectVaultPlate(plate)}
+                          style={[styles.vaultPlateChip, isSelected && styles.vaultPlateChipSelected]}
+                        >
+                          <Car size={13} color={isSelected ? '#171717' : Colors.textSecondary} />
+                          <Text style={[styles.vaultPlateChipText, isSelected && styles.vaultPlateChipTextSelected]}>
+                            {plate}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
 
               {/* Parivahan Compliance Info Banner */}
               <View style={styles.vaultBanner}>
@@ -811,170 +813,214 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 </View>
               </View>
 
-              {/* Status Overview Metric Chips */}
-              <View style={styles.vaultMetricsRow}>
-                <View style={styles.vaultMetricCard}>
-                  <Text style={styles.vaultMetricVal}>{vaultDocuments.length}</Text>
-                  <Text style={styles.vaultMetricLabel}>Documents</Text>
-                </View>
-                <View style={styles.vaultMetricCard}>
-                  <Text style={[styles.vaultMetricVal, { color: '#15803D' }]}>
-                    {vaultDocuments.filter((d) => d.status === 'valid').length}
-                  </Text>
-                  <Text style={styles.vaultMetricLabel}>Active / Valid</Text>
-                </View>
-                <View style={styles.vaultMetricCard}>
-                  <Text style={[styles.vaultMetricVal, { color: '#D97706' }]}>
-                    {vaultDocuments.filter((d) => d.status === 'expiring_soon' || d.status === 'expired').length}
-                  </Text>
-                  <Text style={styles.vaultMetricLabel}>Alert / Expiring</Text>
-                </View>
-              </View>
-
-              {/* Add Custom Document Form or Action Bar */}
-              {!showAddDocForm ? (
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setShowAddDocForm(true)}
-                  style={styles.addDocBar}
-                >
-                  <Plus size={16} color="#171717" />
-                  <Text style={styles.addDocBarText}>Upload / Register Policy Document</Text>
-                </TouchableOpacity>
-              ) : (
-                <Card style={styles.addDocCard}>
-                  <View style={styles.addCardHeader}>
-                    <Text style={styles.addCardTitle}>Register New Document</Text>
-                    <TouchableOpacity onPress={() => setShowAddDocForm(false)}>
-                      <Text style={styles.cancelLink}>Cancel</Text>
-                    </TouchableOpacity>
+              {/* If user has not uploaded any documents yet */}
+              {vaultDocuments.length === 0 && !showAddDocForm ? (
+                <View style={styles.vaultEmptyContainer}>
+                  <View style={styles.vaultEmptyIconCircle}>
+                    <UploadCloud size={30} color={Colors.primaryYellow} />
                   </View>
-
-                  <Text style={styles.chipLabel}>Document Category</Text>
-                  <View style={styles.typeChipsRow}>
-                    {(['Insurance', 'PUCC', 'RC', 'Driving License'] as const).map((t) => (
-                      <TouchableOpacity
-                        key={t}
-                        onPress={() => setNewDocType(t)}
-                        style={[styles.typeChip, newDocType === t && styles.typeChipSelected]}
-                      >
-                        <Text style={[styles.typeChipText, newDocType === t && styles.typeChipTextSelected]}>
-                          {t}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-
-                  <Input
-                    label="Document / Policy Number"
-                    placeholder="e.g. POL-881920-BAJAJ"
-                    value={newDocNumber}
-                    onChangeText={setNewDocNumber}
-                    autoCapitalize="characters"
-                  />
-
-                  <Input
-                    label="Issuing Authority / Company"
-                    placeholder="e.g. ICICI Lombard / RTO Delhi"
-                    value={newDocIssuer}
-                    onChangeText={setNewDocIssuer}
-                  />
-
-                  <Input
-                    label="Expiry Date (YYYY-MM-DD)"
-                    placeholder="e.g. 2027-12-31"
-                    value={newDocExpiry}
-                    onChangeText={setNewDocExpiry}
-                  />
-
+                  <Text style={styles.vaultEmptyTitle}>No Documents Uploaded</Text>
+                  <Text style={styles.vaultEmptySub}>
+                    {selectedVaultPlate
+                      ? `No registration, insurance, or PUCC documents have been uploaded for ${selectedVaultPlate} yet.`
+                      : 'You have not uploaded any vehicle documents yet. Upload your RC, Insurance, or PUCC to track expiry and 1-tap renewals.'}
+                  </Text>
                   <Button
-                    title="Encrypt & Save to Vault"
+                    title="Upload First Document"
                     variant="primary"
-                    onPress={handleSaveNewDoc}
-                    style={{ marginTop: Spacing.sm }}
+                    icon={<Plus size={16} color="#171717" />}
+                    onPress={() => setShowAddDocForm(true)}
+                    style={{ marginTop: Spacing.md, width: '100%' }}
                   />
-                </Card>
-              )}
+                </View>
+              ) : (
+                <>
+                  {/* Status Overview Metric Chips - ONLY shown when documents exist */}
+                  {vaultDocuments.length > 0 && (
+                    <View style={styles.vaultMetricsRow}>
+                      <View style={styles.vaultMetricCard}>
+                        <Text style={styles.vaultMetricVal}>{vaultDocuments.length}</Text>
+                        <Text style={styles.vaultMetricLabel}>Documents</Text>
+                      </View>
+                      <View style={styles.vaultMetricCard}>
+                        <Text style={[styles.vaultMetricVal, { color: '#15803D' }]}>
+                          {vaultDocuments.filter((d) => d.status === 'valid').length}
+                        </Text>
+                        <Text style={styles.vaultMetricLabel}>Active / Valid</Text>
+                      </View>
+                      <View style={styles.vaultMetricCard}>
+                        <Text style={[styles.vaultMetricVal, { color: '#D97706' }]}>
+                          {vaultDocuments.filter((d) => d.status === 'expiring_soon' || d.status === 'expired').length}
+                        </Text>
+                        <Text style={styles.vaultMetricLabel}>Alert / Expiring</Text>
+                      </View>
+                    </View>
+                  )}
 
-              {/* Document List */}
-              <View style={styles.docListSection}>
-                {vaultDocuments.map((doc) => {
-                  const isExpiring = doc.status === 'expiring_soon';
-                  const isExpired = doc.status === 'expired';
-
-                  return (
-                    <Card
-                      key={doc.id}
-                      style={[
-                        styles.docCard,
-                        isExpiring && styles.docCardExpiring,
-                        isExpired && styles.docCardExpired,
-                      ]}
+                  {/* Add Document Action Bar */}
+                  {!showAddDocForm ? (
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setShowAddDocForm(true)}
+                      style={styles.addDocBar}
                     >
-                      <View style={styles.docCardHeader}>
-                        <View style={styles.docTypeBadge}>
-                          <FileText size={16} color={isExpiring ? '#D97706' : isExpired ? '#DC2626' : Colors.textPrimary} />
-                          <Text style={styles.docTypeText}>{doc.type}</Text>
-                        </View>
+                      <Plus size={16} color="#171717" />
+                      <Text style={styles.addDocBarText}>Upload Another Document</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <Card style={styles.addDocCard}>
+                      <View style={styles.addCardHeader}>
+                        <Text style={styles.addCardTitle}>Register New Document</Text>
+                        <TouchableOpacity onPress={() => setShowAddDocForm(false)}>
+                          <Text style={styles.cancelLink}>Cancel</Text>
+                        </TouchableOpacity>
+                      </View>
 
-                        <View
-                          style={[
-                            styles.docStatusBadge,
-                            isExpiring && styles.docStatusExpiring,
-                            isExpired && styles.docStatusExpired,
-                          ]}
-                        >
-                          <Text
+                      <Text style={styles.chipLabel}>Document Category</Text>
+                      <View style={styles.typeChipsRow}>
+                        {(['Insurance', 'PUCC', 'RC', 'Driving License'] as const).map((t) => (
+                          <TouchableOpacity
+                            key={t}
+                            onPress={() => setNewDocType(t)}
+                            style={[styles.typeChip, newDocType === t && styles.typeChipSelected]}
+                          >
+                            <Text style={[styles.typeChipText, newDocType === t && styles.typeChipTextSelected]}>
+                              {t}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+
+                      <Input
+                        label="Document / Policy Number"
+                        placeholder="e.g. POL-881920-BAJAJ"
+                        value={newDocNumber}
+                        onChangeText={setNewDocNumber}
+                        autoCapitalize="characters"
+                      />
+
+                      <Input
+                        label="Issuing Authority / Company"
+                        placeholder="e.g. ICICI Lombard / RTO Delhi"
+                        value={newDocIssuer}
+                        onChangeText={setNewDocIssuer}
+                      />
+
+                      <Input
+                        label="Expiry Date (YYYY-MM-DD)"
+                        placeholder="e.g. 2027-12-31"
+                        value={newDocExpiry}
+                        onChangeText={setNewDocExpiry}
+                      />
+
+                      <Button
+                        title="Encrypt & Save to Vault"
+                        variant="primary"
+                        onPress={handleSaveNewDoc}
+                        style={{ marginTop: Spacing.sm }}
+                      />
+                    </Card>
+                  )}
+
+                  {/* Document List */}
+                  {vaultDocuments.length > 0 && (
+                    <View style={styles.docListSection}>
+                      {vaultDocuments.map((doc) => {
+                        const isExpiring = doc.status === 'expiring_soon';
+                        const isExpired = doc.status === 'expired';
+
+                        return (
+                          <Card
+                            key={doc.id}
                             style={[
-                              styles.docStatusText,
-                              isExpiring && styles.docStatusTextExpiring,
-                              isExpired && styles.docStatusTextExpired,
+                              styles.docCard,
+                              isExpiring && styles.docCardExpiring,
+                              isExpired && styles.docCardExpired,
                             ]}
                           >
-                            {isExpired
-                              ? 'EXPIRED'
-                              : isExpiring
-                              ? `EXPIRES IN ${doc.daysRemaining}D`
-                              : `VALID (${doc.daysRemaining}d left)`}
-                          </Text>
-                        </View>
-                      </View>
+                            <View style={styles.docCardHeader}>
+                              <View style={styles.docTypeBadge}>
+                                <FileText
+                                  size={16}
+                                  color={isExpiring ? '#D97706' : isExpired ? '#DC2626' : Colors.textPrimary}
+                                />
+                                <Text style={styles.docTypeText}>{doc.type}</Text>
+                              </View>
 
-                      <View style={styles.docBody}>
-                        <Text style={styles.docNumberText}>{doc.documentNumber}</Text>
-                        <Text style={styles.docIssuerText}>Issuer: {doc.issuer || 'Official Authority'}</Text>
-                        <Text style={styles.docExpiryText}>Valid Thru: {doc.expiryDate}</Text>
-                      </View>
+                              <View
+                                style={[
+                                  styles.docStatusBadge,
+                                  isExpiring && styles.docStatusExpiring,
+                                  isExpired && styles.docStatusExpired,
+                                ]}
+                              >
+                                <Text
+                                  style={[
+                                    styles.docStatusText,
+                                    isExpiring && styles.docStatusTextExpiring,
+                                    isExpired && styles.docStatusTextExpired,
+                                  ]}
+                                >
+                                  {isExpired
+                                    ? 'EXPIRED'
+                                    : isExpiring
+                                    ? `EXPIRES IN ${doc.daysRemaining}D`
+                                    : `VALID (${doc.daysRemaining}d left)`}
+                                </Text>
+                              </View>
+                            </View>
 
-                      <View style={styles.docActionsRow}>
-                        <TouchableOpacity
-                          activeOpacity={0.8}
-                          onPress={() => handleRenewDocument(doc)}
-                          style={[styles.renewBtn, (isExpiring || isExpired) && styles.renewBtnUrgent]}
-                        >
-                          <ExternalLink size={13} color={(isExpiring || isExpired) ? '#171717' : Colors.textPrimary} />
-                          <Text style={[styles.renewBtnText, (isExpiring || isExpired) && styles.renewBtnTextUrgent]}>
-                            {isExpiring || isExpired ? '1-Tap Renew Now' : 'Check Policy / Renew'}
-                          </Text>
-                        </TouchableOpacity>
+                            <View style={styles.docBody}>
+                              <Text style={styles.docNumberText}>{doc.documentNumber}</Text>
+                              <Text style={styles.docIssuerText}>Issuer: {doc.issuer || 'Official Authority'}</Text>
+                              <Text style={styles.docExpiryText}>Valid Thru: {doc.expiryDate}</Text>
+                            </View>
 
-                        <TouchableOpacity
-                          activeOpacity={0.8}
-                          onPress={() =>
-                            Alert.alert(
-                              'Verified Document',
-                              `${doc.type} (${doc.documentNumber})\nIssued by: ${doc.issuer}\nExpiry: ${doc.expiryDate}\n\nStatus: Encrypted in Drivix Cloud Vault.`
-                            )
-                          }
-                          style={styles.docDetailsBtn}
-                        >
-                          <Text style={styles.docDetailsBtnText}>Details</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </Card>
-                  );
-                })}
-              </View>
+                            <View style={styles.docActionsRow}>
+                              <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={() => handleRenewDocument(doc)}
+                                style={[styles.renewBtn, (isExpiring || isExpired) && styles.renewBtnUrgent]}
+                              >
+                                <ExternalLink
+                                  size={13}
+                                  color={isExpiring || isExpired ? '#171717' : Colors.textPrimary}
+                                />
+                                <Text
+                                  style={[styles.renewBtnText, (isExpiring || isExpired) && styles.renewBtnTextUrgent]}
+                                >
+                                  {isExpiring || isExpired ? '1-Tap Renew Now' : 'Check Policy / Renew'}
+                                </Text>
+                              </TouchableOpacity>
+
+                              <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={() =>
+                                  Alert.alert(
+                                    'Verified Document',
+                                    `${doc.type} (${doc.documentNumber})\nIssued by: ${doc.issuer}\nExpiry: ${doc.expiryDate}\n\nStatus: Encrypted in Drivix Cloud Vault.`
+                                  )
+                                }
+                                style={styles.docDetailsBtn}
+                              >
+                                <Text style={styles.docDetailsBtnText}>Details</Text>
+                              </TouchableOpacity>
+
+                              <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={() => handleDeleteDoc(doc.id)}
+                                style={styles.docDeleteBtn}
+                              >
+                                <Trash2 size={15} color={Colors.error} />
+                              </TouchableOpacity>
+                            </View>
+                          </Card>
+                        );
+                      })}
+                    </View>
+                  )}
+                </>
+              )}
             </ScrollView>
           </View>
         </View>
@@ -1916,5 +1962,48 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: Colors.textSecondary,
+  },
+  docDeleteBtn: {
+    padding: 8,
+    borderRadius: BorderRadius.md,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vaultEmptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 36,
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: '#FAFAFA',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  vaultEmptyIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 235, 59, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  vaultEmptyTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+    marginBottom: 6,
+  },
+  vaultEmptySub: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });
