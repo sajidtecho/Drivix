@@ -18,8 +18,10 @@ import placeRoutes from './routes/placeRoutes.js';
 import partnerRoutes from './routes/partnerRoutes.js';
 import fastagRoutes from './routes/fastagRoutes.js';
 import gateRoutes from './routes/gateRoutes.js';
+import washCenterRoutes from './routes/washCenterRoutes.js';
 import { seedBanners } from './utils/seedBanners.js';
 import { seedPlaces } from './controllers/placeController.js';
+import { seedCarWashCenters } from './utils/seedCarWashCenters.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import { runDatabaseMigration } from './utils/migration.js';
 import { getFloorAvailability } from './controllers/parkingController.js';
@@ -35,6 +37,7 @@ connectDB().then(async () => {
   await connectRedis();
   seedBanners();
   seedPlaces();
+  seedCarWashCenters();
   runDatabaseMigration();
 }).catch(err => console.error('Database connection error during seeding:', err));
 
@@ -89,6 +92,7 @@ app.use('/api/v1/places', placeRoutes);
 app.use('/api/v1/partners', partnerRoutes);
 app.use('/api/v1/fastags', fastagRoutes);
 app.use('/api/v1/gate', gateRoutes);
+app.use('/api/v1/wash-centers', washCenterRoutes);
 
 // Centralized Error Handling Middlewares
 app.use(notFound);

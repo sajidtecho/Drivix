@@ -188,10 +188,34 @@ export interface SlotAllocationResult {
   message?: string;
 }
 
+export interface CarWashCenter {
+  _id: string;
+  name: string;
+  city: 'Noida' | 'Greater Noida' | 'Delhi' | 'Gurgaon' | 'Faridabad' | 'Ghaziabad' | string;
+  locality: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  phone: string;
+  website: string | null;
+  supportedVehicles: ('car' | 'bike' | 'bus_truck')[];
+  services: string[];
+  pricing: {
+    bike: number;
+    car: number;
+    bus_truck: number;
+  };
+  rating: number;
+  reviewsCount: number;
+  operatingHours?: string;
+  external_id?: string;
+}
+
 export type RootScreen =
   | 'Home'
   | 'ParkingDiscovery'
   | 'ParkingDetail'
+  | 'CarWashDiscovery'
   | 'FloorSelection'
   | 'DurationSelection'
   | 'VehicleSelection'

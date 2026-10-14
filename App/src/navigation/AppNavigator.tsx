@@ -22,6 +22,7 @@ import { BookingHistoryScreen } from '../screens/history/BookingHistoryScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
+import { CarWashDiscoveryScreen } from '../screens/wash/CarWashDiscoveryScreen';
 
 // Types
 import { ParkingLocation, Booking } from '../types';
@@ -29,6 +30,7 @@ import { ParkingLocation, Booking } from '../types';
 export type RootStackParamList = {
   MainTabs: undefined;
   ParkingDetail: { facility: ParkingLocation };
+  CarWashDiscovery: undefined;
   FloorSelection: undefined;
   DurationSelection: undefined;
   VehicleSelection: undefined;
