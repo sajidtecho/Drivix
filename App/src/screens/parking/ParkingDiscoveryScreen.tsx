@@ -32,6 +32,11 @@ import { useBooking } from '../../store/BookingContext';
 import { ParkingLocation } from '../../types';
 import { launchMobileLiveGpsNavigation } from '../../services/navigation';
 import { checkIsOnlineBookingAllowed } from '../../services/bookingEligibility';
+import {
+  getUserLiveLocation,
+  calculateAccurateDistance,
+  UserCoordinates,
+} from '../../services/locationService';
 
 export interface ParkingDiscoveryScreenProps {
   onSelectHub: (hub: ParkingLocation) => void;
@@ -52,45 +57,23 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userCoords, setUserCoords] = useState<UserCoordinates | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    (async () => {
-      try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const pos = await Location.getLastKnownPositionAsync();
-          if (isMounted && pos?.coords) {
-            setUserCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-          }
-        }
-      } catch {
-        // safe fallback
+    getUserLiveLocation().then((coords) => {
+      if (isMounted && coords) {
+        setUserCoords(coords);
       }
-    })();
+    }).catch(() => {});
+
     return () => {
       isMounted = false;
     };
   }, []);
 
   const getDistanceText = (loc: ParkingLocation): string => {
-    if (loc.distanceKm) return `${loc.distanceKm} km`;
-    if (!userCoords || !loc.latitude || !loc.longitude) {
-      const name = (loc.parkingName || '').toLowerCase();
-      if (name.includes('knowledge park')) return '3.3 km';
-      return '2.5 km';
-    }
-    const R = 6371;
-    const lat1 = (userCoords.latitude * Math.PI) / 180;
-    const lat2 = (loc.latitude * Math.PI) / 180;
-    const dLat = ((loc.latitude - userCoords.latitude) * Math.PI) / 180;
-    const dLon = ((loc.longitude - userCoords.longitude) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return `${(R * c).toFixed(1)} km`;
+    return calculateAccurateDistance(userCoords, loc).distanceText;
   };
 
   const fetchLocations = async () => {
@@ -144,10 +127,17 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
       result.sort((a, b) => a.hourlyPrice - b.hourlyPrice);
     } else if (sortOption === 'availability_high') {
       result.sort((a, b) => b.availableSlots - a.availableSlots);
+    } else {
+      // Default: Proximity sort (Nearest to user's live GPS)
+      result.sort((a, b) => {
+        const distA = calculateAccurateDistance(userCoords, a).distanceKm;
+        const distB = calculateAccurateDistance(userCoords, b).distanceKm;
+        return distA - distB;
+      });
     }
 
     return result;
-  }, [locations, searchQuery, selectedFilter, sortOption]);
+  }, [locations, searchQuery, selectedFilter, sortOption, userCoords]);
 
   const toggleSort = () => {
     if (sortOption === 'relevance') setSortOption('price_low');
@@ -158,7 +148,7 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
   const getSortLabel = () => {
     if (sortOption === 'price_low') return 'Price: Low to High';
     if (sortOption === 'availability_high') return 'Most Available';
-    return 'Default Sort';
+    return 'Nearest to Me';
   };
 
   return (

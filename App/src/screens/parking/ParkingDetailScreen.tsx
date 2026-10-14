@@ -28,8 +28,13 @@ import { Typography } from '../../theme/typography';
 import { Header, Card, Button, Badge } from '../../components/common';
 import { parkingApi } from '../../api/parkingApi';
 import { useBooking } from '../../store/BookingContext';
-import { ParkingLocation, ParkingFloor } from '../../types';
 import { checkIsOnlineBookingAllowed } from '../../services/bookingEligibility';
+import { launchMobileLiveGpsNavigation } from '../../services/navigation';
+import {
+  getUserLiveLocation,
+  calculateAccurateDistance,
+  UserCoordinates,
+} from '../../services/locationService';
 
 export interface ParkingDetailScreenProps {
   hub: ParkingLocation;
@@ -45,9 +50,15 @@ export const ParkingDetailScreen: React.FC<ParkingDetailScreenProps> = ({
   const { selectHub, selectFloor } = useBooking();
   const [floors, setFloors] = useState<ParkingFloor[]>([]);
   const [loadingFloors, setLoadingFloors] = useState<boolean>(true);
+  const [userCoords, setUserCoords] = useState<UserCoordinates | null>(null);
 
   useEffect(() => {
     selectHub(hub);
+
+    getUserLiveLocation().then((coords) => {
+      if (coords) setUserCoords(coords);
+    }).catch(() => {});
+
     const fetchFloors = async () => {
       try {
         const floorData = await parkingApi.getFloorsForLocation(hub._id);
@@ -67,18 +78,14 @@ export const ParkingDetailScreen: React.FC<ParkingDetailScreenProps> = ({
     fetchFloors();
   }, [hub._id]);
 
+  const distInfo = calculateAccurateDistance(userCoords, hub);
+
   const openInMaps = () => {
-    const lat = hub.latitude;
-    const lng = hub.longitude;
-    const label = encodeURIComponent(hub.parkingName);
-    const url = Platform.select({
-      ios: `maps:0,0?q=${label}@${lat},${lng}`,
-      android: `geo:0,0?q=${lat},${lng}(${label})`,
-      default: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+    launchMobileLiveGpsNavigation({
+      latitude: hub.latitude,
+      longitude: hub.longitude,
+      locationName: hub.parkingName,
     });
-    if (url) {
-      Linking.openURL(url).catch((err) => console.warn('Could not open maps:', err));
-    }
   };
 
   return (
@@ -102,7 +109,9 @@ export const ParkingDetailScreen: React.FC<ParkingDetailScreenProps> = ({
               <Text style={styles.heroHubName}>{hub.parkingName}</Text>
               <View style={styles.addressRow}>
                 <MapPin size={14} color={Colors.textSecondary} />
-                <Text style={styles.heroAddressText}>{hub.address}</Text>
+                <Text style={styles.heroAddressText}>
+                  {hub.address} • {distInfo.distanceText} (~{distInfo.etaText})
+                </Text>
               </View>
             </View>
             {checkIsOnlineBookingAllowed(hub) ? (

@@ -37,6 +37,11 @@ import { useBooking } from '../../store/BookingContext';
 import { ParkingLocation } from '../../types';
 import { launchMobileLiveGpsNavigation } from '../../services/navigation';
 import { checkIsOnlineBookingAllowed } from '../../services/bookingEligibility';
+import {
+  getUserLiveLocation,
+  calculateAccurateDistance,
+  resolveHubCoordinates,
+} from '../../services/locationService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -260,17 +265,20 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
       try {
         const liveHubs = await parkingApi.getLocations();
         if (Array.isArray(liveHubs) && liveHubs.length > 0) {
-          const validLive: ParkingLocation[] = liveHubs
-            .filter((h) => h.latitude && h.longitude)
-            .map((h, idx) => ({
+          const validLive: ParkingLocation[] = liveHubs.map((h, idx) => {
+            const coords = resolveHubCoordinates(h);
+            return {
               ...h,
               _id: h._id || `live-${idx}`,
+              latitude: coords.latitude,
+              longitude: coords.longitude,
               parkingName: h.parkingName || 'Drivix Smart Hub',
               city: h.city || 'Noida',
               hourlyPrice: h.hourlyPrice || 20,
               totalSlots: h.totalSlots || 100,
               availableSlots: h.availableSlots ?? 50,
-            }));
+            };
+          });
 
           // Merge without duplicate names
           const merged: ParkingLocation[] = [...validLive];
@@ -290,23 +298,14 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
 
     fetchLocations();
 
-    // Request GPS permission and coordinates
-    (async () => {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          if (loc?.coords) {
-            setUserCoords({
-              latitude: loc.coords.latitude,
-              longitude: loc.coords.longitude,
-            });
-          }
-        }
-      } catch (e) {
-        console.warn('NetworkMapModal location permission error:', e);
+    // Request GPS permission and coordinates via centralized location service
+    getUserLiveLocation().then((coords) => {
+      if (coords) {
+        setUserCoords(coords);
       }
-    })();
+    }).catch((e) => {
+      console.warn('NetworkMapModal location fetch error:', e);
+    });
   }, [visible]);
 
   // Filter locations by city and search query
@@ -327,20 +326,11 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
     });
   }, [locations, selectedCity, searchQuery]);
 
-  // Distance calculator helper
+  // Distance calculator helper matching Google Maps driving distance
   const calculateDistance = (lat: number, lon: number): string | null => {
-    if (!userCoords || !lat || !lon) return null;
-    const R = 6371; // Earth radius in km
-    const dLat = ((lat - userCoords.latitude) * Math.PI) / 180;
-    const dLon = ((lon - userCoords.longitude) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((userCoords.latitude * Math.PI) / 180) *
-        Math.cos((lat * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return (R * c).toFixed(1);
+    if (!lat || !lon) return null;
+    const res = calculateAccurateDistance(userCoords, { latitude: lat, longitude: lon });
+    return res.distanceKm.toFixed(1);
   };
 
   const handleSelectLocation = (loc: ParkingLocation) => {
