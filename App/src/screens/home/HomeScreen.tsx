@@ -36,6 +36,8 @@ import {
   Compass,
   Check,
   Flame,
+  Coins,
+  Navigation,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
@@ -59,6 +61,8 @@ import {
   ROADSIDE_SERVICES,
   FASTagAccount,
   ChallanItem,
+  NCR_EXPRESSWAY_ROUTES,
+  ExpresswayRoute,
 } from '../../services/vehicleUtilities';
 import {
   SUPPORTED_INDIAN_CITIES,
@@ -114,6 +118,37 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [isSyncingFuel, setIsSyncingFuel] = useState(false);
   const [sosModalVisible, setSosModalVisible] = useState(false);
   const [carCareModalVisible, setCarCareModalVisible] = useState(false);
+
+  // ─── 3 New Features State: Toll Calculator, Miles Rewards, Hubs ───
+  const [selectedRouteIdx, setSelectedRouteIdx] = useState(0);
+  const [isRoundTrip, setIsRoundTrip] = useState(false);
+  const [userMiles, setUserMiles] = useState(350);
+  const [redeemedMiles, setRedeemedMiles] = useState(false);
+
+  const handleRedeemMiles = () => {
+    if (redeemedMiles) {
+      Alert.alert('Reward Active', 'Promo code "DRIVIX50" is already active on your account for ₹50 off.');
+      return;
+    }
+    Alert.alert(
+      'Redeem 350 Drivix Miles 🪙',
+      'Convert 350 miles into an instant ₹50 voucher applicable on your next parking reservation or in-bay car wash?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Apply ₹50 Discount',
+          onPress: () => {
+            setRedeemedMiles(true);
+            setUserMiles((prev) => Math.max(0, prev - 350));
+            Alert.alert(
+              '🎉 ₹50 Voucher Unlocked!',
+              'Voucher code "DRIVIX50" is activated! ₹50 will be auto-deducted from your checkout pass.'
+            );
+          },
+        },
+      ]
+    );
+  };
 
   const handleSwitchCityFuel = async (cityKey: string) => {
     setIsSyncingFuel(true);
@@ -525,6 +560,234 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
           <ChevronRight size={16} color={Colors.textSecondary} />
         </TouchableOpacity>
+
+        {/* ─── FEATURE 1: Drivix Miles & Cashback Rewards Bar ─── */}
+        <View style={styles.milesCard}>
+          <View style={styles.milesLeftCol}>
+            <View style={styles.milesCoinBadge}>
+              <Coins size={16} color="#B45309" />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={styles.milesTitle}>{userMiles} Drivix Miles</Text>
+                <View style={styles.milesCashTag}>
+                  <Text style={styles.milesCashTagText}>Worth ₹{Math.floor(userMiles / 7)}</Text>
+                </View>
+              </View>
+              <Text style={styles.milesSub} numberOfLines={1}>
+                {redeemedMiles
+                  ? '✓ ₹50 voucher active for next pass checkout'
+                  : 'Earn 50 miles on every parking & car wash'}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleRedeemMiles}
+            style={[styles.redeemBtn, redeemedMiles && styles.redeemBtnActive]}
+          >
+            <Text style={[styles.redeemBtnText, redeemedMiles && styles.redeemBtnTextActive]}>
+              {redeemedMiles ? 'Applied ✓' : 'Redeem'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ─── FEATURE 2: Expressway Toll & FASTag Trip Calculator ─── */}
+        <Card style={styles.tollCard}>
+          <View style={styles.tollHeaderRow}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+              <View style={styles.tollIconCircle}>
+                <Navigation size={13} color={Colors.primaryYellow} />
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.tollTitle}>Expressway Toll & FASTag</Text>
+                <Text style={styles.tollSub} numberOfLines={1}>
+                  Toll planner vs balance (₹{fastagAccount.balance})
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setIsRoundTrip((prev) => !prev)}
+              style={[styles.tripToggleChip, isRoundTrip && styles.tripToggleChipActive]}
+            >
+              <Text style={[styles.tripToggleText, isRoundTrip && styles.tripToggleTextActive]}>
+                {isRoundTrip ? 'Round Trip' : 'One Way'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Route Selector Horizontal Pills */}
+          <View style={styles.tollRoutesScrollWrap}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+              {NCR_EXPRESSWAY_ROUTES.map((route, idx) => {
+                const isSel = selectedRouteIdx === idx;
+                return (
+                  <TouchableOpacity
+                    key={route.id}
+                    activeOpacity={0.8}
+                    onPress={() => setSelectedRouteIdx(idx)}
+                    style={[styles.routeChip, isSel && styles.routeChipSelected]}
+                  >
+                    <Text style={[styles.routeChipText, isSel && styles.routeChipTextSelected]}>
+                      {route.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Active Route Toll Details */}
+          {(() => {
+            const activeRoute = NCR_EXPRESSWAY_ROUTES[selectedRouteIdx] || NCR_EXPRESSWAY_ROUTES[0];
+            const tripToll = isRoundTrip ? activeRoute.roundTripToll : activeRoute.oneWayToll;
+            const isSufficient = fastagAccount.balance >= tripToll;
+
+            return (
+              <View style={styles.tollCalculationBox}>
+                <View style={styles.tollInfoRow}>
+                  <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+                    <Text style={styles.routeFromToText} numberOfLines={1}>
+                      {activeRoute.fromTo}
+                    </Text>
+                    <Text style={styles.routeDistanceText} numberOfLines={1}>
+                      {activeRoute.distanceKm} km • {activeRoute.plazas}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end', flexShrink: 0 }}>
+                    <Text style={styles.tollCostNumber}>₹{tripToll}</Text>
+                    <Text style={styles.tollCostLabel}>{isRoundTrip ? 'Round' : 'One-Way'}</Text>
+                  </View>
+                </View>
+
+                {/* Balance Health vs Toll Pill */}
+                <View
+                  style={[
+                    styles.tollBalanceBanner,
+                    isSufficient ? styles.tollBalanceOk : styles.tollBalanceShort,
+                  ]}
+                >
+                  <View style={{ flex: 1, minWidth: 0, paddingRight: 6 }}>
+                    <Text
+                      style={[
+                        styles.tollBalanceText,
+                        isSufficient ? styles.tollBalanceTextOk : styles.tollBalanceTextShort,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {isSufficient
+                        ? `✓ FASTag (₹${fastagAccount.balance}) balance sufficient`
+                        : `⚠️ Balance short by ₹${tripToll - fastagAccount.balance}`}
+                    </Text>
+                  </View>
+                  {!isSufficient && (
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setRechargePill(Math.max(200, tripToll - fastagAccount.balance));
+                        setFastagModalVisible(true);
+                      }}
+                      style={styles.quickTopupBtn}
+                    >
+                      <Text style={styles.quickTopupBtnText}>+ Top Up</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            );
+          })()}
+        </Card>
+
+        {/* ─── FEATURE 3: Nearby Verified Smart Parking Hubs Live Carousel ─── */}
+        <View style={styles.nearbyHubsSection}>
+          <View style={styles.sectionTitleRow}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.sectionHeaderTitle}>NEARBY SMART PARKING HUBS</Text>
+              <View style={styles.statusDotActive} />
+            </View>
+            <TouchableOpacity onPress={onNavigateToDiscovery}>
+              <Text style={styles.seeAllLink}>View All ({locations.length})</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingRight: 8 }}
+          >
+            {(locations.length > 0 ? locations.slice(0, 5) : []).map((hub) => {
+              const isSharda = hub.parkingName?.toLowerCase().includes('sharda');
+              const isOnlineAllowed = hub.allowOnlineBooking === true || isSharda;
+
+              return (
+                <Card key={hub._id} style={styles.nearbyHubCard}>
+                  <View style={styles.hubCardHeader}>
+                    <View
+                      style={[
+                        styles.hubStatusPill,
+                        isOnlineAllowed ? styles.hubStatusOnline : styles.hubStatusOnSite,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.hubStatusText,
+                          isOnlineAllowed ? styles.hubStatusTextOnline : styles.hubStatusTextOnSite,
+                        ]}
+                      >
+                        {isOnlineAllowed ? 'ONLINE BOOKING' : 'ON-SITE ONLY'}
+                      </Text>
+                    </View>
+                    <Text style={styles.hubDistanceText}>1.2 km</Text>
+                  </View>
+
+                  <Text style={styles.hubCardTitle} numberOfLines={1}>
+                    {hub.parkingName}
+                  </Text>
+                  <Text style={styles.hubCardAddress} numberOfLines={1}>
+                    📍 {hub.address}
+                  </Text>
+
+                  <View style={styles.hubCardStatsRow}>
+                    <View style={styles.hubStatCol}>
+                      <Text style={styles.hubStatNum}>{hub.availableSlots || 42}</Text>
+                      <Text style={styles.hubStatLabel}>Available</Text>
+                    </View>
+                    <View style={styles.hubStatDivider} />
+                    <View style={styles.hubStatCol}>
+                      <Text style={styles.hubStatNum}>₹{hub.hourlyPrice || 20}</Text>
+                      <Text style={styles.hubStatLabel}>per hour</Text>
+                    </View>
+                  </View>
+
+                  {/* Strictly sized button staying 100% inside card without overflowing */}
+                  <TouchableOpacity
+                    activeOpacity={0.88}
+                    onPress={() => {
+                      selectHub(hub);
+                      if (onSelectHub) onSelectHub(hub);
+                      else onNavigateToDiscovery();
+                    }}
+                    style={[
+                      styles.hubActionBtn,
+                      !isOnlineAllowed && styles.hubActionBtnOnSite,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.hubActionBtnText,
+                        !isOnlineAllowed && styles.hubActionBtnTextOnSite,
+                      ]}
+                    >
+                      {isOnlineAllowed ? 'Reserve Slot' : 'Navigate'}
+                    </Text>
+                    <ArrowRight size={13} color={isOnlineAllowed ? '#171717' : '#FFFFFF'} />
+                  </TouchableOpacity>
+                </Card>
+              );
+            })}
+          </ScrollView>
+        </View>
 
         {/* ─── 6. Active Booking Banner (If Any) ─── */}
         {activeBooking && (
@@ -1976,5 +2239,344 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
     marginBottom: 4,
+  },
+
+  /* ─── 3 New Features Styles (Mobile Screen Strictly Bounded) ─── */
+  /* Feature 1: Miles Rewards Card */
+  milesCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: BorderRadius.md,
+    padding: 12,
+    marginBottom: Spacing.md,
+    overflow: 'hidden',
+  },
+  milesLeftCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    minWidth: 0,
+  },
+  milesCoinBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FEF3C7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  milesTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#92400E',
+  },
+  milesCashTag: {
+    backgroundColor: '#FEF08A',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  milesCashTagText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#854D0E',
+  },
+  milesSub: {
+    fontSize: 10,
+    color: '#78350F',
+    marginTop: 1,
+  },
+  redeemBtn: {
+    backgroundColor: '#1E2333',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 6,
+    flexShrink: 0,
+    marginLeft: 8,
+  },
+  redeemBtnActive: {
+    backgroundColor: '#15803D',
+  },
+  redeemBtnText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: Colors.primaryYellow,
+  },
+  redeemBtnTextActive: {
+    color: '#FFFFFF',
+  },
+
+  /* Feature 2: Expressway Toll Calculator */
+  tollCard: {
+    backgroundColor: '#151926',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.25)',
+    borderRadius: BorderRadius.lg,
+    padding: 12,
+    marginBottom: Spacing.md,
+    overflow: 'hidden',
+  },
+  tollHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  tollIconCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'rgba(255, 215, 0, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  tollTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  tollSub: {
+    fontSize: 10,
+    color: '#9CA3AF',
+  },
+  tripToggleChip: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    flexShrink: 0,
+    marginLeft: 6,
+  },
+  tripToggleChipActive: {
+    backgroundColor: Colors.primaryYellow,
+  },
+  tripToggleText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#E5E7EB',
+  },
+  tripToggleTextActive: {
+    color: '#111827',
+    fontWeight: '900',
+  },
+  tollRoutesScrollWrap: {
+    marginBottom: 8,
+  },
+  routeChip: {
+    backgroundColor: '#1E2333',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  routeChipSelected: {
+    backgroundColor: 'rgba(255, 215, 0, 0.15)',
+    borderColor: Colors.primaryYellow,
+  },
+  routeChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9CA3AF',
+  },
+  routeChipTextSelected: {
+    color: Colors.primaryYellow,
+    fontWeight: '800',
+  },
+  tollCalculationBox: {
+    backgroundColor: '#1C2233',
+    borderRadius: BorderRadius.md,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  tollInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  routeFromToText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  routeDistanceText: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  tollCostNumber: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: Colors.primaryYellow,
+    fontVariant: ['tabular-nums'],
+  },
+  tollCostLabel: {
+    fontSize: 9,
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+  },
+  tollBalanceBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  tollBalanceOk: {
+    backgroundColor: 'rgba(22, 101, 52, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  tollBalanceShort: {
+    backgroundColor: 'rgba(185, 28, 28, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+  },
+  tollBalanceText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  tollBalanceTextOk: {
+    color: '#86EFAC',
+  },
+  tollBalanceTextShort: {
+    color: '#FCA5A5',
+  },
+  quickTopupBtn: {
+    backgroundColor: Colors.primaryYellow,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    flexShrink: 0,
+  },
+  quickTopupBtnText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#111827',
+  },
+
+  /* Feature 3: Nearby Hubs Carousel */
+  nearbyHubsSection: {
+    marginBottom: Spacing.md,
+  },
+  seeAllLink: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: Colors.primaryYellow,
+  },
+  nearbyHubCard: {
+    width: 250,
+    padding: 12,
+    marginRight: 10,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  hubCardHeader: {
+    marginBottom: 6,
+  },
+  hubBadgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  hubStatusPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  hubStatusOnline: {
+    backgroundColor: '#DCFCE7',
+  },
+  hubStatusOnSite: {
+    backgroundColor: '#FEF3C7',
+  },
+  hubStatusText: {
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  hubStatusTextOnline: {
+    color: '#15803D',
+  },
+  hubStatusTextOnSite: {
+    color: '#B45309',
+  },
+  hubDistanceText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  hubCardTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 2,
+  },
+  hubCardAddress: {
+    fontSize: 10,
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  hubCardStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: BorderRadius.md,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    marginBottom: 6,
+  },
+  hubStatCol: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  hubStatDivider: {
+    width: 1,
+    height: 18,
+    backgroundColor: Colors.border,
+  },
+  hubStatNum: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+  },
+  hubStatLabel: {
+    fontSize: 9,
+    color: Colors.textSecondary,
+    marginTop: 1,
+  },
+  hubActionBtn: {
+    width: '100%',
+    height: 34,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primaryYellow,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  hubActionBtnOnSite: {
+    backgroundColor: '#1E2333',
+  },
+  hubActionBtnText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#171717',
+  },
+  hubActionBtnTextOnSite: {
+    color: '#FFFFFF',
   },
 });
