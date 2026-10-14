@@ -15,6 +15,8 @@ import {
   ArrowRight,
   ShieldCheck,
   AlertCircle,
+  Navigation,
+  AlertTriangle,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
@@ -23,6 +25,8 @@ import { Header, Card, Button, Badge, StepIndicator } from '../../components/com
 import { useBooking } from '../../store/BookingContext';
 import { parkingApi } from '../../api/parkingApi';
 import { ParkingFloor } from '../../types';
+import { checkIsOnlineBookingAllowed } from '../../services/bookingEligibility';
+import { launchMobileLiveGpsNavigation } from '../../services/navigation';
 
 export interface FloorSelectionScreenProps {
   onBack: () => void;
@@ -84,7 +88,31 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
           </Text>
         </View>
 
-        {loading ? (
+        {!checkIsOnlineBookingAllowed(selectedHub) ? (
+          <Card style={[styles.emptyCard, { borderColor: 'rgba(245, 158, 11, 0.4)', backgroundColor: 'rgba(245, 158, 11, 0.08)' }]}>
+            <AlertTriangle size={32} color="#FFAD00" style={{ marginBottom: 12 }} />
+            <Text style={[styles.emptyTitle, { color: '#FFAD00' }]}>On-Site Entry Only</Text>
+            <Text style={[styles.emptyDesc, { color: Colors.textSecondary, marginBottom: 18 }]}>
+              {selectedHub?.parkingName || 'This parking facility'} does not support online slot reservations. Entry is managed directly at the on-site barrier gate.
+            </Text>
+            <Button
+              title="Navigate to Location (GPS)"
+              variant="primary"
+              icon={<Navigation size={18} color="#171717" />}
+              iconPosition="right"
+              onPress={() => {
+                if (selectedHub) {
+                  launchMobileLiveGpsNavigation({
+                    latitude: selectedHub.latitude,
+                    longitude: selectedHub.longitude,
+                    locationName: selectedHub.parkingName,
+                  });
+                }
+              }}
+              style={{ width: '100%' }}
+            />
+          </Card>
+        ) : loading ? (
           <ActivityIndicator size="large" color={Colors.primaryYellow} style={{ marginTop: 40 }} />
         ) : error ? (
           <Card style={styles.errorCard}>
@@ -187,15 +215,34 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
 
       {/* Bottom Action Footer */}
       <View style={styles.footerContainer}>
-        <Button
-          title={selectedFloor ? `Proceed with Floor ${selectedFloor.floorName}` : 'Select a Floor'}
-          variant="primary"
-          disabled={!selectedFloor || selectedFloor.availableSlots <= 0}
-          icon={<ArrowRight size={18} color="#171717" />}
-          iconPosition="right"
-          onPress={handleContinue}
-          style={styles.continueBtn}
-        />
+        {checkIsOnlineBookingAllowed(selectedHub) ? (
+          <Button
+            title={selectedFloor ? `Proceed with Floor ${selectedFloor.floorName}` : 'Select a Floor'}
+            variant="primary"
+            disabled={!selectedFloor || selectedFloor.availableSlots <= 0}
+            icon={<ArrowRight size={18} color="#171717" />}
+            iconPosition="right"
+            onPress={handleContinue}
+            style={styles.continueBtn}
+          />
+        ) : (
+          <Button
+            title="Navigate directly to Location"
+            variant="primary"
+            icon={<Navigation size={18} color="#171717" />}
+            iconPosition="right"
+            onPress={() => {
+              if (selectedHub) {
+                launchMobileLiveGpsNavigation({
+                  latitude: selectedHub.latitude,
+                  longitude: selectedHub.longitude,
+                  locationName: selectedHub.parkingName,
+                });
+              }
+            }}
+            style={styles.continueBtn}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

@@ -174,6 +174,9 @@ export const createBooking = async (req, res) => {
     if (location.status !== 'Active') {
       return res.status(400).json({ message: 'Parking location is inactive' });
     }
+    if (location.allowOnlineBooking === false) {
+      return res.status(400).json({ message: 'Online booking is not permitted for this facility. Please visit the location directly for on-site entry.' });
+    }
     const resolvedLocationName = locationName || location.parkingName;
 
     // Resolve user details if missing

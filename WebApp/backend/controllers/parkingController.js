@@ -37,6 +37,7 @@ export const createLocation = async (req, res) => {
     hourlyPrice,
     amenities,
     images,
+    allowOnlineBooking,
     status
   } = req.body;
 
@@ -63,6 +64,7 @@ export const createLocation = async (req, res) => {
       hourlyPrice: Number(hourlyPrice),
       amenities: amenities || [],
       images: images || [],
+      allowOnlineBooking: allowOnlineBooking !== undefined ? Boolean(allowOnlineBooking) : false,
       status: status || 'Active'
     });
 
@@ -162,6 +164,7 @@ export const updateLocation = async (req, res) => {
     if (req.body.amenities) location.amenities = req.body.amenities;
     if (req.body.images) location.images = req.body.images;
     if (req.body.floors) location.floors = req.body.floors;
+    if (req.body.allowOnlineBooking !== undefined) location.allowOnlineBooking = Boolean(req.body.allowOnlineBooking);
     location.status = req.body.status || location.status;
 
     const updated = await location.save();

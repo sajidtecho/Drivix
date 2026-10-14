@@ -8,12 +8,17 @@ import { ParkingLocation } from '../types';
 export const checkIsOnlineBookingAllowed = (location?: ParkingLocation | null): boolean => {
   if (!location) return false;
 
-  // 1. Explicit allowOnlineBooking boolean from backend schema or frontend mock
+  // 1. Explicit allowOnlineBooking permission denial from DB schema or frontend
   if ((location as any).allowOnlineBooking === false || (location as any).isOnlineBooking === false) {
     return false;
   }
 
-  // 2. Offline / unverified total slots (0 or null or undefined)
+  // 2. Inactive, Pending, or Restricted facility status
+  if (location.status && location.status !== 'Active') {
+    return false;
+  }
+
+  // 3. Offline / unverified total slots (0 or null or undefined)
   if (
     location.totalSlots === 0 ||
     location.totalSlots === null ||
@@ -22,18 +27,7 @@ export const checkIsOnlineBookingAllowed = (location?: ParkingLocation | null): 
     return false;
   }
 
-  // 3. Inactive facility status
-  if (location.status === 'Inactive') {
-    return false;
-  }
-
-  // 4. Name matches known offline / on-site only facilities
-  const name = (location.parkingName || (location as any).name || '').toLowerCase();
-  if (name.includes('knowledge park ii metro') || name.includes('knowledge park 2 metro')) {
-    return false;
-  }
-
-  // 5. Offline tags in amenities
+  // 4. Offline tags in amenities
   if (
     Array.isArray(location.amenities) &&
     location.amenities.some((a) => typeof a === 'string' && a.toLowerCase().includes('offline'))
@@ -41,5 +35,22 @@ export const checkIsOnlineBookingAllowed = (location?: ParkingLocation | null): 
     return false;
   }
 
-  return true;
+  // 5. Name matches known offline / on-site only transit lots
+  const name = (location.parkingName || (location as any).name || '').toLowerCase();
+  if (name.includes('knowledge park ii metro') || name.includes('knowledge park 2 metro') || name.includes('gnida circular')) {
+    return false;
+  }
+
+  // 6. Explicit allowOnlineBooking permission from database schema
+  if ((location as any).allowOnlineBooking === true) {
+    return true;
+  }
+
+  // 7. Verified university / online demo facility fallback
+  if (name.includes('sharda')) {
+    return true;
+  }
+
+  // 8. Facilities without explicit online booking permissions default to on-site entry
+  return false;
 };

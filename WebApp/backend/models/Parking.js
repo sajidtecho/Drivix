@@ -83,7 +83,7 @@ const ParkingSchema = new mongoose.Schema(
     },
     allowOnlineBooking: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     status: {
       type: String,

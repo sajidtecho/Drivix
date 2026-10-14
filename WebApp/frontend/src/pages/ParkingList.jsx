@@ -745,7 +745,8 @@ const ParkingList = () => {
             const pct = (total && total > 0 && dynamicAvailable !== null) ? Math.round((dynamicAvailable / total) * 100) : 0;
             const displayPrice = loc.hourlyPrice !== null && loc.hourlyPrice !== undefined ? `₹${loc.hourlyPrice}` : null;
             const isSharda = (loc.name || '').toLowerCase().includes('sharda') || (loc.address || '').toLowerCase().includes('sharda');
-            const isNoOnlineBooking = !isSharda;
+            const isOnlineAllowed = loc.allowOnlineBooking === true || (loc.allowOnlineBooking !== false && isSharda);
+            const isNoOnlineBooking = !isOnlineAllowed;
 
             return (
               <motion.div

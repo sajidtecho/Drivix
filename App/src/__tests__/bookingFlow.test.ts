@@ -6,6 +6,7 @@
  */
 
 import { DynamicPriceQuote, Booking, BookingStatus, ParkingFloor, ParkingLocation } from '../types';
+import { checkIsOnlineBookingAllowed } from '../services/bookingEligibility';
 
 describe('Drivix Booking Flow & Business Rules', () => {
   // Test Hub & Floor Models
@@ -174,4 +175,55 @@ describe('Drivix Booking Flow & Business Rules', () => {
       expect(bookingStatus).toBe('Checked Out');
     });
   });
+
+  describe('Database Schema: Online Booking Permission & Direct Navigation', () => {
+    it('should allow online booking for facilities with explicit allowOnlineBooking: true', () => {
+      const facility: ParkingLocation = {
+        _id: 'loc_sharda_01',
+        parkingName: 'Sharda University Campus Parking',
+        address: 'Knowledge Park III',
+        latitude: 28.4727,
+        longitude: 77.4820,
+        totalSlots: 100,
+        availableSlots: 40,
+        hourlyPrice: 30,
+        allowOnlineBooking: true,
+        status: 'Active',
+      };
+      expect(checkIsOnlineBookingAllowed(facility)).toBe(true);
+    });
+
+    it('should block online booking for transit lots with allowOnlineBooking: false', () => {
+      const metroLot: ParkingLocation = {
+        _id: 'loc_metro_kp2',
+        parkingName: 'Knowledge Park II Metro Station',
+        address: 'Greater Noida',
+        latitude: 28.4569,
+        longitude: 77.5001,
+        totalSlots: 0,
+        availableSlots: 0,
+        hourlyPrice: 0,
+        allowOnlineBooking: false,
+        status: 'Inactive',
+      };
+      expect(checkIsOnlineBookingAllowed(metroLot)).toBe(false);
+    });
+
+    it('should block online booking and direct to navigation for facilities without explicit online permissions', () => {
+      const municipalLot: ParkingLocation = {
+        _id: 'loc_metro_a1',
+        parkingName: 'Alpha 1 Metro Station',
+        address: 'Block E, Alpha I',
+        latitude: 28.4709,
+        longitude: 77.5125,
+        totalSlots: 200,
+        availableSlots: 50,
+        hourlyPrice: 25,
+        allowOnlineBooking: false,
+        status: 'Active',
+      };
+      expect(checkIsOnlineBookingAllowed(municipalLot)).toBe(false);
+    });
+  });
 });
+

@@ -140,12 +140,14 @@ test('Vacate & Checkout: Successfully transitions to Checked Out', () => {
 const checkIsOnlineBookingAllowed = (location) => {
   if (!location) return false;
   if (location.allowOnlineBooking === false || location.isOnlineBooking === false) return false;
+  if (location.status && location.status !== 'Active') return false;
   if (!location.totalSlots || location.totalSlots <= 0) return false;
-  if (location.status === 'Inactive') return false;
-  const name = (location.parkingName || location.name || '').toLowerCase();
-  if (name.includes('knowledge park ii metro') || name.includes('knowledge park 2 metro')) return false;
   if (Array.isArray(location.amenities) && location.amenities.some((a) => typeof a === 'string' && a.toLowerCase().includes('offline'))) return false;
-  return true;
+  const name = (location.parkingName || location.name || '').toLowerCase();
+  if (name.includes('knowledge park ii metro') || name.includes('knowledge park 2 metro') || name.includes('gnida circular')) return false;
+  if (location.allowOnlineBooking === true) return true;
+  if (name.includes('sharda')) return true;
+  return false;
 };
 
 test('Online Booking: Blocks Knowledge Park II Metro Station from online booking', () => {
@@ -180,6 +182,18 @@ test('Online Booking: Blocks facilities with 0 or unverified slots', () => {
     status: 'Active'
   };
   assert.strictEqual(checkIsOnlineBookingAllowed(zeroSlots), false);
+});
+
+test('Online Booking: Blocks facilities without explicit online booking permissions (on-site navigate only)', () => {
+  const metroLot = {
+    parkingName: 'Alpha 1 Metro Station',
+    address: 'Block E, Alpha I, Greater Noida',
+    totalSlots: 200,
+    availableSlots: 50,
+    allowOnlineBooking: false,
+    status: 'Active'
+  };
+  assert.strictEqual(checkIsOnlineBookingAllowed(metroLot), false);
 });
 
 console.log(`\n========================================================`);

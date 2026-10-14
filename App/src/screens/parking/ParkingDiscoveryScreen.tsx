@@ -333,7 +333,11 @@ export const ParkingDiscoveryScreen: React.FC<ParkingDiscoveryScreenProps> = ({
                 {/* Availability Row */}
                 <View style={styles.availabilityRow}>
                   <Text style={styles.availabilityLabel}>Availability</Text>
-                  <Text style={styles.availabilityValueNoBooking}>0/0 slots</Text>
+                  <Text style={styles.availabilityValueNoBooking}>
+                    {item.totalSlots !== null && item.totalSlots !== undefined && item.totalSlots > 0 && item.availableSlots !== null && item.availableSlots !== undefined
+                      ? `${item.availableSlots}/${item.totalSlots} slots (On-Site)`
+                      : (item.totalSlots ? `${item.totalSlots} Total Slots (On-Site)` : 'Offline / Unverified')}
+                  </Text>
                 </View>
 
                 {/* Bottom Row: Features & Action */}
