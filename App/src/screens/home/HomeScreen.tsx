@@ -60,6 +60,7 @@ import { getUserLiveLocation, UserCoordinates } from '../../services/locationSer
 
 export interface HomeScreenProps {
   onNavigateToDiscovery: () => void;
+  onNavigateToCarWash?: () => void;
   onSelectHub?: (hub: ParkingLocation) => void;
   onNavigateToBookingDetail: (booking: Booking) => void;
   onNavigateToActiveParking: (booking: Booking) => void;
@@ -68,6 +69,7 @@ export interface HomeScreenProps {
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToDiscovery,
+  onNavigateToCarWash,
   onSelectHub,
   onNavigateToBookingDetail,
   onNavigateToActiveParking,
@@ -328,7 +330,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             {/* Module 3: In-Bay Care */}
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => setCarCareModalVisible(true)}
+              onPress={() => {
+                if (onNavigateToCarWash) {
+                  onNavigateToCarWash();
+                } else {
+                  setCarCareModalVisible(true);
+                }
+              }}
               style={styles.commandModuleItem}
             >
               <View style={styles.moduleTopRow}>
@@ -336,7 +344,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <Text style={styles.moduleLabel}>Car Care</Text>
               </View>
               <Text style={styles.moduleValue}>In-Bay</Text>
-              <Text style={styles.moduleSubText}>Book Wash</Text>
+              <Text style={styles.moduleSubText}>Find Studios</Text>
             </TouchableOpacity>
           </View>
         </Card>
@@ -381,10 +389,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.gridLabel}>Challans</Text>
             </TouchableOpacity>
 
-            {/* 3. Car Wash / Care (GoMechanic 360-degree spa) */}
+            {/* 3. In-Bay Wash & Car Spa (Navigates directly to Car Wash Discovery) */}
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => setCarCareModalVisible(true)}
+              onPress={() => {
+                if (onNavigateToCarWash) {
+                  onNavigateToCarWash();
+                } else {
+                  setCarCareModalVisible(true);
+                }
+              }}
               style={styles.gridActionItem}
             >
               <View style={[styles.gridIconCircle, { backgroundColor: '#EDE9FE' }]}>

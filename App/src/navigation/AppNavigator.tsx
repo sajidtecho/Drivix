@@ -56,6 +56,7 @@ const HomeScreenAdapter = ({ navigation }: any) => {
   return (
     <HomeScreen
       onNavigateToDiscovery={() => navigation.navigate('Find Parking')}
+      onNavigateToCarWash={() => navigation.navigate('CarWashDiscovery')}
       onSelectHub={(hub) => {
         selectHub(hub);
         navigation.navigate('ParkingDetail', { facility: hub });
@@ -287,6 +288,9 @@ export const AppNavigator = () => {
 
       {/* Parking Discovery & Booking Flow */}
       <Stack.Screen name="ParkingDetail" component={ParkingDetailScreenAdapter} />
+      <Stack.Screen name="CarWashDiscovery" component={({ navigation }: any) => (
+        <CarWashDiscoveryScreen onBack={() => navigation.goBack()} />
+      )} />
       <Stack.Screen name="FloorSelection" component={FloorSelectionScreenAdapter} />
       <Stack.Screen name="DurationSelection" component={DurationSelectionScreenAdapter} />
       <Stack.Screen name="VehicleSelection" component={VehicleSelectionScreenAdapter} />
