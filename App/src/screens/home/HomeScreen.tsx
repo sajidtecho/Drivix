@@ -22,21 +22,14 @@ import {
   Clock,
   Sparkles,
   Layers,
-  Fuel,
   AlertTriangle,
-  CreditCard,
   FileText,
   CheckCircle2,
   PhoneCall,
   X,
   ChevronRight,
-  RefreshCw,
-  ExternalLink,
   Wrench,
   Compass,
-  Check,
-  Flame,
-  Navigation,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
@@ -45,7 +38,6 @@ import {
   Card,
   Button,
   Badge,
-  Input,
   NetworkMapModal,
 } from '../../components/common';
 import { useAuth } from '../../store/AuthContext';
@@ -55,28 +47,12 @@ import { bookingApi } from '../../api/bookingApi';
 import { vehicleApi } from '../../api/vehicleApi';
 import { ParkingLocation, Booking, Vehicle } from '../../types';
 import {
-  getInitialFASTagAccount,
   fetchChallansForPlate,
   ROADSIDE_SERVICES,
-  FASTagAccount,
   ChallanItem,
-  NCR_EXPRESSWAY_ROUTES,
-  ExpresswayRoute,
 } from '../../services/vehicleUtilities';
-import {
-  SUPPORTED_INDIAN_CITIES,
-  fetchLiveFuelRates,
-  CityFuelInfo,
-} from '../../services/fuelRateService';
 import { IN_HUB_VEHICLE_SERVICES } from '../../services/vehicleCareServices';
-import { launchMobileLiveGpsNavigation } from '../../services/navigation';
-import {
-  getUserLiveLocation,
-  calculateAccurateDistance,
-  sortHubsByProximity,
-  UserCoordinates,
-} from '../../services/locationService';
-
+import { getUserLiveLocation, UserCoordinates } from '../../services/locationService';
 
 export interface HomeScreenProps {
   onNavigateToDiscovery: () => void;
@@ -105,40 +81,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // ─── Park+ Parity Interactive Utilities State ───────────────────────
-  const [fastagAccount, setFastagAccount] = useState<FASTagAccount>(
-    getInitialFASTagAccount('DL01AB1234')
-  );
-  const [fastagModalVisible, setFastagModalVisible] = useState(false);
-  const [rechargePill, setRechargePill] = useState(500);
-  const [isRecharging, setIsRecharging] = useState(false);
-
+  // E-Challan State
   const [challanModalVisible, setChallanModalVisible] = useState(false);
   const [challanPlate, setChallanPlate] = useState('UP16AB1234');
   const [challanResults, setChallanResults] = useState<ChallanItem[]>([]);
   const [hasCheckedChallans, setHasCheckedChallans] = useState(false);
   const [isCheckingChallan, setIsCheckingChallan] = useState(false);
 
-  const [fuelModalVisible, setFuelModalVisible] = useState(false);
-  const [selectedCityFuel, setSelectedCityFuel] = useState<CityFuelInfo>(SUPPORTED_INDIAN_CITIES[0]);
-  const [isSyncingFuel, setIsSyncingFuel] = useState(false);
+  // SOS & Car Care Modals
   const [sosModalVisible, setSosModalVisible] = useState(false);
   const [carCareModalVisible, setCarCareModalVisible] = useState(false);
-
-  // ─── Features State: Toll Calculator, Hubs ───
-  const [selectedRouteIdx, setSelectedRouteIdx] = useState(0);
-  const [isRoundTrip, setIsRoundTrip] = useState(false);
   const [userCoords, setUserCoords] = useState<UserCoordinates | null>(null);
-
-  const handleSwitchCityFuel = async (cityKey: string) => {
-    setIsSyncingFuel(true);
-    try {
-      const res = await fetchLiveFuelRates(cityKey);
-      setSelectedCityFuel(res);
-    } finally {
-      setIsSyncingFuel(false);
-    }
-  };
 
   const activeVehicle = vehicles[selectedVehicleIdx] || null;
   const currentPlate = activeVehicle?.plate || activeVehicle?.vehicleNumber || 'DL01AB1234';
@@ -146,10 +99,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch live GPS coordinates for accurate distance calculation
-      getUserLiveLocation().then((coords) => {
-        if (coords) setUserCoords(coords);
-      }).catch(() => {});
+      getUserLiveLocation()
+        .then((coords) => {
+          if (coords) setUserCoords(coords);
+        })
+        .catch(() => {});
 
       const locData = await parkingApi.getLocations();
       setLocations(locData);
@@ -178,7 +132,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           setVehicles(userVehicles);
           if (userVehicles.length > 0) {
             const p = userVehicles[0].plate || userVehicles[0].vehicleNumber || 'DL01AB1234';
-            setFastagAccount(getInitialFASTagAccount(p));
             setChallanPlate(p);
           }
         } catch (_) {}
@@ -200,26 +153,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     loadDashboardData();
   };
 
-  // ─── FASTag Top-up Handler ───
-  const handleRechargeFASTag = () => {
-    setIsRecharging(true);
-    setTimeout(() => {
-      setFastagAccount((prev) => ({
-        ...prev,
-        balance: prev.balance + rechargePill,
-        lastRecharged: 'Just now',
-        status: 'active',
-      }));
-      setIsRecharging(false);
-      setFastagModalVisible(false);
-      Alert.alert(
-        'FASTag Recharged Successfully! ⚡',
-        `₹${rechargePill} has been added to your ${fastagAccount.bank} wallet for ${currentPlate}. Current Balance: ₹${fastagAccount.balance + rechargePill}.`
-      );
-    }, 1200);
-  };
-
-  // ─── E-Challan Search Handler ───
   const handleCheckChallans = () => {
     setIsCheckingChallan(true);
     setTimeout(() => {
@@ -266,7 +199,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* ─── 1. Top Header & User Greeting ─── */}
+        {/* ─── 1. Header & Greeting ─── */}
         <View style={styles.headerRow}>
           <View>
             <View style={styles.logoRow}>
@@ -305,7 +238,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           )}
         </View>
 
-        {/* ─── 2. Search & Primary Action Bar ─── */}
+        {/* ─── 2. Search Bar ─── */}
         <View style={styles.searchSection}>
           <TouchableOpacity
             activeOpacity={0.9}
@@ -322,7 +255,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* ─── 3. My Vehicle Command Center (Park+ Super-Widget) ─── */}
+        {/* ─── 3. My Vehicle Status Card ─── */}
         <Card style={styles.commandCenterCard}>
           <View style={styles.commandCenterHeader}>
             <View style={styles.carPlateRow}>
@@ -347,28 +280,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             )}
           </View>
 
-          {/* 3 Status Modules Row */}
+          {/* Clean 3 Status Modules Row */}
           <View style={styles.commandModulesRow}>
-            {/* Module 1: FASTag Balance */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => setFastagModalVisible(true)}
-              style={styles.commandModuleItem}
-            >
-              <View style={styles.moduleTopRow}>
-                <CreditCard size={14} color={Colors.primaryYellow} />
-                <Text style={styles.moduleLabel}>FASTag</Text>
-              </View>
-              <Text style={styles.moduleValue}>₹{fastagAccount.balance}</Text>
-              <View style={styles.moduleSubRow}>
-                <View style={styles.statusDotActive} />
-                <Text style={styles.moduleSubText}>+ Top Up</Text>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.moduleDivider} />
-
-            {/* Module 2: E-Challan Radar */}
+            {/* Module 1: E-Challan Radar */}
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => {
@@ -388,7 +302,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
             <View style={styles.moduleDivider} />
 
-            {/* Module 3: Document Vault Expiry */}
+            {/* Module 2: Document Vault */}
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={onNavigateToProfile}
@@ -401,10 +315,26 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.moduleValue}>Protected</Text>
               <Text style={styles.moduleSubText}>RC • PUC • Ins</Text>
             </TouchableOpacity>
+
+            <View style={styles.moduleDivider} />
+
+            {/* Module 3: In-Bay Care */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setCarCareModalVisible(true)}
+              style={styles.commandModuleItem}
+            >
+              <View style={styles.moduleTopRow}>
+                <Wrench size={14} color={Colors.primaryYellow} />
+                <Text style={styles.moduleLabel}>Car Care</Text>
+              </View>
+              <Text style={styles.moduleValue}>In-Bay</Text>
+              <Text style={styles.moduleSubText}>Book Wash</Text>
+            </TouchableOpacity>
           </View>
         </Card>
 
-        {/* ─── 4. High-Frequency 8-Icon Quick Action Grid (2x4) ─── */}
+        {/* ─── 4. Quick Mobility Services (Fresh 2x3 Grid) ─── */}
         <View style={styles.quickGridContainer}>
           <View style={styles.sectionTitleRow}>
             <Text style={styles.sectionHeaderTitle}>QUICK MOBILITY SERVICES</Text>
@@ -414,6 +344,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </View>
           </View>
 
+          {/* Row 1 */}
           <View style={styles.iconGridRow}>
             {/* 1. Book Parking */}
             <TouchableOpacity
@@ -427,19 +358,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.gridLabel}>Book Spot</Text>
             </TouchableOpacity>
 
-            {/* 2. FASTag */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setFastagModalVisible(true)}
-              style={styles.gridActionItem}
-            >
-              <View style={[styles.gridIconCircle, { backgroundColor: '#E0F2FE' }]}>
-                <Text style={styles.gridEmoji}>⚡</Text>
-              </View>
-              <Text style={styles.gridLabel}>FASTag</Text>
-            </TouchableOpacity>
-
-            {/* 3. E-Challans */}
+            {/* 2. E-Challans */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
@@ -455,7 +374,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.gridLabel}>Challans</Text>
             </TouchableOpacity>
 
-            {/* 4. Car Wash / Care */}
+            {/* 3. Car Wash / Care */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setCarCareModalVisible(true)}
@@ -468,8 +387,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </TouchableOpacity>
           </View>
 
+          {/* Row 2 */}
           <View style={[styles.iconGridRow, { marginTop: 14 }]}>
-            {/* 5. Document Vault */}
+            {/* 4. Document Vault */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={onNavigateToProfile}
@@ -481,7 +401,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.gridLabel}>Doc Vault</Text>
             </TouchableOpacity>
 
-            {/* 6. EV Fast Charging */}
+            {/* 5. EV Fast Charging */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={onNavigateToDiscovery}
@@ -493,19 +413,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <Text style={styles.gridLabel}>EV Hubs</Text>
             </TouchableOpacity>
 
-            {/* 7. Fuel Rates */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setFuelModalVisible(true)}
-              style={styles.gridActionItem}
-            >
-              <View style={[styles.gridIconCircle, { backgroundColor: '#FEF3C7' }]}>
-                <Text style={styles.gridEmoji}>⛽</Text>
-              </View>
-              <Text style={styles.gridLabel}>Fuel Rates</Text>
-            </TouchableOpacity>
-
-            {/* 8. Roadside SOS */}
+            {/* 6. Roadside SOS */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setSosModalVisible(true)}
@@ -519,241 +427,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
         </View>
 
-        {/* ─── 5. Daily Live City Fuel & EV Price Ticker (Park+ Hook) ─── */}
-        <TouchableOpacity
-          activeOpacity={0.88}
-          onPress={() => setFuelModalVisible(true)}
-          style={styles.fuelTickerCard}
-        >
-          <View style={styles.fuelTickerLeft}>
-            <View style={styles.fuelFlameCircle}>
-              <Fuel size={14} color="#D97706" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={styles.fuelTickerTitle}>
-                  DAILY COMMUTE RADAR ({selectedCityFuel.cityName.toUpperCase()})
-                </Text>
-                <View style={styles.fuelLiveTag}>
-                  <Text style={styles.fuelLiveTagText}>LIVE SYNC</Text>
-                </View>
-              </View>
-              <Text style={styles.fuelTickerRates}>
-                Petrol: ₹{selectedCityFuel.rates.petrol} • Diesel: ₹{selectedCityFuel.rates.diesel} • CNG: ₹{selectedCityFuel.rates.cng} • EV: ₹{selectedCityFuel.rates.evFastDC}/u
-              </Text>
-            </View>
-          </View>
-          <ChevronRight size={16} color={Colors.textSecondary} />
-        </TouchableOpacity>
-
-
-        {/* ─── FEATURE 2: Expressway Toll & FASTag Trip Calculator ─── */}
-        <Card style={styles.tollCard}>
-          <View style={styles.tollHeaderRow}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
-              <View style={styles.tollIconCircle}>
-                <Navigation size={13} color={Colors.primaryYellow} />
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.tollTitle}>Expressway Toll & FASTag</Text>
-                <Text style={styles.tollSub} numberOfLines={1}>
-                  Toll planner vs balance (₹{fastagAccount.balance})
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setIsRoundTrip((prev) => !prev)}
-              style={[styles.tripToggleChip, isRoundTrip && styles.tripToggleChipActive]}
-            >
-              <Text style={[styles.tripToggleText, isRoundTrip && styles.tripToggleTextActive]}>
-                {isRoundTrip ? 'Round Trip' : 'One Way'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Route Selector Horizontal Pills */}
-          <View style={styles.tollRoutesScrollWrap}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-              {NCR_EXPRESSWAY_ROUTES.map((route, idx) => {
-                const isSel = selectedRouteIdx === idx;
-                return (
-                  <TouchableOpacity
-                    key={route.id}
-                    activeOpacity={0.8}
-                    onPress={() => setSelectedRouteIdx(idx)}
-                    style={[styles.routeChip, isSel && styles.routeChipSelected]}
-                  >
-                    <Text style={[styles.routeChipText, isSel && styles.routeChipTextSelected]}>
-                      {route.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-
-          {/* Active Route Toll Details */}
-          {(() => {
-            const activeRoute = NCR_EXPRESSWAY_ROUTES[selectedRouteIdx] || NCR_EXPRESSWAY_ROUTES[0];
-            const tripToll = isRoundTrip ? activeRoute.roundTripToll : activeRoute.oneWayToll;
-            const isSufficient = fastagAccount.balance >= tripToll;
-
-            return (
-              <View style={styles.tollCalculationBox}>
-                <View style={styles.tollInfoRow}>
-                  <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                    <Text style={styles.routeFromToText} numberOfLines={1}>
-                      {activeRoute.fromTo}
-                    </Text>
-                    <Text style={styles.routeDistanceText} numberOfLines={1}>
-                      {activeRoute.distanceKm} km • {activeRoute.plazas}
-                    </Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end', flexShrink: 0 }}>
-                    <Text style={styles.tollCostNumber}>₹{tripToll}</Text>
-                    <Text style={styles.tollCostLabel}>{isRoundTrip ? 'Round' : 'One-Way'}</Text>
-                  </View>
-                </View>
-
-                {/* Balance Health vs Toll Pill */}
-                <View
-                  style={[
-                    styles.tollBalanceBanner,
-                    isSufficient ? styles.tollBalanceOk : styles.tollBalanceShort,
-                  ]}
-                >
-                  <View style={{ flex: 1, minWidth: 0, paddingRight: 6 }}>
-                    <Text
-                      style={[
-                        styles.tollBalanceText,
-                        isSufficient ? styles.tollBalanceTextOk : styles.tollBalanceTextShort,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {isSufficient
-                        ? `✓ FASTag (₹${fastagAccount.balance}) balance sufficient`
-                        : `⚠️ Balance short by ₹${tripToll - fastagAccount.balance}`}
-                    </Text>
-                  </View>
-                  {!isSufficient && (
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={() => {
-                        setRechargePill(Math.max(200, tripToll - fastagAccount.balance));
-                        setFastagModalVisible(true);
-                      }}
-                      style={styles.quickTopupBtn}
-                    >
-                      <Text style={styles.quickTopupBtnText}>+ Top Up</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            );
-          })()}
-        </Card>
-
-        {/* ─── FEATURE 3: Nearby Verified Smart Parking Hubs Live Carousel ─── */}
-        <View style={styles.nearbyHubsSection}>
-          <View style={styles.sectionTitleRow}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={styles.sectionHeaderTitle}>NEARBY SMART PARKING HUBS</Text>
-              <View style={styles.statusDotActive} />
-            </View>
-            <TouchableOpacity onPress={onNavigateToDiscovery}>
-              <Text style={styles.seeAllLink}>View All ({locations.length})</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: 8 }}
-          >
-            {(locations.length > 0 ? sortHubsByProximity(locations, userCoords).slice(0, 6) : []).map((hub) => {
-              const isSharda = hub.parkingName?.toLowerCase().includes('sharda');
-              const isOnlineAllowed = hub.allowOnlineBooking === true || isSharda;
-              const distInfo = calculateAccurateDistance(userCoords, hub);
-
-              return (
-                <Card key={hub._id} style={styles.nearbyHubCard}>
-                  <View style={styles.hubCardHeader}>
-                    <View
-                      style={[
-                        styles.hubStatusPill,
-                        isOnlineAllowed ? styles.hubStatusOnline : styles.hubStatusOnSite,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.hubStatusText,
-                          isOnlineAllowed ? styles.hubStatusTextOnline : styles.hubStatusTextOnSite,
-                        ]}
-                      >
-                        {isOnlineAllowed ? 'ONLINE BOOKING' : 'ON-SITE ONLY'}
-                      </Text>
-                    </View>
-                    <Text style={styles.hubDistanceText}>{distInfo.distanceText}</Text>
-                  </View>
-
-                  <Text style={styles.hubCardTitle} numberOfLines={1}>
-                    {hub.parkingName}
-                  </Text>
-                  <Text style={styles.hubCardAddress} numberOfLines={1}>
-                    📍 {hub.address} • ~{distInfo.etaText}
-                  </Text>
-
-                  <View style={styles.hubCardStatsRow}>
-                    <View style={styles.hubStatCol}>
-                      <Text style={styles.hubStatNum}>{hub.availableSlots || 42}</Text>
-                      <Text style={styles.hubStatLabel}>Available</Text>
-                    </View>
-                    <View style={styles.hubStatDivider} />
-                    <View style={styles.hubStatCol}>
-                      <Text style={styles.hubStatNum}>₹{hub.hourlyPrice || 20}</Text>
-                      <Text style={styles.hubStatLabel}>per hour</Text>
-                    </View>
-                  </View>
-
-                  {/* Strictly sized button staying 100% inside card without overflowing */}
-                  <TouchableOpacity
-                    activeOpacity={0.88}
-                    onPress={() => {
-                      if (isOnlineAllowed) {
-                        selectHub(hub);
-                        if (onSelectHub) onSelectHub(hub);
-                        else onNavigateToDiscovery();
-                      } else {
-                        launchMobileLiveGpsNavigation({
-                          latitude: hub.latitude,
-                          longitude: hub.longitude,
-                          locationName: hub.parkingName,
-                        });
-                      }
-                    }}
-                    style={[
-                      styles.hubActionBtn,
-                      !isOnlineAllowed && styles.hubActionBtnOnSite,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.hubActionBtnText,
-                        !isOnlineAllowed && styles.hubActionBtnTextOnSite,
-                      ]}
-                    >
-                      {isOnlineAllowed ? 'Reserve Slot' : 'Navigate'}
-                    </Text>
-                    <ArrowRight size={13} color={isOnlineAllowed ? '#171717' : '#FFFFFF'} />
-                  </TouchableOpacity>
-                </Card>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        {/* ─── 6. Active Booking Banner (If Any) ─── */}
+        {/* ─── 5. Active Booking Banner (If Any) ─── */}
         {activeBooking && (
           <TouchableOpacity
             activeOpacity={0.9}
@@ -804,7 +478,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </TouchableOpacity>
         )}
 
-        {/* ─── 7. Compact Live Parking Network Map Launcher ─── */}
+        {/* ─── 6. Compact Live Parking Network Map Launcher ─── */}
         <TouchableOpacity
           activeOpacity={0.88}
           onPress={() => setIsMapModalVisible(true)}
@@ -813,7 +487,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <View style={styles.networkMapIconWrap}>
             <Compass size={18} color="#171717" />
           </View>
-          <View style={{ flex: 1, marginLeft: 10 }}>
+          <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={styles.networkMapTitle}>Live Parking Network Map</Text>
             <Text style={styles.networkMapSub}>
               Explore 28+ verified Delhi NCR smart hubs & real-time capacity
@@ -824,7 +498,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
         </TouchableOpacity>
 
-        {/* ─── 8. Recent Bookings Preview ─── */}
+        {/* ─── 7. Recent Bookings Preview ─── */}
         {isAuthenticated && recentBookings.length > 0 && (
           <View style={styles.recentSection}>
             <Text style={styles.sectionHeaderTitle}>RECENT BOOKINGS</Text>
@@ -854,72 +528,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         )}
       </ScrollView>
 
-      {/* ─── MODAL 1: FASTAG INSTANT RECHARGE (Park+ Parity) ─── */}
-      <Modal
-        visible={fastagModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setFastagModalVisible(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={styles.modalTitle}>FASTag Recharge</Text>
-                  <View style={styles.netcBadge}>
-                    <Text style={styles.netcBadgeText}>NETC NPCI</Text>
-                  </View>
-                </View>
-                <Text style={styles.modalSub}>Instant toll pass top-up for {currentPlate}</Text>
-              </View>
-              <TouchableOpacity onPress={() => setFastagModalVisible(false)}>
-                <X size={20} color={Colors.textPrimary} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.fastagBalanceBox}>
-              <Text style={styles.fastagBalLabel}>CURRENT FASTAG BALANCE</Text>
-              <Text style={styles.fastagBalValue}>₹{fastagAccount.balance}.00</Text>
-              <Text style={styles.fastagBankTag}>{fastagAccount.bank} • Linked Tag</Text>
-            </View>
-
-            <Text style={styles.chipHeaderLabel}>Select Recharge Amount</Text>
-            <View style={styles.rechargePillsRow}>
-              {[200, 500, 1000, 2000].map((amt) => (
-                <TouchableOpacity
-                  key={amt}
-                  activeOpacity={0.8}
-                  onPress={() => setRechargePill(amt)}
-                  style={[
-                    styles.rechargePill,
-                    rechargePill === amt && styles.rechargePillSelected,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.rechargePillText,
-                      rechargePill === amt && styles.rechargePillTextSelected,
-                    ]}
-                  >
-                    +₹{amt}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Button
-              title={isRecharging ? 'Processing Recharge...' : `Pay ₹${rechargePill} via UPI`}
-              variant="primary"
-              loading={isRecharging}
-              onPress={handleRechargeFASTag}
-              style={{ marginTop: Spacing.lg }}
-            />
-          </View>
-        </View>
-      </Modal>
-
-      {/* ─── MODAL 2: E-CHALLAN LOOKUP & SETTLEMENT ─── */}
+      {/* ─── MODAL 1: E-CHALLAN LOOKUP & SETTLEMENT ─── */}
       <Modal
         visible={challanModalVisible}
         transparent
@@ -999,7 +608,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </View>
       </Modal>
 
-      {/* ─── MODAL 3: 24/7 ROADSIDE SOS ─── */}
+      {/* ─── MODAL 2: 24/7 ROADSIDE SOS ─── */}
       <Modal
         visible={sosModalVisible}
         transparent
@@ -1050,162 +659,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </View>
       </Modal>
 
-      {/* ─── MODAL 4: FUEL & EV CHARGING RADAR ─── */}
-      <Modal
-        visible={fuelModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setFuelModalVisible(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={[styles.modalContent, { maxHeight: '90%' }]}>
-            <View style={styles.modalHeader}>
-              <View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={styles.modalTitle}>Daily Fuel & EV Radar</Text>
-                  <View style={styles.fuelLiveTag}>
-                    <Text style={styles.fuelLiveTagText}>GOOGLE & OMC</Text>
-                  </View>
-                </View>
-                <Text style={styles.modalSub}>Official OMC retail prices • Revised daily at 06:00 AM IST</Text>
-              </View>
-              <TouchableOpacity onPress={() => setFuelModalVisible(false)}>
-                <X size={20} color={Colors.textPrimary} />
-              </TouchableOpacity>
-            </View>
-
-            {/* City Switcher Row */}
-            <View style={styles.fuelCitySelector}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                {SUPPORTED_INDIAN_CITIES.map((c) => {
-                  const isSelected = selectedCityFuel.cityKey === c.cityKey;
-                  return (
-                    <TouchableOpacity
-                      key={c.cityKey}
-                      activeOpacity={0.8}
-                      onPress={() => handleSwitchCityFuel(c.cityKey)}
-                      style={[
-                        styles.fuelCityPill,
-                        isSelected && styles.fuelCityPillSelected,
-                      ]}
-                    >
-                      <MapPin size={11} color={isSelected ? '#171717' : Colors.textSecondary} />
-                      <Text
-                        style={[
-                          styles.fuelCityPillText,
-                          isSelected && styles.fuelCityPillTextSelected,
-                        ]}
-                      >
-                        {c.cityName}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-
-            {/* Sync Status Bar */}
-            <View style={styles.fuelSyncRow}>
-              <Text style={styles.fuelSyncText}>
-                {isSyncingFuel ? 'Syncing live market rates...' : selectedCityFuel.rates.lastUpdated}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleSwitchCityFuel(selectedCityFuel.cityKey)}
-                disabled={isSyncingFuel}
-                style={styles.fuelRefreshBtn}
-              >
-                <RefreshCw size={12} color={Colors.textPrimary} />
-                <Text style={styles.fuelRefreshText}>Sync</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* 3-Col Fuel Grid */}
-            <View style={styles.fuelRateGrid}>
-              <View style={styles.fuelRateCol}>
-                <Text style={styles.fuelRateType}>PETROL</Text>
-                <Text style={styles.fuelRateNum}>₹{selectedCityFuel.rates.petrol}</Text>
-                <Text style={styles.fuelRateUnit}>per Litre</Text>
-              </View>
-              <View style={styles.fuelRateCol}>
-                <Text style={styles.fuelRateType}>DIESEL</Text>
-                <Text style={styles.fuelRateNum}>₹{selectedCityFuel.rates.diesel}</Text>
-                <Text style={styles.fuelRateUnit}>per Litre</Text>
-              </View>
-              <View style={styles.fuelRateCol}>
-                <Text style={styles.fuelRateType}>CNG</Text>
-                <Text style={styles.fuelRateNum}>₹{selectedCityFuel.rates.cng}</Text>
-                <Text style={styles.fuelRateUnit}>per Kg</Text>
-              </View>
-            </View>
-
-            {/* Detailed EV Tariffs Breakdown */}
-            <View style={styles.evTariffSection}>
-              <Text style={styles.evTariffTitle}>⚡ EV CHARGING TARIFF RADAR ({selectedCityFuel.state})</Text>
-
-              {/* 1. Fast DC */}
-              <View style={styles.evTariffCard}>
-                <View style={styles.evTariffIconWrap}>
-                  <Zap size={16} color="#15803D" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.evTariffLabel}>DC Ultra-Fast Charging (50-120 kW)</Text>
-                  <Text style={styles.evTariffSub}>Tata Power EZ, Statiq, Jio-bp in smart hubs & malls</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={styles.evTariffPrice}>₹{selectedCityFuel.rates.evFastDC}</Text>
-                  <Text style={styles.evTariffUnit}>/ kWh</Text>
-                </View>
-              </View>
-
-              {/* 2. Slow AC */}
-              <View style={styles.evTariffCard}>
-                <View style={[styles.evTariffIconWrap, { backgroundColor: '#EDE9FE' }]}>
-                  <Zap size={16} color="#7C3AED" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.evTariffLabel}>AC Moderate Charging (7.4-22 kW)</Text>
-                  <Text style={styles.evTariffSub}>Hub parking bays & destination overnight chargers</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={styles.evTariffPrice}>₹{selectedCityFuel.rates.evSlowAC}</Text>
-                  <Text style={styles.evTariffUnit}>/ kWh</Text>
-                </View>
-              </View>
-
-              {/* 3. DISCOM Base */}
-              <View style={[styles.evTariffCard, { backgroundColor: '#F8FAFC' }]}>
-                <View style={[styles.evTariffIconWrap, { backgroundColor: '#E2E8F0' }]}>
-                  <ShieldCheck size={16} color="#475569" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.evTariffLabel}>State DISCOM Base EV Tariff</Text>
-                  <Text style={styles.evTariffSub}>Govt regulated single-delivery EV connection rate</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[styles.evTariffPrice, { color: '#475569' }]}>₹{selectedCityFuel.rates.discomBase}</Text>
-                  <Text style={styles.evTariffUnit}>/ kWh</Text>
-                </View>
-              </View>
-            </View>
-
-            <Text style={styles.fuelSourceText}>
-              Official Source: {selectedCityFuel.rates.source} • Synced via Google & OMC Portals
-            </Text>
-
-            <Button
-              title="Find Nearby EV & Fuel Stations"
-              variant="primary"
-              onPress={() => {
-                setFuelModalVisible(false);
-                onNavigateToDiscovery();
-              }}
-              style={{ marginTop: Spacing.sm }}
-            />
-          </View>
-        </View>
-      </Modal>
-
-      {/* ─── MODAL 5: IN-BAY CAR CARE DETAIL ─── */}
+      {/* ─── MODAL 3: IN-BAY CAR CARE DETAIL ─── */}
       <Modal
         visible={carCareModalVisible}
         transparent
@@ -1261,7 +715,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </View>
       </Modal>
 
-      {/* ─── Interactive Drivix Network Map Modal (Webapp Parity) ─── */}
+      {/* ─── Interactive Drivix Network Map Modal ─── */}
       <NetworkMapModal
         visible={isMapModalVisible}
         onClose={() => setIsMapModalVisible(false)}
@@ -1452,9 +906,9 @@ const styles = StyleSheet.create({
   },
   moduleValue: {
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontVariant: ['tabular-nums'],
+    marginTop: 2,
   },
   moduleSubRow: {
     flexDirection: 'row',
@@ -1462,24 +916,24 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: 2,
   },
+  moduleSubText: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    marginTop: 1,
+  },
   statusDotActive: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#15803D',
-  },
-  moduleSubText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: Colors.primaryYellow,
+    backgroundColor: '#22C55E',
   },
   moduleDivider: {
     width: 1,
-    height: 28,
+    height: 32,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
 
-  /* ─── 8-Icon Core Services Grid ─── */
+  /* ─── Quick Services Grid (2x3) ─── */
   quickGridContainer: {
     marginBottom: Spacing.lg,
   },
@@ -1487,10 +941,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: Spacing.sm,
   },
   sectionHeaderTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '900',
     color: Colors.textSecondary,
     letterSpacing: 0.8,
@@ -1520,9 +974,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gridIconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
+    width: 54,
+    height: 54,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -1530,53 +984,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.06)',
   },
   gridEmoji: {
-    fontSize: 22,
+    fontSize: 24,
   },
   gridLabel: {
     fontSize: 11,
     fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
-  },
-
-  /* ─── Fuel Radar Ticker Banner ─── */
-  fuelTickerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFBEB',
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: Spacing.lg,
-  },
-  fuelTickerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-  },
-  fuelFlameCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FEF3C7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fuelTickerTitle: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#92400E',
-    letterSpacing: 0.5,
-  },
-  fuelTickerRates: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#171717',
-    marginTop: 1,
   },
 
   /* ─── Active Booking Card ─── */
@@ -1634,9 +1048,54 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
+  /* ─── Network Map Compact Banner ─── */
+  networkMapBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E2333',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.25)',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: Spacing.lg,
+  },
+  networkMapIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colors.primaryYellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  networkMapTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  networkMapSub: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  networkMapBadge: {
+    backgroundColor: 'rgba(255, 215, 0, 0.15)',
+    borderWidth: 1,
+    borderColor: Colors.primaryYellow,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  networkMapBadgeText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: Colors.primaryYellow,
+    letterSpacing: 0.5,
+  },
+
   /* ─── Recent Section ─── */
   recentSection: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.xs,
   },
   recentCard: {
     paddingVertical: 12,
@@ -1661,7 +1120,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
 
-  /* ─── Modals Styles (Backdrop & Content) ─── */
+  /* ─── Modals Styles ─── */
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.65)',
@@ -1690,75 +1149,11 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 2,
   },
-  netcBadge: {
-    backgroundColor: '#1E2333',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  netcBadgeText: {
-    fontSize: 9,
-    fontWeight: '900',
-    color: Colors.primaryYellow,
-  },
-  fastagBalanceBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.md,
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  fastagBalLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: Colors.textSecondary,
-    letterSpacing: 0.5,
-  },
-  fastagBalValue: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    marginVertical: 4,
-    fontVariant: ['tabular-nums'],
-  },
-  fastagBankTag: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#0284C7',
-  },
   chipHeaderLabel: {
     fontSize: 12,
     fontWeight: '800',
     color: Colors.textPrimary,
     marginBottom: 8,
-  },
-  rechargePillsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  rechargePill: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  rechargePillSelected: {
-    backgroundColor: Colors.accentYellowLight,
-    borderColor: Colors.primaryYellow,
-  },
-  rechargePillText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  rechargePillTextSelected: {
-    fontWeight: '900',
-    color: '#171717',
   },
 
   /* Challan Modal */
@@ -1800,86 +1195,82 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#15803D',
     marginTop: 8,
+    marginBottom: 4,
   },
   cleanRecordSub: {
     fontSize: 12,
     color: Colors.textSecondary,
     textAlign: 'center',
-    marginTop: 4,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   challanItemCard: {
-    padding: Spacing.md,
     marginBottom: 10,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
-    borderColor: '#FCA5A5',
-    backgroundColor: '#FEF2F2',
+    padding: Spacing.md,
   },
   challanItemTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   challanNum: {
-    fontSize: 12,
-    fontWeight: '900',
+    fontSize: 13,
+    fontWeight: '800',
     color: Colors.textPrimary,
   },
   challanViolation: {
     fontSize: 13,
-    fontWeight: '800',
-    color: '#991B1B',
+    fontWeight: '700',
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   challanLocation: {
     fontSize: 11,
     color: Colors.textSecondary,
+    marginBottom: 2,
   },
   challanDate: {
-    fontSize: 10,
-    color: Colors.textMuted,
-    marginTop: 2,
+    fontSize: 11,
+    color: Colors.textSecondary,
+    marginBottom: 8,
   },
   challanPayRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
-    paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.06)',
+    borderTopColor: Colors.border,
+    paddingTop: 8,
+    marginTop: 4,
   },
   challanAmount: {
     fontSize: 14,
-    fontWeight: '900',
-    color: '#171717',
+    fontWeight: '800',
+    color: Colors.error,
   },
   payChallanBtn: {
-    backgroundColor: '#DC2626',
+    backgroundColor: Colors.primaryYellow,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: BorderRadius.sm,
   },
   payChallanBtnText: {
     fontSize: 11,
-    fontWeight: '900',
-    color: '#FFFFFF',
+    fontWeight: '800',
+    color: '#171717',
   },
 
-  /* SOS Modal */
+  /* Roadside SOS Modal */
   sosCallBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#DC2626',
     borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
+    padding: 14,
   },
   sosCallTitle: {
-    fontSize: 13,
-    fontWeight: '900',
+    fontSize: 14,
+    fontWeight: '800',
     color: '#FFFFFF',
   },
   sosCallSub: {
@@ -1895,101 +1286,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
+    overflow: 'hidden',
   },
   sosServiceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F9FAFB',
-    padding: 10,
     borderRadius: BorderRadius.md,
+    padding: 10,
+    gap: 10,
     borderWidth: 1,
     borderColor: Colors.border,
-    gap: 8,
   },
   sosIconBox: {
-    width: 32,
-    height: 32,
+    width: 34,
+    height: 34,
     borderRadius: 8,
-    backgroundColor: '#1E2333',
+    backgroundColor: '#FFFBEB',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sosServiceName: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   sosServiceSub: {
-    fontSize: 10,
+    fontSize: 11,
     color: Colors.textSecondary,
     marginTop: 1,
   },
   sosEtaBadge: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
-    color: '#0284C7',
-    backgroundColor: '#E0F2FE',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    color: '#059669',
   },
 
-  /* Fuel Modal */
-  fuelRateGrid: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: Spacing.md,
-  },
-  fuelRateCol: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 10,
-    alignItems: 'center',
-  },
-  fuelRateType: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: Colors.textSecondary,
-    letterSpacing: 0.5,
-  },
-  fuelRateNum: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    marginVertical: 4,
-  },
-  fuelRateUnit: {
-    fontSize: 9,
-    color: Colors.textMuted,
-  },
-  evBannerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ECFCCB',
-    borderRadius: BorderRadius.md,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#BEF264',
-    marginBottom: Spacing.sm,
-  },
-  evBannerTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#15803D',
-  },
-  evBannerSub: {
-    fontSize: 10,
-    color: '#365314',
-    marginTop: 1,
-  },
-
-  /* Car Care Modal */
+  /* In-Bay Car Care Modal */
   carCareItemCard: {
-    padding: Spacing.md,
-    marginBottom: 8,
+    marginBottom: 10,
+    padding: 12,
   },
   carCareItemRow: {
     flexDirection: 'row',
@@ -2030,450 +1366,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
     color: Colors.textPrimary,
-  },
-
-  /* Network Map Compact Banner */
-  networkMapBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E2333',
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.25)',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: Spacing.md,
-  },
-  networkMapIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.primaryYellow,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  networkMapTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  networkMapSub: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    marginTop: 2,
-  },
-  networkMapBadge: {
-    backgroundColor: 'rgba(255, 215, 0, 0.15)',
-    borderWidth: 1,
-    borderColor: Colors.primaryYellow,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  networkMapBadgeText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: Colors.primaryYellow,
-    letterSpacing: 0.5,
-  },
-
-  /* Dynamic Fuel Modal Styles */
-  fuelLiveTag: {
-    backgroundColor: '#DCFCE7',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#86EFAC',
-  },
-  fuelLiveTagText: {
-    fontSize: 9,
-    fontWeight: '900',
-    color: '#15803D',
-    letterSpacing: 0.5,
-  },
-  fuelCitySelector: {
-    marginBottom: 10,
-  },
-  fuelCityPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.md,
-    backgroundColor: '#F3F4F6',
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  fuelCityPillSelected: {
-    backgroundColor: Colors.accentYellowLight,
-    borderColor: Colors.primaryYellow,
-  },
-  fuelCityPillText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-  },
-  fuelCityPillTextSelected: {
-    fontWeight: '900',
-    color: '#171717',
-  },
-  fuelSyncRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.sm,
-  },
-  fuelSyncText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  fuelRefreshBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#E2E8F0',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  fuelRefreshText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  evTariffSection: {
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.xs,
-    gap: 8,
-  },
-  evTariffTitle: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: Colors.textSecondary,
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  evTariffCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0FDF4',
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: '#DCFCE7',
-    padding: 10,
-    gap: 8,
-  },
-  evTariffIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#DCFCE7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  evTariffLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  evTariffSub: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-    marginTop: 1,
-  },
-  evTariffPrice: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#15803D',
-  },
-  evTariffUnit: {
-    fontSize: 9,
-    color: Colors.textMuted,
-  },
-  fuelSourceText: {
-    fontSize: 9,
-    color: '#94A3B8',
-    textAlign: 'center',
-    marginTop: 4,
-    marginBottom: 4,
-  },
-
-  /* ─── Expressway Toll & Nearby Hubs Features (Mobile Strictly Bounded) ─── */
-  /* Expressway Toll Calculator */
-  tollCard: {
-    backgroundColor: '#151926',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.25)',
-    borderRadius: BorderRadius.lg,
-    padding: 12,
-    marginBottom: Spacing.md,
-    overflow: 'hidden',
-  },
-  tollHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  tollIconCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: 'rgba(255, 215, 0, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  tollTitle: {
-    fontSize: 12,
-    fontWeight: '900',
-    color: '#FFFFFF',
-  },
-  tollSub: {
-    fontSize: 10,
-    color: '#9CA3AF',
-  },
-  tripToggleChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    flexShrink: 0,
-    marginLeft: 6,
-  },
-  tripToggleChipActive: {
-    backgroundColor: Colors.primaryYellow,
-  },
-  tripToggleText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#E5E7EB',
-  },
-  tripToggleTextActive: {
-    color: '#111827',
-    fontWeight: '900',
-  },
-  tollRoutesScrollWrap: {
-    marginBottom: 8,
-  },
-  routeChip: {
-    backgroundColor: '#1E2333',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  routeChipSelected: {
-    backgroundColor: 'rgba(255, 215, 0, 0.15)',
-    borderColor: Colors.primaryYellow,
-  },
-  routeChipText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#9CA3AF',
-  },
-  routeChipTextSelected: {
-    color: Colors.primaryYellow,
-    fontWeight: '800',
-  },
-  tollCalculationBox: {
-    backgroundColor: '#1C2233',
-    borderRadius: BorderRadius.md,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  tollInfoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  routeFromToText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  routeDistanceText: {
-    fontSize: 10,
-    color: '#9CA3AF',
-    marginTop: 2,
-  },
-  tollCostNumber: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: Colors.primaryYellow,
-    fontVariant: ['tabular-nums'],
-  },
-  tollCostLabel: {
-    fontSize: 9,
-    color: '#9CA3AF',
-    textTransform: 'uppercase',
-  },
-  tollBalanceBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  tollBalanceOk: {
-    backgroundColor: 'rgba(22, 101, 52, 0.25)',
-    borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
-  },
-  tollBalanceShort: {
-    backgroundColor: 'rgba(185, 28, 28, 0.25)',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
-  },
-  tollBalanceText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  tollBalanceTextOk: {
-    color: '#86EFAC',
-  },
-  tollBalanceTextShort: {
-    color: '#FCA5A5',
-  },
-  quickTopupBtn: {
-    backgroundColor: Colors.primaryYellow,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    flexShrink: 0,
-  },
-  quickTopupBtnText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#111827',
-  },
-
-  /* Feature 3: Nearby Hubs Carousel */
-  nearbyHubsSection: {
-    marginBottom: Spacing.md,
-  },
-  seeAllLink: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.primaryYellow,
-  },
-  nearbyHubCard: {
-    width: 250,
-    padding: 12,
-    marginRight: 10,
-    borderRadius: BorderRadius.lg,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: 'hidden',
-  },
-  hubCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  hubBadgeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  hubStatusPill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  hubStatusOnline: {
-    backgroundColor: '#DCFCE7',
-  },
-  hubStatusOnSite: {
-    backgroundColor: '#FEF3C7',
-  },
-  hubStatusText: {
-    fontSize: 9,
-    fontWeight: '900',
-  },
-  hubStatusTextOnline: {
-    color: '#15803D',
-  },
-  hubStatusTextOnSite: {
-    color: '#B45309',
-  },
-  hubDistanceText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-  },
-  hubCardTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 2,
-  },
-  hubCardAddress: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-    marginBottom: 8,
-  },
-  hubCardStatsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: BorderRadius.md,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    marginBottom: 6,
-  },
-  hubStatCol: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  hubStatDivider: {
-    width: 1,
-    height: 18,
-    backgroundColor: Colors.border,
-  },
-  hubStatNum: {
-    fontSize: 13,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-  },
-  hubStatLabel: {
-    fontSize: 9,
-    color: Colors.textSecondary,
-    marginTop: 1,
-  },
-  hubActionBtn: {
-    width: '100%',
-    height: 34,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primaryYellow,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  hubActionBtnOnSite: {
-    backgroundColor: '#1E2333',
-  },
-  hubActionBtnText: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: '#171717',
-  },
-  hubActionBtnTextOnSite: {
-    color: '#FFFFFF',
   },
 });
