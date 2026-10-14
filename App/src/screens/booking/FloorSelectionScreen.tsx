@@ -87,10 +87,40 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.bannerInfo}>
-          <Text style={styles.heading}>Choose Your Preferred Level</Text>
-          <Text style={styles.subheading}>
-            Reserve floor capacity before arrival. Physical slot is assigned near your designated entrance upon arrival.
-          </Text>
+          <View style={styles.bannerTitleRow}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={styles.heading}>Choose Your Level</Text>
+              <Text style={styles.subheading}>
+                Interactive 3D building visualizer with real-time floor capacity.
+              </Text>
+            </View>
+
+            {floors.length > 0 && (
+              <View style={styles.viewToggleGroup}>
+                <TouchableOpacity
+                  style={[styles.viewToggleBtn, viewFormat === '3D' && styles.viewToggleBtnActive]}
+                  onPress={() => setViewFormat('3D')}
+                  activeOpacity={0.7}
+                >
+                  <Box size={14} color={viewFormat === '3D' ? '#171717' : Colors.textSecondary} />
+                  <Text style={[styles.viewToggleText, viewFormat === '3D' && styles.viewToggleTextActive]}>
+                    3D Twin
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.viewToggleBtn, viewFormat === 'list' && styles.viewToggleBtnActive]}
+                  onPress={() => setViewFormat('list')}
+                  activeOpacity={0.7}
+                >
+                  <ListFilter size={14} color={viewFormat === 'list' ? '#171717' : Colors.textSecondary} />
+                  <Text style={[styles.viewToggleText, viewFormat === 'list' && styles.viewToggleTextActive]}>
+                    List
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
 
         {!checkIsOnlineBookingAllowed(selectedHub) ? (
@@ -148,73 +178,99 @@ export const FloorSelectionScreen: React.FC<FloorSelectionScreenProps> = ({
             />
           </Card>
         ) : (
-          (Array.isArray(floors) ? floors : []).map((floor) => {
-            const isSelected = selectedFloor?._id === floor._id;
-            const occupancyPct = floor.totalSlots > 0
-              ? Math.round(((floor.totalSlots - floor.availableSlots) / floor.totalSlots) * 100)
-              : 0;
-            const isFull = floor.availableSlots <= 0;
+          <>
+            {/* Interactive 3D Building Digital Twin Visualizer */}
+            {viewFormat === '3D' && (
+              <ParkingBuilding3DVisualizer
+                floors={floors}
+                selectedFloor={selectedFloor}
+                onSelectFloor={(floor) => selectFloor(floor)}
+                selectedSlot={selectedSlotId}
+                onSelectSlot={(slotId) => setSelectedSlotId(slotId)}
+                buildingName={selectedHub?.parkingName}
+              />
+            )}
 
-            return (
-              <Card
-                key={floor._id}
-                selected={isSelected}
-                onPress={() => !isFull && selectFloor(floor)}
-                style={[styles.floorItemCard, isFull && styles.floorCardFull]}
-              >
-                <View style={styles.floorCardHeader}>
-                  <View style={styles.floorBadgeContainer}>
-                    <View style={[styles.floorBadge, isSelected && styles.floorBadgeSelected]}>
-                      <Text style={[styles.floorBadgeText, isSelected && styles.floorBadgeTextSelected]}>
-                        {floor.floorName}
-                      </Text>
-                    </View>
-                    <View>
-                      <Text style={styles.floorTitle}>Floor {floor.floorName}</Text>
-                      <Text style={styles.floorCapacitySub}>
-                        {isFull ? 'No capacity available' : `${floor.availableSlots} of ${floor.totalSlots} slots free`}
-                      </Text>
-                    </View>
+            {/* List / Detailed Cards View */}
+            {(viewFormat === 'list' || viewFormat === '3D') && (
+              <View style={viewFormat === '3D' ? styles.compactListSection : null}>
+                {viewFormat === '3D' && (
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>All Level Capacities</Text>
+                    <Text style={styles.sectionSub}>Tap level to switch</Text>
                   </View>
+                )}
 
-                  <Badge
-                    label={isFull ? 'Floor Full' : `${floor.availableSlots} Free`}
-                    variant={isFull ? 'occupied' : floor.availableSlots > 5 ? 'available' : 'reserved'}
-                  />
-                </View>
+                {(Array.isArray(floors) ? floors : []).map((floor) => {
+                  const isSelected = selectedFloor?._id === floor._id;
+                  const occupancyPct = floor.totalSlots > 0
+                    ? Math.round(((floor.totalSlots - floor.availableSlots) / floor.totalSlots) * 100)
+                    : 0;
+                  const isFull = floor.availableSlots <= 0;
 
-                {/* Occupancy visual bar */}
-                <View style={styles.progressTrack}>
-                  <View
-                    style={[
-                      styles.progressBar,
-                      {
-                        width: `${Math.min(100, occupancyPct)}%`,
-                        backgroundColor: isFull ? Colors.occupied : occupancyPct > 80 ? Colors.warning : Colors.available,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.occupancyText}>{occupancyPct}% Occupancy</Text>
+                  return (
+                    <Card
+                      key={floor._id}
+                      selected={isSelected}
+                      onPress={() => !isFull && selectFloor(floor)}
+                      style={[styles.floorItemCard, isFull && styles.floorCardFull]}
+                    >
+                      <View style={styles.floorCardHeader}>
+                        <View style={styles.floorBadgeContainer}>
+                          <View style={[styles.floorBadge, isSelected && styles.floorBadgeSelected]}>
+                            <Text style={[styles.floorBadgeText, isSelected && styles.floorBadgeTextSelected]}>
+                              {floor.floorName}
+                            </Text>
+                          </View>
+                          <View>
+                            <Text style={styles.floorTitle}>Floor {floor.floorName}</Text>
+                            <Text style={styles.floorCapacitySub}>
+                              {isFull ? 'No capacity available' : `${floor.availableSlots} of ${floor.totalSlots} slots free`}
+                            </Text>
+                          </View>
+                        </View>
 
-                {/* Supported floor amenities */}
-                <View style={styles.floorFeaturesRow}>
-                  {floor.evSlots ? (
-                    <View style={styles.featureBadge}>
-                      <Zap size={12} color="#15803D" />
-                      <Text style={styles.featureText}>{floor.evSlots} EV Charging Bays</Text>
-                    </View>
-                  ) : null}
-                  {floor.accessibilitySlots ? (
-                    <View style={styles.featureBadge}>
-                      <Accessibility size={12} color="#1E40AF" />
-                      <Text style={styles.featureText}>Accessible Bays</Text>
-                    </View>
-                  ) : null}
-                </View>
-              </Card>
-            );
-          })
+                        <Badge
+                          label={isFull ? 'Floor Full' : `${floor.availableSlots} Free`}
+                          variant={isFull ? 'occupied' : floor.availableSlots > 5 ? 'available' : 'reserved'}
+                        />
+                      </View>
+
+                      {/* Occupancy visual bar */}
+                      <View style={styles.progressTrack}>
+                        <View
+                          style={[
+                            styles.progressBar,
+                            {
+                              width: `${Math.min(100, occupancyPct)}%`,
+                              backgroundColor: isFull ? Colors.occupied : occupancyPct > 80 ? Colors.warning : Colors.available,
+                            },
+                          ]}
+                        />
+                      </View>
+                      <Text style={styles.occupancyText}>{occupancyPct}% Occupancy</Text>
+
+                      {/* Supported floor amenities */}
+                      <View style={styles.floorFeaturesRow}>
+                        {floor.evSlots ? (
+                          <View style={styles.featureBadge}>
+                            <Zap size={12} color="#15803D" />
+                            <Text style={styles.featureText}>{floor.evSlots} EV Charging Bays</Text>
+                          </View>
+                        ) : null}
+                        {floor.accessibilitySlots ? (
+                          <View style={styles.featureBadge}>
+                            <Accessibility size={12} color="#1E40AF" />
+                            <Text style={styles.featureText}>Accessible Bays</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    </Card>
+                  );
+                })}
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
 
