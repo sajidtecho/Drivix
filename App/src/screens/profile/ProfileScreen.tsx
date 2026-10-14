@@ -10,6 +10,7 @@ import {
   Modal,
   ActivityIndicator,
   TextInput,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -32,6 +33,11 @@ import {
   MessageSquare,
   Clock,
   Star,
+  AlertCircle,
+  ExternalLink,
+  UploadCloud,
+  RefreshCw,
+  FileCheck,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
@@ -43,7 +49,12 @@ import { Input } from '../../components/common/Input';
 import { useAuth } from '../../store/AuthContext';
 import { vehicleApi } from '../../api/vehicleApi';
 import { complaintApi, Complaint } from '../../api/complaintApi';
-import { Vehicle } from '../../types';
+import { Vehicle, VehicleDocument } from '../../types';
+import {
+  calculateDocumentStatus,
+  getDefaultVehicleDocuments,
+} from '../../services/vehicleCareServices';
+
 
 interface ProfileScreenProps {
   navigation: any;

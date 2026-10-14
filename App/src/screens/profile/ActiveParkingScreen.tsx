@@ -21,6 +21,9 @@ import {
   CheckCircle2,
   Receipt,
   ShieldCheck,
+  Sparkles,
+  Zap,
+  Check,
 } from 'lucide-react-native';
 import { Colors } from '../../theme/colors';
 import { Spacing, BorderRadius } from '../../theme/spacing';
@@ -74,6 +77,11 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
   const [isExtending, setIsExtending] = useState<boolean>(false);
   const [isVacating, setIsVacating] = useState<boolean>(false);
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
+  const [inBayWashOrdered, setInBayWashOrdered] = useState<boolean>(() => {
+    const services = currentBooking.additionalServices || [];
+    return services.some((s) => typeof s === 'string' && s.toLowerCase().includes('wash'));
+  });
+  const [orderingWash, setOrderingWash] = useState<boolean>(false);
 
   // Live countdown timer
   useEffect(() => {
@@ -178,6 +186,44 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
     }
   };
 
+  const handleQuickExtend = async (hours: number) => {
+    const targetId = getCleanBookingId(currentBooking, bookingId);
+    if (!targetId || targetId === '[object Object]') {
+      Alert.alert('Extension Error', 'Invalid booking reference ID.');
+      return;
+    }
+
+    setIsExtending(true);
+    try {
+      const costRate = (currentBooking as any).hourlyPrice || 40;
+      const addedCost = Math.round(costRate * hours);
+      const updated = await bookingApi.extendBooking(targetId, hours, addedCost);
+      setCurrentBooking(updated);
+      setSecondsRemaining((prev) => prev + hours * 3600);
+      Alert.alert(
+        'Session Extended! ⏱️',
+        `Successfully added ${hours === 0.5 ? '30 minutes' : `${hours} hour(s)`} to your parking session.`
+      );
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Could not extend booking.';
+      Alert.alert('Extension Error', msg);
+    } finally {
+      setIsExtending(false);
+    }
+  };
+
+  const handleOrderInBayWash = async () => {
+    setOrderingWash(true);
+    setTimeout(() => {
+      setInBayWashOrdered(true);
+      setOrderingWash(false);
+      Alert.alert(
+        'Wash Detailer Dispatched! 🧼',
+        `Eco Waterless Foam Wash requested for Bay ${currentBooking.slotId || 'G-12'}. Detailer is assigned and will begin shortly.`
+      );
+    }, 600);
+  };
+
   const handleVacateAndCheckout = async () => {
     const targetId = getCleanBookingId(currentBooking, bookingId);
     if (!targetId || targetId === '[object Object]') {
@@ -235,21 +281,64 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* ─── Hero Countdown Timer Card ─── */}
-        <Card style={styles.timerCard}>
+        <Card style={[styles.timerCard, secondsRemaining <= 900 && styles.timerCardUrgent]}>
           <View style={styles.timerHeader}>
             <View style={styles.pulsingRow}>
-              <View style={styles.pulsingDot} />
-              <Text style={styles.timerHeaderLabel}>PARKING SESSION IN PROGRESS</Text>
+              <View style={[styles.pulsingDot, secondsRemaining <= 900 && { backgroundColor: '#EF4444' }]} />
+              <Text style={[styles.timerHeaderLabel, secondsRemaining <= 900 && { color: '#EF4444' }]}>
+                {secondsRemaining <= 0 ? 'SESSION EXPIRED (OVERSTAY)' : secondsRemaining <= 900 ? 'EXPIRING SOON - OVERSTAY GUARD' : 'PARKING SESSION IN PROGRESS'}
+              </Text>
             </View>
             <Badge
-              label={currentBooking.status}
-              variant={currentBooking.status === 'Checked In' ? 'available' : 'reserved'}
+              label={secondsRemaining <= 0 ? 'Overstay' : currentBooking.status}
+              variant={secondsRemaining <= 0 ? 'surge' : currentBooking.status === 'Checked In' ? 'available' : 'reserved'}
             />
           </View>
 
           <View style={styles.countdownBox}>
-            <Text style={styles.countdownNumber}>{formatTimer(secondsRemaining)}</Text>
+            <Text style={[styles.countdownNumber, secondsRemaining <= 900 && styles.countdownNumberUrgent]}>
+              {formatTimer(secondsRemaining)}
+            </Text>
             <Text style={styles.countdownSub}>HOURS : MINUTES : SECONDS REMAINING</Text>
+          </View>
+
+          {/* Overstay alert banner when time is under 15 mins */}
+          {secondsRemaining <= 900 && (
+            <View style={styles.overstayAlertBanner}>
+              <AlertTriangle size={15} color="#EF4444" style={{ marginRight: 6, flexShrink: 0 }} />
+              <Text style={styles.overstayAlertText}>
+                <Text style={{ fontWeight: '800' }}>OVERSTAY WARNING: </Text>
+                {secondsRemaining <= 0
+                  ? 'Session expired. Overstay penalty applies after grace window.'
+                  : '15 mins remaining. Tap +30m or +1h below to avoid penalty.'}
+              </Text>
+            </View>
+          )}
+
+          {/* 1-Tap Quick Extension Fast Pills */}
+          <View style={styles.quickExtensionSection}>
+            <View style={styles.quickExtensionTitleRow}>
+              <Zap size={14} color={Colors.primaryYellow} />
+              <Text style={styles.quickExtensionLabel}>1-Tap Quick Extend</Text>
+            </View>
+            <View style={styles.quickExtensionRow}>
+              {[
+                { label: '+30m', hrs: 0.5, cost: 20 },
+                { label: '+1 hr', hrs: 1, cost: 40 },
+                { label: '+2 hrs', hrs: 2, cost: 80 },
+              ].map((pill) => (
+                <TouchableOpacity
+                  key={pill.label}
+                  activeOpacity={0.85}
+                  disabled={isExtending}
+                  onPress={() => handleQuickExtend(pill.hrs)}
+                  style={styles.quickPillBtn}
+                >
+                  <Text style={styles.quickPillTitle}>{pill.label}</Text>
+                  <Text style={styles.quickPillPrice}>₹{pill.cost}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Location & Slot Info Row */}
@@ -273,6 +362,64 @@ export const ActiveParkingScreen: React.FC<ActiveParkingScreenProps> = ({
               <Text style={styles.slotHeroText}>{currentBooking.slotId || 'Assigned on Gate'}</Text>
             </View>
           </View>
+        </Card>
+
+        {/* ─── In-Bay Vehicle Care Tracker ─── */}
+        <Card style={styles.serviceTrackerCard}>
+          <View style={styles.serviceTrackerHeader}>
+            <View style={styles.serviceTrackerIconBadge}>
+              <Sparkles size={18} color={Colors.primaryYellow} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.serviceTrackerTitle}>While-You-Park Car Care</Text>
+              <Text style={styles.serviceTrackerSub}>
+                {inBayWashOrdered ? 'In-bay detailing active on your slot' : 'Eco waterless foam wash available in this hub'}
+              </Text>
+            </View>
+            {inBayWashOrdered && (
+              <Badge label="In Progress" variant="available" />
+            )}
+          </View>
+
+          {inBayWashOrdered ? (
+            <View style={styles.serviceStepsContainer}>
+              <View style={styles.serviceStepRow}>
+                <View style={[styles.stepDot, styles.stepDotDone]}>
+                  <Check size={12} color="#171717" strokeWidth={3} />
+                </View>
+                <Text style={styles.stepTextDone}>1. Service Requested (Eco Waterless Wash)</Text>
+              </View>
+              <View style={styles.stepLine} />
+              <View style={styles.serviceStepRow}>
+                <View style={[styles.stepDot, styles.stepDotActive]}>
+                  <View style={styles.stepDotInner} />
+                </View>
+                <Text style={styles.stepTextActive}>2. Detailer Dispatched to Bay {currentBooking.slotId || 'G-12'}</Text>
+              </View>
+              <View style={styles.stepLine} />
+              <View style={styles.serviceStepRow}>
+                <View style={styles.stepDot}>
+                  <Clock size={10} color="#9CA3AF" />
+                </View>
+                <Text style={styles.stepTextPending}>3. Foam Wash & Glass Treatment Completion</Text>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              activeOpacity={0.88}
+              disabled={orderingWash}
+              onPress={handleOrderInBayWash}
+              style={styles.orderWashBannerBtn}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.orderWashTitle}>Request Waterless Wash in Bay</Text>
+                <Text style={styles.orderWashSub}>Detailer washes & polishes your car before you return</Text>
+              </View>
+              <View style={styles.orderWashPriceTag}>
+                <Text style={styles.orderWashPriceText}>{orderingWash ? 'Ordering...' : '+₹299'}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
         </Card>
 
         {/* ─── Gate QR Ticket Pass ─── */}
@@ -547,5 +694,192 @@ const styles = StyleSheet.create({
   extendChipUnitSelected: {
     color: '#171717',
     fontWeight: '700',
+  },
+  timerCardUrgent: {
+    borderColor: '#EF4444',
+    borderWidth: 2,
+    backgroundColor: '#FFF5F5',
+  },
+  countdownNumberUrgent: {
+    color: '#DC2626',
+  },
+  overstayAlertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 8,
+    marginVertical: Spacing.sm,
+  },
+  overstayAlertText: {
+    flex: 1,
+    fontSize: 11,
+    color: '#991B1B',
+    lineHeight: 15,
+  },
+  quickExtensionSection: {
+    marginVertical: Spacing.sm,
+    backgroundColor: 'rgba(255, 235, 59, 0.08)',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.25)',
+  },
+  quickExtensionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  quickExtensionLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  quickExtensionRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quickPillBtn: {
+    flex: 1,
+    backgroundColor: '#1E2333',
+    borderRadius: BorderRadius.md,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primaryYellow,
+  },
+  quickPillTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: Colors.primaryYellow,
+  },
+  quickPillPrice: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  serviceTrackerCard: {
+    marginBottom: Spacing.lg,
+    backgroundColor: '#151926',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.2)',
+  },
+  serviceTrackerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  serviceTrackerIconBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 215, 0, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  serviceTrackerTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  serviceTrackerSub: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  serviceStepsContainer: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  serviceStepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  stepDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#262D42',
+    borderWidth: 1.5,
+    borderColor: '#4B5563',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepDotDone: {
+    backgroundColor: Colors.primaryYellow,
+    borderColor: Colors.primaryYellow,
+  },
+  stepDotActive: {
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    borderColor: Colors.primaryYellow,
+  },
+  stepDotInner: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primaryYellow,
+  },
+  stepTextDone: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#E5E7EB',
+  },
+  stepTextActive: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.primaryYellow,
+  },
+  stepTextPending: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  stepLine: {
+    width: 2,
+    height: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginLeft: 9,
+    marginVertical: 2,
+  },
+  orderWashBannerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.md,
+    padding: 12,
+    backgroundColor: '#1E2333',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.25)',
+  },
+  orderWashTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  orderWashSub: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  orderWashPriceTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: Colors.primaryYellow,
+  },
+  orderWashPriceText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#111827',
   },
 });
