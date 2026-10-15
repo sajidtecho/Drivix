@@ -107,46 +107,9 @@ export const calculateDocumentStatus = (expiryDateStr: string): {
 };
 
 /**
- * Default sample documents for demo/startup-ready vehicles
+ * Returns empty array by default to avoid showing mock/false documents
  */
-export const getDefaultVehicleDocuments = (vehiclePlate: string): VehicleDocument[] => {
-  const currentYear = new Date().getFullYear();
-  return [
-    {
-      id: `rc_${vehiclePlate}`,
-      type: 'RC',
-      documentNumber: `REG-${vehiclePlate.replace(/\s/g, '')}`,
-      expiryDate: `${currentYear + 8}-04-15`,
-      issuer: 'MoRTH Parivahan',
-      status: 'valid',
-      daysRemaining: 2900,
-    },
-    {
-      id: `ins_${vehiclePlate}`,
-      type: 'Insurance',
-      documentNumber: `POL-ICICI-88910`,
-      expiryDate: `${currentYear}-11-20`,
-      issuer: 'ICICI Lombard Comprehensive',
-      status: 'expiring_soon',
-      daysRemaining: 37,
-    },
-    {
-      id: `puc_${vehiclePlate}`,
-      type: 'PUCC',
-      documentNumber: `PUC-UP16-9023`,
-      expiryDate: `${currentYear}-10-28`,
-      issuer: 'Green Bharat Emission Lab',
-      status: 'expiring_soon',
-      daysRemaining: 14,
-    },
-    {
-      id: `dl_${vehiclePlate}`,
-      type: 'Driving License',
-      documentNumber: `DL-04201800921`,
-      expiryDate: `${currentYear + 12}-01-10`,
-      issuer: 'Delhi Transport Department',
-      status: 'valid',
-      daysRemaining: 4400,
-    },
-  ];
+export const getDefaultVehicleDocuments = (_vehiclePlate: string): VehicleDocument[] => {
+  return [];
 };
+

@@ -33,21 +33,8 @@ const DARK_GOOGLE_MAP_STYLES = [
   { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#48536e" }] }
 ];
 
-// Comprehensive dataset representing Drivix active parking network locations across NCR
-const DEFAULT_NETWORK_LOCATIONS = [
-  { id: 'noida-sec18', name: 'Sector 18 Multi-Level Hub', address: 'Block K, Sector 18, Noida', city: 'Noida', latitude: 28.5708, longitude: 77.3261, totalSlots: 250, availableSlots: 84, hourlyPrice: 20, status: 'Active', ev: true, anpr: true },
-  { id: 'noida-kp2', name: 'Knowledge Park II Metro Hub', address: 'Greater Noida Express Highway', city: 'Greater Noida', latitude: 28.4595, longitude: 77.5020, totalSlots: 180, availableSlots: 62, hourlyPrice: 15, status: 'Active', ev: true, anpr: true },
-  { id: 'noida-sec62', name: 'Sector 62 IT Park Facility', address: 'Phase 2, Sector 62, Noida', city: 'Noida', latitude: 28.6280, longitude: 77.3649, totalSlots: 300, availableSlots: 112, hourlyPrice: 25, status: 'Active', ev: true, anpr: true },
-  { id: 'noida-botanical', name: 'Botanical Garden Interchange Hub', address: 'Sector 38, Noida', city: 'Noida', latitude: 28.5642, longitude: 77.3343, totalSlots: 400, availableSlots: 145, hourlyPrice: 20, status: 'Active', ev: false, anpr: true },
-  { id: 'noida-pari-chowk', name: 'Pari Chowk Commercial Complex', address: 'Commercial Belt, Pari Chowk', city: 'Greater Noida', latitude: 28.4673, longitude: 77.5140, totalSlots: 220, availableSlots: 40, hourlyPrice: 15, status: 'Active', ev: true, anpr: true },
-  { id: 'delhi-cp', name: 'Connaught Place Outer Ring Hub', address: 'Block C, Connaught Place', city: 'Delhi', latitude: 28.6315, longitude: 77.2167, totalSlots: 350, availableSlots: 58, hourlyPrice: 40, status: 'Active', ev: true, anpr: true },
-  { id: 'delhi-south-ext', name: 'South Extension Plaza Facility', address: 'Ring Road, South Ext I', city: 'Delhi', latitude: 28.5684, longitude: 77.2215, totalSlots: 160, availableSlots: 29, hourlyPrice: 30, status: 'Active', ev: false, anpr: true },
-  { id: 'noida-sec137', name: 'Sector 137 Expressway Hub', address: 'Felix Hospital Rd, Sector 137', city: 'Noida', latitude: 28.5034, longitude: 77.4042, totalSlots: 190, availableSlots: 77, hourlyPrice: 20, status: 'Active', ev: true, anpr: true },
-  { id: 'noida-sec142', name: 'Advant Navis Corporate Hub', address: 'Sector 142, Noida Expressway', city: 'Noida', latitude: 28.4981, longitude: 77.4105, totalSlots: 450, availableSlots: 198, hourlyPrice: 25, status: 'Active', ev: true, anpr: true },
-  { id: 'delhi-nehru-place', name: 'Nehru Place Tech Hub Parking', address: 'Nehru Place Commercial Complex', city: 'Delhi', latitude: 28.5492, longitude: 77.2519, totalSlots: 280, availableSlots: 65, hourlyPrice: 30, status: 'Active', ev: true, anpr: true },
-  { id: 'noida-sec50', name: 'Sector 50 Market Square', address: 'Main Market Rd, Sector 50', city: 'Noida', latitude: 28.5770, longitude: 77.3630, totalSlots: 120, availableSlots: 31, hourlyPrice: 20, status: 'Active', ev: false, anpr: true },
-  { id: 'gr-noida-west', name: 'Gaur City Mall Parking Hub', address: 'Greater Noida West Rd', city: 'Greater Noida', latitude: 28.6087, longitude: 77.4285, totalSlots: 500, availableSlots: 210, hourlyPrice: 20, status: 'Active', ev: true, anpr: true }
-];
+// Network Locations - Empty by default (never inject mockup/false data)
+const DEFAULT_NETWORK_LOCATIONS = [];
 
 const mapContainerStyle = {
   width: '100%',
@@ -77,7 +64,7 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
     googleMapsApiKey: GOOGLE_MAPS_API_KEY
   });
 
-  const [locations, setLocations] = useState(DEFAULT_NETWORK_LOCATIONS);
+  const [locations, setLocations] = useState([]);
   const [selectedCity, setSelectedCity] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -102,7 +89,7 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fetch locations from backend on open
+  // Fetch locations from backend on open (no mock data)
   useEffect(() => {
     if (!isOpen) return;
 
@@ -116,35 +103,31 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
         if (res.ok) {
           const apiData = await res.json();
           if (Array.isArray(apiData) && apiData.length > 0) {
-            const mappedApi = apiData.map((loc, idx) => {
-              const fallback = DEFAULT_NETWORK_LOCATIONS[idx % DEFAULT_NETWORK_LOCATIONS.length];
-              return {
-                id: loc._id || loc.id || `loc-${idx}`,
-                name: loc.parkingName || loc.name,
-                address: loc.address || fallback.address,
-                city: loc.city || fallback.city,
-                latitude: Number(loc.latitude) || fallback.latitude,
-                longitude: Number(loc.longitude) || fallback.longitude,
-                totalSlots: loc.totalSlots || fallback.totalSlots,
-                availableSlots: loc.availableSlots ?? fallback.availableSlots,
-                hourlyPrice: loc.hourlyPrice || loc.hourlyRate || fallback.hourlyPrice,
-                status: loc.status || 'Active',
-                ev: loc.amenities?.includes('EV Charging') || fallback.ev,
-                anpr: true
-              };
-            });
+            const mappedApi = apiData.map((loc, idx) => ({
+              id: loc._id || loc.id || `loc-${idx}`,
+              name: loc.parkingName || loc.name,
+              address: loc.address || '',
+              city: loc.city || '',
+              latitude: Number(loc.latitude) || 28.4744,
+              longitude: Number(loc.longitude) || 77.5040,
+              totalSlots: loc.totalSlots || 0,
+              availableSlots: loc.availableSlots ?? 0,
+              hourlyPrice: loc.hourlyPrice || loc.hourlyRate || 20,
+              status: loc.status || 'Active',
+              ev: loc.amenities?.includes('EV Charging') || false,
+              anpr: true
+            }));
 
-            const combined = [...mappedApi];
-            DEFAULT_NETWORK_LOCATIONS.forEach(defLoc => {
-              if (!combined.some(c => c.name.toLowerCase() === defLoc.name.toLowerCase())) {
-                combined.push(defLoc);
-              }
-            });
-            setLocations(combined);
+            setLocations(mappedApi);
+          } else {
+            setLocations([]);
           }
+        } else {
+          setLocations([]);
         }
       } catch (err) {
-        console.warn("Using offline default network location dataset:", err);
+        console.warn("Error fetching live network locations:", err);
+        setLocations([]);
       }
     };
 
@@ -547,6 +530,12 @@ const NetworkMapModal = ({ isOpen, onClose }) => {
                         ✕ Close List
                       </button>
                     </div>
+
+                    {filteredLocations.length === 0 && (
+                      <div style={{ padding: '32px 16px', textAlign: 'center', color: '#8a8d9b', fontSize: '0.85rem' }}>
+                        No parking facilities found under this category or city.
+                      </div>
+                    )}
 
                     {filteredLocations.map((loc) => {
                       const isSelected = selectedLocation?.id === loc.id;

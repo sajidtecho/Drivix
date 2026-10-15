@@ -58,29 +58,8 @@ export const parkingApi = {
       // Fallback
     }
 
-    // 3. Fallback standard floors if none exist in DB for this facility
-    return [
-      {
-        _id: `${facilityId}_fl_0`,
-        parkingHubId: facilityId,
-        floorName: 'Ground Floor',
-        totalSlots: 60,
-        availableSlots: 42,
-        evSlots: 4,
-        accessibilitySlots: 2,
-        active: true
-      },
-      {
-        _id: `${facilityId}_fl_1`,
-        parkingHubId: facilityId,
-        floorName: 'Level 1',
-        totalSlots: 60,
-        availableSlots: 36,
-        evSlots: 2,
-        accessibilitySlots: 1,
-        active: true
-      }
-    ];
+    // 3. Return empty array if facility has no floors configured (never inject mock floors)
+    return [];
   },
 
   getFloorAvailability: async (floorId: string): Promise<any> => {

@@ -89,7 +89,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   // E-Challan State
   const [challanModalVisible, setChallanModalVisible] = useState(false);
-  const [challanPlate, setChallanPlate] = useState('UP16AB1234');
+  const [challanPlate, setChallanPlate] = useState('');
   const [challanResults, setChallanResults] = useState<ChallanItem[]>([]);
   const [hasCheckedChallans, setHasCheckedChallans] = useState(false);
   const [isCheckingChallan, setIsCheckingChallan] = useState(false);
@@ -103,7 +103,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [userCoords, setUserCoords] = useState<UserCoordinates | null>(null);
 
   const activeVehicle = vehicles[selectedVehicleIdx] || null;
-  const currentPlate = activeVehicle?.plate || activeVehicle?.vehicleNumber || 'DL01AB1234';
+  const currentPlate = activeVehicle?.plate || activeVehicle?.vehicleNumber || '';
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -140,7 +140,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           const userVehicles = await vehicleApi.getUserVehicles();
           setVehicles(userVehicles);
           if (userVehicles.length > 0) {
-            const p = userVehicles[0].plate || userVehicles[0].vehicleNumber || 'DL01AB1234';
+            const p = userVehicles[0].plate || userVehicles[0].vehicleNumber || '';
             setChallanPlate(p);
           }
         } catch (_) {}
@@ -267,15 +267,30 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         {/* ─── 3. My Vehicle Status Card ─── */}
         <Card style={styles.commandCenterCard}>
           <View style={styles.commandCenterHeader}>
-            <View style={styles.carPlateRow}>
-              <View style={styles.plateNumberTag}>
-                <Text style={styles.plateNumberText}>{currentPlate}</Text>
+            {activeVehicle ? (
+              <View style={styles.carPlateRow}>
+                <View style={styles.plateNumberTag}>
+                  <Text style={styles.plateNumberText}>{currentPlate}</Text>
+                </View>
+                <Text style={styles.carModelText} numberOfLines={1}>
+                  {activeVehicle?.model || 'Vehicle'}
+                  {activeVehicle?.isEV ? ' • EV' : ''}
+                </Text>
               </View>
-              <Text style={styles.carModelText} numberOfLines={1}>
-                {activeVehicle?.model || 'Primary Car'}
-                {activeVehicle?.isEV ? ' • EV' : ''}
-              </Text>
-            </View>
+            ) : (
+              <TouchableOpacity
+                onPress={onNavigateToProfile}
+                style={styles.carPlateRow}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.plateNumberTag, { backgroundColor: '#F3F4F6' }]}>
+                  <Text style={[styles.plateNumberText, { color: '#6B7280' }]}>+ Add Vehicle</Text>
+                </View>
+                <Text style={[styles.carModelText, { color: Colors.textSecondary }]} numberOfLines={1}>
+                  No vehicle registered yet
+                </Text>
+              </TouchableOpacity>
+            )}
 
             {vehicles.length > 1 && (
               <TouchableOpacity
@@ -511,7 +526,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={styles.networkMapTitle}>Live Parking Network Map</Text>
             <Text style={styles.networkMapSub}>
-              Explore 28+ verified Delhi NCR smart hubs & real-time capacity
+              Explore verified smart hubs & real-time capacity
             </Text>
           </View>
           <View style={styles.networkMapBadge}>

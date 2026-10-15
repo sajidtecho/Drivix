@@ -57,43 +57,8 @@ export const getInitialFASTagAccount = (plate: string): FASTagAccount => {
   };
 };
 
-// Initial simulated challans for demo testing
-const MOCK_CHALLANS: Record<string, ChallanItem[]> = {
-  SAMPLE_HAS_CHALLAN: [
-    {
-      id: 'ch_1',
-      challanNumber: 'UP16-CH-99281-2026',
-      plate: 'UP16AB1234',
-      violation: 'Exceeding Speed Limit (>80km/h on Expressway)',
-      location: 'Noida-Greater Noida Expressway KM 14',
-      date: '2026-10-02 14:22',
-      amount: 1000,
-      status: 'pending',
-      courtAssisted: false,
-    },
-    {
-      id: 'ch_2',
-      challanNumber: 'DL01-CH-48190-2026',
-      plate: 'UP16AB1234',
-      violation: 'Improper Zebra-Crossing Stop Line Overreach',
-      location: 'Pari Chowk Junction, Gr. Noida',
-      date: '2026-09-21 09:15',
-      amount: 500,
-      status: 'pending',
-      courtAssisted: false,
-    },
-  ],
-};
-
 export const fetchChallansForPlate = (plate: string): ChallanItem[] => {
-  const clean = plate.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-  // If plate contains 'UP' or test trigger, return sample violation, otherwise clean record
-  if (clean.includes('UP') || clean.includes('99') || clean.includes('CHALLAN')) {
-    return (MOCK_CHALLANS['SAMPLE_HAS_CHALLAN'] || []).map((c) => ({
-      ...c,
-      plate: clean,
-    }));
-  }
+  // Never generate fake / mock challans. Return empty array (0 pending violations).
   return [];
 };
 

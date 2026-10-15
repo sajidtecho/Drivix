@@ -67,165 +67,8 @@ export const DARK_GOOGLE_MAP_STYLES = [
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#48536e' }] },
 ];
 
-// Baseline Network Locations matching Drivix Website dataset
-export const DEFAULT_NETWORK_LOCATIONS: ParkingLocation[] = [
-  {
-    _id: 'noida-sec18',
-    parkingName: 'Sector 18 Multi-Level Hub',
-    address: 'Block K, Sector 18, Noida',
-    city: 'Noida',
-    latitude: 28.5708,
-    longitude: 77.3261,
-    totalSlots: 250,
-    availableSlots: 84,
-    hourlyPrice: 20,
-    status: 'Active',
-    amenities: ['EV Charging', 'ANPR Gate', 'Covered'],
-  },
-  {
-    _id: 'noida-kp2',
-    parkingName: 'Knowledge Park II Metro Hub',
-    address: 'Greater Noida Express Highway',
-    city: 'Greater Noida',
-    latitude: 28.4595,
-    longitude: 77.5020,
-    totalSlots: 180,
-    availableSlots: 62,
-    hourlyPrice: 15,
-    status: 'Active',
-    amenities: ['EV Charging', 'Metro Connect'],
-  },
-  {
-    _id: 'noida-sec62',
-    parkingName: 'Sector 62 IT Park Facility',
-    address: 'Phase 2, Sector 62, Noida',
-    city: 'Noida',
-    latitude: 28.6280,
-    longitude: 77.3649,
-    totalSlots: 300,
-    availableSlots: 112,
-    hourlyPrice: 25,
-    status: 'Active',
-    amenities: ['EV Charging', 'ANPR Camera'],
-  },
-  {
-    _id: 'noida-botanical',
-    parkingName: 'Botanical Garden Interchange Hub',
-    address: 'Sector 38, Noida',
-    city: 'Noida',
-    latitude: 28.5642,
-    longitude: 77.3343,
-    totalSlots: 400,
-    availableSlots: 145,
-    hourlyPrice: 20,
-    status: 'Active',
-    amenities: ['Metro Interchange', '24/7 Security'],
-  },
-  {
-    _id: 'noida-pari-chowk',
-    parkingName: 'Pari Chowk Commercial Complex',
-    address: 'Commercial Belt, Pari Chowk',
-    city: 'Greater Noida',
-    latitude: 28.4673,
-    longitude: 77.5140,
-    totalSlots: 220,
-    availableSlots: 40,
-    hourlyPrice: 15,
-    status: 'Active',
-    amenities: ['EV Charging', 'Valet Available'],
-  },
-  {
-    _id: 'delhi-cp',
-    parkingName: 'Connaught Place Outer Ring Hub',
-    address: 'Block C, Connaught Place',
-    city: 'Delhi',
-    latitude: 28.6315,
-    longitude: 77.2167,
-    totalSlots: 350,
-    availableSlots: 58,
-    hourlyPrice: 40,
-    status: 'Active',
-    amenities: ['EV Charging', 'Multi-Level', 'CCTV'],
-  },
-  {
-    _id: 'delhi-south-ext',
-    parkingName: 'South Extension Plaza Facility',
-    address: 'Ring Road, South Ext I',
-    city: 'Delhi',
-    latitude: 28.5684,
-    longitude: 77.2215,
-    totalSlots: 160,
-    availableSlots: 29,
-    hourlyPrice: 30,
-    status: 'Active',
-    amenities: ['Valet Service', 'Underground'],
-  },
-  {
-    _id: 'noida-sec137',
-    parkingName: 'Sector 137 Expressway Hub',
-    address: 'Felix Hospital Rd, Sector 137',
-    city: 'Noida',
-    latitude: 28.5034,
-    longitude: 77.4042,
-    totalSlots: 190,
-    availableSlots: 77,
-    hourlyPrice: 20,
-    status: 'Active',
-    amenities: ['EV Charging', 'Hospital Adjacent'],
-  },
-  {
-    _id: 'noida-sec142',
-    parkingName: 'Advant Navis Corporate Hub',
-    address: 'Sector 142, Noida Expressway',
-    city: 'Noida',
-    latitude: 28.4981,
-    longitude: 77.4105,
-    totalSlots: 450,
-    availableSlots: 198,
-    hourlyPrice: 25,
-    status: 'Active',
-    amenities: ['EV Fast Charging', 'ANPR Gate', 'Corporate'],
-  },
-  {
-    _id: 'delhi-nehru-place',
-    parkingName: 'Nehru Place Tech Hub Parking',
-    address: 'Nehru Place Commercial Complex',
-    city: 'Delhi',
-    latitude: 28.5492,
-    longitude: 77.2519,
-    totalSlots: 280,
-    availableSlots: 65,
-    hourlyPrice: 30,
-    status: 'Active',
-    amenities: ['EV Charging', 'Metro Connect'],
-  },
-  {
-    _id: 'noida-sec50',
-    parkingName: 'Sector 50 Market Square',
-    address: 'Main Market Rd, Sector 50',
-    city: 'Noida',
-    latitude: 28.5770,
-    longitude: 77.3630,
-    totalSlots: 120,
-    availableSlots: 31,
-    hourlyPrice: 20,
-    status: 'Active',
-    amenities: ['Market Square', 'Fast Checkout'],
-  },
-  {
-    _id: 'gr-noida-west',
-    parkingName: 'Gaur City Mall Parking Hub',
-    address: 'Greater Noida West Rd',
-    city: 'Greater Noida',
-    latitude: 28.6087,
-    longitude: 77.4285,
-    totalSlots: 500,
-    availableSlots: 210,
-    hourlyPrice: 20,
-    status: 'Active',
-    amenities: ['EV Charging', 'Mall Parking', 'Covered'],
-  },
-];
+// Baseline Network Locations - Empty by default (never inject mockup/false data)
+export const DEFAULT_NETWORK_LOCATIONS: ParkingLocation[] = [];
 
 const DEFAULT_REGION: Region = {
   latitude: 28.5400,
@@ -248,7 +91,7 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
   const { selectHub } = useBooking();
   const mapRef = useRef<MapView>(null);
 
-  const [locations, setLocations] = useState<ParkingLocation[]>(DEFAULT_NETWORK_LOCATIONS);
+  const [locations, setLocations] = useState<ParkingLocation[]>([]);
   const [selectedCity, setSelectedCity] = useState<'ALL' | 'Noida' | 'Greater Noida' | 'Delhi'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedLocation, setSelectedLocation] = useState<ParkingLocation | null>(null);
@@ -256,7 +99,7 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
   const [isListDrawerOpen, setIsListDrawerOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Fetch live locations from backend and merge with network defaults
+  // Fetch live locations from backend (no mock or false data)
   useEffect(() => {
     if (!visible) return;
 
@@ -279,18 +122,13 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
               availableSlots: h.availableSlots ?? 50,
             };
           });
-
-          // Merge without duplicate names
-          const merged: ParkingLocation[] = [...validLive];
-          DEFAULT_NETWORK_LOCATIONS.forEach((defLoc) => {
-            if (!merged.some((m) => m.parkingName.toLowerCase() === defLoc.parkingName.toLowerCase())) {
-              merged.push(defLoc);
-            }
-          });
-          setLocations(merged);
+          setLocations(validLive);
+        } else {
+          setLocations([]);
         }
       } catch (err) {
-        console.warn('NetworkMapModal: Fallback to default network locations dataset:', err);
+        console.warn('NetworkMapModal: Error fetching locations:', err);
+        setLocations([]);
       } finally {
         setLoading(false);
       }
@@ -609,6 +447,13 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
                     </TouchableOpacity>
                   );
                 }}
+                ListEmptyComponent={
+                  <View style={{ padding: 24, alignItems: 'center' }}>
+                    <Text style={{ color: '#888', fontSize: 13, textAlign: 'center' }}>
+                      No parking facilities found under this category or city.
+                    </Text>
+                  </View>
+                }
               />
             </View>
           )}

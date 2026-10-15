@@ -18,6 +18,7 @@
 - [x] Map UX Refinement: Replaced bulky full-width bottom sheet overlay on map with a compact centered 360px floating popover card (`NetworkMapModal.jsx`).
 - [x] Direct Live GPS Turn-by-Turn Navigation: Implemented `launchLiveGpsNavigation()` (Web) and `launchMobileLiveGpsNavigation()` (Mobile) for instant turn-by-turn driving routing from user's live position (Rapido/Uber style).
 - [x] Mobile HomeScreen Streamlining: Removed Daily Commute Radar, Expressway Toll, FASTag widget, and nearby parking carousel to deliver a clean, fresh, and focused UI centered around primary vehicle status, clean 6-icon quick mobility grid, live active booking session, and network map launcher.
+- [x] Mock & False Data Elimination: Removed all synthetic fallback datasets (`FALLBACK_WASH_CENTERS`, `MOCK_CHALLANS`, mock floor capacities, mock vehicle plates, and hardcoded `DEFAULT_NETWORK_LOCATIONS`) across Mobile and Web. If a category or filter has no data, it leaves it blank cleanly with standard empty states.
 
 ---
 
