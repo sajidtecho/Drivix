@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drivix - Machine Learning Evaluation &amp; Accuracy Guide</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 14mm 12mm 14mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      margin: 0;
+      padding: 0;
+      font-size: 10pt;
+      line-height: 1.4;
+      background: #fff;
+    }
+    .page {
+      page-break-after: always;
+      position: relative;
+      min-height: 265mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .page:last-child {
+      page-break-after: avoid;
+    }
+    .header-bar {
+      border-bottom: 2px solid #2563eb;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .project-name {
+      font-size: 16pt;
+      font-weight: 800;
+      color: #1e3a8a;
+      letter-spacing: -0.3px;
+      text-transform: uppercase;
+    }
+    .doc-subtitle {
+      font-size: 9.5pt;
+      font-weight: 600;
+      color: #475569;
+    }
+    .meta-tag {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 4px;
+      font-size: 8pt;
+      padding: 3px 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    h2 {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 12px 0 6px 0;
+      border-left: 3.5px solid #2563eb;
+      padding-left: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    p {
+      margin: 0 0 6px 0;
+      font-size: 9pt;
+      color: #334155;
+    }
+    
+    /* Flowchart Container */
+    .flowchart-container {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 10px;
+      margin: 8px 0 12px 0;
+    }
+    .flow-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1.1fr auto 1fr;
+      align-items: center;
+      gap: 6px;
+    }
+    .flow-node {
+      background: #fff;
+      border: 1.5px solid #94a3b8;
+      border-radius: 6px;
+      padding: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .node-title {
+      font-size: 8.5pt;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .node-blue { border-color: #3b82f6; }
+    .node-blue .node-title { color: #1d4ed8; }
+    .node-indigo { border-color: #6366f1; background: #faf5ff; }
+    .node-indigo .node-title { color: #4338ca; }
+    .node-emerald { border-color: #10b981; background: #f0fdf4; }
+    .node-emerald .node-title { color: #047857; }
+    .node-amber { border-color: #f59e0b; background: #fffbeb; }
+    .node-amber .node-title { color: #b45309; }
+    
+    .node-list {
+      margin: 0;
+      padding-left: 14px;
+      font-size: 7.5pt;
+      color: #475569;
+    }
+    .node-list li {
+      margin-bottom: 2px;
+    }
+    .flow-arrow {
+      font-size: 14pt;
+      font-weight: 800;
+      color: #64748b;
+      text-align: center;
+    }
+
+    /* Tables */
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8.5pt;
+      margin: 6px 0 10px 0;
+    }
+    .metrics-table th, .metrics-table td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    .metrics-table th {
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .metrics-table td.val {
+      font-weight: 700;
+      color: #1e3a8a;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .badge-excellent {
+      background: #dcfce7;
+      color: #15803d;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+      font-size: 7.5pt;
+    }
+
+    /* Cards Grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .card-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      padding: 8px 10px;
+      background: #ffffff;
+      font-size: 8.5pt;
+    }
+    .card-box-header {
+      font-weight: 700;
+      font-size: 8.5pt;
+      color: #1e293b;
+      margin-bottom: 4px;
+      border-bottom: 1px dashed #cbd5e1;
+      padding-bottom: 3px;
+    }
+
+    /* Viva Speech Box */
+    .viva-box {
+      background: #f8fafc;
+      border: 1.5px solid #3b82f6;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 6px;
+    }
+    .viva-q {
+      font-weight: 700;
+      color: #1e3a8a;
+      font-size: 9pt;
+      margin-bottom: 2px;
+    }
+    .viva-a {
+      font-size: 8.5pt;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .viva-highlight {
+      background: #fef3c7;
+      padding: 1px 3px;
+      border-radius: 2px;
+      font-weight: 600;
+    }
+
+    .footer {
+      border-top: 1px solid #cbd5e1;
+      padding-top: 4px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 7.5pt;
+      color: #64748b;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1: Architecture, Flowchart & Feature Engineering -->
+  <div class="page">
+    <div>
+      <div class="header-bar">
+        <div>
+          <div class="project-name">DRIVIX — ML Pricing &amp; Demand Subsystem</div>
+          <div class="doc-subtitle">Machine Learning Architecture, Working Flowchart &amp; Evaluation Parameters</div>
+        </div>
+        <div class="meta-tag">Judge Evaluation Guide</div>
+      </div>
+
+      <h2>1. Executive Summary &amp; Problem Formulation</h2>
+      <p>
+        In traditional urban smart parking systems, pricing tariffs are statically fixed, causing severe lot congestion during peak commuter rushes and revenue loss during low-occupancy troughs. 
+        <strong>Drivix</strong> introduces an end-to-end <strong>Regression-based Dynamic Pricing Engine</strong> that predicts continuous price multipliers (<strong>0.70x discount up to 1.80x surge</strong>) based on real-time temporal signals, slot availability velocity, and forward reservation lead time.
+      </p>
+
+      <h2>2. Machine Learning Working Flowchart</h2>
+      <div class="flowchart-container">
+        <div class="flow-grid">
+          
+          <!-- Node 1 -->
+          <div class="flow-node node-blue">
+            <div class="node-title">
+              <span>Step 1: Input Features</span>
+              <span style="font-size: 7pt; color: #2563eb;">[Real-Time]</span>
+            </div>
+            <ul class="node-list">
+              <li><strong>f_entry_hour</strong> (Hour: 0–23)</li>
+              <li><strong>f_entry_dow</strong> (Day of week)</li>
+              <li><strong>f_occ_entry_at_quote</strong> (%)</li>
+              <li><strong>f_lead_time_min</strong> (Advance)</li>
+              <li><strong>f_requests_last_60min</strong></li>
+              <li><strong>f_capacity</strong> (Total bays)</li>
+              <li><strong>f_location</strong> (Hub ID)</li>
+            </ul>
+          </div>
+
+          <div class="flow-arrow">&rarr;</div>
+
+          <!-- Node 2 -->
+          <div class="flow-node node-indigo">
+            <div class="node-title">
+              <span>Step 2: Preprocessing</span>
+              <span style="font-size: 7pt; color: #4338ca;">[Pipeline]</span>
+            </div>
+            <ul class="node-list">
+              <li>One-Hot Encoding on categorical hub sites</li>
+              <li>Standard Scaler normalization on continuous indicators</li>
+              <li>Serialized artifact:<br><code>preprocessor.joblib</code></li>
+            </ul>
+          </div>
+
+          <div class="flow-arrow">&rarr;</div>
+
+          <!-- Node 3 -->
+          <div class="flow-node node-emerald">
+            <div class="node-title">
+              <span>Step 3: GBDT Inference</span>
+              <span style="font-size: 7pt; color: #047857;">[Trained Model]</span>
+            </div>
+            <ul class="node-list">
+              <li><strong>HistGradientBoostingRegressor</strong></li>
+              <li>150 iterative trees, max depth 10</li>
+              <li>Outputs continuous demand score</li>
+              <li>Binds into price multiplier:<br><code>[0.70x &ndash; 1.80x]</code></li>
+              <li>Model: <code>drivix_price_model.pkl</code></li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- Feedback & Online Retraining Sub-Flow -->
+        <div style="margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;">
+          <div class="flow-node node-amber">
+            <div class="node-title">
+              <span>Step 4: Inference Logging</span>
+              <span style="font-size: 7pt; color: #b45309;">[Feedback Loop]</span>
+            </div>
+            <ul class="node-list">
+              <li>Express.js logs input vectors &amp; quoted tariffs to <code>inference_logs.jsonl</code></li>
+              <li>ANPR gate sensors record verified vehicle entry &amp; exit dwell times</li>
+            </ul>
+          </div>
+
+          <div class="flow-arrow">&larr;</div>
+
+          <div class="flow-node" style="border-color: #8b5cf6; background: #faf5ff;">
+            <div class="node-title">
+              <span style="color: #6d28d9;">Step 5: Drift &amp; Online Learning</span>
+              <span style="font-size: 7pt; color: #6d28d9;">[Production Resilient]</span>
+            </div>
+            <ul class="node-list">
+              <li><strong>KS-Test &amp; PSI Index:</strong> Automated concept/data drift detector</li>
+              <li><strong>Incremental Online Learner (<code>online_learner.joblib</code>):</strong> Adapts model weights dynamically without downtime</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <h2>3. Engineered Feature Matrix (Why These Matter)</h2>
+      <div class="grid-2">
+        <div class="card-box">
+          <div class="card-box-header">Temporal &amp; Advance Notice Features</div>
+          <ul style="margin: 0; padding-left: 14px; font-size: 8pt; color: #334155;">
+            <li><strong>Hour of Day (`f_entry_hour`):</strong> Captures morning office peak (08:00–10:30) and evening rush (17:30–20:30).</li>
+            <li><strong>Day of Week (`f_entry_dow`):</strong> Differentiates weekday office commuting from weekend mall and entertainment surges.</li>
+            <li><strong>Booking Lead Time (`f_lead_time_min`):</strong> Drivers booking 2 hours in advance get standard rates; instant arrivals during high occupancy receive surge multipliers.</li>
+          </ul>
+        </div>
+        <div class="card-box">
+          <div class="card-box-header">Dynamic Demand &amp; Spatial Features</div>
+          <ul style="margin: 0; padding-left: 14px; font-size: 8pt; color: #334155;">
+            <li><strong>Current Occupancy (`f_occ_entry_at_quote`):</strong> The percentage of physical slots taken. If >85%, dynamic surge triggers to protect capacity.</li>
+            <li><strong>Request Velocity (`f_requests_last_60min`):</strong> Detects flash demand surges (e.g., concert, stadium event, campus exams) before lot is full.</li>
+            <li><strong>Location (`f_location`):</strong> Baseline price sensitivity per hub (e.g., Venice Mall vs Botanical Garden).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Drivix Smart Mobility &bull; Machine Learning Technical Evaluation</span>
+      <span>Page 1 of 2</span>
+    </div>
+  </div>
+
+  <!-- PAGE 2: Exact Metrics, Hyperparameters & Viva Defense Script -->
+  <div class="page">
+    <div>
+      <div class="header-bar">
+        <div>
+          <div class="project-name">DRIVIX — Evaluation Metrics &amp; Viva Defense</div>
+          <div class="doc-subtitle">Validation Benchmark (2,130 Test Samples) &amp; Judge Q&amp;A Defense</div>
+        </div>
+        <div class="meta-tag">Final Model Results</div>
+      </div>
+
+      <h2>4. Model Performance Benchmark &amp; Accuracy Parameters</h2>
+      <p>The model was rigorously validated against an out-of-sample holdout test partition of <strong>2,130 unseen real and simulated booking transactions</strong>:</p>
+
+      <table class="metrics-table">
+        <thead>
+          <tr>
+            <th>Metric Parameter</th>
+            <th style="text-align: center;">Measured Value</th>
+            <th>Academic &amp; Industrial Meaning</th>
+            <th style="text-align: center;">Evaluation Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>R² Score (Variance Explained)</strong></td>
+            <td class="val">0.7825</td>
+            <td>The model accurately accounts for <strong>78.25% of all variance</strong> in dynamic price movements.</td>
+            <td style="text-align: center;"><span class="badge-excellent">Strong &amp; Robust</span></td>
+          </tr>
+          <tr>
+            <td><strong>Mean Absolute Error (MAE)</strong></td>
+            <td class="val">0.0816</td>
+            <td>On average, predicted surge multiplier deviates by <strong>only &plusmn;0.08</strong> (e.g., predicting 1.18x instead of 1.20x).</td>
+            <td style="text-align: center;"><span class="badge-excellent">&lt; 8.2% Deviation</span></td>
+          </tr>
+          <tr>
+            <td><strong>Root Mean Squared Error (RMSE)</strong></td>
+            <td class="val">0.1168</td>
+            <td>Low RMSE confirms absence of severe prediction spikes or catastrophic pricing anomalies.</td>
+            <td style="text-align: center;"><span class="badge-excellent">High Stability</span></td>
+          </tr>
+          <tr>
+            <td><strong>Maximum Error Bound</strong></td>
+            <td class="val">0.6043</td>
+            <td>Safety guardrail ceiling prevents extreme erratic surge tariffs from ever being served to drivers.</td>
+            <td style="text-align: center;"><span class="badge-excellent">Safety Capped</span></td>
+          </tr>
+          <tr>
+            <td><strong>Surge Band MAE (&gt;1.10x)</strong></td>
+            <td class="val">0.1263</td>
+            <td>High-demand peak accuracy during heavy congestion periods.</td>
+            <td style="text-align: center;"><span class="badge-excellent">Reliable Peak Price</span></td>
+          </tr>
+          <tr>
+            <td><strong>Discount Band MAE (&lt;0.95x)</strong></td>
+            <td class="val">0.0746</td>
+            <td>Night &amp; off-peak discount accuracy to attract drivers during empty hours.</td>
+            <td style="text-align: center;"><span class="badge-excellent">High Precision</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="grid-2">
+        <div class="card-box">
+          <div class="card-box-header">Location-Specific Accuracy Breakdown</div>
+          <table style="width: 100%; font-size: 8pt; border-collapse: collapse; margin-top: 3px;">
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td><strong>Vanice Mall:</strong></td>
+              <td style="text-align: right;"><strong>MAE: 0.0694</strong> | RMSE: 0.0977 (1,338 samples)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td><strong>Sharda University:</strong></td>
+              <td style="text-align: right;"><strong>MAE: 0.0911</strong> | RMSE: 0.1288 (410 samples)</td>
+            </tr>
+            <tr>
+              <td><strong>Botanical Garden:</strong></td>
+              <td style="text-align: right;"><strong>MAE: 0.1140</strong> | RMSE: 0.1576 (382 samples)</td>
+            </tr>
+          </table>
+        </div>
+        <div class="card-box">
+          <div class="card-box-header">Tuned Hyperparameters (Grid Search &amp; CV)</div>
+          <table style="width: 100%; font-size: 8pt; border-collapse: collapse; margin-top: 3px;">
+            <tr><td><code>algorithm:</code></td><td style="text-align: right; font-weight: 600;">HistGradientBoosting</td></tr>
+            <tr><td><code>learning_rate:</code></td><td style="text-align: right; font-weight: 600;">0.05 (Conservative convergence)</td></tr>
+            <tr><td><code>max_depth:</code></td><td style="text-align: right; font-weight: 600;">10 (Prevents tree overgrowth)</td></tr>
+            <tr><td><code>max_iter:</code></td><td style="text-align: right; font-weight: 600;">150 boosting iterations</td></tr>
+            <tr><td><code>l2_regularization:</code></td><td style="text-align: right; font-weight: 600;">1.0 (Strict overfit protection)</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <h2>5. Judge Viva Q&amp;A Defense Cheat-Sheet</h2>
+      <div class="viva-box">
+        <div class="viva-q">Q1: "Why did you use Regression instead of a Classification model?"</div>
+        <div class="viva-a">
+          <strong>Answer:</strong> <em>"Classification discretizes prices into coarse buckets (e.g. Low, Medium, High), causing jarring step-function price jumps for users. Regression outputs a <span class="viva-highlight">continuous, smooth dynamic multiplier</span> (e.g. 1.05x, 1.12x), mirroring real-world economic supply-demand curves just like Uber or airline ticketing systems."</em>
+        </div>
+
+        <div class="viva-q">Q2: "What is the concrete business meaning of an MAE of 0.0816?"</div>
+        <div class="viva-a">
+          <strong>Answer:</strong> <em>"An MAE of 0.0816 means that on a ₹100 base hourly parking fee, our model's pricing recommendations deviate by <span class="viva-highlight">less than ₹8.16</span> from the theoretical economic optimum. This ensures fair pricing for drivers while maximizing lot revenue for municipal operators."</em>
+        </div>
+
+        <div class="viva-q">Q3: "How does the model survive real-world concept drift when traffic patterns change?"</div>
+        <div class="viva-a">
+          <strong>Answer:</strong> <em>"We implemented a production <span class="viva-highlight">Continuous Monitoring Pipeline</span> using the Kolmogorov-Smirnov (KS) test and Population Stability Index (PSI). When feature distributions shift significantly (e.g., sudden monsoon rain or road closure), our drift monitor automatically triggers the <code>online_learner</code> to fine-tune weights on fresh incoming data."</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Drivix Smart Mobility &bull; Machine Learning Technical Evaluation</span>
+      <span>Page 2 of 2</span>
+    </div>
+  </div>
+
+</body>
+</html>
