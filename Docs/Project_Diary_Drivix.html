@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Project Diary (Student) - Drivix</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 14mm 15mm 14mm 15mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+      color: #111;
+      margin: 0;
+      padding: 0;
+      font-size: 11pt;
+      line-height: 1.35;
+      background: #fff;
+    }
+    .page {
+      page-break-after: always;
+      position: relative;
+      min-height: 260mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding-bottom: 5mm;
+    }
+    .page:last-child {
+      page-break-after: avoid;
+    }
+    .header-tag {
+      text-align: center;
+      font-size: 9.5pt;
+      font-style: italic;
+      color: #555;
+      margin-bottom: 4px;
+    }
+    .main-title {
+      text-align: center;
+      font-size: 15pt;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin: 0 0 12px 0;
+      text-transform: uppercase;
+      color: #0f172a;
+    }
+    .meta-grid {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 10.5pt;
+    }
+    .meta-line {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .meta-label {
+      font-weight: 600;
+      margin-right: 6px;
+      color: #334155;
+    }
+    .meta-dots {
+      border-bottom: 1px dotted #94a3b8;
+      min-width: 140px;
+      display: inline-block;
+    }
+    .diary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+      font-size: 9pt;
+      table-layout: fixed;
+    }
+    .diary-table th, .diary-table td {
+      border: 1px solid #334155;
+      padding: 6px 7px;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+    .diary-table th {
+      background-color: #f1f5f9;
+      font-weight: 700;
+      text-align: center;
+      color: #0f172a;
+      font-size: 9pt;
+    }
+    .col-week { width: 9%; text-align: center; font-weight: 600; }
+    .col-date { width: 12%; text-align: center; white-space: nowrap; }
+    .col-status { width: 27%; }
+    .col-remarks { width: 23%; }
+    .col-task { width: 20%; }
+    .col-sign { width: 9%; text-align: center; }
+
+    .date-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-weight: 500;
+      color: #1e293b;
+    }
+    .signed-badge {
+      color: #15803d;
+      font-weight: 700;
+      font-size: 8pt;
+      display: inline-block;
+      padding: 2px 4px;
+      border: 1px dashed #86efac;
+      border-radius: 3px;
+      background: #f0fdf4;
+    }
+    .pending-badge {
+      color: #94a3b8;
+      font-size: 7.5pt;
+    }
+    .footer-note {
+      font-size: 8pt;
+      font-style: italic;
+      color: #475569;
+      border-top: 1px solid #cbd5e1;
+      padding-top: 5px;
+      margin-top: 10px;
+    }
+    .page-indicator {
+      text-align: right;
+      font-size: 7.5pt;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    .section-badge {
+      display: inline-block;
+      font-size: 7pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+    }
+    .badge-past { background: #e2e8f0; color: #475569; }
+    .badge-core { background: #e0f2fe; color: #0369a1; }
+    .badge-current { background: #fef3c7; color: #92400e; }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1: Weeks 1 to 8 -->
+  <div class="page">
+    <div>
+      <div class="header-tag">Project Diary to be maintained by each student</div>
+      <div class="main-title">Project Diary (Student)</div>
+      
+      <div class="meta-grid">
+        <div style="flex: 1;">
+          <div class="meta-line">
+            <span class="meta-label">Name:</span>
+            <span class="meta-dots" style="min-width: 200px;"></span>
+          </div>
+          <div class="meta-line">
+            <span class="meta-label">Project Title:</span>
+            <span>Drivix – Smart Parking &amp; Urban Mobility Platform</span>
+          </div>
+        </div>
+        <div style="flex: 0.8; text-align: right;">
+          <div class="meta-line" style="justify-content: flex-end;">
+            <span class="meta-label">Enrollment No.:</span>
+            <span class="meta-dots" style="min-width: 140px;"></span>
+          </div>
+          <div class="meta-line" style="justify-content: flex-end;">
+            <span class="meta-label">Mentor:</span>
+            <span>Prof. Reeti</span>
+          </div>
+        </div>
+      </div>
+
+      <table class="diary-table">
+        <thead>
+          <tr>
+            <th class="col-week">Week</th>
+            <th class="col-date">Date of Visit</th>
+            <th class="col-status">Status of Task assigned during last visit</th>
+            <th class="col-remarks">Remarks</th>
+            <th class="col-task">Task to be carried out till next visit</th>
+            <th class="col-sign">Signature of Guide</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-week">One</td>
+            <td class="col-date"><div class="date-stack"><span>10/03/26</span><span>12/03/26</span></div></td>
+            <td class="col-status">Initial resources SPS, IoT concept exploration</td>
+            <td class="col-remarks">Guide suggested focus on real-world parking problem</td>
+            <td class="col-task">Prepare detailed problem statement</td>
+            <td class="col-sign"><span class="signed-badge">Signed (Reeti)</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Two</td>
+            <td class="col-date"><div class="date-stack"><span>15/03/26</span><span>18/03/26</span></div></td>
+            <td class="col-status">Literature survey on smart parking systems</td>
+            <td class="col-remarks">Improve feasibility planning and hardware scope</td>
+            <td class="col-task">Continue architecture planning</td>
+            <td class="col-sign"><span class="signed-badge">Signed (Reeti)</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Three</td>
+            <td class="col-date"><div class="date-stack"><span>20/03/26</span><span>22/03/26</span></div></td>
+            <td class="col-status">Workflow planning completed</td>
+            <td class="col-remarks">Improve model structure &amp; system flowcharts</td>
+            <td class="col-task">Study database and API frameworks</td>
+            <td class="col-sign"><span class="signed-badge">Signed (Reeti)</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Four</td>
+            <td class="col-date"><div class="date-stack"><span>24/03/26</span><span>26/03/26</span></div></td>
+            <td class="col-status">API and database research concluded</td>
+            <td class="col-remarks">Focus on usability &amp; seamless driver experience</td>
+            <td class="col-task">Start implementation planning</td>
+            <td class="col-sign"><span class="signed-badge">Signed (Reeti)</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Five</td>
+            <td class="col-date"><div class="date-stack"><span>28/03/26</span><span>31/03/26</span></div></td>
+            <td class="col-status">Backend &amp; frontend modular planning</td>
+            <td class="col-remarks">Improve module separation (Web vs Mobile app)</td>
+            <td class="col-task">Continue API contract planning</td>
+            <td class="col-sign"><span class="signed-badge">Signed (Reeti)</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Six</td>
+            <td class="col-date"><div class="date-stack"><span>30/03/26</span><span>02/04/26</span></div></td>
+            <td class="col-status">Frontend &amp; backend architectural planning</td>
+            <td class="col-remarks">Focus on scalable backend &amp; concurrent booking locks</td>
+            <td class="col-task">Begin implementation preparation</td>
+            <td class="col-sign"><span class="signed-badge">Signed (Reeti)</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Seven</td>
+            <td class="col-date"><div class="date-stack"><span>07/04/26</span><span>09/04/26</span></div></td>
+            <td class="col-status">QR Navigation workflow defined</td>
+            <td class="col-remarks">Planning appreciated by guide; approved design</td>
+            <td class="col-task">Continue implementation planning</td>
+            <td class="col-sign"><span class="signed-badge">Signed (Reeti)</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Eight</td>
+            <td class="col-date"><div class="date-stack"><span>14/04/26</span><span>15/04/26</span></div></td>
+            <td class="col-status"><span class="section-badge badge-core">Core Phase</span><br>Implementation planning finalized; Tech stack modularized</td>
+            <td class="col-remarks">Stack choices approved; Maintain clear separation of concerns</td>
+            <td class="col-task">Setup monorepo and initialize backend Express environment</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <div class="footer-note">Student is required to maintain one separate page for each visit on which he has to write description of the task and brief idea how that task was carried out.</div>
+      <div class="page-indicator">Page 1 of 5 (Weeks 1 – 8)</div>
+    </div>
+  </div>
+
+  <!-- PAGE 2: Weeks 9 to 16 -->
+  <div class="page">
+    <div>
+      <div class="header-tag">Project Diary to be maintained by each student</div>
+      <div class="main-title">Project Diary (Student) — Monorepo &amp; Backend Infrastructure</div>
+      
+      <table class="diary-table">
+        <thead>
+          <tr>
+            <th class="col-week">Week</th>
+            <th class="col-date">Date of Visit</th>
+            <th class="col-status">Status of Task assigned during last visit</th>
+            <th class="col-remarks">Remarks</th>
+            <th class="col-task">Task to be carried out till next visit</th>
+            <th class="col-sign">Signature of Guide</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-week">Nine</td>
+            <td class="col-date"><div class="date-stack"><span>21/04/26</span><span>22/04/26</span></div></td>
+            <td class="col-status">Monorepo structured (`WebApp`, `App`, `backend`); Express server initialized</td>
+            <td class="col-remarks">Good clean structure; Ensure robust database connection security</td>
+            <td class="col-task">Design MongoDB Atlas schemas for Users, Hubs, and Slots</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Ten</td>
+            <td class="col-date"><div class="date-stack"><span>28/04/26</span><span>29/04/26</span></div></td>
+            <td class="col-status">MongoDB Schemas &amp; database connection established</td>
+            <td class="col-remarks">Verified schema design; Focus on secure tokenized authentication</td>
+            <td class="col-task">Implement JWT authentication and OTP registration flow</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Eleven</td>
+            <td class="col-date"><div class="date-stack"><span>05/05/26</span><span>06/05/26</span></div></td>
+            <td class="col-status">JWT authentication &amp; OTP verification endpoints built</td>
+            <td class="col-remarks">Authentication verified; Advised adding rate-limiting on OTP routes</td>
+            <td class="col-task">Develop Parking Hub and dynamic Slot inventory management APIs</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twelve</td>
+            <td class="col-date"><div class="date-stack"><span>12/05/26</span><span>13/05/26</span></div></td>
+            <td class="col-status">Parking Hub listing &amp; slot status endpoints active</td>
+            <td class="col-remarks">Verified API responses; Ensure multi-floor capacity tracking</td>
+            <td class="col-task">Design automated slot allocation logic algorithm</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Thirteen</td>
+            <td class="col-date"><div class="date-stack"><span>19/05/26</span><span>20/05/26</span></div></td>
+            <td class="col-status">Slot allocation engine (`SlotAllocationService`) formulated</td>
+            <td class="col-remarks">Check for race conditions &amp; double-booking under concurrency</td>
+            <td class="col-task">Implement atomic soft-lock concurrency mechanism with timer</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Fourteen</td>
+            <td class="col-date"><div class="date-stack"><span>26/05/26</span><span>27/05/26</span></div></td>
+            <td class="col-status">5-minute atomic soft-lock engine &amp; auto-release worker running</td>
+            <td class="col-remarks">Effective lock mechanism; Verify background worker under load</td>
+            <td class="col-task">Setup Socket.IO server hub for real-time slot occupancy broadcast</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Fifteen</td>
+            <td class="col-date"><div class="date-stack"><span>02/06/26</span><span>03/06/26</span></div></td>
+            <td class="col-status">Socket.IO real-time hub connected with room subscriptions</td>
+            <td class="col-remarks">Approved real-time architecture; Keep socket payloads minimal</td>
+            <td class="col-task">Develop ANPR automated gate entry/exit simulator logic</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Sixteen</td>
+            <td class="col-date"><div class="date-stack"><span>09/06/26</span><span>10/06/26</span></div></td>
+            <td class="col-status">ANPR Gate Controller (`gateController.js`) simulated with license plates</td>
+            <td class="col-remarks">Gate cycle confirmed; Create visual web simulator dashboard</td>
+            <td class="col-task">Build React WebApp ANPR Gate simulator UI dashboard</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <div class="footer-note">Student is required to maintain one separate page for each visit on which he has to write description of the task and brief idea how that task was carried out.</div>
+      <div class="page-indicator">Page 2 of 5 (Weeks 9 – 16)</div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: Weeks 17 to 24 -->
+  <div class="page">
+    <div>
+      <div class="header-tag">Project Diary to be maintained by each student</div>
+      <div class="main-title">Project Diary (Student) — Mobile App &amp; Booking Architecture</div>
+      
+      <table class="diary-table">
+        <thead>
+          <tr>
+            <th class="col-week">Week</th>
+            <th class="col-date">Date of Visit</th>
+            <th class="col-status">Status of Task assigned during last visit</th>
+            <th class="col-remarks">Remarks</th>
+            <th class="col-task">Task to be carried out till next visit</th>
+            <th class="col-sign">Signature of Guide</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-week">Seventeen</td>
+            <td class="col-date"><div class="date-stack"><span>16/06/26</span><span>17/06/26</span></div></td>
+            <td class="col-status">`AnprGateSimulator.jsx` web interface connected to live backend</td>
+            <td class="col-remarks">Demonstration appreciated; Now initiate mobile client setup</td>
+            <td class="col-task">Initialize React Native Expo mobile app and theme system</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Eighteen</td>
+            <td class="col-date"><div class="date-stack"><span>23/06/26</span><span>24/06/26</span></div></td>
+            <td class="col-status">Mobile repo configured with Expo, navigation stack, &amp; theme tokens</td>
+            <td class="col-remarks">Clean layout foundation; Ensure cohesive colors and spacing</td>
+            <td class="col-task">Implement mobile Axios API client with JWT interceptors</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Nineteen</td>
+            <td class="col-date"><div class="date-stack"><span>30/06/26</span><span>01/07/26</span></div></td>
+            <td class="col-status">Mobile API client &amp; secure storage token handling completed</td>
+            <td class="col-remarks">Verified state retention; Ready for authentication screens</td>
+            <td class="col-task">Create mobile Auth screens (Login, OTP registration)</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twenty</td>
+            <td class="col-date"><div class="date-stack"><span>07/07/26</span><span>08/07/26</span></div></td>
+            <td class="col-status">Mobile authentication &amp; user profile onboarding screens completed</td>
+            <td class="col-remarks">Tested login successfully; Handle keyboard avoidance on mobile</td>
+            <td class="col-task">Build Parking Discovery Screen with search and filter tabs</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twenty One</td>
+            <td class="col-date"><div class="date-stack"><span>14/07/26</span><span>15/07/26</span></div></td>
+            <td class="col-status">`ParkingDiscoveryScreen` completed with live availability badges</td>
+            <td class="col-remarks">Search is snappy; Add clear distance and pricing tags</td>
+            <td class="col-task">Implement Parking Detail Screen with hub amenities and tariff</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twenty Two</td>
+            <td class="col-date"><div class="date-stack"><span>21/07/26</span><span>22/07/26</span></div></td>
+            <td class="col-status">`ParkingDetailScreen` designed with pricing and facility info</td>
+            <td class="col-remarks">Guide suggested intuitive floor and vehicle type selection</td>
+            <td class="col-task">Develop `FloorSelectionScreen` with floor capacity indicators</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twenty Three</td>
+            <td class="col-date"><div class="date-stack"><span>28/07/26</span><span>29/07/26</span></div></td>
+            <td class="col-status">Interactive Floor Selection screen integrated with backend slots</td>
+            <td class="col-remarks">Visual slot layout approved; Prevent selection of locked slots</td>
+            <td class="col-task">Implement Booking Duration &amp; timing selection screen</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twenty Four</td>
+            <td class="col-date"><div class="date-stack"><span>04/08/26</span><span>05/08/26</span></div></td>
+            <td class="col-status">`DurationSelectionScreen` with hourly/daily pricing implemented</td>
+            <td class="col-remarks">Tariff logic verified; Provide clear booking summary before checkout</td>
+            <td class="col-task">Create Booking Review screen and booking context state</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <div class="footer-note">Student is required to maintain one separate page for each visit on which he has to write description of the task and brief idea how that task was carried out.</div>
+      <div class="page-indicator">Page 3 of 5 (Weeks 17 – 24)</div>
+    </div>
+  </div>
+
+  <!-- PAGE 4: Weeks 25 to 32 -->
+  <div class="page">
+    <div>
+      <div class="header-tag">Project Diary to be maintained by each student</div>
+      <div class="main-title">Project Diary (Student) — Navigation, Map UX &amp; Mobility Services</div>
+      
+      <table class="diary-table">
+        <thead>
+          <tr>
+            <th class="col-week">Week</th>
+            <th class="col-date">Date of Visit</th>
+            <th class="col-status">Status of Task assigned during last visit</th>
+            <th class="col-remarks">Remarks</th>
+            <th class="col-task">Task to be carried out till next visit</th>
+            <th class="col-sign">Signature of Guide</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-week">Twenty Five</td>
+            <td class="col-date"><div class="date-stack"><span>11/08/26</span><span>12/08/26</span></div></td>
+            <td class="col-status">`BookingReviewScreen` &amp; active reservation state management completed</td>
+            <td class="col-remarks">Advised generating unique digital QR pass upon confirmation</td>
+            <td class="col-task">Implement Active Parking session screen with live countdown timer</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twenty Six</td>
+            <td class="col-date"><div class="date-stack"><span>18/08/26</span><span>19/08/26</span></div></td>
+            <td class="col-status">`ActiveParkingScreen` with session QR pass &amp; timer built</td>
+            <td class="col-remarks">QR entry pass verified; Plan user vehicle vault and history</td>
+            <td class="col-task">Implement Booking History screen and vehicle profile management</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twenty Seven</td>
+            <td class="col-date"><div class="date-stack"><span>25/08/26</span><span>26/08/26</span></div></td>
+            <td class="col-status">Profile Screen, document vault, and booking history screens done</td>
+            <td class="col-remarks">User profile complete; Proceed to interactive map-based discovery</td>
+            <td class="col-task">Build interactive Map Modal with hub markers and geo-coordinates</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twenty Eight</td>
+            <td class="col-date"><div class="date-stack"><span>01/09/26</span><span>02/09/26</span></div></td>
+            <td class="col-status">`NetworkMapModal` developed with map pin filtering</td>
+            <td class="col-remarks">Bottom sheet obstructs map; Suggested compact floating card</td>
+            <td class="col-task">Replace bulky map overlay with centered floating popover card</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Twenty Nine</td>
+            <td class="col-date"><div class="date-stack"><span>08/09/26</span><span>09/09/26</span></div></td>
+            <td class="col-status">Compact floating popover card integrated on Web and Mobile map</td>
+            <td class="col-remarks">Map visibility and responsiveness greatly improved; Add live routing</td>
+            <td class="col-task">Implement direct live GPS turn-by-turn navigation (Uber/Rapido style)</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Thirty</td>
+            <td class="col-date"><div class="date-stack"><span>15/09/26</span><span>16/09/26</span></div></td>
+            <td class="col-status">`launchLiveGpsNavigation` integrated with native device maps</td>
+            <td class="col-remarks">Routing tested smoothly; Expand platform to driver care services</td>
+            <td class="col-task">Build Car Wash &amp; Detailing discovery screen and backend routes</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Thirty One</td>
+            <td class="col-date"><div class="date-stack"><span>22/09/26</span><span>23/09/26</span></div></td>
+            <td class="col-status">Car wash center schema, seed utilities, &amp; discovery filter added</td>
+            <td class="col-remarks">Advised replacing generic dummy data with real NCR facility records</td>
+            <td class="col-task">Populate real NCR detailing centers via OpenStreetMap script</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Thirty Two</td>
+            <td class="col-date"><div class="date-stack"><span>29/09/26</span><span>30/09/26</span></div></td>
+            <td class="col-status">Real OpenStreetMap car spa dataset integrated into discovery screen</td>
+            <td class="col-remarks">Real-world data appreciated; Streamline mobile home screen</td>
+            <td class="col-task">Streamline Mobile HomeScreen into focused driver dashboard</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <div class="footer-note">Student is required to maintain one separate page for each visit on which he has to write description of the task and brief idea how that task was carried out.</div>
+      <div class="page-indicator">Page 4 of 5 (Weeks 25 – 32)</div>
+    </div>
+  </div>
+
+  <!-- PAGE 5: Weeks 33 to 34 & Project Summary -->
+  <div class="page">
+    <div>
+      <div class="header-tag">Project Diary to be maintained by each student</div>
+      <div class="main-title">Project Diary (Student) — Polish, Cleanup &amp; Final Review</div>
+      
+      <table class="diary-table">
+        <thead>
+          <tr>
+            <th class="col-week">Week</th>
+            <th class="col-date">Date of Visit</th>
+            <th class="col-status">Status of Task assigned during last visit</th>
+            <th class="col-remarks">Remarks</th>
+            <th class="col-task">Task to be carried out till next visit</th>
+            <th class="col-sign">Signature of Guide</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-week">Thirty Three</td>
+            <td class="col-date"><div class="date-stack"><span>06/10/26</span><span>07/10/26</span></div></td>
+            <td class="col-status">HomeScreen decluttered; Clean 6-icon grid, vehicle status &amp; active session</td>
+            <td class="col-remarks">Clean UI praised; Eliminate synthetic mock data across all modules</td>
+            <td class="col-task">Remove all mock/fallback data and enforce clean empty states</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+          <tr>
+            <td class="col-week">Thirty Four</td>
+            <td class="col-date"><div class="date-stack"><span>13/10/26</span><span style="font-size:7pt; color:#64748b;">(Current Visit)</span></div></td>
+            <td class="col-status"><span class="section-badge badge-current">Current Review</span><br>Completely purged synthetic mock data; Verified live endpoints and graceful empty states</td>
+            <td class="col-remarks">Commended high engineering standards and production readiness; Prepare testing report</td>
+            <td class="col-task">Conduct end-to-end integration testing and document test cases</td>
+            <td class="col-sign"><span class="pending-badge">[To Sign]</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Implementation Summary Box for Student Defense / Mentor Review -->
+      <div style="margin-top: 15px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 10px; background: #f8fafc; font-size: 8.5pt;">
+        <div style="font-weight: 700; color: #1e293b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Key Milestone Summary (For Viva &amp; Mentor Verification):</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div>
+            <strong>1. Core Infrastructure &amp; Backend:</strong>
+            <ul style="margin: 2px 0 6px 16px; padding: 0;">
+              <li>Monorepo architecture (`WebApp`, `App`, `backend`).</li>
+              <li>MongoDB Atlas cluster with JWT/OTP authentication.</li>
+              <li>Real-time multi-client communication using Socket.IO.</li>
+            </ul>
+            <strong>2. Smart Allocation &amp; Concurrency:</strong>
+            <ul style="margin: 2px 0 0 16px; padding: 0;">
+              <li>Multi-criteria automated slot allocation engine.</li>
+              <li>5-minute atomic soft-lock hold timer preventing double booking.</li>
+              <li>ANPR barrier gate simulator with automated optical recognition.</li>
+            </ul>
+          </div>
+          <div>
+            <strong>3. Mobile Client (React Native &amp; Expo):</strong>
+            <ul style="margin: 2px 0 6px 16px; padding: 0;">
+              <li>End-to-end booking flow: Discovery &rarr; Detail &rarr; Floor &rarr; Duration &rarr; Confirmation.</li>
+              <li>Active parking pass with animated countdown and digital QR gate pass.</li>
+              <li>Direct live GPS turn-by-turn routing via Google Maps / Apple Maps.</li>
+            </ul>
+            <strong>4. Value-Added Mobility Ecosystem:</strong>
+            <ul style="margin: 2px 0 0 16px; padding: 0;">
+              <li>Car Wash &amp; Detailing center discovery with OpenStreetMap NCR data.</li>
+              <li>Production polish: zero synthetic mock fallbacks with clean empty states.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="footer-note">Student is required to maintain one separate page for each visit on which he has to write description of the task and brief idea how that task was carried out.</div>
+      <div class="page-indicator">Page 5 of 5 (Weeks 33 – 34)</div>
+    </div>
+  </div>
+
+</body>
+</html>
