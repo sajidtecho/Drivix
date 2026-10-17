@@ -132,3 +132,84 @@ def get_inference_engine():
 def predict_demand_and_price(feature_dict, base_rate=60):
     engine = get_inference_engine()
     return engine.predict_single(feature_dict, base_hourly_rate=base_rate)
+
+# Stage 1 Occupancy Forecaster Helper
+_occupancy_forecaster = None
+def get_occupancy_forecaster():
+    global _occupancy_forecaster
+    if _occupancy_forecaster is None:
+        path = os.path.join(os.path.dirname(__file__), "..", "models", "occupancy_forecaster.joblib")
+        if not os.path.exists(path):
+            alt = os.path.join("models", "occupancy_forecaster.joblib")
+            if os.path.exists(alt):
+                path = alt
+        if os.path.exists(path):
+            _occupancy_forecaster = joblib.load(path)
+    return _occupancy_forecaster
+
+def forecast_lot_occupancy(
+    capacity: int = 100,
+    current_occupancy_rate: float = 0.5,
+    lag_2_occ: float = None,
+    lag_3_occ: float = None,
+    hour: int = None,
+    minute: int = None,
+    day_of_week: int = None,
+    is_weekend: int = None
+):
+    artifact = get_occupancy_forecaster()
+    if artifact is None:
+        raise RuntimeError("Occupancy forecaster model not found. Run training first.")
+
+    forecaster = artifact["model"]
+    feature_names = artifact["features"]
+
+    now = pd.Timestamp.now()
+    h = hour if hour is not None else now.hour
+    m = minute if minute is not None else now.minute
+    dow = day_of_week if day_of_week is not None else now.dayofweek
+    weekend = is_weekend if is_weekend is not None else (1 if dow >= 5 else 0)
+
+    l1 = float(current_occupancy_rate)
+    l2 = float(lag_2_occ if lag_2_occ is not None else l1)
+    l3 = float(lag_3_occ if lag_3_occ is not None else l2)
+
+    sin_h = np.sin(2 * np.pi * (h + m / 60.0) / 24.0)
+    cos_h = np.cos(2 * np.pi * (h + m / 60.0) / 24.0)
+    sin_d = np.sin(2 * np.pi * dow / 7.0)
+    cos_d = np.cos(2 * np.pi * dow / 7.0)
+
+    velocity = l1 - l2
+    rolling_mean = np.mean([l1, l2, l3])
+    rolling_std = np.std([l1, l2, l3])
+
+    input_df = pd.DataFrame([{
+        "Capacity": float(capacity),
+        "hour": int(h),
+        "minute": int(m),
+        "day_of_week": int(dow),
+        "is_weekend": int(weekend),
+        "sin_hour": sin_h,
+        "cos_hour": cos_h,
+        "sin_dow": sin_d,
+        "cos_dow": cos_d,
+        "lag_1_occ_rate": l1,
+        "lag_2_occ_rate": l2,
+        "lag_3_occ_rate": l3,
+        "occ_velocity": velocity,
+        "rolling_mean_3step": rolling_mean,
+        "rolling_std_3step": rolling_std
+    }])[feature_names]
+
+    pred_occ = float(np.clip(forecaster.predict(input_df)[0], 0.0, 1.0))
+    occupied_slots = int(round(pred_occ * capacity))
+    available_slots = max(0, capacity - occupied_slots)
+
+    return {
+        "predicted_occupancy_rate": round(pred_occ, 4),
+        "predicted_occupancy_percent": round(pred_occ * 100, 1),
+        "total_capacity": int(capacity),
+        "predicted_occupied_slots": occupied_slots,
+        "predicted_available_slots": available_slots,
+        "model_version": f"{artifact['model_name']} (Birmingham R2=96.2%)"
+    }
