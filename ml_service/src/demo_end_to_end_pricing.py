@@ -1,8 +1,12 @@
 import os
+import sys
 import joblib
 import numpy as np
 import pandas as pd
 from predict import DrivixPricingInferenceEngine
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 def run_end_to_end_demo():
     print("=" * 70)
