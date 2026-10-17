@@ -40,33 +40,46 @@ def run_end_to_end_demo():
             "lag_1_occ": 0.18, # 18% full 30 mins ago
             "lag_2_occ": 0.12,
             "lag_3_occ": 0.08,
-            "base_rate": 60,
+            "base_rate": 50,
             "duration": 2
         },
         {
-            "title": "Scenario B: Midday Regular Traffic",
+            "title": "Scenario B: Midday Regular Traffic (Standard Rate)",
             "hour": 12,
             "minute": 30,
             "day_of_week": 2, # Wednesday
             "is_weekend": 0,
             "capacity": 800,
-            "lag_1_occ": 0.52, # 52% full
-            "lag_2_occ": 0.48,
-            "lag_3_occ": 0.45,
-            "base_rate": 60,
+            "lag_1_occ": 0.42, # 42% full
+            "lag_2_occ": 0.40,
+            "lag_3_occ": 0.38,
+            "base_rate": 50,
             "duration": 3
         },
         {
-            "title": "Scenario C: Weekend Shopping Rush (High Surge)",
+            "title": "Scenario C: Busy Afternoon Demand (3% Surge)",
+            "hour": 16,
+            "minute": 0,
+            "day_of_week": 4, # Friday
+            "is_weekend": 0,
+            "capacity": 1000,
+            "lag_1_occ": 0.74, # 74% full
+            "lag_2_occ": 0.70,
+            "lag_3_occ": 0.65,
+            "base_rate": 50,
+            "duration": 3
+        },
+        {
+            "title": "Scenario D: Peak Weekend Shopping Rush (5% Max Surge)",
             "hour": 14,
             "minute": 0,
             "day_of_week": 5, # Saturday
             "is_weekend": 1,
             "capacity": 1500,
-            "lag_1_occ": 0.88, # 88% full
-            "lag_2_occ": 0.82,
-            "lag_3_occ": 0.75,
-            "base_rate": 60,
+            "lag_1_occ": 0.89, # 89% full
+            "lag_2_occ": 0.85,
+            "lag_3_occ": 0.80,
+            "base_rate": 50,
             "duration": 4
         }
     ]
