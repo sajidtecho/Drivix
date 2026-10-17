@@ -16,22 +16,22 @@ def test_inference_engine_singleton_loads_model():
 def test_pricing_policy_multipliers():
     engine = get_inference_engine()
 
-    # Critical surge: occ >= 0.85 -> 1.50x
+    # Critical surge: occ >= 0.85 -> 1.05x (+5% maximum fair adjustment)
     res_crit = engine.calculate_price_policy(0.92, base_hourly_rate=60, duration_hours=2)
-    assert res_crit['pricing_multiplier'] == 1.50
+    assert res_crit['pricing_multiplier'] == 1.05
     assert res_crit['is_surge_active'] is True
-    assert res_crit['recommended_hourly_price'] == 90
-    assert res_crit['total_quoted_cost'] == 180
+    assert res_crit['recommended_hourly_price'] == 63
+    assert res_crit['total_quoted_cost'] == 126
 
-    # High surge: occ >= 0.70 -> 1.25x
+    # High surge: occ >= 0.70 -> 1.03x (+3% fair adjustment)
     res_high = engine.calculate_price_policy(0.75, base_hourly_rate=60, duration_hours=2)
-    assert res_high['pricing_multiplier'] == 1.25
+    assert res_high['pricing_multiplier'] == 1.03
     assert res_high['is_surge_active'] is True
-    assert res_high['recommended_hourly_price'] == 75
+    assert res_high['recommended_hourly_price'] == 61.8
 
-    # Moderate demand: occ >= 0.50 -> 1.10x
+    # Moderate demand: occ >= 0.50 -> 1.015x
     res_mod = engine.calculate_price_policy(0.55, base_hourly_rate=60, duration_hours=2)
-    assert res_mod['pricing_multiplier'] == 1.10
+    assert res_mod['pricing_multiplier'] == 1.015
     assert res_mod['is_surge_active'] is False
 
     # Normal base rate: occ >= 0.30 -> 1.00x
@@ -40,12 +40,12 @@ def test_pricing_policy_multipliers():
     assert res_norm['is_surge_active'] is False
     assert res_norm['recommended_hourly_price'] == 60
 
-    # Off-peak discount: occ < 0.30 -> 0.85x
+    # Off-peak discount: occ < 0.30 -> 0.97x (3% off)
     res_disc = engine.calculate_price_policy(0.15, base_hourly_rate=60, duration_hours=2)
-    assert res_disc['pricing_multiplier'] == 0.85
+    assert res_disc['pricing_multiplier'] == 0.97
     assert res_disc['is_surge_active'] is False
-    assert res_disc['recommended_hourly_price'] == 51
-    assert res_disc['total_quoted_cost'] == 102
+    assert res_disc['recommended_hourly_price'] == 58.2
+    assert res_disc['total_quoted_cost'] == 116.4
 
 def test_predict_single_bounds():
     engine = get_inference_engine()
