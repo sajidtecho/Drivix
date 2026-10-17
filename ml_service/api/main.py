@@ -4,8 +4,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Ensure src path is discoverable
-SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+# Ensure src and api paths are discoverable
+API_DIR = os.path.abspath(os.path.dirname(__file__))
+if API_DIR not in sys.path:
+    sys.path.insert(0, API_DIR)
+
+SRC_DIR = os.path.abspath(os.path.join(API_DIR, "..", "src"))
 if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 

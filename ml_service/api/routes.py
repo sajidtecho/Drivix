@@ -11,7 +11,7 @@ SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
-from predict import get_inference_engine, FEATURE_COLUMNS_RAW
+from predict import get_inference_engine, forecast_lot_occupancy, FEATURE_COLUMNS_RAW
 from inference_logger import log_inference_event
 from drift_detector import generate_drift_report
 from retrain_pipeline import DrivixRetrainingPipeline
@@ -24,6 +24,24 @@ router = APIRouter()
 # -------------------------------------------------------------
 # Pydantic Schemas
 # -------------------------------------------------------------
+class OccupancyForecastRequest(BaseModel):
+    capacity: int = Field(default=100, ge=1, description="Total lot capacity")
+    current_occupancy_rate: float = Field(default=0.5, ge=0.0, le=1.0, description="Latest known occupancy rate (0.0 to 1.0)")
+    lag_2_occupancy_rate: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Occupancy rate 60 mins ago")
+    lag_3_occupancy_rate: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Occupancy rate 90 mins ago")
+    hour: Optional[int] = Field(default=None, ge=0, le=23, description="Target prediction hour (0-23)")
+    minute: Optional[int] = Field(default=None, ge=0, le=59, description="Target minute (0-59)")
+    day_of_week: Optional[int] = Field(default=None, ge=0, le=6, description="Day of week (0=Mon, 6=Sun)")
+    is_weekend: Optional[int] = Field(default=None, ge=0, le=1, description="1 if weekend else 0")
+
+class OccupancyForecastResponse(BaseModel):
+    predicted_occupancy_rate: float
+    predicted_occupancy_percent: float
+    total_capacity: int
+    predicted_occupied_slots: int
+    predicted_available_slots: int
+    model_version: str
+
 class PricingQuoteRequest(BaseModel):
     location_name: str = Field(default="Connaught Place", description="Parking location / facility name")
     total_capacity: int = Field(default=100, ge=1, description="Total parking capacity (slots)")
@@ -47,9 +65,9 @@ class PricingQuoteResponse(BaseModel):
     alert_label: str
     is_surge_active: bool
     base_hourly_rate: float
-    recommended_hourly_price: int
+    recommended_hourly_price: float
     duration_hours: float
-    total_quoted_cost: int
+    total_quoted_cost: float
     model_version: str
     online_learning_applied: Optional[bool] = False
     online_residual: Optional[float] = 0.0
@@ -163,6 +181,28 @@ def predict_price_quote(request: PricingQuoteRequest, background_tasks: Backgrou
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
+
+@router.post("/forecast-occupancy", response_model=OccupancyForecastResponse, summary="Forecast parking occupancy using Stage 1 sensor model")
+def forecast_occupancy(request: OccupancyForecastRequest):
+    """
+    Directly queries the Stage 1 HistGradientBoosting occupancy forecasting model
+    (trained on 35,000+ real sensor readings) to project parking lot occupancy
+    and available capacity 30-60 minutes ahead.
+    """
+    try:
+        result = forecast_lot_occupancy(
+            capacity=request.capacity,
+            current_occupancy_rate=request.current_occupancy_rate,
+            lag_2_occ=request.lag_2_occupancy_rate,
+            lag_3_occ=request.lag_3_occupancy_rate,
+            hour=request.hour,
+            minute=request.minute,
+            day_of_week=request.day_of_week,
+            is_weekend=request.is_weekend
+        )
+        return OccupancyForecastResponse(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Occupancy forecast error: {str(e)}")
 
 @router.post("/predict/batch", response_model=BatchPricingResponse, summary="Batch price quote predictions")
 def predict_price_batch(batch_req: BatchPricingRequest, background_tasks: BackgroundTasks):
