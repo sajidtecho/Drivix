@@ -1,0 +1,130 @@
+{
+  "best_model": "HistGradientBoosting Regressor",
+  "validation_benchmark": [
+    {
+      "model": "Baseline: Global Mean",
+      "mae": 0.2528,
+      "rmse": 0.2913,
+      "r2": -0.044,
+      "max_error": 0.5233
+    },
+    {
+      "model": "Baseline: Persistence (Lag 1)",
+      "mae": 0.099,
+      "rmse": 0.1536,
+      "r2": 0.7097,
+      "max_error": 0.9584
+    },
+    {
+      "model": "Linear Regression",
+      "mae": 0.0687,
+      "rmse": 0.1027,
+      "r2": 0.8701,
+      "max_error": 0.6917
+    },
+    {
+      "model": "Ridge Regression",
+      "mae": 0.0684,
+      "rmse": 0.1036,
+      "r2": 0.868,
+      "max_error": 0.7001
+    },
+    {
+      "model": "HistGradientBoosting Regressor",
+      "mae": 0.0311,
+      "rmse": 0.0501,
+      "r2": 0.9691,
+      "max_error": 0.8377
+    },
+    {
+      "model": "Random Forest Regressor",
+      "mae": 0.0321,
+      "rmse": 0.0543,
+      "r2": 0.9637,
+      "max_error": 0.8748
+    }
+  ],
+  "test_metrics": {
+    "model": "HistGradientBoosting Regressor (Test Set)",
+    "mae": 0.0334,
+    "rmse": 0.0526,
+    "r2": 0.9618,
+    "max_error": 0.5453
+  },
+  "persistence_baseline_test": {
+    "model": "Persistence Baseline (Test Set)",
+    "mae": 0.0969,
+    "rmse": 0.1571,
+    "r2": 0.6588,
+    "max_error": 0.9782
+  },
+  "features_used": [
+    "Capacity",
+    "hour",
+    "minute",
+    "day_of_week",
+    "is_weekend",
+    "sin_hour",
+    "cos_hour",
+    "sin_dow",
+    "cos_dow",
+    "lag_1_occ_rate",
+    "lag_2_occ_rate",
+    "lag_3_occ_rate",
+    "occ_velocity",
+    "rolling_mean_3step",
+    "rolling_std_3step"
+  ],
+  "location_sample_mae": {
+    "BHMBCCMKT01": {
+      "samples": 199,
+      "mae": 0.0343,
+      "capacity": 577
+    },
+    "BHMBCCPST01": {
+      "samples": 199,
+      "mae": 0.0457,
+      "capacity": 317
+    },
+    "BHMBCCSNH01": {
+      "samples": 198,
+      "mae": 0.047,
+      "capacity": 863
+    },
+    "BHMBCCTHL01": {
+      "samples": 199,
+      "mae": 0.0452,
+      "capacity": 387
+    },
+    "BHMBRCBRG01": {
+      "samples": 199,
+      "mae": 0.061,
+      "capacity": 1010
+    },
+    "BHMBRCBRG02": {
+      "samples": 198,
+      "mae": 0.0423,
+      "capacity": 1194
+    },
+    "BHMBRCBRG03": {
+      "samples": 198,
+      "mae": 0.0292,
+      "capacity": 849
+    },
+    "BHMBRTARC01": {
+      "samples": 85,
+      "mae": 0.0675,
+      "capacity": 496
+    },
+    "BHMEURBRD01": {
+      "samples": 199,
+      "mae": 0.0319,
+      "capacity": 470
+    },
+    "BHMEURBRD02": {
+      "samples": 198,
+      "mae": 0.0324,
+      "capacity": 220
+    }
+  }
+}

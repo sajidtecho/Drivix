@@ -69,6 +69,12 @@ def preprocess_birmingham_dataset(
     # Also compute 60-min ahead target for multi-horizon planning
     df['target_occupancy_rate_60m'] = grouped['OccupancyRate'].shift(-2)
 
+    # Impute any edge lag_3 using lag_2 before dropping
+    df['lag_3_occ_rate'] = df['lag_3_occ_rate'].fillna(df['lag_2_occ_rate'])
+    df['occ_velocity'] = df['occ_velocity'].fillna(0.0)
+    df['rolling_mean_3step'] = df['rolling_mean_3step'].fillna(df['lag_1_occ_rate'])
+    df['rolling_std_3step'] = df['rolling_std_3step'].fillna(0.0)
+
     # Drop edge rows where lags or target are missing due to shifting
     clean_df = df.dropna(subset=['lag_1_occ_rate', 'lag_2_occ_rate', 'target_occupancy_rate']).copy()
     print(f"Cleaned feature dataset shape: {clean_df.shape}")

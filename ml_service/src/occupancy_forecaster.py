@@ -58,13 +58,13 @@ def train_occupancy_forecaster(
     val_df = pd.read_csv(val_path)
     test_df = pd.read_csv(test_path)
 
-    X_train = train_df[FEATURE_COLUMNS]
+    X_train = train_df[FEATURE_COLUMNS].fillna(0.0)
     y_train = train_df[TARGET_COLUMN].values
 
-    X_val = val_df[FEATURE_COLUMNS]
+    X_val = val_df[FEATURE_COLUMNS].fillna(0.0)
     y_val = val_df[TARGET_COLUMN].values
 
-    X_test = test_df[FEATURE_COLUMNS]
+    X_test = test_df[FEATURE_COLUMNS].fillna(0.0)
     y_test = test_df[TARGET_COLUMN].values
 
     print(f"Features: {len(FEATURE_COLUMNS)} variables")
