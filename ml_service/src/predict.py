@@ -38,28 +38,33 @@ class DrivixPricingInferenceEngine:
         occ = np.clip(predicted_occupancy, 0.0, 1.0)
         
         if occ >= 0.85:
-            multiplier = 1.50
-            alert_label = "Surge Pricing (Critical Demand)"
+            multiplier = 1.05  # Maximum 5% fair surge for peak demand
+            alert_label = "Peak Demand (+5% Fair Adjustment)"
             surge_active = True
         elif occ >= 0.70:
-            multiplier = 1.25
-            alert_label = "Surge Pricing (High Demand)"
+            multiplier = 1.03  # 3% fair surge for high demand
+            alert_label = "High Demand (+3% Fair Adjustment)"
             surge_active = True
         elif occ >= 0.50:
-            multiplier = 1.10
-            alert_label = "Moderate Demand"
+            multiplier = 1.015  # 1.5% adjustment for moderate demand
+            alert_label = "Moderate Demand (+1.5%)"
             surge_active = False
         elif occ >= 0.30:
-            multiplier = 1.00
+            multiplier = 1.00  # Normal base rate
             alert_label = "Normal Base Rate"
             surge_active = False
         else:
-            multiplier = 0.85 # 15% discount
-            alert_label = "Off-Peak Discount (15% Off)"
+            multiplier = 0.97  # 3% discount during off-peak
+            alert_label = "Off-Peak Discount (3% Off)"
             surge_active = False
 
-        hourly_price = round(base_hourly_rate * multiplier)
-        total_estimated_cost = round(hourly_price * duration_hours)
+        hourly_price = round(base_hourly_rate * multiplier, 2)
+        if isinstance(hourly_price, float) and hourly_price.is_integer():
+            hourly_price = int(hourly_price)
+
+        total_estimated_cost = round(hourly_price * duration_hours, 2)
+        if isinstance(total_estimated_cost, float) and total_estimated_cost.is_integer():
+            total_estimated_cost = int(total_estimated_cost)
 
         return {
             'predicted_occupancy_rate': round(float(occ), 4),
