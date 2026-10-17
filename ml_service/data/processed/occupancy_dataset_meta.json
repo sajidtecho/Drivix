@@ -1,0 +1,27 @@
+{
+  "source": "d:\\DrivixApps\\ml_service\\data\\raw\\dataset.csv",
+  "total_records_raw": 35717,
+  "total_records_processed": 35627,
+  "train_rows": 24938,
+  "val_rows": 5344,
+  "test_rows": 5345,
+  "unique_locations": 30,
+  "target_col": "target_occupancy_rate",
+  "feature_cols": [
+    "Capacity",
+    "hour",
+    "minute",
+    "day_of_week",
+    "is_weekend",
+    "sin_hour",
+    "cos_hour",
+    "sin_dow",
+    "cos_dow",
+    "lag_1_occ_rate",
+    "lag_2_occ_rate",
+    "lag_3_occ_rate",
+    "occ_velocity",
+    "rolling_mean_3step",
+    "rolling_std_3step"
+  ]
+}
