@@ -1,0 +1,17 @@
+{
+  "name": "drivix-project-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Drivix Full-Stack Monorepo Root",
+  "scripts": {
+    "dev": "npx -y concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm --prefix WebApp/backend run dev\" \"npm --prefix WebApp/frontend run dev\"",
+    "dev:all": "npx -y concurrently -n \"ML,BACKEND,FRONTEND\" -c \"yellow,cyan,magenta\" \"python ml_service/api/main.py\" \"npm --prefix WebApp/backend run dev\" \"npm --prefix WebApp/frontend run dev\"",
+    "dev:backend": "npm --prefix WebApp/backend run dev",
+    "dev:frontend": "npm --prefix WebApp/frontend run dev",
+    "dev:ml": "uvicorn api.main:app --app-dir ml_service --port 8000 --reload",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "test:ml": "pytest ml_service/tests",
+    "test:backend": "npm --prefix WebApp/backend test"
+  }
+}
