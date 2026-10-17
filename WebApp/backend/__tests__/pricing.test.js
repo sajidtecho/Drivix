@@ -29,11 +29,11 @@ describe('Drivix Dynamic Pricing Engine Unit & Fallback Tests', () => {
       });
 
       expect(res.currentOccupancy).toBe(10);
-      expect(res.multiplier).toBe(0.85); // 15% discount
-      expect(res.recommendedPrice).toBe(51);
+      expect(res.multiplier).toBe(0.97); // 3% discount
+      expect(res.recommendedPrice).toBe(58.2);
     });
 
-    it('should calculate surge multiplier when lot is nearly full', () => {
+    it('should calculate fair surge multiplier (max 5%) when lot is nearly full', () => {
       const res = calculateDynamicPriceSync({
         basePrice: 60,
         totalSlots: 100,
@@ -41,7 +41,8 @@ describe('Drivix Dynamic Pricing Engine Unit & Fallback Tests', () => {
       });
 
       expect(res.currentOccupancy).toBe(90);
-      expect(res.multiplier).toBeGreaterThanOrEqual(1.25);
+      expect(res.multiplier).toBeGreaterThanOrEqual(1.03);
+      expect(res.multiplier).toBeLessThanOrEqual(1.05);
       expect(res.recommendedPrice).toBeGreaterThan(60);
       expect(res.isSurgeActive).toBe(true);
     });

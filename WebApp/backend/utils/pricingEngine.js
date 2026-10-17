@@ -74,20 +74,25 @@ export const calculateDynamicPriceSync = ({
   let peakHourAlert = false;
 
   if (demandScore >= 85) {
-    multiplier = 1.50;
-    pricingAlert = '🔥 Surge Pricing Active (Critical Demand)';
+    multiplier = 1.05; // Maximum 5% fair surge for peak demand
+    pricingAlert = '🔥 Peak Demand Active (+5% Fair Adjustment)';
     peakHourAlert = true;
   } else if (demandScore >= 70) {
-    multiplier = 1.25;
-    pricingAlert = '📈 Surge Pricing Active (High Demand)';
+    multiplier = 1.03; // 3% fair surge for high demand
+    pricingAlert = '📈 Busy Demand Active (+3% Fair Adjustment)';
     peakHourAlert = true;
+  } else if (demandScore >= 50) {
+    multiplier = 1.015; // 1.5% adjustment for moderate demand
+    pricingAlert = 'Moderate Demand (+1.5%)';
+    peakHourAlert = false;
   } else if (demandScore < 30) {
-    multiplier = 0.85; // 15% discount
-    pricingAlert = '🎉 Off-Peak Discount Active';
-    discountSuggestion = 'Save 15% by booking during this low-demand period!';
+    multiplier = 0.97; // 3% gentle off-peak discount
+    pricingAlert = '🎉 Off-Peak Discount Active (3% Off)';
+    discountSuggestion = 'Save 3% by booking during this low-demand period!';
   }
 
-  const recommendedPrice = Math.round(basePrice * multiplier);
+  const rawRecommended = basePrice * multiplier;
+  const recommendedPrice = Math.round(rawRecommended * 100) / 100;
 
   return {
     currentOccupancy: Math.round(currentOccupancyRate * 100),
@@ -200,5 +205,52 @@ export const notifyMlOnlineLearner = (eventData) => {
   } catch (_) {
     // Non-fatal
   }
+};
+
+/**
+ * Queries Stage 1 HistGradientBoosting model in ML service for future lot occupancy
+ */
+export const forecastOccupancyLive = async ({
+  capacity = 100,
+  currentOccupancyRate = 0.5,
+  lag2OccupancyRate = null,
+  lag3OccupancyRate = null,
+  hour = null,
+  minute = null,
+  dayOfWeek = null,
+  isWeekend = null
+} = {}) => {
+  const mlServiceUrl = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000';
+  try {
+    const response = await fetch(`${mlServiceUrl}/api/v1/forecast-occupancy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        capacity,
+        current_occupancy_rate: currentOccupancyRate,
+        lag_2_occupancy_rate: lag2OccupancyRate,
+        lag_3_occupancy_rate: lag3OccupancyRate,
+        hour,
+        minute,
+        day_of_week: dayOfWeek,
+        is_weekend: isWeekend
+      }),
+      signal: AbortSignal.timeout(1500)
+    });
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (err) {
+    // Graceful fallback if ML service is unreachable
+  }
+  const occupiedSlots = Math.round(currentOccupancyRate * capacity);
+  return {
+    predicted_occupancy_rate: currentOccupancyRate,
+    predicted_occupancy_percent: Math.round(currentOccupancyRate * 100),
+    total_capacity: capacity,
+    predicted_occupied_slots: occupiedSlots,
+    predicted_available_slots: Math.max(0, capacity - occupiedSlots),
+    model_version: 'heuristic-occupancy-fallback'
+  };
 };
 
