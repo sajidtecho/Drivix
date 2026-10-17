@@ -57,15 +57,15 @@ def run_end_to_end_demo():
             "duration": 3
         },
         {
-            "title": "Scenario C: Busy Afternoon Demand (3% Surge)",
-            "hour": 16,
+            "title": "Scenario C: High Afternoon Demand (3% Surge)",
+            "hour": 13,
             "minute": 0,
             "day_of_week": 4, # Friday
             "is_weekend": 0,
             "capacity": 1000,
-            "lag_1_occ": 0.74, # 74% full
-            "lag_2_occ": 0.70,
-            "lag_3_occ": 0.65,
+            "lag_1_occ": 0.80, # 80% full
+            "lag_2_occ": 0.78,
+            "lag_3_occ": 0.75,
             "base_rate": 50,
             "duration": 3
         },

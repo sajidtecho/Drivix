@@ -72,8 +72,8 @@ class DrivixPricingInferenceEngine:
             'pricing_multiplier': float(multiplier),
             'alert_label': alert_label,
             'is_surge_active': surge_active,
-            'recommended_hourly_price': int(hourly_price),
-            'total_quoted_cost': int(total_estimated_cost),
+            'recommended_hourly_price': hourly_price,
+            'total_quoted_cost': total_estimated_cost,
             'online_learning_applied': bool(online_applied),
             'online_residual': round(float(online_residual), 4),
             'base_occupancy_rate': round(float(base_occupancy if base_occupancy is not None else occ), 4)
