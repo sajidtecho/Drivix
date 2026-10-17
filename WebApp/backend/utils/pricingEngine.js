@@ -15,13 +15,15 @@ export const calculateDynamicPriceSync = ({
   basePrice,
   totalSlots,
   availableSlots,
+  hour: customHour,
+  dayOfWeek: customDay,
   weather = 'clear',
   isHoliday = false,
   nearbyEvent = false
 }) => {
   const now = new Date();
-  const hour = now.getHours();
-  const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+  const hour = customHour !== undefined ? customHour : now.getHours();
+  const dayOfWeek = customDay !== undefined ? customDay : now.getDay(); // 0 = Sunday, 6 = Saturday
 
   // 1. Calculate current occupancy rate
   const occupiedSlots = totalSlots - availableSlots;

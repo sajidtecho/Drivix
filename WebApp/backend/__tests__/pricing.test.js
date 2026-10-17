@@ -8,6 +8,8 @@ describe('Drivix Dynamic Pricing Engine Unit & Fallback Tests', () => {
         basePrice: 60,
         totalSlots: 100,
         availableSlots: 60,
+        hour: 14,
+        dayOfWeek: 2,
         weather: 'clear',
         isHoliday: false,
         nearbyEvent: false
@@ -25,7 +27,9 @@ describe('Drivix Dynamic Pricing Engine Unit & Fallback Tests', () => {
       const res = calculateDynamicPriceSync({
         basePrice: 60,
         totalSlots: 100,
-        availableSlots: 90 // 10% occupied
+        availableSlots: 90, // 10% occupied
+        hour: 3, // 3 AM off-peak
+        dayOfWeek: 2
       });
 
       expect(res.currentOccupancy).toBe(10);
