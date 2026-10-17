@@ -117,8 +117,8 @@ def run_end_to_end_demo():
         )
 
         print(f"Stage 1 Prediction: Expected Occupancy = {pred_occ*100:.1f}% ({predicted_slots}/{sc['capacity']} occupied, {remaining_slots} slots free)")
-        print(f"Stage 2 Pricing:    Rate = ₹{quote['recommended_hourly_price']}/hr (Multiplier: {quote['pricing_multiplier']}x)")
-        print(f"                    Total ({sc['duration']}h) = ₹{quote['total_estimated_cost']}")
+        print(f"Stage 2 Pricing:    Rate = Rs. {quote['recommended_hourly_price']}/hr (Multiplier: {quote['pricing_multiplier']}x)")
+        print(f"                    Total ({sc['duration']}h) = Rs. {quote['total_quoted_cost']}")
         print(f"                    Badge: [{quote['alert_label']}]")
 
 if __name__ == "__main__":
