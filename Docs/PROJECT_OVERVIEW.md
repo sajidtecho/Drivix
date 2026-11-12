@@ -96,3 +96,4 @@ Drivix is architected as a decoupled monorepo adhering to service-oriented separ
 2. **Express API Server** acts as the central orchestrator, executing business rules, database queries, and atomic concurrency locks.
 3. **MongoDB Atlas** persists state across parking facilities, floors, slots, users, vehicles, and bookings.
 4. **FastAPI ML Service** runs inference for dynamic pricing and continuously learns from incoming transaction telemetry.
+

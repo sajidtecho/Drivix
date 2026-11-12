@@ -361,3 +361,4 @@ Temporary verification codes for pre-registration email authentication.
 - **`reviews` (Model: `Review`)**: Facility user reviews with star ratings (1-5) and feedback notes.
 - **`notifications` (Model: `Notification`)**: In-app notifications with types (`'booking'`, `'payment'`, `'complaint'`, `'system'`) and read status.
 - **`parkingslots` (Model: `ParkingSlot`)**: Redundant standalone slot model; superseded by `Slot.js`.
+

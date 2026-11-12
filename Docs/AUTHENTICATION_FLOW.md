@@ -162,3 +162,4 @@ Drivix enforces a two-tier Role-Based Access Control model:
   }
   ```
 - Non-admin users attempting to open `/admin` routes are immediately redirected to the home page.
+

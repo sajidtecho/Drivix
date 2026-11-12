@@ -174,3 +174,4 @@ Runs continuously every **10 seconds** in `WebApp/backend/server.js`:
 4. **Sweep 4: 30-Minute Arrival Check Prompt**:
    - Emits `arrivalConfirmationPrompt` via Socket.IO to remind driver of upcoming reservation.
    - If driver is more than 15 minutes late past start time without confirming, marks booking `'Expired'`.
+

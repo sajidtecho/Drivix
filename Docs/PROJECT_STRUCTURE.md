@@ -292,3 +292,4 @@ ml_service/
 ├── Dockerfile                 # Python 3.10 slim FastAPI container specification
 └── requirements.txt           # Python package requirements (fastapi, uvicorn, scikit-learn, xgboost, pymongo)
 ```
+

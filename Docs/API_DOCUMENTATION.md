@@ -388,3 +388,4 @@
 | `bookingUpdated` | Server → Client | `{ userId, bookingId, slotId, status }` | Targeted alert updating driver ticket states. |
 | `arrivalConfirmationPrompt` | Server → Client | `{ bookingId, customId, message, options }` | High-priority 30-minute arrival prompt alert sent to user client. |
 | `bookingRemoved` | Server → Client | `{ userId, bookingId }` | Administrative emergency cancellation alert. |
+
