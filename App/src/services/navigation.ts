@@ -1,4 +1,4 @@
-import { Platform, Linking, Alert } from 'react-native';
+import { Platform, Linking } from 'react-native';
 import * as Location from 'expo-location';
 import { resolveHubCoordinates } from './locationService';
 
@@ -6,13 +6,19 @@ interface NavigationParams {
   latitude?: number | null;
   longitude?: number | null;
   locationName?: string;
+  address?: string;
 }
 
 /**
- * Launches live GPS turn-by-turn navigation directly from the user's current live location
- * to the destination parking facility on mobile, eliminating location search prompts.
+ * Universal, fail-safe function to launch Google Maps with turn-by-turn driving directions
+ * directly to the target parking facility.
+ * Works seamlessly across Android (native Google Maps app or browser), iOS, and Web.
  */
-export const launchMobileLiveGpsNavigation = async ({ latitude, longitude, locationName }: NavigationParams) => {
+export const launchMobileLiveGpsNavigation = async ({
+  latitude,
+  longitude,
+  locationName,
+}: NavigationParams) => {
   const resolved = resolveHubCoordinates({
     latitude: latitude || undefined,
     longitude: longitude || undefined,
@@ -21,31 +27,80 @@ export const launchMobileLiveGpsNavigation = async ({ latitude, longitude, locat
   const lat = resolved.latitude;
   const lon = resolved.longitude;
 
-  let originStr = 'Current+Location';
-
+  // Attempt to retrieve user's real GPS coordinates
+  let originParam = '';
   try {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status === 'granted') {
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
       if (pos?.coords?.latitude && pos?.coords?.longitude) {
-        originStr = `${pos.coords.latitude},${pos.coords.longitude}`;
+        originParam = `&origin=${pos.coords.latitude},${pos.coords.longitude}`;
       }
     }
   } catch (err) {
-    console.warn('Expo location fetch fallback to Current Location:', err);
+    console.log('Location permission or GPS lookup skipped:', err);
   }
 
-  const googleMapsDirUrl = `https://www.google.com/maps/dir/?api=1&origin=${originStr}&destination=${lat},${lon}&travelmode=driving`;
+  // Universal Google Maps Direction URL (omitting origin lets Google Maps use live device GPS)
+  const universalGoogleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}${originParam}&travelmode=driving`;
 
-  const url = Platform.select({
-    ios: `maps://app?saddr=${originStr}&daddr=${lat},${lon}&dirflg=d`,
-    android: `google.navigation:q=${lat},${lon}&mode=d`,
-    default: googleMapsDirUrl,
-  });
+  // iOS-specific Google Maps app URL scheme
+  const iosGoogleMapsAppUrl = `comgooglemaps://?daddr=${lat},${lon}&directionsmode=driving`;
 
-  Linking.openURL(url || googleMapsDirUrl).catch(() => {
-    Linking.openURL(googleMapsDirUrl).catch(() => {
-      if (typeof window !== 'undefined') window.open(googleMapsDirUrl, '_blank');
-    });
-  });
+  // Apple Maps fallback for iOS
+  const appleMapsUrl = `maps://app?daddr=${lat},${lon}&dirflg=d`;
+
+  try {
+    if (Platform.OS === 'ios') {
+      const canOpenGoogleMaps = await Linking.canOpenURL(iosGoogleMapsAppUrl);
+      if (canOpenGoogleMaps) {
+        await Linking.openURL(iosGoogleMapsAppUrl);
+        return;
+      }
+      // Fallback to universal Google Maps web/app link
+      await Linking.openURL(universalGoogleMapsUrl);
+      return;
+    }
+
+    if (Platform.OS === 'android') {
+      // Android App Link: Android OS automatically routes google.com/maps to the Google Maps native app
+      const canOpen = await Linking.canOpenURL(universalGoogleMapsUrl);
+      if (canOpen) {
+        await Linking.openURL(universalGoogleMapsUrl);
+        return;
+      }
+
+      // Geo intent fallback
+      const geoIntentUrl = `geo:${lat},${lon}?q=${lat},${lon}(${encodeURIComponent(locationName || 'Drivix Parking')})`;
+      await Linking.openURL(geoIntentUrl);
+      return;
+    }
+
+    // Default / Web
+    await Linking.openURL(universalGoogleMapsUrl);
+  } catch (error) {
+    console.warn('Navigation launch error, falling back to browser:', error);
+    // Ultimate fallback: open in browser
+    try {
+      await Linking.openURL(universalGoogleMapsUrl);
+    } catch {
+      if (typeof window !== 'undefined') {
+        window.open(universalGoogleMapsUrl, '_blank');
+      }
+    }
+  }
+};
+
+/**
+ * Opens Google Maps centered on a specific area or facility pin
+ */
+export const openGoogleMapsLocation = async (latitude: number, longitude: number, label?: string) => {
+  const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+  try {
+    await Linking.openURL(url);
+  } catch (e) {
+    console.warn('Could not open Google Maps location:', e);
+  }
 };
