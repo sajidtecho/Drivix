@@ -35,7 +35,7 @@ import { Typography } from '../../theme/typography';
 import { parkingApi } from '../../api/parkingApi';
 import { useBooking } from '../../store/BookingContext';
 import { ParkingLocation } from '../../types';
-import { launchMobileLiveGpsNavigation } from '../../services/navigation';
+import { launchMobileLiveGpsNavigation, openGoogleMapsLocation } from '../../services/navigation';
 import { checkIsOnlineBookingAllowed } from '../../services/bookingEligibility';
 import {
   getUserLiveLocation,
@@ -297,7 +297,6 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
           <MapView
             ref={mapRef}
             style={StyleSheet.absoluteFill}
-            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
             initialRegion={DEFAULT_REGION}
             customMapStyle={DARK_GOOGLE_MAP_STYLES}
             showsUserLocation={true}
@@ -346,9 +345,27 @@ export const NetworkMapModal: React.FC<NetworkMapModalProps> = ({
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.locateBtn} onPress={handleLocateMe} activeOpacity={0.85}>
-              <Compass size={18} color="#FFC928" />
-            </TouchableOpacity>
+            <View style={styles.floatingRightGroup}>
+              <TouchableOpacity
+                style={styles.openMapsBtn}
+                onPress={() => {
+                  const target = selectedLocation || filteredLocations[0];
+                  if (target?.latitude && target?.longitude) {
+                    openGoogleMapsLocation(target.latitude, target.longitude, target.parkingName);
+                  } else {
+                    openGoogleMapsLocation(28.5355, 77.3910, 'Drivix Smart Parking Network');
+                  }
+                }}
+                activeOpacity={0.85}
+              >
+                <NavigationIcon size={13} color="#171717" style={{ marginRight: 4 }} />
+                <Text style={styles.openMapsBtnText}>Google Maps</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.locateBtn} onPress={handleLocateMe} activeOpacity={0.85}>
+                <Compass size={18} color="#FFC928" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Collapsible Sites List Overlay Drawer */}
@@ -725,6 +742,28 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   floatingBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#171717',
+  },
+  floatingRightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  openMapsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryYellow,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  openMapsBtnText: {
     fontSize: 12,
     fontWeight: '800',
     color: '#171717',
