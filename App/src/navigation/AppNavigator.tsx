@@ -24,11 +24,13 @@ import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { CarWashDiscoveryScreen } from '../screens/wash/CarWashDiscoveryScreen';
 import { OnboardingScreen } from '../screens/onboarding';
+import { SplashScreen } from '../screens/splash';
 
 // Types
 import { ParkingLocation, Booking } from '../types';
 
 export type RootStackParamList = {
+  Splash: undefined;
   Onboarding: undefined;
   MainTabs: undefined;
   ParkingDetail: { facility: ParkingLocation };
@@ -186,6 +188,16 @@ const ActiveParkingScreenAdapter = ({ navigation, route }: any) => {
       bookingId={cleanId}
       onBack={() => navigation.goBack()}
       onCheckoutSuccess={() => navigation.navigate('MainTabs')}
+    />
+  );
+};
+
+const SplashScreenAdapter = ({ navigation }: any) => {
+  return (
+    <SplashScreen
+      onFinish={() => {
+        navigation.replace('Onboarding');
+      }}
     />
   );
 };
