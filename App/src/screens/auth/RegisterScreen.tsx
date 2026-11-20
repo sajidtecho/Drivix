@@ -140,7 +140,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
             {/* Full Name */}
             <Input
               label="Full Name"
-              placeholder="e.g. Rahul Sharma"
+              placeholder="Enter your full name"
               value={fullName}
               onChangeText={(text) => {
                 setFullName(text);
@@ -153,7 +153,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
             {/* Email Address */}
             <Input
               label="Email Address"
-              placeholder="e.g. rahul@example.com"
+              placeholder="Enter your email (e.g. name@gmail.com)"
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -168,7 +168,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
             {/* Mobile Number (Optional) */}
             <Input
               label="Mobile Number (Optional)"
-              placeholder="e.g. 9876543210"
+              placeholder="Enter 10-digit mobile number"
               value={mobile}
               onChangeText={(text) => {
                 setMobile(text.replace(/\D/g, '').slice(0, 10));
