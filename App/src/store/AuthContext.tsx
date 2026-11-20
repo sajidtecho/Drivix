@@ -29,8 +29,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const profile = await authApi.getProfile();
         setUser(profile);
       }
-    } catch (err) {
-      console.warn('[AuthContext] Session restoration notice:', err);
+    } catch (err: any) {
+      const isUnauthorized = err?.response?.status === 401 || err?.status === 401;
+      if (isUnauthorized) {
+        // Expired or invalid token: gracefully clear session without throwing an alarming yellow LogBox warning
+        console.log('[AuthContext] Stored session expired or invalid. Cleared token.');
+      } else {
+        console.warn('[AuthContext] Session restoration notice:', err?.message || err);
+      }
       await storage.removeToken();
       setToken(null);
       setUser(null);
@@ -84,8 +90,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const profile = await authApi.getProfile();
       setUser(profile);
-    } catch (err) {
-      console.warn('[AuthContext] Profile refresh error:', err);
+    } catch (err: any) {
+      if (err?.response?.status === 401 || err?.status === 401) {
+        await logout();
+      } else {
+        console.warn('[AuthContext] Profile refresh error:', err?.message || err);
+      }
     }
   };
 
