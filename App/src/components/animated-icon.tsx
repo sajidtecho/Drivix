@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import * as SplashScreen from 'expo-splash-screen';
-import { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import { Colors } from '../theme/colors';
 
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
@@ -33,12 +34,26 @@ export function AnimatedSplashOverlay() {
     },
   });
 
-  const image = (
-    <Image 
-      style={styles.logoImage} 
-      source={require('@/assets/images/Logo.png')} 
-      contentFit="contain" 
-    />
+  const splashContent = (
+    <View style={styles.centerContainer}>
+      {/* Outer subtle ripple circle */}
+      <View style={styles.outerCircle}>
+        {/* Middle subtle ripple circle */}
+        <View style={styles.middleCircle}>
+          {/* Inner white circular card */}
+          <View style={styles.innerCircle}>
+            {/* Connected smart car icon */}
+            <Image
+              style={styles.carIcon}
+              source={require('@/assets/images/car_icon.png')}
+              contentFit="contain"
+            />
+            {/* Drivix in vibrant yellow font color */}
+            <Text style={styles.brandText}>Drivix</Text>
+          </View>
+        </View>
+      </View>
+    </View>
   );
 
   return animate ? (
@@ -50,7 +65,7 @@ export function AnimatedSplashOverlay() {
         }
       })}
       style={styles.splashOverlay}>
-      {image}
+      {splashContent}
     </Animated.View>
   ) : (
     <View
@@ -60,7 +75,7 @@ export function AnimatedSplashOverlay() {
         });
       }}
       style={styles.splashOverlay}>
-      {image}
+      {splashContent}
     </View>
   );
 }
@@ -148,9 +163,58 @@ const styles = StyleSheet.create({
     height: 128,
     position: 'absolute',
   },
+  centerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outerCircle: {
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: '#F7F8FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  middleCircle: {
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: '#EFF2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  innerCircle: {
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  carIcon: {
+    width: 68,
+    height: 60,
+    marginBottom: 6,
+  },
+  brandText: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: Colors.primaryYellow || '#FFC928',
+    letterSpacing: 0.5,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'Roboto',
+      default: 'sans-serif',
+    }),
+  },
   splashOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#0b0c10',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
