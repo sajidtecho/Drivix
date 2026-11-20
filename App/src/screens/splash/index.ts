@@ -1,1 +1,2 @@
 export { SplashScreen } from './SplashScreen';
+

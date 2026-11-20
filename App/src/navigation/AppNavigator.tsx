@@ -301,15 +301,26 @@ const BottomTabNavigator = () => {
 export const AppNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="Onboarding"
+      initialRouteName="Splash"
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: Colors.background },
         animation: 'slide_from_right',
       }}
     >
-      {/* Onboarding Screen (Directly after Splash Screen) */}
-      <Stack.Screen name="Onboarding" component={OnboardingScreenAdapter} />
+      {/* 1. Splash Screen (Brand Launch) */}
+      <Stack.Screen
+        name="Splash"
+        component={SplashScreenAdapter}
+        options={{ animation: 'fade' }}
+      />
+
+      {/* 2. Onboarding Screen (Directly after Splash Screen) */}
+      <Stack.Screen
+        name="Onboarding"
+        component={OnboardingScreenAdapter}
+        options={{ animation: 'fade' }}
+      />
 
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
 

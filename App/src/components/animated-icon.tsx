@@ -10,74 +10,12 @@ const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
 
 export function AnimatedSplashOverlay() {
-  const [animate, setAnimate] = useState(false);
-  const [visible, setVisible] = useState(true);
+  React.useEffect(() => {
+    // Release native expo splash screen so React Navigation's SplashScreen takes over
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
 
-  if (!visible) return null;
-
-  const splashKeyframe = new Keyframe({
-    0: {
-      transform: [{ scale: 1 }],
-      opacity: 1,
-    },
-    20: {
-      opacity: 1,
-    },
-    70: {
-      opacity: 0,
-      easing: Easing.elastic(0.7),
-    },
-    100: {
-      opacity: 0,
-      transform: [{ scale: 1 }],
-      easing: Easing.elastic(0.7),
-    },
-  });
-
-  const splashContent = (
-    <View style={styles.centerContainer}>
-      {/* Outer subtle ripple circle */}
-      <View style={styles.outerCircle}>
-        {/* Middle subtle ripple circle */}
-        <View style={styles.middleCircle}>
-          {/* Inner white circular card */}
-          <View style={styles.innerCircle}>
-            {/* Connected smart car icon */}
-            <Image
-              style={styles.carIcon}
-              source={require('@/assets/images/car_icon.png')}
-              contentFit="contain"
-            />
-            {/* Drivix in vibrant yellow font color */}
-            <Text style={styles.brandText}>Drivix</Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-
-  return animate ? (
-    <Animated.View
-      entering={splashKeyframe.duration(DURATION).withCallback((finished) => {
-        'worklet';
-        if (finished) {
-          scheduleOnRN(setVisible, false);
-        }
-      })}
-      style={styles.splashOverlay}>
-      {splashContent}
-    </Animated.View>
-  ) : (
-    <View
-      onLayout={() => {
-        SplashScreen.hideAsync().finally(() => {
-          setAnimate(true);
-        });
-      }}
-      style={styles.splashOverlay}>
-      {splashContent}
-    </View>
-  );
+  return null;
 }
 
 const keyframe = new Keyframe({
