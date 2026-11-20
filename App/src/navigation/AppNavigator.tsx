@@ -23,11 +23,13 @@ import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { CarWashDiscoveryScreen } from '../screens/wash/CarWashDiscoveryScreen';
+import { OnboardingScreen } from '../screens/onboarding';
 
 // Types
 import { ParkingLocation, Booking } from '../types';
 
 export type RootStackParamList = {
+  Onboarding: undefined;
   MainTabs: undefined;
   ParkingDetail: { facility: ParkingLocation };
   CarWashDiscovery: undefined;
