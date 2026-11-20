@@ -190,6 +190,16 @@ const ActiveParkingScreenAdapter = ({ navigation, route }: any) => {
   );
 };
 
+const OnboardingScreenAdapter = ({ navigation }: any) => {
+  return (
+    <OnboardingScreen
+      onComplete={() => {
+        navigation.replace('MainTabs');
+      }}
+    />
+  );
+};
+
 const LoginScreenAdapter = ({ navigation }: any) => {
   return (
     <LoginScreen
@@ -279,13 +289,16 @@ const BottomTabNavigator = () => {
 export const AppNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="MainTabs"
+      initialRouteName="Onboarding"
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: Colors.background },
         animation: 'slide_from_right',
       }}
     >
+      {/* Onboarding Screen (Directly after Splash Screen) */}
+      <Stack.Screen name="Onboarding" component={OnboardingScreenAdapter} />
+
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
 
       {/* Parking Discovery & Booking Flow */}
